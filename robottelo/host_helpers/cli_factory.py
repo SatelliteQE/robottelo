@@ -546,34 +546,6 @@ class CLIFactory:
 
         return create_object(self._satellite.cli.Template, args, options)
 
-    def activationkey_add_subscription_to_repo(self, options=None):
-        """Helper function that adds subscription to an activation key"""
-        # List the subscriptions in given org
-        subscriptions = self._satellite.cli.Subscription.list(
-            {'organization-id': options['organization-id']}, per_page=False
-        )
-        # Add subscription to activation-key
-        if options['subscription'] not in (sub['name'] for sub in subscriptions):
-            raise CLIFactoryError(
-                'Subscription {} not found in the given org'.format(options['subscription'])
-            )
-        for subscription in subscriptions:
-            if subscription['name'] == options['subscription']:
-                if subscription['quantity'] != 'Unlimited' and int(subscription['quantity']) == 0:
-                    raise CLIFactoryError('All the subscriptions are already consumed')
-                try:
-                    self._satellite.cli.ActivationKey.add_subscription(
-                        {
-                            'id': options['activationkey-id'],
-                            'subscription-id': subscription['id'],
-                            'quantity': 1,
-                        }
-                    )
-                except CLIReturnCodeError as err:
-                    raise CLIFactoryError(
-                        f'Failed to add subscription to activation key\n{err.msg}'
-                    ) from err
-
     def override_repos_for_activation_key(self, ak_id, repos, value=True):
         """Hammer override satellite repo(s) to value for Activation Key.
 
@@ -722,15 +694,6 @@ class CLIFactory:
                     f'Failed to associate activation-key with CV\n{err.msg}'
                 ) from err
 
-        # Add custom_product subscription to activation-key, if SCA mode is disabled
-        if self._satellite.is_sca_mode_enabled(org_id) is False:
-            self.activationkey_add_subscription_to_repo(
-                {
-                    'activationkey-id': activationkey_id,
-                    'organization-id': org_id,
-                    'subscription': custom_product['name'],
-                }
-            )
         # Override custom product to true ( turned off by default in 6.14 )
         custom_repo = self._satellite.cli.Repository.info({'id': custom_repo['id']})
         self._satellite.cli.ActivationKey.content_override(
@@ -874,17 +837,6 @@ class CLIFactory:
                     f'Failed to associate activation-key with CV\n{err.msg}'
                 ) from err
 
-        # Add default subscription to activation-key, if SCA mode is disabled
-        if self._satellite.is_sca_mode_enabled(org_id) is False:
-            self.activationkey_add_subscription_to_repo(
-                {
-                    'organization-id': org_id,
-                    'activationkey-id': activationkey_id,
-                    'subscription': options.get(
-                        'subscription', constants.DEFAULT_SUBSCRIPTION_NAME
-                    ),
-                }
-            )
         # Override RHST product to true ( turned off by default in 6.14 )
         rhel_repo = self._satellite.cli.Repository.info({'id': rhel_repo['id']})
         self._satellite.cli.ActivationKey.content_override(
@@ -1058,7 +1010,6 @@ class CLIFactory:
         lce_id=None,
         repos=None,
         download_policy='on_demand',
-        rh_subscriptions=None,
         default_cv=False,
     ):
         """Setup cdn and custom repositories, content view and activations key
@@ -1069,14 +1020,10 @@ class CLIFactory:
         :param bool default_cv: whether to use the Default Organization CV
         :param str download_policy: update the repositories with this download
             policy
-        :param list rh_subscriptions: a list of RH subscription to attach to
-            activation key
         :return: a dict containing the activation key, content view and repos info
         """
         if repos is None:
             repos = []
-        if rh_subscriptions is None:
-            rh_subscriptions = []
 
         custom_product, repos_info = self.setup_cdn_and_custom_repositories(
             org_id=org_id, repos=repos, download_policy=download_policy

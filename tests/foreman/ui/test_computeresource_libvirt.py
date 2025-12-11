@@ -203,7 +203,7 @@ def test_positive_provision_end_to_end(
 
         # Verify SecureBoot is enabled on host after provisioning is completed successfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
-            host = sat.api.Host().search(query={'host': hostname})[0].read()
+            host = sat.api.Host().search(query={'search': f'name={name}'})[0].read()
             provisioning_host = ContentHost(host.ip)
             # Wait for the host to be rebooted and SSH daemon to be started.
             provisioning_host.wait_for_connection()

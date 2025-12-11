@@ -150,11 +150,6 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         ak = target_sat.api.ActivationKey(
             content_view=content_view, organization=function_org, environment=environment
         ).create()
-        if not target_sat.is_sca_mode_enabled(function_org.id):
-            subscription = target_sat.api.Subscription(organization=function_org).search(
-                query={'search': f'name={product.name}'}
-            )[0]
-            ak.add_subscriptions(data={'subscription_id': subscription.id})
         # Override/enable all AK repos (disabled by default since 6.15)
         c_labels = [
             i['label'] for i in ak.product_content(data={'content_access_mode_all': '1'})['results']

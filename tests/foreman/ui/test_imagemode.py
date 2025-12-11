@@ -14,11 +14,12 @@
 import json
 import time
 
-from fauxfactory import gen_string
+from fauxfactory import gen_alpha, gen_string
 import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
+    BOOTABLE_REPO,
     DEFAULT_LOC,
     DUMMY_BOOTC_FACTS,
     OSCAP_PERIOD,
@@ -30,8 +31,6 @@ from tests.foreman.longrun.test_oscap import (
     find_content_to_update,
     update_scap_content,
 )
-
-# Settings for oscap test
 
 
 def test_bootc_booted_container_images(
@@ -383,3 +382,62 @@ def test_positive_oscap_remediation_bootc(module_org, default_proxy, target_sat,
         )
         session.oscapreport.remediate(f'id={arf_id}', title)
         assert contenthost.execute("rpm -q aide").status == 0
+
+
+@pytest.mark.parametrize('setting_update', ['lab_features=True'], indirect=True)
+def test_synced_repo_manifest_read(function_org, function_product, setting_update, target_sat):
+    """Create and sync a container repository, and read it's manifest details
+
+    :id: f7d9e328-a8af-4bc0-bb90-e5c612e8ff93
+
+    :parametrized: yes
+
+    :steps:
+        1. Sync a docker Repository
+        2. Read the docker_manifest_list and docker_manifests information
+        3. Navigate to the Container Images feature.
+        4. Read the manifest information for a manifest list
+        5. Read the manifest information for a child manifest
+
+    :expectedresults: The manifest list and child manifest details are listed correctly.
+
+    :Verifies: SAT-38204, SAT-38201
+    """
+    repo = target_sat.api.Repository(
+        name=gen_alpha(),
+        content_type='docker',
+        docker_upstream_name=BOOTABLE_REPO['upstream_name'],
+        product=function_product,
+        url=settings.container.pulp.registry_hub,
+    ).create()
+    repo.sync()
+    repo = repo.read()
+    assert repo.content_counts['docker_manifest'] > 0
+    manifest_list = target_sat.api.Repository(id=repo.id).docker_manifest_lists()['results'][0]
+    manifest = target_sat.api.Repository(id=repo.id).docker_manifests()['results'][0]
+    label_list = []
+    for label in manifest['labels'].items():
+        label_list.append(f'{label[0]} = {label[1]}')
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        # Verify manifest list information
+        synced_manifest_list_info = session.containerimages.read_manifest_details(
+            manifest_list['tags'][0]['name'], manifest_list['digest']
+        )
+        assert synced_manifest_list_info['manifest_type'].lower() == manifest_list['manifest_type']
+        assert 'No labels' in synced_manifest_list_info['manifest_labels']
+        assert synced_manifest_list_info['manifest_repository'] == repo.name
+        assert synced_manifest_list_info['manifest_digest'] == manifest_list['digest']
+        assert synced_manifest_list_info['manifest_name'] == manifest_list['tags'][0]['name']
+        # Verify child manifest information
+        # Workaround for navigation bug
+        session.browser.refresh()
+        synced_child_manifest_info = session.containerimages.read_manifest_details(
+            manifest_list['tags'][0]['name'], manifest['digest'], is_child=True
+        )
+        assert synced_child_manifest_info['manifest_type'].lower() == manifest['content_type']
+        for label in label_list:
+            assert label in synced_child_manifest_info['manifest_labels']
+        assert synced_child_manifest_info['manifest_repository'] == repo.name
+        assert synced_child_manifest_info['manifest_digest'] == manifest['digest']

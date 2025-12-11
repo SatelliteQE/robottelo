@@ -2323,7 +2323,7 @@ def test_negative_readonly_user_actions(
 
 
 def test_negative_non_readonly_user_actions(
-    target_sat, content_view, module_org, function_role_with_org
+    target_sat, content_view, module_org, function_role_with_org, default_location
 ):
     """Attempt to view content views
 
@@ -2356,6 +2356,7 @@ def test_negative_non_readonly_user_actions(
     # create a user and assign the above created role
     target_sat.api.User(
         organization=[module_org],
+        location=[default_location],
         role=[function_role_with_org],
         login=user_login,
         password=user_password,

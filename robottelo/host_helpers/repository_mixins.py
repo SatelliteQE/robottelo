@@ -716,34 +716,6 @@ class RepositoryCollection:
                         'value': int(override),
                     }
                 )
-        if self.satellite.is_sca_mode_enabled(org_id):
-            return activation_key
-        # Add subscriptions to activation-key
-        # Get organization subscriptions
-        subscriptions = self.satellite.cli.Subscription.list(
-            {'organization-id': org_id}, per_page=False
-        )
-        added_subscription_names = []
-        for subscription in subscriptions:
-            if (
-                subscription['name'] in subscription_names
-                and subscription['name'] not in added_subscription_names
-            ):
-                self.satellite.cli.ActivationKey.add_subscription(
-                    {
-                        'id': activation_key['id'],
-                        'subscription-id': subscription['id'],
-                        'quantity': 1,
-                    }
-                )
-                added_subscription_names.append(subscription['name'])
-                if len(added_subscription_names) == len(subscription_names):
-                    break
-        missing_subscription_names = set(subscription_names).difference(
-            set(added_subscription_names)
-        )
-        if missing_subscription_names:
-            raise ValueError(f'Missing subscriptions: {missing_subscription_names}')
         return activation_key
 
     def organization_has_manifest(self, organization_id):
@@ -760,7 +732,6 @@ class RepositoryCollection:
         org_id,
         lce_id,
         download_policy='on_demand',
-        rh_subscriptions=None,
         override=None,
     ):
         """
@@ -769,34 +740,15 @@ class RepositoryCollection:
         :param org_id: The organization id
         :param lce_id: The lifecycle environment id
         :param download_policy: The repositories download policy
-        :param rh_subscriptions: The RH subscriptions to be added to activation key
         :param override: Content override (True = enable, False = disable, None = no action)
         """
         if self._repos_info:
             raise RepositoryAlreadyCreated('Repositories already created can not setup content')
-        if rh_subscriptions is None:
-            rh_subscriptions = []
-        if self.need_subscription and not rh_subscriptions:
-            # add the default subscription if no subscription provided
-            rh_subscriptions = [constants.DEFAULT_SUBSCRIPTION_NAME]
         custom_product, repos_info = self.setup(org_id=org_id, download_policy=download_policy)
         content_view, lce = self.setup_content_view(org_id, lce_id)
-        custom_product_name = custom_product['name'] if custom_product else None
-        subscription_names = list(rh_subscriptions)
-        if custom_product_name:
-            subscription_names.append(custom_product_name)
-        if not self.satellite.is_sca_mode_enabled(org_id):
-            activation_key = self.setup_activation_key(
-                org_id,
-                content_view['id'],
-                lce_id,
-                subscription_names=subscription_names,
-                override=override,
-            )
-        else:
-            activation_key = self.setup_activation_key(
-                org_id, content_view['id'], lce_id, override=override
-            )
+        activation_key = self.setup_activation_key(
+            org_id, content_view['id'], lce_id, override=override
+        )
         setup_content_data = dict(
             activation_key=activation_key,
             content_view=content_view,

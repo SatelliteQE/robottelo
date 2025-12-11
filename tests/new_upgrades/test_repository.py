@@ -79,11 +79,6 @@ def custom_repo_check_setup(sat_upgrade_chost, content_upgrade_shared_satellite,
         ak = target_sat.api.ActivationKey(
             content_view=content_view, organization=org.id, environment=lce, name=test_name
         ).create()
-        if not target_sat.is_sca_mode_enabled(org.id):
-            subscription = target_sat.api.Subscription(organization=org).search(
-                query={'search': f'name={product.name}'}
-            )[0]
-            ak.add_subscriptions(data={'subscription_id': subscription.id})
         sat_upgrade_chost.api_register(
             target_sat, organization=org, activation_keys=[ak.name], location=None
         )

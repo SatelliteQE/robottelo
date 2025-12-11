@@ -494,4 +494,4 @@ class IoPSetup:
 
         result = self.execute(command, timeout='30m')
         assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
-        assert self.local_advisor_enabled
+        assert self.iop_enabled

@@ -72,11 +72,10 @@ def test_positive_install_iop_custom_certs(
     host = rhel_contenthost
     iop_settings = settings.rh_cloud.iop_advisor_engine
 
-    # Set IPv6 system proxy on Satellite, to reach container registry
-    satellite.enable_ipv6_system_proxy()
+    # Satellite + IoP installation
 
-    # Set IPv6 dnf proxy on Content Host, to install insights-client from non-Satellite source
-    host.enable_ipv6_dnf_proxy()
+    # Set IPv6 proxy for shell commands
+    satellite.enable_ipv6_system_proxy()
 
     # Install satellite packages
     satellite.download_repofile(
@@ -86,7 +85,6 @@ def test_positive_install_iop_custom_certs(
     )
     satellite.register_to_cdn()
     satellite.execute('dnf -y update')
-    satellite.execute('dnf -y install podman')
     satellite.install_satellite_or_capsule_package()
 
     # Set up firewall
@@ -105,6 +103,9 @@ def test_positive_install_iop_custom_certs(
 
     result = satellite.execute('firewall-cmd --runtime-to-permanent')
     assert result.status == 0
+
+    # Set IPv6 proxy for podman to pull images
+    satellite.enable_ipv6_podman_proxy()
 
     # Log in to container registry
     result = satellite.execute(
@@ -149,8 +150,12 @@ def test_positive_install_iop_custom_certs(
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
-        auto_attach=False,
     ).create()
+
+    # Host setup
+
+    # Set IPv6 proxy on Content Host for (non-Satellite) dnf repos
+    host.enable_ipv6_dnf_proxy()
 
     host.configure_rex(satellite=satellite, org=org, register=False)
     host.configure_insights_client(
@@ -160,6 +165,7 @@ def test_positive_install_iop_custom_certs(
         rhel_distro=f"rhel{host.os_version.major}",
     )
 
+    # Verify insights-client upload
     result = host.execute('insights-client')
     assert result.status == 0, 'insights-client upload failed'
 
@@ -198,7 +204,6 @@ def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
-        auto_attach=False,
     ).create()
 
     host.configure_rex(satellite=satellite, org=org, register=False)
@@ -216,6 +221,9 @@ def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost
     command = InstallerCommand(iop_ensure='absent').get_command()
     result = satellite.execute(command, timeout='10m')
     assert result.status == 0, 'Failed to disable IoP'
+
+    result = satellite.execute('satellite-maintain service restart')
+    assert result.status == 0, 'Failed to restart Satellite services'
 
     result = satellite.execute('podman ps -a --noheading')
     assert result.stdout == '', 'Podman containers not removed'
@@ -238,25 +246,89 @@ def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost
     # Verify insights-client re-registration
     result = host.execute('insights-client --status')
     assert 'Insights API says this machine is NOT registered.' in result.stdout, (
-        'insights-client still registered after disabling IoP'
+        'insights-client status check failed'
     )
 
-    result = host.execute('insights-client --register --force')
-    assert result.status == 0, 'Failed to re-register insights client'
+    result = host.execute('rm -f /etc/insights-client/machine-id; insights-client --register')
+    assert result.status == 0, 'Failed to register to Red Hat Lightspeed'
 
-    host.execute('insights-client --unregister')
+    result = host.execute('insights-client --unregister')
+    assert result.status == 0, 'Failed to unregister from Red Hat Lightspeed'
 
     # Re-enable IoP
     command = InstallerCommand(iop_ensure='present').get_command()
     result = satellite.execute(command, timeout='10m')
     assert result.status == 0, 'Failed to re-enable IoP'
 
+    result = satellite.execute('satellite-maintain service restart')
+    assert result.status == 0, 'Failed to restart Satellite services'
+
     result = satellite.execute('satellite-maintain service status -b')
     assert 'FAIL' not in result.stdout, 'Services not running'
     assert all(service in result.stdout for service in IOP_SERVICES), 'IoP services not enabled'
 
-    result = host.execute('insights-client --register --force')
-    assert result.status == 0, 'Failed to re-register insights client'
+    # Verify insights-client re-registration again
+    result = host.execute('rm -f /etc/insights-client/machine-id; insights-client --register')
+    assert result.status == 0, 'Failed to register to IoP'
 
     result = host.execute('insights-client')
     assert result.status == 0, 'insights-client upload failed'
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.parametrize(
+    'use_ip',
+    [False, True],
+    ids=['hostname', 'ip'],
+)
+@pytest.mark.parametrize(
+    'setup_http_proxy',
+    [True, False],
+    indirect=True,
+    ids=['auth_http_proxy', 'unauth_http_proxy'],
+)
+@pytest.mark.parametrize(
+    'module_target_sat_insights',
+    [False],
+    ids=['local'],
+    indirect=True,
+)
+def test_insights_client_registration_with_http_proxy(
+    module_target_sat_insights,
+    setup_http_proxy,
+    rhel_contenthost,
+    rhcloud_activation_key,
+    rhcloud_manifest_org,
+):
+    """Verify that insights-client registration work with HTTP Proxy.
+
+    :id: 6ab0842e-9e8b-4d9e-aed4-b183f7e8f44d
+
+    :parametrized: yes
+
+    :setup:
+        1. Satellite with Default HTTP Proxy set.
+
+    :steps:
+        1. Register a Host with Satellite.
+        2. Register host with IoP.
+        3. Verify `insights-client --(register|unregister|test-connection|status)`
+
+    :expectedresults:
+        1. `insights-client` commands work when Satellite has Default HTTP Proxy set.
+
+    :BZ: 1959932
+
+    :customerscenario: true
+    """
+    rhel_contenthost.configure_insights_client(
+        module_target_sat_insights,
+        rhcloud_activation_key,
+        rhcloud_manifest_org,
+        f"rhel{rhel_contenthost.os_version.major}",
+    )
+    assert rhel_contenthost.execute('insights-client --register').status == 0
+    assert rhel_contenthost.execute('insights-client --test-connection').status == 0
+    assert rhel_contenthost.execute('insights-client --status').status == 0
+    assert rhel_contenthost.execute('insights-client --unregister').status == 0

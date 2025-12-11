@@ -1493,7 +1493,7 @@ def test_positive_invalid_release_version(module_sca_manifest_org, module_target
 
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------
-def test_positive_create_ak_with_multi_cv_envs(session_multicv_sat, session_multicv_org):
+def test_positive_create_ak_with_multi_cv_envs(module_target_sat, module_org):
     """Verify that multiple content view environments can be assigned during activation key creation
 
     :id: 263a6c90-88bf-4888-b1b9-172751a609f3
@@ -1510,14 +1510,13 @@ def test_positive_create_ak_with_multi_cv_envs(session_multicv_sat, session_mult
     """
     # Create two lifecycle environments
     lces_list = [
-        session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
+        module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
         for i in range(2)
     ]
     lce1, lce2 = lces_list
     # Create two content views
     cvs_list = [
-        session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
-        for i in range(2)
+        module_target_sat.api.ContentView(organization=module_org).create() for i in range(2)
     ]
     for i in range(2):
         cvs_list[i].publish()
@@ -1528,9 +1527,9 @@ def test_positive_create_ak_with_multi_cv_envs(session_multicv_sat, session_mult
     # Create an activation key with created content view environments
     ak_name = gen_string('alpha')
     cv_envs = f'{lce1.name}/{cv1.name},{lce2.name}/{cv2.name}'
-    ak = session_multicv_sat.cli.ActivationKey.create(
+    ak = module_target_sat.cli.ActivationKey.create(
         {
-            'organization-id': session_multicv_org.id,
+            'organization-id': module_org.id,
             'content-view-environments': cv_envs,
             'name': ak_name,
         }
@@ -1541,7 +1540,7 @@ def test_positive_create_ak_with_multi_cv_envs(session_multicv_sat, session_mult
 
 
 def test_positive_multi_cv_info_and_remove_all_cv_envs(
-    session_multicv_sat, session_multicv_org, session_multicv_default_ak
+    module_target_sat, module_org, module_default_ak
 ):
     """Verify that multi content view environment details displays into hammer activation-key info commands output, and
      also remove all content view environments & verify output
@@ -1563,14 +1562,13 @@ def test_positive_multi_cv_info_and_remove_all_cv_envs(
     """
     # Create two lifecycle environments
     lces_list = [
-        session_multicv_sat.api.LifecycleEnvironment(organization=session_multicv_org).create()
+        module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
         for i in range(2)
     ]
     lce1, lce2 = lces_list
     # Create two content views
     cvs_list = [
-        session_multicv_sat.api.ContentView(organization=session_multicv_org).create()
-        for i in range(2)
+        module_target_sat.api.ContentView(organization=module_org).create() for i in range(2)
     ]
     for i in range(2):
         cvs_list[i].publish()
@@ -1579,36 +1577,36 @@ def test_positive_multi_cv_info_and_remove_all_cv_envs(
     cv1, cv2 = cvs_list
 
     # Update ak with multiple content view environments
-    ak = session_multicv_default_ak
+    ak = module_default_ak
     cv_envs = f'{lce1.name}/{cv1.name},{lce2.name}/{cv2.name}'
-    ak_info = session_multicv_sat.cli.ActivationKey.info({'id': ak.id})
+    ak_info = module_target_sat.cli.ActivationKey.info({'id': ak.id})
     assert ak_info['multi-content-view-environment'] == 'no'
     assert ak_info['content-view-environment-labels'] == 'Library'
 
-    ret_val = session_multicv_sat.cli.ActivationKey.update(
+    ret_val = module_target_sat.cli.ActivationKey.update(
         {
             'id': ak.id,
-            'organization-id': session_multicv_org.id,
+            'organization-id': module_org.id,
             'content-view-environments': cv_envs,
         }
     )
     assert ret_val[0]['message'] == 'Activation key updated.'
 
     # Verify ak info displays 'Multi Content View Environment' and 'Content View Environments'
-    ak_info = session_multicv_sat.cli.ActivationKey.info({'id': ak.id})
+    ak_info = module_target_sat.cli.ActivationKey.info({'id': ak.id})
     assert ak_info['multi-content-view-environment'] == 'yes'
     assert ak_info['content-view-environment-labels'] == cv_envs
 
     # Remove all content view environments from the activation key
-    session_multicv_sat.cli.ActivationKey.update(
+    module_target_sat.cli.ActivationKey.update(
         {
             'id': ak.id,
-            'organization-id': session_multicv_org.id,
+            'organization-id': module_org.id,
             'content-view-environments': '',
         }
     )
     # Verify ak info doesn't display any 'Content View Environments'
-    ak_info = session_multicv_sat.cli.ActivationKey.info({'id': ak.id})
+    ak_info = module_target_sat.cli.ActivationKey.info({'id': ak.id})
     assert ak_info['multi-content-view-environment'] == 'no'
     assert ak_info['content-view-environment-labels'] == {}
 
@@ -1672,15 +1670,3 @@ def test_syspurpose_end_to_end(
     assert host['subscription-information']['system-purpose']['purpose-role'] == "test-role2"
     assert host['subscription-information']['system-purpose']['purpose-usage'] == "test-usage2"
     assert host['subscription-information']['system-purpose']['service-level'] == "Self-Support2"
-
-    rhel_contenthost.unregister()
-    with pytest.raises(CLIReturnCodeError):
-        # raise error that the host was not registered by
-        # subscription-manager register
-        target_sat.cli.ActivationKey.subscriptions(
-            {
-                'organization-id': module_org.id,
-                'id': activation_key.id,
-                'host-id': host['id'],
-            }
-        )

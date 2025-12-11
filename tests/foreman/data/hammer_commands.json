@@ -232,79 +232,6 @@
           "subcommands": []
         },
         {
-          "description": "Add subscription",
-          "name": "add-subscription",
-          "options": [
-            {
-              "help": "Id of the activation key",
-              "name": "id",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
-              "help": "Activation key name to search by",
-              "name": "name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
-              "name": "organization-label",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Quantity of this subscription to add",
-              "name": "quantity",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
-              "help": "VALUE/NUMBER               Subscription identifier",
-              "name": "subscription",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER               Subscription identifier",
-              "name": "subscription-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Array of subscriptions to add",
-              "name": "subscriptions",
-              "shortname": null,
-              "value": "SCHEMA"
-            },
-            {
-              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string parameters accept format defined by its schema (bold are required; <> contains acceptable type; [] contains acceptable value): \"id=<string>\\,quantity=<numeric>, ... \"",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
           "description": "Override product content defaults",
           "name": "content-override",
           "options": [
@@ -1044,194 +971,6 @@
             },
             {
               "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
-          "description": "Remove subscription",
-          "name": "remove-subscription",
-          "options": [
-            {
-              "help": "Id of the activation key",
-              "name": "id",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
-              "help": "Activation key name to search by",
-              "name": "name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
-              "name": "organization-label",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "ID of subscription",
-              "name": "subscription-id",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
-          "description": "List associated subscriptions",
-          "name": "subscriptions",
-          "options": [
-            {
-              "help": "Activation key name/id",
-              "name": "activation-key",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Activation key name/id",
-              "name": "activation-key-id",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Object to show subscriptions available for, either 'host' or 'activation_key'",
-              "name": "available-for",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Show specified fields or predefined field sets only. (See below)",
-              "name": "fields",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "Whether or not to show all results",
-              "name": "full-result",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
-              "help": "Name/id of a host",
-              "name": "host",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Name/id of a host",
-              "name": "host-id",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "ID of the activation key",
-              "name": "id",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Ignore subscriptions that are unavailable to the specified host",
-              "name": "match-host",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
-              "help": "Return subscriptions that match installed products of the specified host",
-              "name": "match-installed",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
-              "help": "Activation key name to search by",
-              "name": "name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Return subscriptions which do not overlap with a currently-attached subscription",
-              "name": "no-overlap",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
-              "help": "Sort field and order, eg. 'id DESC'",
-              "name": "order",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Organization name/title/label/id",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Organization name/title/label/id",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Organization name/title/label/id",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Organization name/title/label/id",
-              "name": "organization-label",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Page number, starting at 1",
-              "name": "page",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
-              "help": "Number of results per page to return",
-              "name": "per-page",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
-              "help": "Search string",
-              "name": "search",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Print help -----------|-----|-------- | ALL | DEFAULT -----------|-----|-------- | x   | x | x   | x | x   | x | x   | x date | x   | x date   | x   | x | x   | x | x   | x | x   | x -----------|-----|-------- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -13046,7 +12785,7 @@
               "value": "VALUE"
             },
             {
-              "help": "LIST                                           List of lifecycle environments for rolling content views",
+              "help": "List of lifecycle environments for rolling content views",
               "name": "lifecycle-environment-ids",
               "shortname": null,
               "value": "LIST"
@@ -15082,7 +14821,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "LIST                                           List of lifecycle environments for rolling content views",
+              "help": "List of lifecycle environments for rolling content views",
               "name": "lifecycle-environment-ids",
               "shortname": null,
               "value": "LIST"
@@ -17075,7 +16814,7 @@
               "value": "ENUM"
             },
             {
-              "help": "DHCP filename option (Grub2 or PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "help": "DHCP filename option (Grub2 or PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
               "name": "pxe-loader",
               "shortname": null,
               "value": "ENUM"
@@ -19814,24 +19553,6 @@
               "value": null
             },
             {
-              "help": "",
-              "name": "locations",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "location-ids",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "location-titles",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
               "help": "VALUE/NUMBER Set the current organization context for the request",
               "name": "organization",
               "shortname": null,
@@ -19848,30 +19569,6 @@
               "name": "organization-title",
               "shortname": null,
               "value": null
-            },
-            {
-              "help": "",
-              "name": "organizations",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "organization-ids",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "organization-titles",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "override",
-              "shortname": null,
-              "value": "BOOLEAN"
             },
             {
               "help": "",
@@ -19904,7 +19601,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string inherit organizations and locations from its role by default. This behavior can be changed by setting --override=true. options --organization[s|-ids] and --location[s|-ids] are applicable only when the override flag is set.",
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -20020,7 +19717,7 @@
               "value": null
             },
             {
-              "help": "Print help ---------------|-----|---------|----- | ALL | DEFAULT | THIN ---------------|-----|---------|----- | x   | x       | x type  | x   | x       | | x   | x       | Unlimited?     | x   | x       | Override?      | x   | x       | | x   | x       | | x   | x       | Locations/     | x   | x       | Organizations/ | x   | x       | at     | x   | x       | at     | x   | x       | ---------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help ---------------|-----|---------|----- | ALL | DEFAULT | THIN ---------------|-----|---------|----- | x   | x       | x type  | x   | x       | | x   | x       | | x   | x       | | x   | x       | at     | x   | x       | at     | x   | x       | Locations/     | x   | x       | Organizations/ | x   | x       | ---------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -20099,7 +19796,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help --------------|-----|---------|----- | ALL | DEFAULT | THIN --------------|-----|---------|----- | x   | x       | x type | x   | x       | | x   | x       | Unlimited?    | x   | x       | Override?     | x   | x       | | x   | x       | | x   | x       | --------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string integer Values: true, false string integer string integer Values: true, false string string string integer text Values: true, false",
+              "help": "Print help --------------|-----|---------|----- | ALL | DEFAULT | THIN --------------|-----|---------|----- | x   | x       | x type | x   | x       | | x   | x       | | x   | x       | | x   | x       | --------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string integer string string string integer text",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -20136,24 +19833,6 @@
               "value": null
             },
             {
-              "help": "",
-              "name": "locations",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "location-ids",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "location-titles",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
               "help": "VALUE/NUMBER Set the current organization context for the request",
               "name": "organization",
               "shortname": null,
@@ -20170,30 +19849,6 @@
               "name": "organization-title",
               "shortname": null,
               "value": null
-            },
-            {
-              "help": "",
-              "name": "organizations",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "organization-ids",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "organization-titles",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "override",
-              "shortname": null,
-              "value": "BOOLEAN"
             },
             {
               "help": "",
@@ -20226,7 +19881,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string inherit organizations and locations from its role by default. This behavior can be changed by setting --override=true. options --organization[s|-ids] and --location[s|-ids] are applicable only when the override flag is set.",
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -20689,6 +20344,12 @@
                   "name": "async",
                   "shortname": null,
                   "value": null
+                },
+                {
+                  "help": "Array of dependency repository ids to mirror along with the main repository",
+                  "name": "dependency-ids",
+                  "shortname": null,
+                  "value": "LIST"
                 },
                 {
                   "help": "VALUE/NUMBER             Name/Id of associated flatpak remote",
@@ -22199,19 +21860,19 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "VALUE/NUMBER       ",
+              "help": "VALUE/NUMBER      Name/title/id of the host group. Note: Changing the host group will re-apply attributes inherited from the new host group, unless you explicitly override them again in the update request",
               "name": "hostgroup",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER       ",
+              "help": "VALUE/NUMBER      Name/title/id of the host group. Note: Changing the host group will re-apply attributes inherited from the new host group, unless you explicitly override them again in the update request",
               "name": "hostgroup-id",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER       ",
+              "help": "VALUE/NUMBER      Name/title/id of the host group. Note: Changing the host group will re-apply attributes inherited from the new host group, unless you explicitly override them again in the update request",
               "name": "hostgroup-title",
               "shortname": null,
               "value": null
@@ -22463,7 +22124,7 @@
               "value": "VALUE"
             },
             {
-              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
               "name": "pxe-loader",
               "shortname": null,
               "value": "ENUM"
@@ -22489,6 +22150,12 @@
             {
               "help": "Required if host is managed and value is not inherited from host group or default password in settings",
               "name": "root-password",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Service level",
+              "name": "service-level",
               "shortname": null,
               "value": "VALUE"
             },
@@ -23216,7 +22883,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -------------------------------------------------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------------------------------------------------|-----|---------|----- | x   | x       | x | x   | x       | | x   | x       | x | x   | x       | | x   | x       | group                                                               | x   | x       | resource                                                         | x   | x       | profile                                                          | x   | x       | name                                                                | x   | x       | | x   | x       | | x   | x       | at                                                             | x   | x       | report                                                              | x   | x       | (seconds)                                                         | x   | x       | Status/global status                                                     | x   | x       | Status/build status                                                      | x   | x       | Network/ipv4 address                                                     | x   | x       | Network/ipv6 address                                                     | x   | x       | Network/mac                                                              | x   | x       | Network/subnet ipv4                                                      | x   | x       | Network/subnet ipv6                                                      | x   | x       | Network/domain                                                           | x   | x       | Network/service provider/sp name                                         | x   | x       | Network/service provider/sp ip                                           | x   | x       | Network/service provider/sp mac                                          | x   | x       | Network/service provider/sp subnet                                       | x   | x       | interfaces/id                                                    | x   | x       | interfaces/identifier                                            | x   | x       | interfaces/type                                                  | x   | x       | interfaces/mac address                                           | x   | x       | interfaces/ipv4 address                                          | x   | x       | interfaces/ipv6 address                                          | x   | x       | interfaces/fqdn                                                  | x   | x       | system/architecture                                            | x   | x       | system/operating system                                        | x   | x       | system/build                                                   | x   | x       | system/medium                                                  | x   | x       | system/partition table                                         | x   | x       | system/pxe loader                                              | x   | x       | system/custom partition table                                  | x   | x       | system/image                                                   | x   | x       | system/image file                                              | x   | x       | system/use image                                               | x   | x       | Parameters/                                                              | x   | x       | parameters/                                                          | x   | x       | info/owner                                                    | x   | x       | info/owner id                                                 | x   | x       | info/owner type                                               | x   | x       | info/enabled                                                  | x   | x       | info/model                                                    | x   | x       | info/comment                                                  | x   | x       | proxy                                                           | x   | x       | information/content view environment labels                      | x   | x       | information/content view environments/content view/id            | x   |         | information/content view environments/content view/name          | x   |         | information/content view environments/content view/composite     | x   |         | information/content view environments/content view/rolling       | x   |         | information/content view environments/cv id                      | x   | x       | information/content view environments/cv name                    | x   | x       | information/content view environments/composite cv               | x   | x       | information/content view environments/rolling cv                 | x   | x       | information/content view environments/lifecycle environment/id   | x   |         | information/content view environments/lifecycle environment/name | x   |         | information/content view environments/le id                      | x   | x       | information/content view environments/le name                    | x   | x       | information/content view environments/label                      | x   | x       | information/content source/id                                    | x   | x       | information/content source/name                                  | x   | x       | information/kickstart repository/id                              | x   | x       | information/kickstart repository/name                            | x   | x       | information/applicable packages                                  | x   | x       | information/upgradable packages                                  | x   | x       | information/applicable errata/enhancement                        | x   | x       | information/applicable errata/bug fix                            | x   | x       | information/applicable errata/security                           | x   | x       | information/uuid                                            | x   | x       | information/last checkin                                    | x   | x       | information/release version                                 | x   | x       | information/autoheal                                        | x   | x       | information/registered to                                   | x   | x       | information/registered at                                   | x   | x       | information/registered by activation keys/                  | x   | x       | information/system purpose/service level                    | x   | x       | information/system purpose/purpose usage                    | x   | x       | information/system purpose/purpose role                     | x   | x       | image information/running image                                    | x   | x       | image information/running image digest                             | x   | x       | image information/staged image                                     | x   | x       | image information/staged image digest                              | x   | x       | image information/available image                                  | x   | x       | image information/available image digest                           | x   | x       | image information/rollback image                                   | x   | x       | image information/rollback image digest                            | x   | x       | status                                                             | x   | x       | collections/id                                                      | x   | x       | collections/name                                                    | x   | x       | -------------------------------------------------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help -------------------------------------------------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------------------------------------------------|-----|---------|----- | x   | x       | x | x   | x       | | x   | x       | x | x   | x       | | x   | x       | group                                                               | x   | x       | resource                                                         | x   | x       | profile                                                          | x   | x       | name                                                                | x   | x       | | x   | x       | | x   | x       | at                                                             | x   | x       | report                                                              | x   | x       | (seconds)                                                         | x   | x       | Status/global status                                                     | x   | x       | Status/build status                                                      | x   | x       | Network/ipv4 address                                                     | x   | x       | Network/ipv6 address                                                     | x   | x       | Network/mac                                                              | x   | x       | Network/subnet ipv4                                                      | x   | x       | Network/subnet ipv6                                                      | x   | x       | Network/domain                                                           | x   | x       | Network/service provider/sp name                                         | x   | x       | Network/service provider/sp ip                                           | x   | x       | Network/service provider/sp mac                                          | x   | x       | Network/service provider/sp subnet                                       | x   | x       | interfaces/id                                                    | x   | x       | interfaces/identifier                                            | x   | x       | interfaces/type                                                  | x   | x       | interfaces/mac address                                           | x   | x       | interfaces/ipv4 address                                          | x   | x       | interfaces/ipv6 address                                          | x   | x       | interfaces/fqdn                                                  | x   | x       | system/architecture                                            | x   | x       | system/operating system                                        | x   | x       | system/build                                                   | x   | x       | system/medium                                                  | x   | x       | system/partition table                                         | x   | x       | system/pxe loader                                              | x   | x       | system/custom partition table                                  | x   | x       | system/image                                                   | x   | x       | system/image file                                              | x   | x       | system/use image                                               | x   | x       | Parameters/                                                              | x   | x       | parameters/                                                          | x   | x       | info/owner                                                    | x   | x       | info/owner id                                                 | x   | x       | info/owner type                                               | x   | x       | info/enabled                                                  | x   | x       | info/model                                                    | x   | x       | info/comment                                                  | x   | x       | proxy                                                           | x   | x       | information/content view environment labels                      | x   | x       | information/content view environments/content view/id            | x   |         | information/content view environments/content view/name          | x   |         | information/content view environments/content view/composite     | x   |         | information/content view environments/content view/rolling       | x   |         | information/content view environments/content view id            | x   | x       | information/content view environments/content view name          | x   | x       | information/content view environments/composite content view     | x   | x       | information/content view environments/rolling content view       | x   | x       | information/content view environments/lifecycle environment/id   | x   |         | information/content view environments/lifecycle environment/name | x   |         | information/content view environments/lifecycle environment id   | x   | x       | information/content view environments/lifecycle environment name | x   | x       | information/content view environments/label                      | x   | x       | information/content source/id                                    | x   | x       | information/content source/name                                  | x   | x       | information/kickstart repository/id                              | x   | x       | information/kickstart repository/name                            | x   | x       | information/applicable packages                                  | x   | x       | information/upgradable packages                                  | x   | x       | information/applicable errata/enhancement                        | x   | x       | information/applicable errata/bug fix                            | x   | x       | information/applicable errata/security                           | x   | x       | information/uuid                                            | x   | x       | information/last checkin                                    | x   | x       | information/release version                                 | x   | x       | information/registered to                                   | x   | x       | information/registered at                                   | x   | x       | information/registered by activation keys/                  | x   | x       | information/system purpose/service level                    | x   | x       | information/system purpose/purpose usage                    | x   | x       | information/system purpose/purpose role                     | x   | x       | image information/running image                                    | x   | x       | image information/running image digest                             | x   | x       | image information/staged image                                     | x   | x       | image information/staged image digest                              | x   | x       | image information/available image                                  | x   | x       | image information/available image digest                           | x   | x       | image information/rollback image                                   | x   | x       | image information/rollback image digest                            | x   | x       | status                                                             | x   | x       | collections/id                                                      | x   | x       | collections/name                                                    | x   | x       | -------------------------------------------------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -24016,7 +23683,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boolean boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
+              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -24807,43 +24474,6 @@
           ],
           "subcommands": [
             {
-              "description": "Add a subscription to a host",
-              "name": "attach",
-              "options": [
-                {
-                  "help": "VALUE/NUMBER      Name/id of the host",
-                  "name": "host",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "VALUE/NUMBER      Name/id of the host",
-                  "name": "host-id",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "Quantity of this subscriptions to add. Defaults to 1",
-                  "name": "quantity",
-                  "shortname": null,
-                  "value": "VALUE"
-                },
-                {
-                  "help": "ID of subscription",
-                  "name": "subscription-id",
-                  "shortname": null,
-                  "value": "VALUE"
-                },
-                {
-                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
-              ],
-              "subcommands": []
-            },
-            {
               "description": "Override product content defaults",
               "name": "content-override",
               "options": [
@@ -25139,7 +24769,7 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "A service level for auto-healing process, e.g. SELF-SUPPORT",
+                  "help": "Service level, e.g. SELF-SUPPORT",
                   "name": "service-level",
                   "shortname": null,
                   "value": "VALUE"
@@ -25147,43 +24777,6 @@
                 {
                   "help": "UUID to use for registered host, random uuid is generated if not provided",
                   "name": "uuid",
-                  "shortname": null,
-                  "value": "VALUE"
-                },
-                {
-                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
-              ],
-              "subcommands": []
-            },
-            {
-              "description": "Remove subscriptions from a host",
-              "name": "remove",
-              "options": [
-                {
-                  "help": "VALUE/NUMBER      Name/id of the host",
-                  "name": "host",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "VALUE/NUMBER      Name/id of the host",
-                  "name": "host-id",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "Remove the first instance of a subscription with matching id and quantity",
-                  "name": "quantity",
-                  "shortname": null,
-                  "value": "VALUE"
-                },
-                {
-                  "help": "ID of subscription",
-                  "name": "subscription-id",
                   "shortname": null,
                   "value": "VALUE"
                 },
@@ -25436,19 +25029,19 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "VALUE/NUMBER         ",
+              "help": "VALUE/NUMBER        Name/title/id of the host group. Note: Changing the host group will re-apply attributes inherited from the new host group, unless you explicitly override them again in the update request",
               "name": "hostgroup",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER         ",
+              "help": "VALUE/NUMBER        Name/title/id of the host group. Note: Changing the host group will re-apply attributes inherited from the new host group, unless you explicitly override them again in the update request",
               "name": "hostgroup-id",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER         ",
+              "help": "VALUE/NUMBER        Name/title/id of the host group. Note: Changing the host group will re-apply attributes inherited from the new host group, unless you explicitly override them again in the update request",
               "name": "hostgroup-title",
               "shortname": null,
               "value": null
@@ -25748,7 +25341,7 @@
               "value": "VALUE"
             },
             {
-              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
               "name": "pxe-loader",
               "shortname": null,
               "value": "ENUM"
@@ -25774,6 +25367,12 @@
             {
               "help": "Required if host is managed and value is not inherited from host group or default password in settings",
               "name": "root-password",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Service level",
+              "name": "service-level",
               "shortname": null,
               "value": "VALUE"
             },
@@ -26208,7 +25807,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   |         | | x   |         | | x   |         | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boolean boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
+              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   |         | | x   |         | | x   |         | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -27459,7 +27058,7 @@
               "value": "NUMBER"
             },
             {
-              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
               "name": "pxe-loader",
               "shortname": null,
               "value": "ENUM"
@@ -28222,7 +27821,7 @@
               "value": "NUMBER"
             },
             {
-              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
+              "help": "DHCP filename option (Grub2/PXELinux by default) Possible value(s): 'None', 'PXELinux BIOS', 'PXELinux UEFI', 'Grub2 BIOS', 'Grub2 ELF', 'Grub2 UEFI', 'Grub2 UEFI SecureBoot', 'Grub2 UEFI HTTP', 'Grub2 UEFI HTTPS', 'Grub2 UEFI HTTPS SecureBoot', 'iPXE Embedded', 'iPXE UEFI HTTP', 'iPXE Chain BIOS', 'iPXE Chain UEFI'",
               "name": "pxe-loader",
               "shortname": null,
               "value": "ENUM"
@@ -30230,7 +29829,7 @@
               "value": null
             },
             {
-              "help": "Print help ---------------------------|-----|---------|----- | ALL | DEFAULT | THIN ---------------------------|-----|---------|----- | x   | x       | x | x   | x       | x category               | x   | x       | | x   | x       | | x   | x       | callback enabled   | x   | x       | check mode enabled | x   | x       | | x   | x       | | x   | x       | Locations/                 | x   | x       | Organizations/             | x   | x       | ---------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help ---------------------------|-----|---------|----- | ALL | DEFAULT | THIN ---------------------------|-----|---------|----- | x   | x       | x | x   | x       | x category               | x   | x       | | x   | x       | | x   | x       | callback enabled   | x   | x       | check mode enabled | x   | x       | | x   | x       | from id             | x   | x       | | x   | x       | Locations/                 | x   | x       | Organizations/             | x   | x       | ---------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -38501,7 +38100,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boolean boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
+              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -42867,7 +42466,7 @@
               "value": null
             },
             {
-              "help": "Print help ----------------------------|-----|---------|----- | ALL | DEFAULT | THIN ----------------------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | | x   | x       | at                  | x   | x       | at                  | x   | x       | Locations/                  | x   | x       | Organizations/              | x   | x       | inputs/id          | x   | x       | inputs/name        | x   | x       | inputs/description | x   | x       | inputs/required    | x   | x       | inputs/options     | x   | x       | ----------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help ----------------------------|-----|---------|----- | ALL | DEFAULT | THIN ----------------------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | from id              | x   | x       | | x   | x       | at                  | x   | x       | at                  | x   | x       | Locations/                  | x   | x       | Organizations/              | x   | x       | inputs/id          | x   | x       | inputs/name        | x   | x       | inputs/description | x   | x       | inputs/required    | x   | x       | inputs/options     | x   | x       | ----------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -45598,7 +45197,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help --------------|-----|---------|----- | ALL | DEFAULT | THIN --------------|-----|---------|----- | x   | x       | x type | x   | x       | | x   | x       | Unlimited?    | x   | x       | Override?     | x   | x       | | x   | x       | | x   | x       | --------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help --------------|-----|---------|----- | ALL | DEFAULT | THIN --------------|-----|---------|----- | x   | x       | x type | x   | x       | | x   | x       | | x   | x       | | x   | x       | --------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -50140,7 +49739,7 @@
               "value": null
             },
             {
-              "help": "Print help ---------------------------------------|-----|---------|----- | ALL | DEFAULT | THIN ---------------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | | x   | x       | systems/                     | x   | x       | Locations/                             | x   | x       | Organizations/                         | x   | x       | combinations/hostgroup name   | x   | x       | combinations/environment name | x   | x       | ---------------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help ---------------------------------------|-----|---------|----- | ALL | DEFAULT | THIN ---------------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | | x   | x       | from id                         | x   | x       | systems/                     | x   | x       | Locations/                             | x   | x       | Organizations/                         | x   | x       | combinations/hostgroup name   | x   | x       | combinations/environment name | x   | x       | ---------------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -51521,6 +51120,12 @@
               "name": "timezone",
               "shortname": null,
               "value": "ENUM"
+            },
+            {
+              "help": "Use compact UI",
+              "name": "ui-compact-mode",
+              "shortname": null,
+              "value": "BOOLEAN"
             },
             {
               "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
@@ -53223,6 +52828,12 @@
               "name": "timezone",
               "shortname": null,
               "value": "ENUM"
+            },
+            {
+              "help": "Use compact UI",
+              "name": "ui-compact-mode",
+              "shortname": null,
+              "value": "BOOLEAN"
             },
             {
               "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",

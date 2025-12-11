@@ -34,7 +34,7 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
     minor_version = gen_string('numeric', 2)
     description = gen_string('alpha')
     family = 'Red Hat'
-    hash = HASH_TYPE['md5']
+    hash = HASH_TYPE['sha256'] if target_sat.is_fips_enabled() else HASH_TYPE['md5']
     architecture = target_sat.api.Architecture().create()
     ptable = target_sat.api.PartitionTable(
         organization=[module_org], location=[module_location], os_family='Redhat'

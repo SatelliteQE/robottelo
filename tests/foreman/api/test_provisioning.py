@@ -12,54 +12,17 @@
 
 """
 
-import re
+import time
 
 from fauxfactory import gen_string
 import pytest
-from wait_for import TimedOutError, wait_for
+from wait_for import wait_for
 from wrapanapi.systems.virtualcenter import VMWareVirtualMachine
 
 from robottelo.config import settings
 from robottelo.enums import NetworkType
-from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
-
-
-def _read_log(ch, pattern):
-    """Read the first line from the given channel buffer and return the matching line"""
-    # read lines until the buffer is empty
-    for log_line in ch.result.stdout.splitlines():
-        logger.debug(f'foreman-tail: {log_line}')
-        if re.search(pattern, log_line):
-            return log_line
-    else:
-        return None
-
-
-def _wait_for_log(channel, pattern, timeout=5, delay=0.2):
-    """_read_log method enclosed in wait_for method"""
-    matching_log = wait_for(
-        _read_log,
-        func_args=(
-            channel,
-            pattern,
-        ),
-        fail_condition=None,
-        timeout=timeout,
-        delay=delay,
-        logger=logger,
-    )
-    return matching_log.out
-
-
-def assert_host_logs(channel, pattern):
-    """Reads foreman logs until given pattern found"""
-    try:
-        log = _wait_for_log(channel, pattern, timeout=300, delay=10)
-        assert pattern in log
-    except TimedOutError as err:
-        raise AssertionError(f'Timed out waiting for {pattern} from VM') from err
 
 
 @pytest.mark.e2e
@@ -398,8 +361,13 @@ def test_rhel_httpboot_provisioning(
     :Verifies: SAT-20684
     """
     sat = module_provisioning_sat.sat
+    # Configure the grubx64.efi image to setup the interface and use TFTP to load the configuration
     # update grub2-efi package
     sat.cli.Packages.update(packages='grub2-efi', options={'assumeyes': True})
+    sat.execute("echo -e 'set root=tftp\nset prefix=(tftp)/grub2' > pre.cfg")
+    sat.execute(
+        'grub2-mkimage -c pre.cfg -o /var/lib/tftpboot/grub2/grubx64.efi -p /grub2/ -O x86_64-efi efinet efi_netfs efienv efifwsetup efi_gop tftp net normal chain configfile loadenv procfs romfs'
+    )
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
@@ -420,11 +388,14 @@ def test_rhel_httpboot_provisioning(
 
     # Start the VM, do not ensure that we can connect to SSHD
     provisioning_host.power_control(ensure=False)
-    # check for proper HTTP requests
-    shell = module_provisioning_sat.session.shell()
+
+    host_mac_addr = host_mac_addr.replace(":", "-")
+    shell = sat.session.shell()
     shell.send('foreman-tail')
+    time.sleep(20)
     shell.close()
-    assert_host_logs(shell, f'GET /httpboot/grub2/grub.cfg-{host_mac_addr} with 200')
+    assert f'GET /httpboot/host-config/{host_mac_addr}/grub2/boot.efi with 200' in str(shell.read())
+
     # Host should do call back to the Satellite reporting
     # the result of the installation. Wait until Satellite reports that the host is installed.
     wait_for(
