@@ -136,7 +136,8 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 # Host Delete
                 with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                     session.host.delete(fqdn)
-                assert not session.host.search(fqdn)
+                search_result = session.host.search(fqdn)
+                assert search_result[0]['Name'] == 'No Results'
 
                 # AzureRm Cloud assertion
                 assert not azurecloud_vm.exists
