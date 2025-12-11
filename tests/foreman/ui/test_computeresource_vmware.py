@@ -679,7 +679,7 @@ def test_positive_provision_end_to_end(
         assert values['Build']['Status'] == 'Installed'
         assert values['Execution']['Status'] == 'Last execution succeeded'
 
-        host = target_sat.api.Host().search(query={'search': f'name={host_name}'})[0].read()
+        host = target_sat.api.Host().search(query={'search': f'name={host_fqdn}'})[0].read()
         provisioning_host = ContentHost(host.ip)
 
         # Wait for the host to be rebooted and SSH daemon to be started.
