@@ -24,6 +24,7 @@ def pytest_configure(config):
         "ldap: Tests related to ldap authentication",
         "no_compose : Skip the marked sanity test for nightly compose",
         "network: Restrict test to specific network environments",
+        "foremanctl: Tests that require foremanctl",
     ]
     markers.extend(module_markers())
     for marker in markers:

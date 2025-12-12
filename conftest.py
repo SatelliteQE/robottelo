@@ -2,6 +2,8 @@
 
 import pytest
 
+from robottelo.config import settings
+
 pytest_plugins = [
     # Plugins
     'pytest_plugins.auto_vault',
@@ -93,3 +95,14 @@ def pytest_runtest_makereport(item, call):
     # be "setup", "call", "teardown"
 
     setattr(item, "report_" + report.when, report)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_protocol(item, nextitem):
+    """Set version source to upstream for tests marked with foremanctl."""
+    if item.get_closest_marker('foremanctl'):
+        settings.set('server.version.source', 'upstream')
+        yield
+        settings.set('server.version.source', 'internal')
+    else:
+        yield
