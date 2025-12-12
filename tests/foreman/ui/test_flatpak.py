@@ -59,10 +59,14 @@ def test_view_flatpak_remotes(target_sat, function_org, function_flatpak_remote)
         details = session.flatpak_remotes.read_remote_details(
             name=remote['Name'], repo_search=random_repo.name
         )
-        assert len(details['table']) == 1
-        assert details['table'][0]['Name'] == random_repo.name
-        assert details['table'][0]['ID'] == random_repo.id
-        assert details['table'][0]['Last mirrored'] == 'Never'
+        # Search can return multiple results due to partial matching (e.g., searching "kicad"
+        # returns both "org.kicad.kicad" and "org.kicad.kicad.Library")
+        assert len(details['table']) > 0
+        matching_rows = [row for row in details['table'] if row['Name'] == random_repo.name]
+        assert len(matching_rows) == 1
+        assert matching_rows[0]['Name'] == random_repo.name
+        assert matching_rows[0]['ID'] == random_repo.id
+        assert matching_rows[0]['Last mirrored'] == 'Never'
 
 
 def test_CRUD_scan_and_mirror_flatpak_remote(target_sat, function_org, function_product):
