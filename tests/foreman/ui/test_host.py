@@ -610,7 +610,7 @@ def test_positive_create_with_inherited_params(
         )
 
 
-def test_negative_delete_primary_interface(target_sat, host_ui_options, ui_user):
+def test_negative_delete_primary_interface(module_target_sat, host_ui_options, ui_user):
     """Attempt to delete primary interface of a host
 
     :id: bc747e2c-38d9-4920-b4ae-6010851f704e
@@ -623,7 +623,7 @@ def test_negative_delete_primary_interface(target_sat, host_ui_options, ui_user)
     """
     values, host_name = host_ui_options
     interface_id = values['interfaces.interface.device_identifier']
-    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
+    with module_target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
         session.location.select(values['host.location'])
         session.host.create(values)
         with pytest.raises(DisabledWidgetError) as context:
