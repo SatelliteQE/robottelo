@@ -136,37 +136,39 @@ def test_positive_advanced_run_packages(request, sat_maintain):
 
     @request.addfinalizer
     def _finalize():
-        assert sat_maintain.execute('dnf remove -y walrus').status == 0
+        assert sat_maintain.execute('dnf remove -y acme-package').status == 0
         sat_maintain.execute('rm -rf /etc/yum.repos.d/custom_repo.repo')
 
-    # Setup custom_repo and install walrus package
-    sat_maintain.create_custom_repos(custom_repo=settings.repos.yum_0.url)
+    # Setup custom_repo and install acme-package package
+    sat_maintain.create_custom_repos(custom_repo=settings.repos.yum_3.url)
     result = sat_maintain.cli.Advanced.run_packages_install(
-        options={'packages': 'walrus', 'assumeyes': True}
+        options={'packages': 'acme-package', 'assumeyes': True}
     )
     assert result.status == 0
     assert 'FAIL' not in result.stdout
     assert 'Nothing to do' not in result.stdout
 
-    # Downgrade walrus package and prepare an package update
+    # Downgrade acme-package package and prepare an package update
     disableplugin = '--disableplugin=foreman-protector'
-    assert sat_maintain.execute(f'dnf -y {disableplugin} downgrade walrus-0.71-1').status == 0
+    assert (
+        sat_maintain.execute(f'dnf -y {disableplugin} downgrade acme-package-1.0.2-1').status == 0
+    )
 
-    # Run satellite-maintain packages check update and verify walrus package is available for update
+    # Run satellite-maintain packages check update and verify acme-package package is available for update
     result = sat_maintain.cli.Advanced.run_packages_check_update()
     assert result.status == 0
     assert 'FAIL' not in result.stdout
-    assert 'walrus' in result.stdout
+    assert 'acme-package' in result.stdout
     # Run satellite-maintain packages update
     result = sat_maintain.cli.Advanced.run_packages_update(
-        options={'packages': 'walrus', 'assumeyes': True}
+        options={'packages': 'acme-package', 'assumeyes': True}
     )
     assert result.status == 0
     assert 'FAIL' not in result.stdout
-    # Verify walrus package is updated.
-    result = sat_maintain.execute('rpm -qa walrus')
+    # Verify acme-package package is updated.
+    result = sat_maintain.execute('rpm -qa acme-package')
     assert result.status == 0
-    assert 'walrus-5.21-1' in result.stdout
+    assert 'acme-package-1.1.2-1' in result.stdout
 
 
 @pytest.mark.parametrize(
