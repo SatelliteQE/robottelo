@@ -711,7 +711,9 @@ def test_positive_remove_parameter_non_admin_user(
         organization=module_org,
         host_parameters_attributes=[parameter],
     ).create()
-    with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
+    with target_sat.ui_session(
+        testname=test_name, user=user.login, password=user_password
+    ) as session:
         values = session.host_new.read(host.name, 'parameters')
         assert values['parameters']['host_params'][0] == parameter
         session.host_new.update(host.name, {'parameters.host_params': []})
@@ -764,9 +766,12 @@ def test_negative_remove_parameter_non_admin_user(
         organization=module_org,
         host_parameters_attributes=[parameter],
     ).create()
-    with module_target_sat.ui_session(
-        test_name, user=user.login, password=user_password
-    ) as session:
+    # with module_target_sat.ui_session(
+    #     testname=test_name, user=user.login, password=user_password
+    # ) as session:
+    from airgun.session import Session
+
+    with Session(test_name, user.login, user_password) as session:
         values = session.host_new.read(host.name, 'parameters')
         assert values['parameters']['host_params'][0] == parameter
         with pytest.raises(NoSuchElementException) as context:
