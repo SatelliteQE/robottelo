@@ -720,7 +720,7 @@ def test_positive_remove_parameter_non_admin_user(
 
 
 def test_negative_remove_parameter_non_admin_user(
-    module_org, smart_proxy_location, module_target_sat, expected_permissions
+    test_name, module_org, smart_proxy_location, module_target_sat, expected_permissions
 ):
     """Attempt to remove host parameter as a non-admin user with
     insufficient permissions
@@ -764,7 +764,9 @@ def test_negative_remove_parameter_non_admin_user(
         organization=module_org,
         host_parameters_attributes=[parameter],
     ).create()
-    with module_target_sat.ui_session(user=user.login, password=user_password) as session:
+    with module_target_sat.ui_session(
+        test_name, user=user.login, password=user_password
+    ) as session:
         values = session.host_new.read(host.name, 'parameters')
         assert values['parameters']['host_params'][0] == parameter
         with pytest.raises(NoSuchElementException) as context:
