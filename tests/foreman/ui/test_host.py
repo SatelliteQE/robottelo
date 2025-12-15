@@ -2229,7 +2229,8 @@ def test_host_status_honors_taxonomies(
     target_sat,
     test_name,
     rhel_contenthost,
-    setup_content,
+    function_ak_with_cv,
+    function_org,
     default_location,
     default_org,
     default_org_lce,
@@ -2245,8 +2246,6 @@ def test_host_status_honors_taxonomies(
 
     :expectedresults: First, the user can't see any host, then they can see one host
     """
-    ak, org, _ = setup_content
-
     lce = default_org_lce
     # Create content view environment for the default org
     content_view = target_sat.api.ContentView(organization=default_org).create()
@@ -2255,7 +2254,7 @@ def test_host_status_honors_taxonomies(
     content_view_version = published_cv.version[0]
     content_view_version.promote(data={'environment_ids': lce.id})
 
-    # default_org != org (== module_org)
+    # default_org != function_org
     default_org_ak_name = gen_string('alpha')
     target_sat.cli_factory.make_activation_key(
         {
@@ -2275,10 +2274,10 @@ def test_host_status_honors_taxonomies(
     host_id = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})['id']
     password = gen_string('alpha')
     login = gen_string('alpha')
-    # the user is in org
+    # the user is in function_org
     target_sat.cli.User.create(
         {
-            'organization-id': org.id,
+            'organization-id': function_org.id,
             'location-id': default_location.id,
             'auth-source': 'Internal',
             'password': password,
@@ -2290,10 +2289,10 @@ def test_host_status_honors_taxonomies(
     with target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert all(int(status['count'].split(': ')[1]) == 0 for status in statuses)
-    # register the host to org
+    # register the host to function_org
     assert rhel_contenthost.unregister().status == 0
     target_sat.cli.Host.delete({'id': host_id})
-    assert rhel_contenthost.register(org, default_location, ak.name, target_sat).status == 0
+    assert rhel_contenthost.register(function_org, default_location, function_ak_with_cv.name, target_sat).status == 0
     with target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert len([status for status in statuses if int(status['count'].split(': ')[1]) != 0]) == 1
