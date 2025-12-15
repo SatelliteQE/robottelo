@@ -2292,7 +2292,12 @@ def test_host_status_honors_taxonomies(
     # register the host to function_org
     assert rhel_contenthost.unregister().status == 0
     target_sat.cli.Host.delete({'id': host_id})
-    assert rhel_contenthost.register(function_org, default_location, function_ak_with_cv.name, target_sat).status == 0
+    assert (
+        rhel_contenthost.register(
+            function_org, default_location, function_ak_with_cv.name, target_sat
+        ).status
+        == 0
+    )
     with target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert len([status for status in statuses if int(status['count'].split(': ')[1]) != 0]) == 1
