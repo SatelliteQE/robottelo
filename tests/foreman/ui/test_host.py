@@ -666,8 +666,6 @@ def test_positive_view_hosts_with_non_admin_user(
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
         host = session.host_new.get_details(created_host.name, widget_names='breadcrumb')
         assert host['breadcrumb'] == created_host.name
-        content_host = session.contenthost.read(created_host.name, widget_names='breadcrumb')
-        assert content_host['breadcrumb'] == created_host.name
 
 
 def test_positive_remove_parameter_non_admin_user(

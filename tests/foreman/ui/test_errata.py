@@ -1211,7 +1211,6 @@ def test_positive_host_content_library(
     session,
 ):
     """Check if the applicable errata are available from the content host's Library.
-        View errata table from within All Hosts, and legacy Contenthosts pages.
 
     :id: a0694930-4bf7-4a97-b275-2be7d5f1b311
 
@@ -1221,12 +1220,12 @@ def test_positive_host_content_library(
 
     :steps:
         1. Install the outdated package to registered host, making an errata applicable.
-        2. Go to new All Hosts -> Select the host -> Content -> Errata Tab.
-        3. Go to Legacy Content Hosts -> Select the host -> Errata Tab -> 'Library' env.
-        4. Search for the errata by id. Then, check the entire table without filtering.
+        2. Go to All Hosts -> Select the host -> Content -> Errata Tab.
+        3. Search for the errata by id.
+        4. Check the entire table without filtering.
 
     :expectedresults: The expected errata id present in Library is displayed.
-        Only a single errata is present, the tables match between the two pages.
+        Only a single errata is present.
 
     :parametrized: yes
     """
@@ -1241,7 +1240,7 @@ def test_positive_host_content_library(
 
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
-        # check new host > host > content > errata tab:
+        # check host > content > errata tab:
         host_tab_search = session.host_new.get_errata_table(
             entity_name=hostname,
             search=f'errata_id="{CUSTOM_REPO_ERRATA_ID}"',
@@ -1254,19 +1253,6 @@ def test_positive_host_content_library(
         # only the expected errata_id is found
         assert len(host_tab_erratum) == 1
         assert host_tab_erratum[0]['Errata'] == CUSTOM_REPO_ERRATA_ID
-        # check legacy chost > chost > errata tab -- search:
-        single_chost_search = session.contenthost.search_errata(
-            hostname, CUSTOM_REPO_ERRATA_ID, environment='Library Synced Content'
-        )
-        # found desired errata_id by search
-        assert len(single_chost_search) == 1
-        assert single_chost_search[0]['Id'] == CUSTOM_REPO_ERRATA_ID
-        # display all entries in chost table, only the expected one is present
-        all_chost_erratum = session.contenthost.search_errata(
-            hostname, errata_id=' ', environment='Library Synced Content'
-        )
-        assert len(all_chost_erratum) == 1
-        assert all_chost_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
 @pytest.mark.rhel_ver_match('N-1')
@@ -1424,16 +1410,6 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
                 type=errata_type,
             )['content']['errata']['table']
             assert len(installable_errata) == 1, (
-                f'Expected only one {errata_type} errata to be installable.'
-            )
-        # legacy contenthost UI
-        content_host_values = session.contenthost.search(hostname)
-        assert content_host_values[0]['Name'] == hostname
-        installable_errata = content_host_values[0]['Installable Updates']['errata']
-        # erratum are installable
-        assert int(installable_errata['security']) == FAKE_9_YUM_SECURITY_ERRATUM_COUNT
-        for errata_type in ('bug_fix', 'enhancement'):
-            assert int(installable_errata[errata_type]) == 1, (
                 f'Expected only one {errata_type} errata to be installable.'
             )
 
