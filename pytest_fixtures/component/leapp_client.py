@@ -8,6 +8,12 @@ from robottelo.logging import logger
 
 synced_repos = pytest.StashKey[dict]
 
+INHIBITOR_FIXES = {
+    7: ['echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'],
+    8: ['sed -i "s/^AllowZoneDrifting=.*/AllowZoneDrifting=no/" /etc/firewalld/firewalld.conf'],
+    9: ['nmcli connection migrate /etc/sysconfig/network-scripts/ifcfg-eth0'],
+}
+
 RHEL_REPOS = {
     'rhel7_server': {
         'id': 'rhel-7-server-rpms',
@@ -133,7 +139,7 @@ def leapp_repos(
                 logger.info('Repo %s already synced, not syncing it', rh_repo_key)
             else:
                 module_stash[synced_repos][rh_repo_key] = True
-                rh_repo.sync(timeout=1800)
+                rh_repo.sync(timeout=3600)
     return all_repos
 
 
@@ -194,25 +200,8 @@ def precondition_check_upgrade_and_install_leapp_tool(custom_leapp_host):
         custom_leapp_host.power_control(state='reboot', ensure=True)
         custom_leapp_host.wait_for_connection(timeout=300)
 
-    # Fixing known inhibitors for source rhel version 8
-    if custom_leapp_host.os_version.major == 8:
-        # Inhibitor - Firewalld Configuration AllowZoneDrifting Is Unsupported
-        assert (
-            custom_leapp_host.run(
-                'sed -i "s/^AllowZoneDrifting=.*/AllowZoneDrifting=no/" /etc/firewalld/firewalld.conf'
-            ).status
-            == 0
-        )
-        assert (
-            custom_leapp_host.run(
-                'echo -e "\nPermitRootLogin yes" >> /etc/ssh/sshd_config; systemctl restart sshd'
-            ).status
-            == 0
-        )
-    if custom_leapp_host.os_version.major == 9:
-        assert (
-            custom_leapp_host.run(
-                'nmcli connection migrate /etc/sysconfig/network-scripts/ifcfg-eth0'
-            ).status
-            == 0
+    # Fixing known inhibitors for source rhel versions
+    for cmd in INHIBITOR_FIXES.get(custom_leapp_host.os_version.major, []):
+        assert custom_leapp_host.run(cmd).status == 0, (
+            f'Failed to execute inhibitor fix command: {cmd}'
         )
