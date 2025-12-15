@@ -441,3 +441,60 @@ def test_synced_repo_manifest_read(function_org, function_product, setting_updat
             assert label in synced_child_manifest_info['manifest_labels']
         assert synced_child_manifest_info['manifest_repository'] == repo.name
         assert synced_child_manifest_info['manifest_digest'] == manifest['digest']
+
+
+@pytest.mark.parametrize('setting_update', ['lab_features=True'], indirect=True)
+def test_synced_repo_labels_annotations_read(
+    function_org, function_product, setting_update, target_sat
+):
+    """Create and sync a container repository, and read it's labels and annotations modal
+
+    :id: 67b4a316-d476-4bfd-84b3-06d182771816
+
+    :parametrized: yes
+
+    :steps:
+        1. Sync a docker Repository
+        2. Read the docker_manifest_list and docker_manifests information
+        3. Navigate to the Container Images feature.
+        4. Read the manifest labels and annotations modal for a child manifest.
+
+    :expectedresults: The child manifest details are listed correctly.
+
+    :Verifies: SAT-38203
+    """
+    repo = target_sat.api.Repository(
+        name=gen_alpha(),
+        content_type='docker',
+        docker_upstream_name=BOOTABLE_REPO['upstream_name'],
+        product=function_product,
+        url=settings.container.pulp.registry_hub,
+    ).create()
+    repo.sync()
+    repo = repo.read()
+    assert repo.content_counts['docker_manifest'] > 0
+    manifest_list = target_sat.api.Repository(id=repo.id).docker_manifest_lists()['results'][0]
+    manifest = target_sat.api.Repository(id=repo.id).docker_manifests()['results'][0]
+    label_list = []
+    annotation_list = []
+    for label in manifest['labels'].items():
+        label_list.append(f'{label[0]}={label[1]}')
+    for annotation in manifest['annotations'].items():
+        annotation_list.append(f'{annotation[0]}={annotation[1]}')
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        # Verify manifest list modal info
+        manifest_modal_info = session.containerimages.read_labels_and_annotations(
+            manifest_list['tags'][0]['name'], manifest['digest']
+        )
+        # Verify info in the Modal
+        assert (
+            manifest_modal_info['label_annotation_count']
+            == f"{(len(label_list) + len(annotation_list))} labels and annotations"
+        )
+        assert manifest['digest'] == manifest_modal_info['sha_hash']
+        for label in label_list:
+            assert label in manifest_modal_info['labels_and_annotations']
+        for annotation in annotation_list:
+            assert annotation in manifest_modal_info['labels_and_annotations']
