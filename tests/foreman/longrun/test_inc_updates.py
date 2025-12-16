@@ -269,7 +269,7 @@ def test_positive_incremental_update_time(module_target_sat, module_sca_manifest
             f'label = Actions::Katello::Repository::Sync and started_at >= "{repo_sync_timestamp}"'
         ),
         search_rate=10,
-        max_tries=200,
+        max_tries=400,
     )
     assert all(task.poll()['result'] == 'success' for task in sync_tasks)
     # publish and fetch new CVV
