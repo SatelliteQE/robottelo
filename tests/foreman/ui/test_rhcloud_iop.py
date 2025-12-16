@@ -342,6 +342,10 @@ def test_iop_recommendations_remediation_type_and_status(
         result = session.recommendationstab.apply_filter("Status", "Enabled")
         assert len(result) > 0
 
-        # Verify that Disabled recommnedations are 0
+        # Disable recommendation
+        session.recommendationstab.disable_recommendation_for_system(
+            recommendation_name=OPENSSH_RECOMMENDATION, hostname=rhel_insights_vm.hostname
+        )
+        # Verify that the disabled recommendation is filtered
         result = session.recommendationstab.apply_filter("Status", "Disabled")
-        assert 'No recommendations' in result[0]['Name']
+        assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
