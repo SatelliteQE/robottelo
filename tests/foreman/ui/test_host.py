@@ -2196,31 +2196,31 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
 
 
 @pytest.mark.rhel_ver_match('8')
-def test_positive_page_redirect_after_update(target_sat, current_sat_location):
+def test_positive_page_redirect_after_update(target_sat, rhel_contenthost, setup_content):
     """Check that page redirects correctly after editing a host without making any changes.
 
     :id: 29c3397e-0010-11ef-bca4-000c2989e153
 
     :steps:
         1. Go to All Hosts page.
-        2. Edit a host. Using the Sat. host is sufficient, no other host needs to be created or registered,
-            because we need just a host with FQDN.
+        2. Edit a host with FQDN.
         3. Submit the host edit dialog without making any changes.
 
     :expectedresults: The page should be redirected to the host details page.
 
     :BZ: 2166303
     """
-    client = target_sat
+    ak, org, _ = setup_content
+    rhel_contenthost.register(org, None, ak.name, target_sat)
     column = {'Name': True, 'Host group': True, 'OS': True, 'Owner': True, 'Last report': True}
     with target_sat.ui_session() as session:
-        session.location.select(loc_name=current_sat_location.name)
+        session.organization.select(org.name)
         headers = session.all_hosts.get_displayed_table_headers()
         columns = {**column, **{h: False for h in headers if h is not None and h not in column}}
         session.all_hosts.manage_table_columns(columns)
-        session.host_new.update(client.hostname, {})
+        session.host_new.update(rhel_contenthost.hostname, {})
         assert 'page-not-found' not in session.browser.url
-        assert client.hostname in session.browser.url
+        assert rhel_contenthost.hostname in session.browser.url
 
 
 @pytest.mark.no_containers
