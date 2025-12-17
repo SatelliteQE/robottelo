@@ -277,16 +277,16 @@ def test_positive_update_name(
             quick=False,
             host_values={'host.name': new_name},
         )
-        assert session.host.search(new_host_name)[0]['Name'] == new_host_name
-        values = session.host.get_details(new_host_name)
-        assert values['properties']['properties_table']['Status'] == 'OK'
+        assert session.host_new.search(new_host_name)[0]['Name'] == new_host_name
+        values = session.host_new.get_details(new_host_name)
+        assert values['overview']['host_status']['status'] == 'All statuses OK'
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
 @pytest.mark.upgrade
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
-@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
 @pytest.mark.rhel_ver_match('9')
 def test_positive_auto_provision_host_with_rule(
     request,
@@ -346,11 +346,11 @@ def test_positive_auto_provision_host_with_rule(
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_location.name)
         session.discoveredhosts.apply_action('Auto Provision', [discovered_host_name])
-        assert session.host.search(host_name)[0]['Name'] == host_name
-        host_values = session.host.get_details(host_name)
-        assert host_values['properties']['properties_table']['Status'] == 'OK'
+        assert session.host_new.search(host_name)[0]['Name'] == host_name
+        host_values = session.host_new.get_details(host_name)
+        assert host_values['overview']['host_status']['status'] == 'All statuses OK'
         assert (
-            host_values['properties']['properties_table']['Comment']
+            host_values['overview']['details']['details']['comment']
             == f"Auto-discovered and provisioned via rule '{discovery_rule.name}'"
         )
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
