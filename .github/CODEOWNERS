@@ -255,7 +255,6 @@ tests/foreman/api/test_usergroup.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_webhook.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_auth.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_capsule.py @SatelliteQE/team-endeavour
-tests/foreman/destructive/test_capsule_loadbalancer.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_filter.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_foremantask.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_http_proxy.py @SatelliteQE/team-endeavour
@@ -284,6 +283,7 @@ tests/foreman/destructive/test_remoteexecution.py @SatelliteQE/team-endeavour
 tests/foreman/endtoend/test_api_endtoend.py @SatelliteQE/team-endeavour
 tests/foreman/longrun/test_oscap.py @SatelliteQE/team-endeavour
 tests/foreman/longrun/test_remoteexecution.py @SatelliteQE/team-endeavour
+tests/foreman/sys/test_capsule_loadbalancer.py @SatelliteQE/team-endeavour
 tests/foreman/sys/test_dynflow.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_audit.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_bookmarks.py @SatelliteQE/team-endeavour
