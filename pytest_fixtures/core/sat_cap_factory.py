@@ -242,6 +242,7 @@ def module_satellite_iop():
     with Broker(
         workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
     ) as satellite:
+        satellite.execute('satellite-maintain service restart --only foreman')
         yield satellite
 
 
@@ -253,6 +254,7 @@ def satellite_iop():
     with Broker(
         workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
     ) as satellite:
+        satellite.execute('satellite-maintain service restart --only foreman')
         yield satellite
 
 
