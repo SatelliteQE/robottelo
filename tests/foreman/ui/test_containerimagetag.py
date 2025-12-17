@@ -134,13 +134,12 @@ def test_synced_container_pullable_paths(function_org, function_product, target_
 
     :id: 1df694e6-c2b0-4d85-82c4-d4d43c7c2fc3
 
-    :parametrized: yes
-
     :steps:
         1. Sync a docker Repository
         2. Read the docker_manifest_list information
-        3. Navigate to the Container Images feature.
-        4. Read the pullable paths information for a manifest list in the Synced Containers table and Manifest Details page.
+        3. Navigate to the Container Images table.
+        4. Read the pullable paths information for a manifest list in the Synced Containers table, through the modal.
+        5. Read the pullable paths information through the and Manifest Details page.
 
     :expectedresults: The pullable path information is correct, and consistent, across both locations.
 
