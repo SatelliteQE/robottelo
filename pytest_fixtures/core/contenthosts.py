@@ -399,3 +399,16 @@ def custom_host(request):
     deploy_args['workflow'] = 'deploy-rhel'
     with Broker(**deploy_args, host_class=Satellite) as host:
         yield host
+
+
+@pytest.fixture(scope="module")
+def module_haproxy():
+    """A module-level fixture that provides a RHEL content host for HAProxy loadbalancer,
+    matching the RHEL version of the Capsule deployment."""
+    with Broker(
+        host_class=ContentHost,
+        workflow=settings.capsule.deploy_workflows.os,
+        deploy_rhel_version=settings.capsule.version.rhel_version,
+        deploy_network_type=settings.capsule.network_type,
+    ) as host:
+        yield host
