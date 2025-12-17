@@ -129,10 +129,7 @@ def test_synced_repo_labels_annotations_read(
             assert annotation in manifest_modal_info['labels_and_annotations']
 
 
-@pytest.mark.parametrize('setting_update', ['lab_features=True'], indirect=True)
-def test_synced_container_pullable_paths(
-    function_org, function_product, setting_update, target_sat
-):
+def test_synced_container_pullable_paths(function_org, function_product, target_sat):
     """Create and sync a container repository, and read it's pullable paths information
 
     :id: 1df694e6-c2b0-4d85-82c4-d4d43c7c2fc3
