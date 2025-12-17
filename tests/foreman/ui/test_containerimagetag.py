@@ -127,3 +127,50 @@ def test_synced_repo_labels_annotations_read(
             assert label in manifest_modal_info['labels_and_annotations']
         for annotation in annotation_list:
             assert annotation in manifest_modal_info['labels_and_annotations']
+
+
+@pytest.mark.parametrize('setting_update', ['lab_features=True'], indirect=True)
+def test_synced_container_pullable_paths(
+    function_org, function_product, setting_update, target_sat
+):
+    """Create and sync a container repository, and read it's pullable paths information
+
+    :id: 1df694e6-c2b0-4d85-82c4-d4d43c7c2fc3
+
+    :parametrized: yes
+
+    :steps:
+        1. Sync a docker Repository
+        2. Read the docker_manifest_list information
+        3. Navigate to the Container Images feature.
+        4. Read the pullable paths information for a manifest list in the Synced Containers table and Manifest Details page.
+
+    :expectedresults: The pullable path information is correct, and consistent, across both locations.
+
+    :Verifies: SAT-39827
+    """
+    repo = target_sat.api.Repository(
+        name=gen_alpha(),
+        content_type='docker',
+        docker_upstream_name=BOOTABLE_REPO['upstream_name'],
+        product=function_product,
+        url=settings.container.pulp.registry_hub,
+    ).create()
+    repo.sync()
+    repo = repo.read()
+    assert repo.content_counts['docker_manifest'] > 0
+    manifest_list = target_sat.api.Repository(id=repo.id).docker_manifest_lists()['results'][0]
+    pullable_path = f"{repo.full_path}:{manifest_list['tags'][0]['name']}"
+    default_cv_version = function_org.default_content_view.read().version[0].read()
+    lce = default_cv_version.environment[0].read()
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        # Verify manifest list information
+        pullable_paths_info = session.containerimages.read_pullable_paths(
+            manifest_list['tags'][0]['name'], manifest_list['digest']
+        )
+        assert pullable_path == pullable_paths_info['Pullable path']
+        assert repo.name == pullable_paths_info['Repository']
+        assert lce.name == pullable_paths_info['Environment']
+        assert default_cv_version.name == pullable_paths_info['Content view']
