@@ -14,7 +14,6 @@
 import json
 
 import pytest
-import requests
 
 from robottelo.config import settings
 from robottelo.constants import (
