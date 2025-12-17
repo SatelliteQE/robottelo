@@ -117,11 +117,11 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                         'provider_content.operating_system.image': finishimg_image,
                     }
                 )
-
-                host_info = session.host.get_details(fqdn)
-                assert 'Installed' in host_info['properties']['properties_table']['Build']
+                host_info = session.host_new.get_host_statuses(fqdn)
+                assert 'Installed' in host_info['Build']['Status']
+                host_page = session.host_new.get_details(fqdn, widget_names='overview')
                 assert (
-                    host_info['properties']['properties_table']['Host group']
+                    host_page['overview']['details']['details']['host_group']
                     == module_azure_hg.name
                 )
 
@@ -130,13 +130,18 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 assert azurecloud_vm
                 assert azurecloud_vm.is_running
                 assert azurecloud_vm.name == hostname.lower()
-                assert azurecloud_vm.ip == host_info['properties']['properties_table']['IP Address']
+                assert (
+                    azurecloud_vm.ip
+                    == host_page['overview']['details']['details'][
+                        f'{settings.server.NETWORK_TYPE}_address'
+                    ]
+                )
                 assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
                 # Host Delete
                 with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
-                    session.host.delete(fqdn)
-                assert not session.host.search(fqdn)
+                    session.host_new.delete(fqdn)
+                assert not session.host_new.search(fqdn)
 
                 # AzureRm Cloud assertion
                 assert not azurecloud_vm.exists
@@ -200,12 +205,11 @@ def test_positive_azurerm_host_provision_ud(
                     }
                 )
 
-                host_info = session.host.get_details(fqdn)
+                host_info = session.host_new.get_host_statuses(fqdn)
+                assert 'Pending installation' in host_info['Build']['Status']
+                host_page = session.host_new.get_details(fqdn, widget_names='overview')
                 assert (
-                    'Pending installation' in host_info['properties']['properties_table']['Build']
-                )
-                assert (
-                    host_info['properties']['properties_table']['Host group']
+                    host_page['overview']['details']['details']['host_group']
                     == module_azure_hg.name
                 )
 
@@ -214,7 +218,12 @@ def test_positive_azurerm_host_provision_ud(
                 assert azurecloud_vm
                 assert azurecloud_vm.is_running
                 assert azurecloud_vm.name == hostname.lower()
-                assert azurecloud_vm.ip == host_info['properties']['properties_table']['IP Address']
+                assert (
+                    azurecloud_vm.ip
+                    == host_page['overview']['details']['details'][
+                        f'{settings.server.NETWORK_TYPE}_address'
+                    ]
+                )
                 assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
         finally:
