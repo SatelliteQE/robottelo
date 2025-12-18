@@ -88,7 +88,6 @@ External services and tools that tests depend on.
 
 - **Broker**: VM/Container host provisioning
 - **Manifester**: Subscription manifest generation
-- **Report Portal**: Test result reporting
 - **Vault**: Secret management
 
 ---
@@ -269,8 +268,6 @@ def test_positive_create_activation_key(module_org, module_target_sat):
         3. Verify activation key exists
     
     :expectedresults: Activation key is created successfully
-    
-    :CaseImportance: Critical
     
     :CaseAutomation: Automated
     """
@@ -599,41 +596,19 @@ def test_content_view_upgrade(upgrade_shared_satellite):
 ```
 
 **Key Concepts**:
-- `SharedResource`: Manages setup/verification in single test
-- `action=`: Function to run before upgrade
-- `.ready()`: Returns setup data after upgrade
-- Markers: `@pytest.mark.{feature}_upgrades`
+- `SharedResource`: Represents a resource (for example, a Satellite) that can be operated on by multiple Xdist workers in parallel (for example, executing multiple tests against a single Satellite at the same time)
+- `resource_file`: A file that tracks the status of each Xdist worker operating on a SharedResource. The file is located in /tmp on the system executing tests. 
+- `action=`: Function to be executed by a single Xdist worker when all workers are ready (for example, upgrading a Satellite after all workers have completed the setup portions of their respective tests)
+- `.ready()`: Changes an Xdist worker's status to 'ready' in the resource_file. If the worker is not the main worker, it will wait until the main worker has finished executing the `action` and then continue with the test. If the worker is the main worker, it will wait until all other workers are in status 'ready' and then execute the `action`. 
 
-### Old Upgrade Pattern (Legacy)
-
-**Location**: `tests/upgrades/`
-
-Uses separate pre/post tests with `@pytest.mark.pre_upgrade` and `@pytest.mark.post_upgrade`:
-
-```python
-@pytest.mark.pre_upgrade
-def test_cv_pre_upgrade(save_test_data):
-    """Setup before upgrade"""
-    org = entities.Organization().create()
-    save_test_data({'org_id': org.id})
-
-@pytest.mark.post_upgrade(depend_on=test_cv_pre_upgrade)
-def test_cv_post_upgrade(pre_upgrade_data):
-    """Verify after upgrade"""
-    org_id = pre_upgrade_data['org_id']
-    org = entities.Organization(id=org_id).read()
-    assert org.id == org_id
-```
 
 **Run Commands**:
 ```bash
-# Pre-upgrade stage
-pytest -m "pre_upgrade" tests/upgrades/
+# Run all upgrade tests
+pytest tests/new_upgrades/ --upgrade
 
-# Perform upgrade
-
-# Post-upgrade stage
-pytest -m "post_upgrade" tests/upgrades/
+# Run specific test file
+pytest tests/new_upgrades/test_activation_key.py --upgrade
 ```
 
 ---
@@ -766,7 +741,6 @@ wait_for(
 **Problem**: `raise Exception("No hosts created during checkout")`
 
 **Solution**:
-- Check Broker configuration in `broker_settings.yaml` and `broker/broker.py`
 - Verify inventory has available hosts
 - Check host requirements match available inventory
 
