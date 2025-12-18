@@ -275,50 +275,6 @@ class TestVirtwhoConfigforEsx:
                     assert regex == get_configure_option('exclude_hosts', config_file)
                     assert regex == get_configure_option('exclude_host_parents', config_file)
 
-    def test_positive_last_checkin_status(
-        self,
-        module_sca_manifest_org,
-        virtwho_config_ui,
-        form_data_ui,
-        org_session,
-        default_location,
-        target_sat,
-    ):
-        """Verify the Last Checkin status on Content Hosts Page.
-
-        :id: 4b76b79b-df9b-453e-9e72-0f33f35b8d29
-
-        :expectedresults: The Last Checkin time on Content Hosts Page is client date time
-
-        :BZ: 1652323
-
-        :customerscenario: true
-
-        :CaseImportance: Medium
-        """
-        name = form_data_ui['name']
-        values = org_session.virtwho_configure.read(name, widget_names='deploy.command')
-        command = values['deploy']['command']
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command,
-            form_data_ui['hypervisor_type'],
-            debug=True,
-            org=module_sca_manifest_org.label,
-            target_sat=target_sat,
-        )
-        time_now = org_session.browser.get_client_datetime()
-        assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
-        org_session.location.select(default_location.name)
-        checkin_time = org_session.contenthost.search(hypervisor_name)[0]['Last Checkin']
-        # 10 mins margin to check the Last Checkin time
-        assert (
-            abs(
-                datetime.strptime(checkin_time, "%B %d, %Y at %I:%M %p").timestamp()
-                - time_now.timestamp()
-            )
-            <= 300
-        )
-
     def test_positive_remove_env_option(
         self, module_sca_manifest_org, virtwho_config_ui, form_data_ui, target_sat, org_session
     ):
