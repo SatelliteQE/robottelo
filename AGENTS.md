@@ -1,6 +1,6 @@
 # Robottelo - AI Agent Guide
 
-**Project**: SatelliteQE Robottelo  
+**Project**: SatelliteQE Robottelo
 **Repository**: https://github.com/SatelliteQE/robottelo
 
 ---
@@ -259,16 +259,16 @@ Use **reStructuredText** format with required fields, Reference `testimony.yaml`
 ```python
 def test_positive_create_activation_key(module_org, module_target_sat):
     """Create activation key with valid name
-    
+
     :id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d <uuid generated with 'uuidgen | tr "[:upper:]" "[:lower:]"'>
-    
+
     :steps:
         1. Create organization
         2. Create activation key with valid name
         3. Verify activation key exists
-    
+
     :expectedresults: Activation key is created successfully
-    
+
     :CaseAutomation: Automated
     """
     ak = module_target_sat.api.ActivationKey(
@@ -283,7 +283,7 @@ def test_positive_create_activation_key(module_org, module_target_sat):
 - `:expectedresults:` - Expected outcome
 
 **Optional fields**
-- `:Verifies:` - When the test verifies a Bug (Use as :Verifies: SAT-12345) (Formely there was :BZ: tag, don't use that anymore) 
+- `:Verifies:` - When the test verifies a Bug (Use as :Verifies: SAT-12345) (Formerly there was :BZ: tag, don't use that anymore)
 ---
 
 ## Testing Patterns
@@ -294,16 +294,16 @@ def test_positive_create_activation_key(module_org, module_target_sat):
 def test_positive_create_ak_via_ui(module_org, module_target_sat):
     """Test activation key creation via UI"""
     ak_name = gen_string('alpha')
-    
+
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
-        
+
         # Create via UI
         session.activationkey.create({
             'name': ak_name,
             'lce': {'value': 'Library'}
         })
-        
+
         # Verify in UI
         ak_values = session.activationkey.read(ak_name)
         assert ak_values['details']['name'] == ak_name
@@ -315,17 +315,17 @@ def test_positive_create_ak_via_ui(module_org, module_target_sat):
 def test_positive_create_ak_via_cli(module_org, module_target_sat):
     """Test activation key creation via CLI"""
     ak_name = gen_string('alpha')
-    
+
     # Create via CLI
     result = module_target_sat.cli.ActivationKey.create({
         'name': ak_name,
         'organization-id': module_org.id,
         'lifecycle-environment': 'Library'
     })
-    
+
     # Verify
     assert result['name'] == ak_name
-    
+
     # Read via CLI
     ak_info = module_target_sat.cli.ActivationKey.info({
         'id': result['id']
@@ -380,21 +380,21 @@ def test_positive_content_host_e2e(
         environment=module_lce,
         content_view=module_cv
     ).create()
-    
+
     # Register content host
     rhel_contenthost.register_contenthost(
         org=module_org,
         activation_key=ak.name
     )
-    
+
     # Verify registration
     result = rhel_contenthost.execute('subscription-manager identity')
     assert result.status == 0
-    
+
     # Install package
     result = rhel_contenthost.execute('yum install -y tree')
     assert result.status == 0
-    
+
     # Verify package installed
     result = rhel_contenthost.execute('rpm -q tree')
     assert result.status == 0
@@ -579,7 +579,7 @@ def setup_scenario(sat_instance):
 @pytest.mark.content_upgrades
 def test_content_view_upgrade(upgrade_shared_satellite):
     """Test content view survives upgrade"""
-    
+
     # Setup before upgrade
     with SharedResource(
         "cv_upgrade_setup",
@@ -587,7 +587,7 @@ def test_content_view_upgrade(upgrade_shared_satellite):
         sat_instance=upgrade_shared_satellite,
     ) as setup_data:
         setup_result = setup_data.ready()
-        
+
         # Verify after upgrade
         org = upgrade_shared_satellite.api.Organization(
             id=setup_result['org_id']
@@ -597,9 +597,9 @@ def test_content_view_upgrade(upgrade_shared_satellite):
 
 **Key Concepts**:
 - `SharedResource`: Represents a resource (for example, a Satellite) that can be operated on by multiple Xdist workers in parallel (for example, executing multiple tests against a single Satellite at the same time)
-- `resource_file`: A file that tracks the status of each Xdist worker operating on a SharedResource. The file is located in /tmp on the system executing tests. 
+- `resource_file`: A file that tracks the status of each Xdist worker operating on a SharedResource. The file is located in /tmp on the system executing tests.
 - `action=`: Function to be executed by a single Xdist worker when all workers are ready (for example, upgrading a Satellite after all workers have completed the setup portions of their respective tests)
-- `.ready()`: Changes an Xdist worker's status to 'ready' in the resource_file. If the worker is not the main worker, it will wait until the main worker has finished executing the `action` and then continue with the test. If the worker is the main worker, it will wait until all other workers are in status 'ready' and then execute the `action`. 
+- `.ready()`: Changes an Xdist worker's status to 'ready' in the resource_file. If the worker is not the main worker, it will wait until the main worker has finished executing the `action` and then continue with the test. If the worker is the main worker, it will wait until all other workers are in status 'ready' and then execute the `action`.
 
 
 **Run Commands**:
@@ -789,7 +789,7 @@ from wait_for import wait_for
 with target_sat.ui_session() as session:
     # Wait for page to load
     wait_for(lambda: session.activationkey.is_displayed, timeout=30)
-    
+
     # Interact with element
     session.activationkey.create({'name': 'test-ak'})
 ```
@@ -885,5 +885,5 @@ repo_url = settings.repos.yum_3.url
 
 ---
 
-**Last Updated**: 2025-11-11  
+**Last Updated**: 2025-11-11
 **Maintainers**: Cole Higgins
