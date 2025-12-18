@@ -179,6 +179,13 @@ class Host(Base):
         )
 
     @classmethod
+    def package_containerfile_install_command(cls, options):
+        """Generate a Containerfile RUN command from transiently
+        installed packages on image mode hosts"""
+        cls.command_sub = 'package containerfile-install-command'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
     def package_install(cls, options):
         """Install packages remotely."""
         cls.command_sub = 'package install'
