@@ -1272,12 +1272,14 @@ def test_positive_list_hosts_thin_all(module_target_sat):
 
 def _create_transient_packages(target_sat, host, package_data):
     """
-    Helper function to create transient packages for a host in the database.
+    Helper function to create packages with persistence values for a host in the database.
 
     Args:
         target_sat: Satellite instance
         host: Host object to associate packages with
-        package_data: List of package dictionaries with name, version, release, arch
+        package_data: List of package dictionaries with name, version, release, arch, and
+                      optional persistence ('transient', 'persistent', or None).
+                      Defaults to 'transient' if not specified.
 
     Returns:
         None
@@ -1289,6 +1291,9 @@ def _create_transient_packages(target_sat, host, package_data):
         epoch = pkg.get('epoch', '0')  # Default epoch to 0 if not specified
         nvra = f"{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
         nvrea = f"{epoch}:{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
+        persistence = pkg.get(
+            'persistence', 'transient'
+        )  # Default to 'transient' for backwards compatibility
 
         # Insert package record using query_db
         insert_query = (
@@ -1310,11 +1315,14 @@ def _create_transient_packages(target_sat, host, package_data):
         pkg_id = pkg_records[0]['id']
         assert pkg_id is not None, f"Failed to get package ID for {nvra}"
 
-        # Create host-package association using query_db
+        # Create host-package association with persistence value using query_db
+        persistence_value = 'NULL' if persistence is None else f"'{persistence}'"
         assoc_query = (
             f"INSERT INTO katello_host_installed_packages "
             f"(host_id, installed_package_id, persistence) "
-            f"VALUES ({host.id}, {pkg_id}, 'transient')"
+            f"VALUES ({host.id}, {pkg_id}, {persistence_value}) "
+            f"ON CONFLICT (host_id, installed_package_id) DO UPDATE "
+            f"SET persistence = {persistence_value}"
         )
         target_sat.query_db(assoc_query, output_format='raw')
 

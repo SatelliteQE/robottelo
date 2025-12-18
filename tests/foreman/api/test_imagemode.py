@@ -21,6 +21,7 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
 )
+from tests.foreman.api.test_host import _create_transient_packages
 
 
 @pytest.mark.e2e
@@ -524,3 +525,230 @@ def test_bootc_rex_errata_install(target_sat, bootc_host, function_repos_collect
         must_succeed=True,
         poll_timeout=100,
     )
+
+
+def test_positive_host_packages_persistence_api(target_sat):
+    """Verify that package persistence info is exposed via /api/v2/hosts/:id/packages endpoint
+
+    :id: 54e2badc-5f42-4f2c-8d67-4f8107a9eac8
+
+    :steps:
+        1. Create a host
+        2. Add packages with different persistence values via SQL (transient, persistent, None)
+        3. Retrieve packages via /api/v2/hosts/:id/packages API endpoint
+        4. Verify persistence info is present and correct for each package
+
+    :expectedresults:
+        1. Packages with persistence='transient' are returned with correct value
+        2. Packages with persistence='persistent' are returned with correct value
+        3. Packages with persistence=None are returned with None/null value
+        4. All packages returned via API include the 'persistence' field
+
+    :Verifies: SAT-36788
+    """
+    # Create a host
+    host = target_sat.api.Host().create()
+
+    # Mock packages with different persistence values by directly inserting them via SQL
+    package_data = [
+        {
+            'name': 'transient-pkg',
+            'version': '1.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'transient',
+        },
+        {
+            'name': 'persistent-pkg',
+            'version': '2.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'persistent',
+        },
+        {
+            'name': 'unknown-pkg',
+            'version': '3.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': None,
+        },
+    ]
+
+    # Insert packages with persistence info using helper function
+    _create_transient_packages(target_sat, host, package_data)
+
+    # Call the /api/v2/hosts/:id/packages API endpoint using NailGun
+    packages = host.packages()['results']
+
+    # Verify that all packages are returned
+    assert len(packages) == 3, f'Expected 3 packages, got {len(packages)}'
+
+    # Verify each package has correct persistence info
+    transient_pkg = next((p for p in packages if p['name'] == 'transient-pkg'), None)
+    assert transient_pkg is not None, 'Transient package not found in API response'
+    assert 'persistence' in transient_pkg, 'Persistence field missing from transient package'
+    assert transient_pkg['persistence'] == 'transient', (
+        f"Expected persistence='transient', got '{transient_pkg['persistence']}'"
+    )
+
+    persistent_pkg = next((p for p in packages if p['name'] == 'persistent-pkg'), None)
+    assert persistent_pkg is not None, 'Persistent package not found in API response'
+    assert 'persistence' in persistent_pkg, 'Persistence field missing from persistent package'
+    assert persistent_pkg['persistence'] == 'persistent', (
+        f"Expected persistence='persistent', got '{persistent_pkg['persistence']}'"
+    )
+
+    unknown_pkg = next((p for p in packages if p['name'] == 'unknown-pkg'), None)
+    assert unknown_pkg is not None, 'Unknown package not found in API response'
+    assert 'persistence' in unknown_pkg, 'Persistence field missing from unknown package'
+    assert unknown_pkg['persistence'] is None, (
+        f"Expected persistence=None, got '{unknown_pkg['persistence']}'"
+    )
+
+    # Verify all packages have the persistence field
+    for pkg in packages:
+        assert 'persistence' in pkg, f"Package {pkg['name']} missing persistence field"
+
+
+def test_positive_transient_packages_only(target_sat):
+    """Verify API returns only transient packages when all packages are transient
+
+    :id: 279c9340-8101-4127-aa92-a3c70a0e870d
+
+    :steps:
+        1. Create a host
+        2. Add only transient packages via SQL
+        3. Retrieve packages via /api/v2/hosts/:id/packages API endpoint
+        4. Verify all returned packages have persistence='transient'
+
+    :expectedresults:
+        1. All packages are returned with persistence='transient'
+        2. Persistence field is present for all packages
+
+    :Verifies: SAT-36788
+    """
+    # Create a host
+    host = target_sat.api.Host().create()
+
+    # Add only transient packages
+    package_data = [
+        {
+            'name': 'transient-pkg-1',
+            'version': '1.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'transient',
+        },
+        {
+            'name': 'transient-pkg-2',
+            'version': '2.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'transient',
+        },
+    ]
+
+    _create_transient_packages(target_sat, host, package_data)
+
+    # Call the API endpoint using NailGun
+    packages = host.packages()['results']
+
+    # Verify all packages are transient
+    assert len(packages) == 2
+    for pkg in packages:
+        assert 'persistence' in pkg, f"Package {pkg['name']} missing persistence field"
+        assert pkg['persistence'] == 'transient', (
+            f"Expected all packages to be transient, but {pkg['name']} has persistence='{pkg['persistence']}'"
+        )
+
+
+def test_positive_persistent_packages_only(target_sat):
+    """Verify API returns only persistent packages when all packages are persistent
+
+    :id: 9c0ea941-94c4-4f1b-8a5c-ff3439b090a4
+
+    :steps:
+        1. Create a host
+        2. Add only persistent packages via SQL
+        3. Retrieve packages via /api/v2/hosts/:id/packages API endpoint
+        4. Verify all returned packages have persistence='persistent'
+
+    :expectedresults:
+        1. All packages are returned with persistence='persistent'
+        2. Persistence field is present for all packages
+
+    :Verifies: SAT-36788
+    """
+    # Create a host
+    host = target_sat.api.Host().create()
+
+    # Add only persistent packages
+    package_data = [
+        {
+            'name': 'base-pkg-1',
+            'version': '1.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'persistent',
+        },
+        {
+            'name': 'base-pkg-2',
+            'version': '2.0.0',
+            'release': '1.el10',
+            'arch': 'x86_64',
+            'persistence': 'persistent',
+        },
+    ]
+
+    _create_transient_packages(target_sat, host, package_data)
+
+    # Call the API endpoint using NailGun
+    packages = host.packages()['results']
+
+    # Verify all packages are persistent
+    assert len(packages) == 2
+    for pkg in packages:
+        assert 'persistence' in pkg, f"Package {pkg['name']} missing persistence field"
+        assert pkg['persistence'] == 'persistent', (
+            f"Expected all packages to be persistent, but {pkg['name']} has persistence='{pkg['persistence']}'"
+        )
+
+
+def test_positive_host_packages_persistence_api_empty_results(target_sat):
+    """Verify that package persistence API returns an empty result set for a host with no packages
+
+    :id: d782367b-598b-49fe-9654-7a66bc3d22be
+
+    :steps:
+        1. Create a host
+        2. Ensure host has no packages in katello_host_installed_packages
+        3. Call /api/v2/hosts/:id/packages API endpoint
+        4. Verify response is successful with empty results
+
+    :expectedresults:
+        1. Response status is 200
+        2. Results field is present and is an empty list
+        3. Total and subtotal are 0
+
+    :Verifies: SAT-36788
+    """
+    # Create a host
+    host = target_sat.api.Host().create()
+
+    # Ensure this host has no package persistence rows (it shouldn't by default, but let's be explicit)
+    target_sat.query_db(
+        f"DELETE FROM katello_host_installed_packages WHERE host_id = {host.id}",
+        output_format="raw",
+    )
+
+    # Call the packages API for a host with no installed packages using NailGun
+    packages = host.packages()
+
+    # results key must be present and an empty list
+    assert 'results' in packages
+    assert isinstance(packages['results'], list)
+    assert len(packages['results']) == 0
+
+    # total/subtotal should correctly represent the empty case
+    assert packages.get('total') == 0
+    assert packages.get('subtotal') == 0
