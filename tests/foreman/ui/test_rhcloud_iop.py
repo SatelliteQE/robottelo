@@ -288,7 +288,7 @@ def test_iop_recommendations_remediation_type_and_status(
     module_target_sat_insights,
 ):
     """Set up Satellite with iop enabled, verify recommendations remediation type,
-    and test filtering recommendations by status.
+    disable the recommendation, check status, then re-enable the recommendation.
 
     :id: 62834698-b4b8-4218-855c-2b2aa584b364
 
@@ -297,21 +297,18 @@ def test_iop_recommendations_remediation_type_and_status(
         2. In Satellite UI, go to Red Hat Lightspeed > Recommendations.
         3. Search for "OpenSSH config permissions" recommendation.
         4. Verify the recommendation's remediation type is "Playbook".
-        5. Apply filter for "Enabled" status recommendations.
-        6. Verify Enabled recommendations are greater than 0.
-        7. Apply filter for "Disabled" status recommendations.
-        8. Verify Disabled recommendations are 0.
+        5. Disable recommendation.
+        6. Verify recommendation is disabled.
+        7. Re-enable recommendation.
+        8. Verify recommendation is enabled.
 
     :expectedresults:
         1. Red Hat Lightspeed recommendation related to "OpenSSH config permissions" issue is listed
             for misconfigured machine.
         2. The recommendation has remediation type "Playbook".
-        3. Enabled recommendations are displayed (count greater than 0).
-        4. No disabled recommendations are displayed.
+        3. Recommendation can be disabled and re-enabled.
 
-    :CaseImportance: Critical
-
-    :Verifies: SAT-32566
+    :Verifies: SAT-32566, SAT-38139
 
     :parametrized: yes
 
@@ -344,4 +341,11 @@ def test_iop_recommendations_remediation_type_and_status(
         )
         # Verify that the disabled recommendation is filtered
         result = session.recommendationstab.apply_filter("Status", "Disabled")
+        assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
+
+        session.recommendationstab.enable_recommendation(
+            recommendation_name='Decreased security: OpenSSH config permissions'
+        )
+
+        result = session.recommendationstab.apply_filter("Status", "Enabled")
         assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
