@@ -83,6 +83,7 @@ def form_data_cli(request, target_sat, org_module):
             'filtering-mode': 'none',
             'satellite-url': target_sat.hostname,
             'hypervisor-username': settings.virtwho.libvirt.hypervisor_username,
+            'hypervisor-password': settings.virtwho.libvirt.hypervisor_password,
         }
     elif 'nutanix' in hypervisor_type:
         form = {
@@ -158,6 +159,7 @@ def form_data_api(request, target_sat, org_module):
             'filtering_mode': 'none',
             'satellite_url': target_sat.hostname,
             'hypervisor_username': settings.virtwho.libvirt.hypervisor_username,
+            'hypervisor_password': settings.virtwho.libvirt.hypervisor_password,
         }
     elif 'nutanix' in hypervisor_type:
         form = {
@@ -234,7 +236,50 @@ def form_data_ui(request, target_sat, org_module):
 
 
 @pytest.fixture
-def virtwho_config_cli(form_data_cli, target_sat, register_sat_and_enable_aps_repo):
+def setup_libvirt_ssh_auth(request, target_sat):
+    """Automatically configure SSH key authentication for libvirt hypervisor.
+
+    Libvirt uses qemu+ssh:// connection which requires SSH key-based authentication
+    for non-interactive access by the virt-who service. This fixture:
+    1. Generates SSH key on Satellite if it doesn't exist
+    2. Adds hypervisor to Satellite's known_hosts
+    3. Copies Satellite's public key to hypervisor's authorized_keys
+    """
+    hypervisor_type = request.module.__name__.split('.')[-1].split('_', 1)[-1]
+
+    # Only run for libvirt tests
+    if 'libvirt' not in hypervisor_type:
+        yield
+        return
+
+    hypervisor_server = settings.virtwho.libvirt.hypervisor_server
+    hypervisor_username = settings.virtwho.libvirt.hypervisor_username
+    hypervisor_password = settings.virtwho.libvirt.hypervisor_password
+
+    # Generate SSH key on Satellite if it doesn't exist
+    result = target_sat.execute(
+        'test -f /root/.ssh/id_rsa || ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa'
+    )
+
+    # Add hypervisor to known_hosts
+    target_sat.execute(
+        f'ssh-keyscan -H {hypervisor_server} >> /root/.ssh/known_hosts 2>/dev/null || true'
+    )
+
+    # Copy public key to hypervisor using sshpass
+    target_sat.execute(
+        f'sshpass -p "{hypervisor_password}" ssh-copy-id '
+        f'-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null '
+        f'{hypervisor_username}@{hypervisor_server} 2>/dev/null || true'
+    )
+
+    yield
+
+    # No cleanup needed - SSH keys can persist for other tests
+
+
+@pytest.fixture
+def virtwho_config_cli(form_data_cli, target_sat, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth):
     virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)['general-information']
     yield virtwho_config_cli
     target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config_cli['name']})
@@ -242,7 +287,7 @@ def virtwho_config_cli(form_data_cli, target_sat, register_sat_and_enable_aps_re
 
 
 @pytest.fixture
-def virtwho_config_api(form_data_api, target_sat, register_sat_and_enable_aps_repo):
+def virtwho_config_api(form_data_api, target_sat, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth):
     virtwho_config_api = target_sat.api.VirtWhoConfig(**form_data_api).create()
     yield virtwho_config_api
     virtwho_config_api.delete()
@@ -252,7 +297,7 @@ def virtwho_config_api(form_data_api, target_sat, register_sat_and_enable_aps_re
 
 
 @pytest.fixture
-def virtwho_config_ui(form_data_ui, target_sat, org_session, register_sat_and_enable_aps_repo):
+def virtwho_config_ui(form_data_ui, target_sat, org_session, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth):
     name = gen_string('alpha')
     form_data_ui['name'] = name
     with org_session:
