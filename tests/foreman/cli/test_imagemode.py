@@ -17,6 +17,7 @@ from box import Box
 import pytest
 
 from robottelo.constants import DUMMY_BOOTC_FACTS
+from robottelo.exceptions import CLIReturnCodeError
 from tests.foreman.api.test_host import _create_transient_packages
 
 
@@ -173,7 +174,7 @@ def test_list_packages_with_persistence(module_target_sat, module_host_with_pack
     assert packages == expected_packages
 
 
-def test_containerfile_install_command(module_target_sat, module_host_with_package_mix):
+def test_positive_containerfile_install_command(module_target_sat, module_host_with_package_mix):
     """Ensure the containerfile install command returns correct output.
 
     :id: a1879eed-5dc3-4f96-bd9e-edad7ca4801d
@@ -212,3 +213,26 @@ def test_containerfile_install_command(module_target_sat, module_host_with_packa
         for p in pkg_data
         if p['persistence'] != 'transient'
     )
+
+
+def test_negative_containerfile_install_command(module_target_sat):
+    """Ensure proper message is returned when no transient package found.
+
+    :id: 773bb8e4-f6fb-4669-b0c0-2efe9f946eee
+
+    :steps:
+        1. Create a host with no transient packages.
+        2. Try to retrieve the containerfile install command via hammer.
+
+    :expectedresults:
+        1. Proper message is returned.
+
+    :Verifies: SAT-36792
+    """
+    # Create a host with no transient packages.
+    host = module_target_sat.api.Host().create()
+
+    # Try to retrieve the containerfile install command via hammer.
+    with pytest.raises(CLIReturnCodeError) as e:
+        module_target_sat.cli.Host.package_containerfile_install_command({'host-id': host.id})
+    assert 'No transient packages found' in str(e.value)
