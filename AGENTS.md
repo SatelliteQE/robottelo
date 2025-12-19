@@ -437,23 +437,10 @@ def rhel_contenthost(request):
     """Provides a RHEL content host"""
     ...
 
-# Parametrized by RHEL version
-@pytest.mark.rhel_ver_list([9, 10])
-def test_with_rhel9_and_10(rhel_contenthost):
-    ...
-```
-
-**Manifest Fixtures** (`pytest_fixtures/component/subscription.py`):
-
-```python
-@pytest.fixture(scope='module')
-def module_sca_manifest():
-    """Module-scoped SCA manifest"""
-    ...
-
-@pytest.fixture
-def function_sca_manifest():
-    """Function-scoped SCA manifest"""
+# If there is no need for multiple RHEL versions to be tested, but RHEL host is still needed for the sake of the test.
+from robottelo.config import settings
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+def test_with_default_rhel(rhel_contenthost):
     ...
 ```
 
@@ -484,6 +471,20 @@ def module_org(module_target_sat):
 def function_org(target_sat):
     """Function-scoped organization"""
     return target_sat.api.Organization().create()
+```
+
+**Manifest Fixtures** (`pytest_fixtures/component/subscription.py`):
+
+```python
+@pytest.fixture(scope='module')
+def module_sca_manifest():
+    """Module-scoped SCA manifest"""
+    ...
+
+@pytest.fixture
+def function_sca_manifest():
+    """Function-scoped SCA manifest"""
+    ...
 ```
 
 ### Fixture Best Practices
