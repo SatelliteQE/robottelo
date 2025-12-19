@@ -257,7 +257,7 @@ def setup_libvirt_ssh_auth(request, target_sat):
     hypervisor_password = settings.virtwho.libvirt.hypervisor_password
 
     # Generate SSH key on Satellite if it doesn't exist
-    result = target_sat.execute(
+    target_sat.execute(
         'test -f /root/.ssh/id_rsa || ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa'
     )
 
