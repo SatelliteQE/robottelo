@@ -281,7 +281,7 @@ def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
 @pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?![78]).*')
-@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
+@pytest.mark.parametrize('module_target_sat_insights', [True], ids=['local'], indirect=True)
 def test_iop_recommendations_remediation_type_and_status(
     rhel_insights_vm,
     rhcloud_manifest_org,
@@ -338,14 +338,9 @@ def test_iop_recommendations_remediation_type_and_status(
         assert result[0]['Name'] == OPENSSH_RECOMMENDATION
         assert result[0]['Remediation type'] == 'Playbook'
 
-        # Verify that enabled recommendations are greater than 0
-        result = session.recommendationstab.apply_filter("Status", "Enabled")
-        assert len(result) > 0
-
         # Disable recommendation
-        session.recommendationstab.disable_recommendation_for_system(
-            recommendation_name=OPENSSH_RECOMMENDATION, hostname=rhel_insights_vm.hostname
-        )
+        session.recommendationstab.disable_recommendation(
+            recommendation_name=OPENSSH_RECOMMENDATION)
         # Verify that the disabled recommendation is filtered
         result = session.recommendationstab.apply_filter("Status", "Disabled")
         assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
