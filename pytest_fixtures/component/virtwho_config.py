@@ -257,9 +257,7 @@ def setup_libvirt_ssh_auth(request, target_sat):
     hypervisor_password = settings.virtwho.libvirt.hypervisor_password
 
     # Generate SSH key on Satellite if it doesn't exist
-    target_sat.execute(
-        'test -f /root/.ssh/id_rsa || ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa'
-    )
+    target_sat.execute('test -f /root/.ssh/id_rsa || ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa')
 
     # Add hypervisor to known_hosts
     target_sat.execute(
@@ -279,7 +277,9 @@ def setup_libvirt_ssh_auth(request, target_sat):
 
 
 @pytest.fixture
-def virtwho_config_cli(form_data_cli, target_sat, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth):
+def virtwho_config_cli(
+    form_data_cli, target_sat, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth
+):
     virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)['general-information']
     yield virtwho_config_cli
     target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config_cli['name']})
@@ -287,7 +287,9 @@ def virtwho_config_cli(form_data_cli, target_sat, register_sat_and_enable_aps_re
 
 
 @pytest.fixture
-def virtwho_config_api(form_data_api, target_sat, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth):
+def virtwho_config_api(
+    form_data_api, target_sat, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth
+):
     virtwho_config_api = target_sat.api.VirtWhoConfig(**form_data_api).create()
     yield virtwho_config_api
     virtwho_config_api.delete()
@@ -297,7 +299,9 @@ def virtwho_config_api(form_data_api, target_sat, register_sat_and_enable_aps_re
 
 
 @pytest.fixture
-def virtwho_config_ui(form_data_ui, target_sat, org_session, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth):
+def virtwho_config_ui(
+    form_data_ui, target_sat, org_session, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth
+):
     name = gen_string('alpha')
     form_data_ui['name'] = name
     with org_session:

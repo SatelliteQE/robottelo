@@ -87,7 +87,13 @@ class TestVirtwhoConfigforNutanix:
 
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
     def test_positive_prism_central_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, org_session, form_data_ui, deploy_type, target_sat, register_sat_and_enable_aps_repo
+        self,
+        module_sca_manifest_org,
+        org_session,
+        form_data_ui,
+        deploy_type,
+        target_sat,
+        register_sat_and_enable_aps_repo,
     ):
         """Verify configure created and deployed with id on nutanix prism central mode
 
