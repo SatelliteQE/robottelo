@@ -23704,6 +23704,73 @@
           ],
           "subcommands": [
             {
+              "description": "Generate a Containerfile RUN command from transiently installed packages on image mode hosts",
+              "name": "containerfile-install-command",
+              "options": [
+                {
+                  "help": "Show specified fields or predefined field sets only. (See below)",
+                  "name": "full-result",
+                  "shortname": null,
+                  "value": "LIST"
+                },
+                {
+                  "help": "VALUE/NUMBER            Name/id of the host",
+                  "name": "host",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "VALUE/NUMBER            Name/id of the host",
+                  "name": "host-id",
+                  "shortname": null,
+                  "value": null
+                },
+                {
+                  "help": "Sort field and order, eg. 'id DESC'",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Page number, starting at 1",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Number of results per page to return",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "NUMBER"
+                },
+                {
+                  "help": "Search string",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Field to sort the results on",
+                  "name": "sort-by",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "How to order the sorted results (e.g. ASC for ascending)",
+                  "name": "sort-order",
+                  "shortname": null,
+                  "value": "VALUE"
+                },
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": "VALUE"
+                }
+                ],
+              "subcommands": []
+            },
+            {
               "description": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_package_install`.",
               "name": "install",
               "options": [
