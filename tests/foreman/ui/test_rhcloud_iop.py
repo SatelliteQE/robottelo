@@ -340,7 +340,8 @@ def test_iop_recommendations_remediation_type_and_status(
 
         # Disable recommendation
         session.recommendationstab.disable_recommendation(
-            recommendation_name=OPENSSH_RECOMMENDATION)
+            recommendation_name=OPENSSH_RECOMMENDATION
+        )
         # Verify that the disabled recommendation is filtered
         result = session.recommendationstab.apply_filter("Status", "Disabled")
         assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
