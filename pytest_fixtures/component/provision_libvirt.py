@@ -1,15 +1,24 @@
 # Compute resource - Libvirt entities
+from box import Box
 from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
 from robottelo.constants import COMPUTE_PROFILE_SMALL, FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 
-LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
+
+@pytest.fixture(scope='module')
+def libvirt(request):
+    versions = {
+        'libvirt9': settings.libvirt.hostname.libvirt9,
+        'libvirt10': settings.libvirt.hostname.libvirt10,
+    }
+    default = versions[getattr(request, 'param', 'libvirt9')]
+    return Box(fqdn=default, url=LIBVIRT_RESOURCE_URL % default)
 
 
 @pytest.fixture(scope='module')
-def module_cr_libvirt(module_target_sat, module_org, module_location):
+def module_cr_libvirt(module_target_sat, module_org, module_location, libvirt):
     """Create a Libvirt compute resource for the module."""
     return module_target_sat.api.LibvirtComputeResource(
         name=gen_string('alpha'),
@@ -17,7 +26,7 @@ def module_cr_libvirt(module_target_sat, module_org, module_location):
         display_type='VNC',
         organization=[module_org],
         location=[module_location],
-        url=LIBVIRT_URL,
+        url=libvirt.url,
     ).create()
 
 
@@ -27,9 +36,9 @@ def module_libvirt_image(module_target_sat, module_cr_libvirt):
 
 
 @pytest.fixture(scope='module')
-def module_libvirt_provisioning_sat(module_provisioning_sat):
+def module_libvirt_provisioning_sat(module_provisioning_sat, libvirt):
     # Configure Libvirt CR for provisioning
-    module_provisioning_sat.sat.configure_libvirt_cr()
+    module_provisioning_sat.sat.configure_libvirt_cr(server_fqdn=libvirt.fqdn)
     return module_provisioning_sat
 
 
