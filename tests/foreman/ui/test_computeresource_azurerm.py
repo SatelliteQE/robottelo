@@ -14,6 +14,7 @@
 
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -141,7 +142,11 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 # Host Delete
                 with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                     session.host_new.delete(fqdn)
-                assert not session.host_new.search(fqdn)
+                wait_for(
+                    lambda: session.host_new.search(fqdn)[0].get('Name') == 'No Results',
+                    timeout=300,
+                    delay=10,
+                )
 
                 # AzureRm Cloud assertion
                 assert not azurecloud_vm.exists
