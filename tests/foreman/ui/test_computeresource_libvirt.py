@@ -22,17 +22,15 @@ from robottelo.config import settings
 from robottelo.constants import (
     COMPUTE_PROFILE_SMALL,
     FOREMAN_PROVIDERS,
-    LIBVIRT_RESOURCE_URL,
 )
 from robottelo.hosts import ContentHost
 
 pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 
-LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
-
 
 @pytest.mark.e2e
-def test_positive_end_to_end(session, module_target_sat, module_org, module_location):
+@pytest.mark.parametrize('libvirt', ['libvirt9', 'libvirt10'], indirect=True)
+def test_positive_end_to_end(session, module_target_sat, module_org, module_location, libvirt):
     """Perform end to end testing for compute resource Libvirt component.
 
     :id: 7ef925ac-5aec-4e9d-b786-328a9b219c01
@@ -51,14 +49,14 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
     new_loc = module_target_sat.api.Location().create()
     display_type = choice(('VNC', 'SPICE'))
     console_passwords = choice((True, False))
-    module_target_sat.configure_libvirt_cr()
+    module_target_sat.configure_libvirt_cr(server_fqdn=libvirt.fqdn)
     with session:
         session.computeresource.create(
             {
                 'name': cr_name,
                 'description': cr_description,
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'provider_content.url': LIBVIRT_URL,
+                'provider_content.url': libvirt.url,
                 'provider_content.display_type': display_type,
                 'provider_content.console_passwords': console_passwords,
                 'organizations.resources.assigned': [module_org.name],
@@ -68,7 +66,7 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
         cr_values = session.computeresource.read(cr_name)
         assert cr_values['name'] == cr_name
         assert cr_values['description'] == cr_description
-        assert cr_values['provider_content']['url'] == LIBVIRT_URL
+        assert cr_values['provider_content']['url'] == libvirt.url
         assert cr_values['provider_content']['display_type'] == display_type
         assert cr_values['provider_content']['console_passwords'] == console_passwords
         assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
@@ -122,9 +120,11 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
 @pytest.mark.rhel_ver_match('[8]')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['uefi', 'secureboot'], indirect=True)
+@pytest.mark.parametrize('libvirt', ['libvirt9', 'libvirt10'], indirect=True)
 def test_positive_provision_end_to_end(
     request,
     pxe_loader,
+    libvirt,
     setting_update,
     module_sca_manifest_org,
     module_location,
@@ -150,7 +150,7 @@ def test_positive_provision_end_to_end(
     hostname = gen_string('alpha').lower()
     cr = sat.api.LibvirtComputeResource(
         provider=FOREMAN_PROVIDERS['libvirt'],
-        url=LIBVIRT_URL,
+        url=libvirt.url,
         display_type='VNC',
         location=[module_location],
         organization=[module_sca_manifest_org],
@@ -185,7 +185,7 @@ def test_positive_provision_end_to_end(
 
         # Check on Libvirt, if VM exists
         result = sat.execute(
-            f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
+            f'su foreman -s /bin/bash -c "virsh -c {libvirt.url} list --state-running"'
         )
         assert hostname in result.stdout
         # Wait for provisioning to complete and report status back to Satellite
@@ -214,8 +214,9 @@ def test_positive_provision_end_to_end(
 
 
 @pytest.mark.e2e
+@pytest.mark.parametrize('libvirt', ['libvirt9', 'libvirt10'], indirect=True)
 def test_positive_image_end_to_end(
-    request, session, target_sat, module_target_sat, module_org, module_location
+    request, session, target_sat, module_target_sat, module_org, module_location, libvirt
 ):
     """Perform end to end testing for compute resource libvirt component image.
 
@@ -240,14 +241,14 @@ def test_positive_image_end_to_end(
     display_type = choice(('VNC', 'SPICE'))
     console_passwords = choice((True, False))
     image_user_data = choice((False, True))
-    module_target_sat.configure_libvirt_cr()
+    module_target_sat.configure_libvirt_cr(server_fqdn=libvirt.fqdn)
     with session:
         session.computeresource.create(
             {
                 'name': cr_name,
                 'description': cr_description,
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'provider_content.url': LIBVIRT_URL,
+                'provider_content.url': libvirt.url,
                 'provider_content.display_type': display_type,
                 'provider_content.console_passwords': console_passwords,
                 'organizations.resources.assigned': [module_org.name],
@@ -295,7 +296,7 @@ def test_positive_image_end_to_end(
 
 
 def test_positive_associate_with_custom_profile(
-    request, session, target_sat, module_target_sat, module_org, module_location
+    request, session, target_sat, module_target_sat, module_org, module_location, libvirt
 ):
     """Associate custom default (1-Small) compute profile to libvirt compute resource.
 
@@ -320,14 +321,14 @@ def test_positive_associate_with_custom_profile(
         'network': 'br-420',  # hardcoding network here as this test won't be doing actual provisioning
         'nic_type': 'virtio',
     }
-    module_target_sat.configure_libvirt_cr()
+    module_target_sat.configure_libvirt_cr(server_fqdn=libvirt.fqdn)
     with session:
         session.computeresource.create(
             {
                 'name': cr_name,
                 'description': cr_description,
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'provider_content.url': LIBVIRT_URL,
+                'provider_content.url': libvirt.url,
                 'provider_content.display_type': display_type,
                 'provider_content.console_passwords': console_passwords,
                 'organizations.resources.assigned': [module_org.name],
@@ -393,9 +394,11 @@ def test_positive_associate_with_custom_profile_with_template():
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.rhel_ver_list('[10]')
+@pytest.mark.parametrize('libvirt', ['libvirt9', 'libvirt10'], indirect=True)
 def test_positive_image_provision_end_to_end(
     request,
     session,
+    libvirt,
     setting_update,
     module_provisioning_rhel_content,
     module_libvirt_provisioning_sat,
@@ -450,13 +453,12 @@ def test_positive_image_provision_end_to_end(
 
     @request.addfinalizer
     def _finalize():
-        # Cleanup: Delete the image and compute resource after test execution.
         sat.provisioning_cleanup(host_fqdn)
         cr = sat.api.LibvirtComputeResource().search(
-            query={'search': f'name={module_cr_libvirt.id}'}
+            query={'search': f'name={module_cr_libvirt.name}'}
         )
-        sat.api.Image(id=image.id, compute_resource=module_cr_libvirt.id).delete()
         if cr:
+            sat.api.Image(id=image.id, compute_resource=cr[0].id).delete()
             sat.api.LibvirtComputeResource(id=cr[0].id).delete()
 
     # Begin UI session to create and manage the host
@@ -484,7 +486,7 @@ def test_positive_image_provision_end_to_end(
 
         # Verify the VM was successfully created and is running on the Libvirt hypervisor
         result = sat.execute(
-            f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
+            f'su foreman -s /bin/bash -c "virsh -c {libvirt.url} list --state-running"'
         )
         assert hostname in result.stdout, f"VM '{hostname}' not found in running VMs on hypervisor"
 
@@ -519,4 +521,4 @@ def test_positive_image_provision_end_to_end(
                 # Verify SecureBoot is enabled using mokutil command
                 assert (
                     'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
-                ), "SecureBoot is not enabled on the provisioned host"
+                ), 'SecureBoot is not enabled on the provisioned host'
