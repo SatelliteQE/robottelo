@@ -143,7 +143,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                     session.host_new.delete(fqdn)
                 wait_for(
-                    lambda: session.host.search(fqdn)[0].get('Name') == 'No Results',
+                    lambda: session.host_new.search(fqdn)[0].get('Name') == 'No Results',
                     timeout=300,
                     delay=10,
                 )
