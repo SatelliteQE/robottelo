@@ -211,26 +211,18 @@ def host_ca_file_on_satellite(ca_contenthost):
     return f'/var/lib/foreman-proxy/ssh/{ca_contenthost[1].split("/")[-1]}'
 
 
-def register_host(satellite, host):
-    org = satellite.cli.Org.create({'name': gen_string('alpha')})
-    # repo = settings.repos['SATCLIENT_REPO'][f'RHEL{host.os_version.major}']
-    lce = satellite.cli_factory.make_lifecycle_environment({'organization-id': org['id']})
-    cv = satellite.cli_factory.make_content_view({'organization-id': org['id']})
-    satellite.cli.ContentView.publish({'id': cv['id']})
-    cvv = satellite.cli.ContentView.info({'id': cv['id']})['versions'][0]
-    satellite.cli.ContentView.version_promote(
-        {'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']}
-    )
-    ak_with_cv = satellite.cli_factory.make_activation_key(
-        {
-            'organization-id': org['id'],
-            'lifecycle-environment-id': lce.id,
-            'content-view-id': cv.id,
-            'name': gen_string('alpha'),
-        }
-    )
-    # host.register(org, None, ak_with_cv.name, satellite, repo_data=f'repo={repo}')
-    host.register(org, None, ak_with_cv.name, satellite)
+def register_host(satellite, host, cockpit=False):
+    org = satellite.api.Organization().create()
+    if cockpit:
+        rhelver = host.os_version.major
+        if rhelver > 7:
+            repo = [settings.repos[f'rhel{rhelver}_os']['baseos']]
+        else:
+            repo = [settings.repos['rhel7_os'], settings.repos['rhel7_extras']]
+    else:
+        repo = []
+    satellite.register_host_custom_repo(org, host, repo)
+    return org
 
 
 def test_execution(satellite, host):
@@ -266,6 +258,14 @@ def copy_host_CA(host, satellite, host_path, satellite_path):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
+    """Setup Satellite's SSH key's cert, register host and run REX on that host
+
+    :id: 353a21bf-f379-440a-9dc6-e17bf6414713
+
+    :expectedresults: Verify the job has been run successfully against the host, Sat's cert hasn't been added to host's authorized_keys and CA verification has been used instead
+
+    :parametrized: yes
+    """
     sat = ca_sat[0]
     host = rhel_contenthost
     sat_ca_file = ca_sat[1]
@@ -282,11 +282,21 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
     assert log_compare(sat, host) == 0
     check = host.execute('grep rex_passed /root/test')
     assert check.status == 0
+    check = host.execute(f'grep {sat.hostname} /root/.ssh/authorized_keys')
+    assert check.status != 0
 
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_host_only(target_sat, ca_contenthost, host_ca_file_on_satellite):
+    """Setup host's SSH key's cert, add CA to Sat, register host and run REX on that host
+
+    :id: 0ad9bbf7-0be5-49ca-8d79-969242b6b9bc
+
+    :expectedresults: Verify the job has been run successfully against the host
+
+    :parametrized: yes
+    """
     sat = target_sat
     host = ca_contenthost[0]
     host_ca_file = ca_contenthost[1]
@@ -308,19 +318,35 @@ def test_positive_ssh_ca_host_only(target_sat, ca_contenthost, host_ca_file_on_s
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
-def test_positive_ssh_ca_sat_and_host(ca_sat, ca_contenthost, host_ca_file_on_satellite):
+def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
+    ca_sat, ca_contenthost, host_ca_file_on_satellite
+):
+    """Setup Satellite's SSH key's cert, setup host's SSH key's cert, add CA to Sat, register host and run REX on that host
+
+    :id: 97c17417-3b20-4876-bf9c-7219a91acee2
+
+    :expectedresults: Verify the job has been run successfully against the host, Sat's cert hasn't been added to host's authorized_keys and CA verification has been used instead
+
+
+    :parametrized: yes
+    """
     sat = ca_sat[0]
     sat_ca_file = ca_sat[1]
     host = ca_contenthost[0]
     host_ca_file = ca_contenthost[1]
     copy_host_CA(host, sat, host_ca_file, host_ca_file_on_satellite)
+    # setup Satellite for cockpit
+    sat.register_to_cdn()
+    sat.install_cockpit()
+    sat.cli.Service.restart()
+    # setup CA
     log_save(sat, host)
     command = InstallerCommand(
         foreman_proxy_plugin_remote_execution_script_ssh_user_ca_public_key_file=sat_ca_file,
         foreman_proxy_plugin_remote_execution_script_ssh_host_ca_public_keys_file=host_ca_file_on_satellite,
     )
     assert sat.install(command).status == 0
-    register_host(sat, host)
+    org = register_host(sat, host, cockpit=True)
     # SSH REX
     result = test_execution(sat, host)
     # assert the run actually happened and it was authenticated using cert
@@ -329,6 +355,8 @@ def test_positive_ssh_ca_sat_and_host(ca_sat, ca_contenthost, host_ca_file_on_sa
     assert log_compare(sat, host) == 0
     check = host.execute('grep rex_passed /root/test')
     assert check.status == 0
+    check = host.execute(f'grep {sat.hostname} /root/.ssh/authorized_keys')
+    assert check.status != 0
     # ANSIBLE REX
     log_save(sat, host)
     command = "echo rex2_passed $(date) > /root/test"
@@ -346,3 +374,20 @@ def test_positive_ssh_ca_sat_and_host(ca_sat, ca_contenthost, host_ca_file_on_sa
     assert log_compare(sat, host) == 0
     check = host.execute('grep rex2_passed /root/test')
     assert check.status == 0
+    # COCKPIT
+    log_save(sat, host)
+    # setup cockpit on host
+    host.install_cockpit()
+    # run cockpit
+    # note that merely opening a cockpit in UI connects to ssh already
+    # note that this is a UI part, as opposed to the previous parts and previous SSH CA tests
+    with sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        hostname_inside_cockpit = session.host.get_webconsole_content(
+            entity_name=host.hostname,
+            rhel_version=host.os_version.major,
+        )
+        assert host.hostname in hostname_inside_cockpit, (
+            f'cockpit page shows hostname {hostname_inside_cockpit} instead of {host.hostname}'
+        )
+    assert log_compare(sat, host) == 0
