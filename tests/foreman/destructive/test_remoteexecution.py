@@ -25,7 +25,7 @@ from robottelo.utils.installer import InstallerCommand
 
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
-# pytestmark = pytest.mark.destructive
+pytestmark = pytest.mark.destructive
 
 
 def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
@@ -290,11 +290,11 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost):
-    """Setup Satellite's SSH key's cert, register host and run REX on that host
+    """Setup Satellite's SSH key's cert, register host, setup incorrect cert on Satellite and run REX on the host
 
-    :id: e2f1875b-1993-43a8-978f-1d30acb69068
+    :id: 7ddd170b-d489-4e2a-93af-ccf0c1a9d4ca
 
-    :expectedresults: Verify the job has been run successfully against the host, Sat's cert hasn't been added to host's authorized_keys and CA verification has been used instead
+    :expectedresults: Verify the job has failed against the host
 
     :parametrized: yes
     """
@@ -354,6 +354,37 @@ def test_positive_ssh_ca_host_only(target_sat, ca_contenthost, host_ca_file_on_s
     assert log_compare(sat, host) != 0
     check = host.execute('grep rex_passed /root/test')
     assert check.status == 0
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+def test_negative_ssh_ca_host_wrong_cert(target_sat, ca_contenthost, host_ca_file_on_satellite):
+    """Setup host's SSH key's cert, add a different CA to Sat, register host and run REX on that host
+
+    :id: 9e23d27d-a3a8-4c0d-9a0f-892d392aa660
+
+    :expectedresults: Verify the job has failed against the host
+
+    :parametrized: yes
+    """
+    sat = target_sat
+    host = ca_contenthost[0]
+    fake_ca_dir = '/'.join(host_ca_file_on_satellite.split('/')[:-1])
+    fake_ca_filename = host_ca_file_on_satellite.split('/')[-1]
+    sat.execute(
+        f'cd {fake_ca_dir} && {{ rm -f {fake_ca_filename}; ssh-keygen -t ed25519 -f {fake_ca_filename} -N ""; }}'
+    )
+    command = InstallerCommand(
+        foreman_proxy_plugin_remote_execution_script_ssh_host_ca_public_keys_file=host_ca_file_on_satellite,
+    )
+    assert sat.install(command).status == 0
+    register_host(sat, host)
+    # assert the run failed
+    with pytest.raises(CLIFactoryError) as err:
+        test_execution(sat, host)
+    assert 'A sub task failed' in err.value.args[0]
+    check = host.execute('grep rex_passed /root/test')
+    assert check.status != 0
 
 
 @pytest.mark.no_containers
