@@ -278,7 +278,7 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
     register_host(sat, host)
     result = test_execution(sat, host)
     # assert the run actually happened and it was authenticated using cert
-    assert result.status == 0
+    assert result['success'] == '1'
     logger.debug(result)
     assert log_compare(sat, host) == 0
     check = host.execute('grep rex_passed /root/test')
