@@ -18,13 +18,14 @@ from nailgun.entity_mixins import TaskFailedError
 import pytest
 
 from robottelo.config import get_credentials, settings
+from robottelo.exceptions import CLIFactoryError
 from robottelo.hosts import get_sat_version
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
-pytestmark = pytest.mark.destructive
+# pytestmark = pytest.mark.destructive
 
 
 def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
@@ -239,13 +240,13 @@ def test_execution(satellite, host):
 
 def log_save(satellite, host):
     host.execute(
-        f'journalctl -u sshd | grep {satellite.ip} | grep CA | wc -l > /root/saved_sshd_log'
+        f'journalctl -u sshd | grep {satellite.ip_addr} | grep CA | wc -l > /root/saved_sshd_log'
     )
 
 
 def log_compare(satellite, host):
     return host.execute(
-        f'[ $(( $(cat /root/saved_sshd_log) + 1 )) -eq $(journalctl -u sshd | grep {satellite.ip} | grep " CA " | wc -l) ]'
+        f'[ $(( $(cat /root/saved_sshd_log) + 1 )) -eq $(journalctl -u sshd | grep {satellite.ip_addr} | grep " CA " | wc -l) ]'
     ).status
 
 
@@ -271,7 +272,7 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
     sat_ca_file = ca_sat[1]
     log_save(sat, host)
     command = InstallerCommand(
-        foreman_proxy_plugin_remote_execution_script_ssh_user_ca_public_keys_file=sat_ca_file,
+        foreman_proxy_plugin_remote_execution_script_ssh_user_ca_public_key_file=sat_ca_file,
     )
     assert sat.install(command).status == 0
     register_host(sat, host)
@@ -283,6 +284,45 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
     check = host.execute('grep rex_passed /root/test')
     assert check.status == 0
     check = host.execute(f'grep {sat.hostname} /root/.ssh/authorized_keys')
+    assert check.status != 0
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost):
+    """Setup Satellite's SSH key's cert, register host and run REX on that host
+
+    :id: e2f1875b-1993-43a8-978f-1d30acb69068
+
+    :expectedresults: Verify the job has been run successfully against the host, Sat's cert hasn't been added to host's authorized_keys and CA verification has been used instead
+
+    :parametrized: yes
+    """
+    sat = ca_sat[0]
+    host = rhel_contenthost
+    sat_ca_file = ca_sat[1]
+    command = InstallerCommand(
+        foreman_proxy_plugin_remote_execution_script_ssh_user_ca_public_key_file=sat_ca_file,
+    )
+    assert sat.install(command).status == 0
+    register_host(sat, host)
+
+    # create a different cert for the Satellite, with a wrong principal
+    sat_ssh_path = '/var/lib/foreman-proxy/ssh/'
+    key_name = 'id_rsa_foreman_proxy'
+    cert_name = f'{key_name}-cert.pub'
+    assert (
+        sat.execute(
+            f'cd {sat_ssh_path} && ssh-keygen -s /root/CA/id_ca -I satellite -n wronguser {key_name}.pub && restorecon {cert_name} && chown foreman-proxy {cert_name} && chgrp foreman-proxy {cert_name}'
+        ).status
+        == 0
+    )
+
+    # assert the run fails
+    with pytest.raises(CLIFactoryError) as err:
+        test_execution(sat, host)
+    assert 'A sub task failed' in err.value.args[0]
+    check = host.execute('grep rex_passed /root/test')
     assert check.status != 0
 
 
@@ -335,10 +375,6 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
     host = ca_contenthost[0]
     host_ca_file = ca_contenthost[1]
     copy_host_CA(host, sat, host_ca_file, host_ca_file_on_satellite)
-    # setup Satellite for cockpit
-    sat.register_to_cdn()
-    sat.install_cockpit()
-    sat.cli.Service.restart()
     # setup CA
     log_save(sat, host)
     command = InstallerCommand(
@@ -376,6 +412,10 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
     assert check.status == 0
     # COCKPIT
     log_save(sat, host)
+    # setup Satellite for cockpit
+    sat.register_to_cdn()
+    sat.install_cockpit()
+    sat.cli.Service.restart()
     # setup cockpit on host
     host.install_cockpit()
     # run cockpit
