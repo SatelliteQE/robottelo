@@ -13,9 +13,11 @@
 
 import json
 
+from box import Box
 import pytest
 
 from robottelo.constants import DUMMY_BOOTC_FACTS
+from robottelo.exceptions import CLIReturnCodeError
 from tests.foreman.api.test_host import _create_transient_packages
 
 
@@ -57,27 +59,16 @@ def test_positive_bootc_cli_actions(
     )
 
 
-def test_containerfile_install_command(target_sat):
-    """Ensure the containerfile install command returns correct output.
+@pytest.fixture(scope='module')
+def module_host_with_package_mix(module_target_sat):
+    """Host with mocked packages of various persistence types.
 
-    :id: a1879eed-5dc3-4f96-bd9e-edad7ca4801d
-
-    :steps:
-        1. Create a host
-        2. Add packages with different persistence values via SQL (2x transient, persistent, None)
-        3. Retrieve the containerfile install command via hammer.
-        4. Verify the command format and content.
-
-    :expectedresults:
-        1. Packages with persistence='transient' are returned with correct value.
-        2. Packages with persistence='persistent' or None are not returned.
-
-    :Verifies: SAT-36792
+    :setup:
+        1. Create a host.
+        2. Add packages of various persistence types via SQL (2x transient, 1x persistent, 1x None)
     """
-    # Create a host
-    host = target_sat.api.Host().create()
+    host = module_target_sat.api.Host().create()
 
-    # Add packages with different persistence values via SQL (2x transient, persistent, None)
     package_data = [
         {
             'name': 'transient-pkg-1',
@@ -108,23 +99,140 @@ def test_containerfile_install_command(target_sat):
             'persistence': None,
         },
     ]
-    _create_transient_packages(target_sat, host, package_data)
+    _create_transient_packages(module_target_sat, host, package_data)
+
+    return Box(host=host, package_data=package_data)
+
+
+def test_list_packages_with_persistence(module_target_sat, module_host_with_package_mix):
+    """Ensure packages are listed with their persistence status.
+
+    :id: a2f1ab71-7233-421b-9442-7d99a2e016b1
+
+    :setup:
+        1. Host with packages of different persistence types.
+
+    :steps:
+        1. List host packages, ensure the persistence is not shown by default.
+        2. List host packages with ALL fields, ensure the persistence is displayed correctly.
+        3. Search only transient packages, ensure only transient packages are listed.
+        4. Order based on persistence, ensure the correct order.
+
+    :expectedresults:
+        1. Persistence is not shown by default.
+        2. Persistence is displayed correctly with ALL fields.
+        3. Search and ordering works correctly.
+
+    :Verifies: SAT-36789
+    """
+    host, pkg_data = module_host_with_package_mix.host, module_host_with_package_mix.package_data
+
+    # List host packages, ensure the persistence is not shown by default.
+    packages = module_target_sat.cli.Host.package_list({'host-id': host.id})
+    assert all('persistence' not in pkg for pkg in packages)
+
+    # List host packages with ALL fields, ensure the persistence is displayed correctly.
+    packages = module_target_sat.cli.Host.package_list({'host-id': host.id, 'fields': 'ALL'})
+    assert all('persistence' in pkg for pkg in packages)
+
+    for pkg in pkg_data:
+        nvra = f'{pkg["name"]}-{pkg["version"]}-{pkg["release"]}.{pkg["arch"]}'
+        matching_pkg = next((p for p in packages if p['nvra'] == nvra), None)
+        assert matching_pkg is not None
+        assert matching_pkg['persistence'] == (pkg['persistence'] or '')
+
+    # Search only transient packages, ensure only transient packages are listed.
+    packages = module_target_sat.cli.Host.package_list(
+        {'host-id': host.id, 'fields': 'ALL', 'search': 'persistence = transient'}
+    )
+    expected_transient = [
+        {
+            'nvra': f'{pkg["name"]}-{pkg["version"]}-{pkg["release"]}.{pkg["arch"]}',
+            'persistence': 'transient',
+        }
+        for pkg in pkg_data
+        if pkg['persistence'] == 'transient'
+    ]
+    assert sorted(packages, key=lambda x: x['nvra']) == sorted(
+        expected_transient, key=lambda x: x['nvra']
+    )
+
+    # Order based on persistence, ensure the correct order.
+    packages = module_target_sat.cli.Host.package_list(
+        {'host-id': host.id, 'fields': 'ALL', 'order': 'persistence DESC'}
+    )
+    expected_packages = [
+        {
+            'nvra': f'{pkg["name"]}-{pkg["version"]}-{pkg["release"]}.{pkg["arch"]}',
+            'persistence': pkg['persistence'] or '',
+        }
+        for pkg in pkg_data
+    ]
+    expected_packages = sorted(
+        expected_packages, key=lambda x: (x['persistence'], x['nvra']), reverse=True
+    )
+    assert packages == expected_packages
+
+
+def test_positive_containerfile_install_command(module_target_sat, module_host_with_package_mix):
+    """Ensure the containerfile install command returns correct output.
+
+    :id: a1879eed-5dc3-4f96-bd9e-edad7ca4801d
+
+    :setup:
+        1. Host with packages of different persistence types.
+
+    :steps:
+        1. Retrieve the containerfile install command via hammer.
+        2. Verify the command format and content.
+
+    :expectedresults:
+        1. Packages with persistence='transient' are returned with correct value.
+        2. Packages with persistence='persistent' or None are not returned.
+
+    :Verifies: SAT-36792
+    """
+    host, pkg_data = module_host_with_package_mix.host, module_host_with_package_mix.package_data
 
     # Retrieve the containerfile install command via hammer.
-    cmd = target_sat.cli.Host.package_containerfile_install_command({'host-id': host.id})
+    cmd = module_target_sat.cli.Host.package_containerfile_install_command({'host-id': host.id})
 
     # Verify the command format and content.
     assert cmd.startswith('RUN dnf install -y')
 
-    transient_packages = [p for p in package_data if p['persistence'] == 'transient']
+    transient_packages = [p for p in pkg_data if p['persistence'] == 'transient']
     packages_in_cmd = cmd.replace('RUN dnf install -y', '').split()
     assert len(packages_in_cmd) == len(transient_packages)
 
     assert all(
-        f'{p["name"]}-{p["version"]}-{p["release"]}.{p["arch"]}' in cmd for p in transient_packages
+        f'0:{p["name"]}-{p["version"]}-{p["release"]}.{p["arch"]}' in cmd
+        for p in transient_packages
     )
     assert all(
-        f'{p["name"]}-{p["version"]}-{p["release"]}.{p["arch"]}' not in cmd
-        for p in package_data
+        f'0:{p["name"]}-{p["version"]}-{p["release"]}.{p["arch"]}' not in cmd
+        for p in pkg_data
         if p['persistence'] != 'transient'
     )
+
+
+def test_negative_containerfile_install_command(module_target_sat):
+    """Ensure proper message is returned when no transient package found.
+
+    :id: 773bb8e4-f6fb-4669-b0c0-2efe9f946eee
+
+    :steps:
+        1. Create a host with no transient packages.
+        2. Try to retrieve the containerfile install command via hammer.
+
+    :expectedresults:
+        1. Proper message is returned.
+
+    :Verifies: SAT-36792
+    """
+    # Create a host with no transient packages.
+    host = module_target_sat.api.Host().create()
+
+    # Try to retrieve the containerfile install command via hammer.
+    with pytest.raises(CLIReturnCodeError) as e:
+        module_target_sat.cli.Host.package_containerfile_install_command({'host-id': host.id})
+    assert 'No transient packages found' in str(e.value)
