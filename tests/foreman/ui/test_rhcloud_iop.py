@@ -88,6 +88,12 @@ def test_iop_recommendations_e2e(
         assert result['status']['Succeeded'] != 0
         assert result['overall_status']['is_success']
 
+        # Verify that the Satellite is not affected by SAT-35946
+        result = module_target_sat_insights.execute(
+            'grep "502 Bad Gateway" /var/log/foreman/production.log'
+        )
+        assert result.status != 1
+
         # Verify that the recommendation is not listed anymore.
         assert (
             'No recommendations None of your connected systems are affected by enabled recommendations'
