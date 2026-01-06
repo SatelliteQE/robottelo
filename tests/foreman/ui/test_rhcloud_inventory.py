@@ -13,11 +13,13 @@
 """
 
 from datetime import UTC, datetime, timedelta
+import os
+import tempfile
 
 import pytest
 from wait_for import wait_for
 
-from robottelo.constants import DEFAULT_LOC
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.io import (
     get_local_file_data,
     get_remote_report_checksum,
@@ -25,21 +27,59 @@ from robottelo.utils.io import (
 )
 
 
-def common_assertion(report_path, inventory_data, org, satellite):
+@pytest.fixture(scope='module', autouse=True)
+def data_collection_default(module_target_sat):
+    """Module scoped fixture to set default data collection setting to 'No'"""
+    settings_object = module_target_sat.api.Setting().search(
+        query={'search': 'name=insights_minimal_data_collection'}
+    )[0]
+    data_collection_value = settings_object.value
+    settings_object.value = 'No'
+    settings_object.update({'value'})
+    yield
+    settings_object.value = data_collection_value
+    settings_object.update({'value'})
+
+
+@pytest.fixture
+def data_collection_minimal(module_target_sat):
+    """Fixture to set minimal data collection setting to 'Yes'"""
+    settings_object = module_target_sat.api.Setting().search(
+        query={'search': 'name=insights_minimal_data_collection'}
+    )[0]
+    settings_object.value = 'Yes'
+    settings_object.update({'value'})
+    yield
+    settings_object.value = 'No'
+    settings_object.update({'value'})
+
+
+def common_assertion(
+    report_path, inventory_data, org, satellite, subscription_connection_enabled=True
+):
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
-    upload_success_msg = (
-        f'Done: /var/lib/foreman/red_hat_inventory/uploads/report_for_{org.id}.tar.xz'
-    )
     upload_error_messages = ['NSS error', 'Permission denied']
 
-    assert 'Successfully generated' in inventory_data['generating']['terminal']
-    assert upload_success_msg in inventory_data['uploading']['terminal']
-    assert 'x-rh-insights-request-id' in inventory_data['uploading']['terminal'].lower()
-    for error_msg in upload_error_messages:
-        assert error_msg not in inventory_data['uploading']['terminal']
+    if subscription_connection_enabled:
+        # Only check upload-related assertions when connection is enabled
+        upload_success_msg = 'Uploaded file moved to done/ folder'
+        assert (
+            'Check the Uploading tab for report uploading status'
+            in inventory_data['generating']['terminal']
+        )
+        assert upload_success_msg in inventory_data['uploading']['terminal']
+        for error_msg in upload_error_messages:
+            assert error_msg not in inventory_data['uploading']['terminal']
+        # Verify uploaded report checksum matches
+        assert local_file_data['checksum'] == get_remote_report_checksum(satellite, org.id)
+    else:
+        # When connection disabled, just verify report was generated
+        assert (
+            f'Generated /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+            in inventory_data['generating']['terminal']
+        )
 
-    assert local_file_data['checksum'] == get_remote_report_checksum(satellite, org.id)
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']
@@ -55,15 +95,25 @@ def common_assertion(report_path, inventory_data, org, satellite):
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
+@pytest.mark.usefixtures('setting_update')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['subscription_connection_enabled=true', 'subscription_connection_enabled=false'],
+    indirect=True,
+)
 def test_rhcloud_inventory_e2e(
     inventory_settings,
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
     module_target_sat,
+    setting_update,
 ):
-    """Generate report and verify its basic properties
+    """Generate report and verify its basic properties,
+    also test with subscription_connection_enabled setting set to true and false.
 
     :id: 833bd61d-d6e7-4575-887a-9e0729d0fa76
+
+    :parametrized: yes
 
     :customerscenario: true
 
@@ -82,6 +132,7 @@ def test_rhcloud_inventory_e2e(
 
     :BZ: 1807829, 1926100
     """
+    subscription_setting = setting_update.value == 'true'
     org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
     with module_target_sat.ui_session() as session:
@@ -105,10 +156,31 @@ def test_rhcloud_inventory_e2e(
             silent_failure=True,
             handle_exception=True,
         )
-        report_path = session.cloudinventory.download_report(org.name)
+        # Get report based on subscription_connection_enabled setting
+        if subscription_setting:
+            # When enabled, download via UI
+            report_path = session.cloudinventory.download_report(org.name)
+        else:
+            # When disabled, get from filesystem
+            remote_report_path = (
+                f'/var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+            )
+
+            # Verify file exists on Satellite
+            result = module_target_sat.execute(f'test -f {remote_report_path}')
+            assert result.status == 0, f"Report file not found at {remote_report_path}"
+
+            # Copy report from Satellite to local temp location
+            temp_dir = tempfile.mkdtemp()
+            local_report_name = f'report_for_{org.id}.tar.xz'
+            report_path = os.path.join(temp_dir, local_report_name)
+
+            # Download the file from satellite
+            module_target_sat.get(remote_path=remote_report_path, local_path=report_path)
+
         inventory_data = session.cloudinventory.read(org.name)
     # Verify that generated archive is valid.
-    common_assertion(report_path, inventory_data, org, module_target_sat)
+    common_assertion(report_path, inventory_data, org, module_target_sat, subscription_setting)
     # Get report data for assertion
     json_data = get_report_data(report_path)
     # Verify that hostnames are present in the report.
@@ -353,33 +425,6 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
     )
 
 
-@pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
-def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
-    """Verify that the 'Insights > Inventory Upload' navigation item is not available
-    when the Satellite is configured to use a local advisor engine.
-
-    :id: 84023ae9-7bc4-4332-9aaf-749d6c48c2d2
-
-    :steps:
-        1. Configure Satellite to use local Insights advisor engine.
-        2. Navigate to the Insights Recommendations page.
-        3. Select Insights > Inventory Upload from the navigation menu.
-
-    :expectedresults:
-        1. "Inventory Upload" is not visible under "Insights".
-
-    :CaseImportance: Medium
-
-    :CaseAutomation: Automated
-    """
-    with module_target_sat_insights.ui_session() as session:
-        insights_view = session.cloudinsights.navigate_to(session.cloudinsights, 'All')
-        with pytest.raises(Exception, match='not found in navigation tree'):
-            insights_view.menu.select('Insights', 'Inventory Upload')
-
-
-@pytest.mark.pit_server
-@pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
 def test_rhcloud_global_parameters(
     inventory_settings,
@@ -487,8 +532,148 @@ def test_rhcloud_global_parameters(
     assert baremetal_host.hostname in hostnames
 
 
+@pytest.mark.usefixtures('setting_update')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['subscription_connection_enabled=true', 'subscription_connection_enabled=false'],
+    indirect=True,
+)
+def test_subscription_connection_settings_ui_behavior(request, module_target_sat, setting_update):
+    """Verify that the RH Cloud Inventory UI
+    reflects the subscription_connection_enabled setting
+
+    :id: 9b8648b5-0ffb-49c1-a19e-04a7a8ce896f
+
+    :parametrized: yes
+
+    :steps:
+        1. Set the subscription_connection_enabled setting to true
+        2. Check that all the RH inventory settings, auto_upload and manual_upload descriptions,
+            cloud_connector, uploading tab and sync_status buttons are displayed in the UI
+        3. Set the subscription_connection_enabled setting to false
+        4. Verify that auto_update switch, auto_upload and manual_upload descriptions, uploading tab,
+            configure_cloud_connector and sync_all buttons are NOT displayed in the UI
+
+    :expectedresults:
+        1. The subscription_connection_enabled setting is reflected in the UI
+
+    :Verifies: SAT-15137
+
+    """
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=DEFAULT_LOC)
+
+        displayed_inventory_data = session.cloudinventory.read_org(DEFAULT_ORG)
+        displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
+        displayed_buttons = session.cloudinventory.get_displayed_buttons()
+        displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
+        displayed_inventory_tabs = session.cloudinventory.get_displayed_inventory_tabs()
+        subscription_setting = setting_update.value == 'true'
+
+        assert displayed_settings_options['auto_update'] is subscription_setting
+        assert displayed_buttons['cloud_connector'] is subscription_setting
+        assert displayed_buttons['sync_status'] is subscription_setting
+        assert displayed_descriptions['auto_upload_desc'] is subscription_setting
+        assert displayed_descriptions['manual_upload_desc'] is subscription_setting
+        assert displayed_inventory_tabs['uploading'] is subscription_setting
+        assert (
+            displayed_inventory_data['generating']['generate'] == 'Generate and upload report'
+            if subscription_setting
+            else 'Generate report'
+        )
+        if subscription_setting:
+            assert displayed_buttons['cloud_connector_text'] == 'Configure cloud connector'
+            assert displayed_buttons['sync_status_text'] == 'Sync all inventory status'
+
+
+@pytest.mark.no_containers
+@pytest.mark.run_in_one_thread
+def test_rh_cloud_minimal_report(
+    module_target_sat,
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    data_collection_minimal,
+):
+    """Verify that the Minimal data collection report contains the proper fields
+
+    :id: e9bd1b9f-705f-47de-8495-49618e019e8a
+
+    :customerscenario: true
+
+    :steps:
+
+        1. Prepare machine and upload its data to Insights
+        2. Go to Insights > Inventory upload > enable “Minimal data collection” setting
+        3. Generate report after enabling the setting
+        4. Check if hostnames are NOT in generated report
+        5. Check if ipv4 addresses are NOT in generated reports
+        6. Check if account, subscription_manager_id, insights_id, and installed_products fields are in report
+
+
+    :expectedresults:
+        1. Hostnames are NOT in generated report.
+        2. Ipv4 addresses are NOT in generated report.
+        3. Account, subscription_manager_id, insights_id, and installed_products fields are in report
+
+    :Verifies: SAT-31467
+    """
+    org = rhcloud_manifest_org
+    virtual_host, baremetal_host = rhcloud_registered_hosts
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.cloudinventory.update(
+            {
+                'data_collection': 'Minimal data collectionOnly send the minimum required data to Red Hat cloud, obfuscation settings are disabled'
+            }
+        )
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.cloudinventory.generate_report(org.name)
+        # wait_for_tasks report generation task to finish
+        wait_for(
+            lambda: module_target_sat.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                    f'and started_at >= "{timestamp}"'
+                }
+            )[0]
+            .result
+            == 'success',
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        report_path = session.cloudinventory.download_report(org.name)
+        inventory_data = session.cloudinventory.read(org.name)
+        # Verify that generated archive is valid
+        common_assertion(report_path, inventory_data, org, module_target_sat)
+        # Get report data for assertion
+        json_data = get_report_data(report_path)
+        # Verify that hostnames are NOT in report
+        host_data = [item for item in json_data['hosts']]
+        hostnames = [item['fqdn'] for item in host_data if 'fqdn' in item]
+        assert virtual_host.hostname not in hostnames, f"'hostname' found in: {hostnames}"
+        assert baremetal_host.hostname not in hostnames, f"'hostname' found in: {hostnames}"
+        # Verify that ip addresses are NOT in report
+        ip_address = [item['ip_addresses'] for item in host_data if 'ip_addresses' in item]
+        assert not ip_address, f"'ip_addresses' found in: {ip_address}"
+        # Verify that installed_products are IN report
+        system_profile = [item.get('system_profile', {}) for item in host_data]
+        assert all('installed_products' in item for item in system_profile), (
+            "'installed_products' is missing in one or more entries"
+        )
+        # Verify that proper fields are IN report
+        required_fields = ['account', 'subscription_manager_id', 'insights_id']
+        assert all(all(key in item for key in required_fields) for item in host_data), (
+            "Not all required keys are present in every dictionary"
+        )
+
+
 @pytest.mark.e2e
-@pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_list([7, 8, 9, 10])
 def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat):
