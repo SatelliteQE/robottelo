@@ -70,7 +70,12 @@ class TestVirtWhoConfigforNutanix:
 
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
     def test_positive_prism_central_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, target_sat, form_data_cli, deploy_type
+        self,
+        module_sca_manifest_org,
+        target_sat,
+        form_data_cli,
+        deploy_type,
+        register_sat_and_enable_aps_repo,
     ):
         """Verify "hammer virt-who-config deploy & fetch" on nutanix prism central mode
 
@@ -84,6 +89,8 @@ class TestVirtWhoConfigforNutanix:
         :CaseImportance: High
         """
         form_data_cli['prism-flavor'] = "central"
+        # Prism Central doesn't expose hostname property, must use uuid for hypervisor_id
+        form_data_cli['hypervisor-id'] = "uuid"
         virtwho_config = target_sat.cli.VirtWhoConfig.create(form_data_cli)['general-information']
         assert virtwho_config['status'] == 'No Report Yet'
         if deploy_type == "id":
@@ -93,6 +100,7 @@ class TestVirtWhoConfigforNutanix:
                 form_data_cli['hypervisor-type'],
                 debug=True,
                 org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
         elif deploy_type == "script":
             script = target_sat.cli.VirtWhoConfig.fetch(
@@ -103,6 +111,7 @@ class TestVirtWhoConfigforNutanix:
                 form_data_cli['hypervisor-type'],
                 debug=True,
                 org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
         # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
         config_file = get_configure_file(virtwho_config['id'])

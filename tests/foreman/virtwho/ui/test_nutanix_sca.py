@@ -22,7 +22,6 @@ from robottelo.utils.virtwho import (
     get_configure_id,
     get_configure_option,
     get_hypervisor_ahv_mapping,
-    hypervisor_guest_mapping_check_legacy_ui,
     hypervisor_guest_mapping_newcontent_ui,
 )
 
@@ -50,16 +49,13 @@ class TestVirtwhoConfigforNutanix:
         # Check virt-who config status
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
 
-        # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in Legacy UI
-        hypervisor_guest_mapping_check_legacy_ui(
-            org_session, form_data_ui, default_location, hypervisor_name, guest_name
+        # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
+        hypervisor_guest_mapping_newcontent_ui(
+            org_session, default_location, hypervisor_name, guest_name
         )
 
-        # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
-        hypervisor_guest_mapping_newcontent_ui(org_session, hypervisor_name, guest_name)
-
     def test_positive_hypervisor_id_option(
-        self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
+        self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui, target_sat
     ):
         """Verify Hypervisor ID dropdown options.
 
@@ -85,12 +81,19 @@ class TestVirtwhoConfigforNutanix:
                 form_data_ui['hypervisor_type'],
                 debug=True,
                 org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
     @pytest.mark.parametrize('deploy_type', ['id', 'script'])
     def test_positive_prism_central_deploy_configure_by_id_script(
-        self, module_sca_manifest_org, org_session, form_data_ui, deploy_type
+        self,
+        module_sca_manifest_org,
+        org_session,
+        form_data_ui,
+        deploy_type,
+        target_sat,
+        register_sat_and_enable_aps_repo,
     ):
         """Verify configure created and deployed with id on nutanix prism central mode
 
@@ -109,6 +112,8 @@ class TestVirtwhoConfigforNutanix:
         name = gen_string('alpha')
         form_data_ui['name'] = name
         form_data_ui['hypervisor_content.prism_flavor'] = "Prism Central"
+        # Prism Central doesn't expose hostname property, must use uuid for hypervisor_id
+        form_data_ui['hypervisor_id'] = 'uuid'
         with org_session:
             org_session.virtwho_configure.create(form_data_ui)
             values = org_session.virtwho_configure.read(name)
@@ -119,6 +124,7 @@ class TestVirtwhoConfigforNutanix:
                     form_data_ui['hypervisor_type'],
                     debug=True,
                     org=module_sca_manifest_org.label,
+                    target_sat=target_sat,
                 )
             elif deploy_type == "script":
                 script = values['deploy']['script']
@@ -127,6 +133,7 @@ class TestVirtwhoConfigforNutanix:
                     form_data_ui['hypervisor_type'],
                     debug=True,
                     org=module_sca_manifest_org.label,
+                    target_sat=target_sat,
                 )
             # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
             config_id = get_configure_id(name)
@@ -137,7 +144,7 @@ class TestVirtwhoConfigforNutanix:
             assert not org_session.virtwho_configure.search(name)
 
     def test_positive_prism_central_prism_flavor_option(
-        self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
+        self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui, target_sat
     ):
         """Verify prism_flavor dropdown options.
 
@@ -161,12 +168,15 @@ class TestVirtwhoConfigforNutanix:
         results = org_session.virtwho_configure.read(name)
         assert results['overview']['prism_flavor'] == "central"
         deploy_configure_by_command(
-            config_command, form_data_ui['hypervisor_type'], org=module_sca_manifest_org.label
+            config_command,
+            form_data_ui['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         assert get_configure_option('prism_central', config_file) == 'true'
 
     def test_positive_ahv_internal_debug_option(
-        self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui
+        self, module_sca_manifest_org, virtwho_config_ui, org_session, form_data_ui, target_sat
     ):
         """Verify ahv_internal_debug option by hammer virt-who-config"
 
@@ -193,7 +203,11 @@ class TestVirtwhoConfigforNutanix:
         command = values['deploy']['command']
         config_file = get_configure_file(config_id)
         deploy_configure_by_command(
-            command, form_data_ui['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
+            command,
+            form_data_ui['hypervisor_type'],
+            debug=True,
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         results = org_session.virtwho_configure.read(name)
         assert str(results['overview']['ahv_internal_debug']) == 'False'
@@ -213,7 +227,11 @@ class TestVirtwhoConfigforNutanix:
         command = results['deploy']['command']
         assert str(results['overview']['ahv_internal_debug']) == 'True'
         deploy_configure_by_command(
-            command, form_data_ui['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
+            command,
+            form_data_ui['hypervisor_type'],
+            debug=True,
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         assert (
             get_hypervisor_ahv_mapping(form_data_ui['hypervisor_type']) == 'Host UUID found for VM'
