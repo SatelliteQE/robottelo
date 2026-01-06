@@ -425,8 +425,6 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
     )
 
 
-@pytest.mark.pit_server
-@pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
 def test_rhcloud_global_parameters(
     inventory_settings,
@@ -676,7 +674,6 @@ def test_rh_cloud_minimal_report(
 
 
 @pytest.mark.e2e
-@pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_list([7, 8, 9, 10])
 def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat):
