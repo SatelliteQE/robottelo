@@ -76,7 +76,7 @@ content_host:
 host_post_configs:
   fips:
     workflow: enable-fips
-    target_vm: "{vm.name}"
+    target_vm: "{host.name}"
   fapolicyd:
     workflow: enable-fapolicyd
-    target_vm: "{vm.name}"
+    target_vm: "{host.name}"
