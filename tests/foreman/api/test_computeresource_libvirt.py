@@ -22,7 +22,7 @@ from requests.exceptions import HTTPError
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import (
     invalid_values_list,
@@ -32,11 +32,10 @@ from robottelo.utils.datafactory import (
 
 pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 
-LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
-
 
 @pytest.mark.e2e
-def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location):
+@pytest.mark.parametrize('libvirt', ['libvirt9', 'libvirt10'], indirect=True)
+def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location, libvirt):
     """CRUD compute resource libvirt
 
     :id: 1e545c56-2f53-44c1-a17e-38c83f8fe0c2
@@ -74,7 +73,7 @@ def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location
     cr.name = new_name
     cr.description = new_description
     cr.display_type = new_display_type
-    cr.url = LIBVIRT_URL
+    cr.url = libvirt.url
     cr.organization = [new_org]
     cr.location = [new_loc]
     cr.update(['name', 'description', 'display_type', 'url', 'organization', 'location'])
@@ -84,7 +83,7 @@ def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location
     assert updated_cr.name == new_name
     assert updated_cr.description == new_description
     assert updated_cr.display_type == new_display_type
-    assert updated_cr.url == LIBVIRT_URL
+    assert updated_cr.url == libvirt.url
     assert updated_cr.organization[0].id == new_org.id
     assert updated_cr.location[0].id == new_loc.id
     # DELETE
@@ -96,7 +95,7 @@ def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_create_with_name_description(
-    name, request, module_target_sat, module_org, module_location
+    name, request, module_target_sat, module_org, module_location, libvirt
 ):
     """Create compute resources with different names and descriptions
 
@@ -113,14 +112,14 @@ def test_positive_create_with_name_description(
         description=name,
         organization=[module_org],
         location=[module_location],
-        url=LIBVIRT_URL,
+        url=libvirt.url,
     ).create()
     request.addfinalizer(compresource.delete)
     assert compresource.name == name
     assert compresource.description == name
 
 
-def test_positive_create_with_orgs_and_locs(request, module_target_sat):
+def test_positive_create_with_orgs_and_locs(request, module_target_sat, libvirt):
     """Create a compute resource with multiple organizations and locations
 
     :id: c6c6c6f7-50ca-4f38-8126-eb95359d7cbb
@@ -133,7 +132,7 @@ def test_positive_create_with_orgs_and_locs(request, module_target_sat):
     orgs = [module_target_sat.api.Organization().create() for _ in range(2)]
     locs = [module_target_sat.api.Location(organization=[org]).create() for org in orgs]
     compresource = module_target_sat.api.LibvirtComputeResource(
-        location=locs, organization=orgs, url=LIBVIRT_URL
+        location=locs, organization=orgs, url=libvirt.url
     ).create()
     request.addfinalizer(compresource.delete)
     assert {org.name for org in orgs} == {org.read().name for org in compresource.organization}
@@ -141,7 +140,9 @@ def test_positive_create_with_orgs_and_locs(request, module_target_sat):
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_invalid_name(name, module_target_sat, module_org, module_location):
+def test_negative_create_with_invalid_name(
+    name, module_target_sat, module_org, module_location, libvirt
+):
     """Attempt to create compute resources with invalid names
 
     :id: f73bf838-3ffd-46d3-869c-81b334b47b13
@@ -157,11 +158,13 @@ def test_negative_create_with_invalid_name(name, module_target_sat, module_org, 
             name=name,
             organization=[module_org],
             location=[module_location],
-            url=LIBVIRT_URL,
+            url=libvirt.url,
         ).create()
 
 
-def test_negative_create_with_same_name(request, module_target_sat, module_org, module_location):
+def test_negative_create_with_same_name(
+    request, module_target_sat, module_org, module_location, libvirt
+):
     """Attempt to create a compute resource with already existing name
 
     :id: 9376e25c-2aa8-4d99-83aa-2eec160c030e
@@ -172,7 +175,7 @@ def test_negative_create_with_same_name(request, module_target_sat, module_org, 
     """
     name = gen_string('alphanumeric')
     cr = module_target_sat.api.LibvirtComputeResource(
-        location=[module_location], name=name, organization=[module_org], url=LIBVIRT_URL
+        location=[module_location], name=name, organization=[module_org], url=libvirt.url
     ).create()
     request.addfinalizer(cr.delete)
     assert cr.name == name
@@ -181,7 +184,7 @@ def test_negative_create_with_same_name(request, module_target_sat, module_org, 
             name=name,
             organization=[module_org],
             location=[module_location],
-            url=LIBVIRT_URL,
+            url=libvirt.url,
         ).create()
 
 
@@ -205,7 +208,7 @@ def test_negative_create_with_url(module_target_sat, module_org, module_location
 
 @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
 def test_negative_update_invalid_name(
-    request, module_target_sat, module_org, module_location, new_name
+    request, module_target_sat, module_org, module_location, new_name, libvirt
 ):
     """Attempt to update compute resource with invalid names
 
@@ -219,7 +222,7 @@ def test_negative_update_invalid_name(
     """
     name = gen_string('alphanumeric')
     compresource = module_target_sat.api.LibvirtComputeResource(
-        location=[module_location], name=name, organization=[module_org], url=LIBVIRT_URL
+        location=[module_location], name=name, organization=[module_org], url=libvirt.url
     ).create()
     request.addfinalizer(compresource.delete)
     compresource.name = new_name
@@ -228,7 +231,9 @@ def test_negative_update_invalid_name(
     assert compresource.read().name == name
 
 
-def test_negative_update_same_name(request, module_target_sat, module_org, module_location):
+def test_negative_update_same_name(
+    request, module_target_sat, module_org, module_location, libvirt
+):
     """Attempt to update a compute resource with already existing name
 
     :id: 4d7c5eb0-b8cb-414f-aa10-fe464a164ab4
@@ -239,11 +244,11 @@ def test_negative_update_same_name(request, module_target_sat, module_org, modul
     """
     name = gen_string('alphanumeric')
     compresource = module_target_sat.api.LibvirtComputeResource(
-        location=[module_location], name=name, organization=[module_org], url=LIBVIRT_URL
+        location=[module_location], name=name, organization=[module_org], url=libvirt.url
     ).create()
     request.addfinalizer(compresource.delete)
     new_compresource = module_target_sat.api.LibvirtComputeResource(
-        location=[module_location], organization=[module_org], url=LIBVIRT_URL
+        location=[module_location], organization=[module_org], url=libvirt.url
     ).create()
     request.addfinalizer(new_compresource.delete)
     new_compresource.name = name
@@ -253,7 +258,7 @@ def test_negative_update_same_name(request, module_target_sat, module_org, modul
 
 
 @pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
-def test_negative_update_url(url, request, module_target_sat, module_org, module_location):
+def test_negative_update_url(url, request, module_target_sat, module_org, module_location, libvirt):
     """Attempt to update a compute resource with invalid url
 
     :id: b5256090-2ceb-4976-b54e-60d60419fe50
@@ -265,7 +270,7 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
     :parametrized: yes
     """
     compresource = module_target_sat.api.LibvirtComputeResource(
-        location=[module_location], organization=[module_org], url=LIBVIRT_URL
+        location=[module_location], organization=[module_org], url=libvirt.url
     ).create()
     request.addfinalizer(compresource.delete)
     compresource.url = url
@@ -279,9 +284,11 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.rhel_ver_list('[9, 10]')
+@pytest.mark.parametrize('libvirt', ['libvirt9', 'libvirt10'], indirect=True)
 def test_positive_provision_end_to_end(
     request,
     setting_update,
+    libvirt,
     module_provisioning_rhel_content,
     module_libvirt_provisioning_sat,
     configure_secureboot_provisioning,
@@ -315,7 +322,7 @@ def test_positive_provision_end_to_end(
         display_type='VNC',
         organization=[module_sca_manifest_org],
         location=[module_location],
-        url=LIBVIRT_URL,
+        url=libvirt.url,
     ).create()
     request.addfinalizer(libvirt_cr.delete)
     assert libvirt_cr.name == cr_name
@@ -358,7 +365,7 @@ def test_positive_provision_end_to_end(
     assert host.name == f'{host_name}.{module_libvirt_provisioning_sat.domain.name}'
     # Check on Libvirt, if VM exists
     result = sat.execute(
-        f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
+        f'su foreman -s /bin/bash -c "virsh -c {libvirt.url} list --state-running"'
     )
     assert host_name in result.stdout
     # check the build status
