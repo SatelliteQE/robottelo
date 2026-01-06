@@ -139,8 +139,6 @@ def test_rhcloud_insights_e2e(
 
 
 @pytest.mark.e2e
-@pytest.mark.pit_server
-@pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([10])
 def test_rhcloud_insights_remediate_multiple_hosts(
