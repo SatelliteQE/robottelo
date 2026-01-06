@@ -1061,7 +1061,9 @@ class TestEndToEnd:
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
-    def test_positive_end_to_end(self, function_sca_manifest, target_sat, rhel_contenthost):
+    def test_positive_end_to_end(
+        self, function_sca_manifest, target_sat, rhel_contenthost, libvirt
+    ):
         """Perform end to end smoke tests using RH and custom repos.
 
         1. Create a new user with admin permissions
@@ -1198,7 +1200,7 @@ class TestEndToEnd:
         # step 2.14: Create a new libvirt compute resource
         target_sat.api.LibvirtComputeResource(
             server_config=user_cfg,
-            url=f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
+            url=libvirt.url,
         ).create()
 
         # step 2.15: Create a new subnet

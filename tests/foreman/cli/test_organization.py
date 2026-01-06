@@ -15,7 +15,6 @@
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
@@ -261,7 +260,7 @@ def test_positive_add_and_remove_hostgroups(module_org, module_target_sat):
 
 @pytest.mark.skip_if_not_set('libvirt')
 @pytest.mark.upgrade
-def test_positive_add_and_remove_compute_resources(module_org, module_target_sat):
+def test_positive_add_and_remove_compute_resources(module_org, module_target_sat, libvirt):
     """Add and remove a compute resource from organization
 
     :id: 415c14ab-f879-4ed8-9ba7-8af4ada2e277
@@ -278,7 +277,7 @@ def test_positive_add_and_remove_compute_resources(module_org, module_target_sat
         module_target_sat.cli_factory.compute_resource(
             {
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'url': f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
+                'url': libvirt.url,
             },
         )
         for _ in range(0, 2)
