@@ -92,7 +92,7 @@ def test_iop_recommendations_e2e(
         result = module_target_sat_insights.execute(
             'grep "502 Bad Gateway" /var/log/foreman/production.log'
         )
-        assert result.status != 1
+        assert result.status != 0
 
         # Verify that the recommendation is not listed anymore.
         assert (
