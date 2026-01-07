@@ -221,10 +221,7 @@ class TestVirtwhoConfigforNutanix:
         command = results['deploy']['command']
         assert str(results['overview']['ahv_internal_debug']) == 'True'
         deploy_configure_by_command(
-            command,
-            form_data_ui['hypervisor_type'],
-            debug=True,
-            org=module_sca_manifest_org.label
+            command, form_data_ui['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
         )
         assert (
             get_hypervisor_ahv_mapping(form_data_ui['hypervisor_type']) == 'Host UUID found for VM'
