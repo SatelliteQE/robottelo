@@ -77,15 +77,7 @@ def mock_service_as_rebootable(contenthost, service_name):
     Usage:
         with mock_service_as_rebootable(rhel_contenthost, 'robottelo-mock-service'):
             rhel_contenthost.execute('yum -y downgrade robottelo-mock-service')
-            rhel_contenthost.execute('dnf katello-tracer-upload')
-            # Service now appears as type='static' requiring reboot
 
-    Example:
-        >>> with mock_service_as_rebootable(host, 'test-service'):
-        ...     # Service is now in STATIC_SERVICES list
-        ...     host.execute('yum downgrade test-service')
-        ...     # Tracer will classify it as needing reboot
-        ... # Automatically cleaned up when exiting context
     """
     # Dynamically find the katello tracer dnf.py file (Python version agnostic)
     find_cmd = 'python3 -c "import katello.tracer.dnf; print(katello.tracer.dnf.__file__)"'
