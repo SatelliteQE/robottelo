@@ -100,7 +100,6 @@ class TestVirtWhoConfigforNutanix:
                 form_data_cli['hypervisor-type'],
                 debug=True,
                 org=module_sca_manifest_org.label,
-                target_sat=target_sat,
             )
         elif deploy_type == "script":
             script = target_sat.cli.VirtWhoConfig.fetch(
@@ -111,7 +110,6 @@ class TestVirtWhoConfigforNutanix:
                 form_data_cli['hypervisor-type'],
                 debug=True,
                 org=module_sca_manifest_org.label,
-                target_sat=target_sat,
             )
         # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
         config_file = get_configure_file(virtwho_config['id'])
