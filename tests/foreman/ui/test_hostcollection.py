@@ -606,7 +606,7 @@ def test_positive_change_assigned_content(
         task_values = session.hostcollection.change_assigned_content(
             vm_host_collection.name, new_lce.name, new_content_view.name
         )
-        assert task_values['result'] == 'success'
+        assert task_values['task']['result'] == 'success'
         expected_repo_urls = _get_content_repository_urls(
             module_repos_collection, new_lce, new_content_view, module_target_sat
         )
