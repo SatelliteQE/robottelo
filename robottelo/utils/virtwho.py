@@ -220,9 +220,11 @@ def _get_hypervisor_mapping(hypervisor_type):
     :raises: VirtWhoError: If hypervisor_name is None.
     :return: hypervisor_name and guest_name
     """
+    # Increase timeout for hypervisors like Nutanix Prism Central which can be slower
+    timeout = 60 if hypervisor_type == 'ahv' else 20
     wait_for(
         lambda: 'Host-to-guest mapping being sent to' in get_rhsm_log(),
-        timeout=20,
+        timeout=timeout,
         delay=2,
     )
     logs = get_rhsm_log()
