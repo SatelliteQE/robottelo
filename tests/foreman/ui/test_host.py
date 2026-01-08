@@ -12,6 +12,7 @@
 
 """
 
+from contextlib import contextmanager
 import copy
 import csv
 from datetime import UTC, datetime, timedelta
@@ -46,6 +47,7 @@ from robottelo.constants import (
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.exceptions import APIResponseError
+from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
 from tests.foreman.api.test_errata import cv_publish_promote
 
@@ -56,6 +58,92 @@ def _get_set_from_list_of_dict(value):
     :param list value: a list of simple dict.
     """
     return {tuple(sorted(list(global_param.items()), key=lambda t: t[0])) for global_param in value}
+
+
+@contextmanager
+def mock_service_as_rebootable(contenthost, service_name):
+    """Context manager to temporarily make a service require reboot instead of restart.
+
+    Modifies the katello tracer's STATIC_SERVICES list on the content host to include
+    the specified service, causing tracer to classify it as type='static' (reboot required)
+    instead of type='daemon' (restart required).
+
+    This is useful for testing reboot-required trace scenarios without needing to
+    actually downgrade kernel or systemd packages.
+
+    :param contenthost: ContentHost instance to modify
+    :param service_name: Name of the service to mark as reboot-required
+
+    Usage:
+        with mock_service_as_rebootable(rhel_contenthost, 'robottelo-mock-service'):
+            rhel_contenthost.execute('yum -y downgrade robottelo-mock-service')
+
+    """
+    # Dynamically find the katello tracer dnf.py file (Python version agnostic)
+    find_cmd = 'python3 -c "import katello.tracer.dnf; print(katello.tracer.dnf.__file__)"'
+    find_result = contenthost.execute(find_cmd)
+
+    if find_result.status != 0:
+        raise RuntimeError(
+            f'Failed to locate katello tracer module on {contenthost.hostname}: {find_result.stderr}'
+        )
+
+    tracer_file = find_result.stdout.strip()
+    backup_path = '/tmp/katello_tracer_dnf.py.backup'
+
+    # Create backup
+    backup_result = contenthost.execute(f'cp {tracer_file} {backup_path}')
+    if backup_result.status != 0:
+        logger.warning(f'Failed to backup tracer file: {backup_result.stderr}')
+
+    # Add service to STATIC_SERVICES list
+    # In the ../tracer/dnf.py it looks like this:
+    #   STATIC_SERVICES = [
+    #      "systemd",
+    #      "dbus",
+    #    ]
+    add_cmd = f'''python3 << 'EOFPYTHON'
+import re
+
+with open('{tracer_file}', 'r') as f:
+    content = f.read()
+
+# Find STATIC_SERVICES list and add service before the closing bracket
+pattern = r'(STATIC_SERVICES = \\[.*?)(\\])'
+replacement = r'\\1    "{service_name}",\\n\\2'
+modified_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+
+with open('{tracer_file}', 'w') as f:
+    f.write(modified_content)
+
+print("Service added successfully")
+EOFPYTHON
+'''
+    add_result = contenthost.execute(add_cmd)
+
+    if add_result.status != 0:
+        logger.error(f'Failed to add service to STATIC_SERVICES: {add_result.stderr}')
+        # Restore backup
+        contenthost.execute(f'mv {backup_path} {tracer_file}')
+        raise RuntimeError(f'Failed to modify tracer configuration: {add_result.stderr}')
+
+    try:
+        # Verify the modification
+        verify_result = contenthost.execute(f'grep "{service_name}" {tracer_file}')
+        if verify_result.status == 0:
+            logger.info(
+                f'Successfully added {service_name} to STATIC_SERVICES on {contenthost.hostname}'
+            )
+        yield
+    finally:
+        # Cleanup: Restore original file
+        restore_result = contenthost.execute(f'mv {backup_path} {tracer_file}')
+        if restore_result.status == 0:
+            logger.info(f'Restored original tracer configuration on {contenthost.hostname}')
+        else:
+            logger.warning(
+                f'Failed to restore tracer file on {contenthost.hostname}: {restore_result.stderr}'
+            )
 
 
 # this fixture inherits the fixture called ui_user in confest.py, method name has to be same
@@ -3400,16 +3488,12 @@ def test_positive_all_hosts_check_status_icon(
 
 
 @pytest.mark.parametrize(
-    'traces_to_test',
-    [
-        [settings.repos['MOCK_SERVICE_RPM']],
-        ['systemd'],
-        [settings.repos['MOCK_SERVICE_RPM'], 'systemd'],
-    ],
-    ids=['service_restart', 'reboot_required', 'mixed_services'],
+    'require_reboot',
+    [False, True],
+    ids=['service_restart', 'service_reboot'],
 )
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
-def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, traces_to_test):
+def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, require_reboot):
     """Test bulk management of traces with multiple hosts via All Hosts page.
 
     :id: a107e6da-3c44-46d8-9e94-f15044e041b6
@@ -3417,38 +3501,50 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
     :setup:
         1. Two RHEL content hosts registered to Satellite
         2. Tracer installed on both hosts
-        3. Packages are installed on both hosts based on test parameters
+        3. Mock service package installed on both hosts
 
     :steps:
-        1. Create traces by downgrading packages
-        2. Verify traces are detected on both hosts
-        3. Navigate to All Hosts page
-        4. Select both hosts
-        5. Use bulk action to manage traces
-        6. Select specific traces to restart/reboot
+        1. For reboot scenario, use mock_service_as_rebootable context manager
+        2. Create traces by downgrading mock service package
+        3. Verify traces are detected on both hosts with correct type
+        4. Navigate to All Hosts page
+        5. Select both hosts
+        6. Use bulk action to manage traces
         7. Trigger restart/reboot via remote execution
+        8. Verify traces are resolved
 
     :expectedresults:
         1. Traces are detected on both hosts after package downgrade
-        2. Bulk traces management modal displays traces from both hosts
-        3. REX job successfully restarts services or triggers reboot on both hosts
-        4. Traces are resolved on both hosts after restart/reboot
+        2. Service restart scenario: trace appears as type='daemon'
+        3. Reboot required scenario: trace appears as type='static'
+        4. Bulk traces management modal displays traces from both hosts
+        5. REX job successfully restarts services or triggers reboot on both hosts
+        6. Traces are resolved on both hosts after restart/reboot
 
     :parametrized: yes
 
     :Verifies: SAT-35465
     """
     host_names = []
-    requires_reboot = 'systemd' in traces_to_test
+    mock_service = settings.repos['MOCK_SERVICE_RPM']
 
     # Create traces on both hosts by downgrading packages
     for host in tracer_hosts:
         host_names.append(host.hostname)
 
-        # Create traces on both hosts
-        for package in traces_to_test:
-            result = host.execute(f'yum -y downgrade {package}')
-            assert result.status == 0, f'Failed to downgrade {package} on {host.hostname}'
+        if require_reboot:
+            # Use context manager to make service require reboot
+            with mock_service_as_rebootable(host, mock_service):
+                result = host.execute(f'yum -y downgrade {mock_service}')
+                assert result.status == 0, f'Failed to downgrade {mock_service} on {host.hostname}'
+
+                # Upload traces while in context (service marked as reboot-required)
+                host.execute('dnf katello-tracer-upload')
+        else:
+            # Normal service restart scenario
+            result = host.execute(f'yum -y downgrade {mock_service}')
+            assert result.status == 0, f'Failed to downgrade {mock_service} on {host.hostname}'
+            host.execute('dnf katello-tracer-upload')
 
     # Verify traces are detected on both hosts
     host_traces = {}
@@ -3460,21 +3556,19 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
         # Store traces by hostname for verification
         host_traces[host.hostname] = {trace['application']: trace for trace in traces}
 
-        # Verify expected traces are present
-        for expected_trace in traces_to_test:
-            if expected_trace == 'systemd':
-                systemd_trace_found = any(
-                    'systemd' in trace['application'].lower() for trace in traces
-                )
-                assert systemd_trace_found, (
-                    f'Systemd trace not found on {host.hostname}. Found traces: '
-                    f'{[t["application"] for t in traces]}'
-                )
-            else:
-                assert any(trace['application'] == expected_trace for trace in traces), (
-                    f'Expected trace {expected_trace} not found on {host.hostname}. '
-                    f'Found traces: {[t["application"] for t in traces]}'
-                )
+        # Verify mock service trace is present
+        mock_trace = [t for t in traces if t['application'] == mock_service]
+        assert len(mock_trace) > 0, (
+            f'Mock service trace not found on {host.hostname}. Found traces: '
+            f'{[t["application"] for t in traces]}'
+        )
+
+        # Verify trace type matches expected behavior
+        expected_type = 'static' if require_reboot else 'daemon'
+        assert mock_trace[0]['type'] == expected_type, (
+            f'Expected type={expected_type} for {mock_service} on {host.hostname}, '
+            f'got type={mock_trace[0]["type"]}'
+        )
 
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
@@ -3483,7 +3577,7 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
         timestamp = (datetime.now(UTC) - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M')
 
         alert_message = session.all_hosts.manage_traces(
-            host_names=host_names, traces_to_select=traces_to_test
+            host_names=host_names, traces_to_select=[mock_service]
         )
         assert 'Danger alert' not in alert_message, 'Manage traces action failed'
 
@@ -3495,11 +3589,11 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
             max_tries=10,
         )
 
-        # If kernel was downgraded, manually reboot hosts to clear kernel traces
-        if requires_reboot:
+        if require_reboot:
+            # Reboot hosts to clear static traces
             for host in tracer_hosts:
                 host.power_control(state='reboot')
-            # Wait for hosts to come back online
+
             for host in tracer_hosts:
                 host.wait_for_connection()
 
@@ -3508,10 +3602,10 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
             host_info = target_sat.cli.Host.info({'name': host.hostname})
             traces = target_sat.cli.HostTraces.list({'host-id': host_info['id']})
             remaining_apps = {t['application'] for t in traces}
-            for app in traces_to_test:
-                assert app not in remaining_apps, (
-                    f'Trace {app} still present on {host.hostname} after restart/reboot'
-                )
+            assert mock_service not in remaining_apps, (
+                f'Trace {mock_service} still present on {host.hostname} after {"reboot" if require_reboot else "restart"}. '
+                f'Remaining traces: {remaining_apps}'
+            )
 
 
 def verify_system_purpose_via_api(
