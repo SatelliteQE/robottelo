@@ -21,7 +21,7 @@ from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import robottelo_tmp_dir
-from robottelo.constants import DEFAULT_CV, DEFAULT_ORG, ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.utils.io import get_local_file_data, get_remote_report_checksum
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
@@ -545,13 +545,15 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
     assert task_output[0].result == "success"
 
 
-def test_positive_config_on_sat_without_network_protocol(module_target_sat, module_sca_manifest):
+def test_positive_config_on_sat_without_network_protocol(
+    request, module_target_sat, module_sca_manifest, module_org
+):
     """Test cloud connector configuration on Satellite without explicit network protocol.
 
     :id: e6bf1c56-3091-4db2-b162-4cf3c6e23394
 
     :steps:
-        1. Get default organization, content view, and lifecycle environment.
+        1. Create organization and get its Library lifecycle environment and default content view.
         2. Upload manifest to enable Red Hat content.
         3. Enable and sync RHEL BaseOS and AppStream repositories.
         4. Create activation key and register Satellite to itself.
@@ -570,15 +572,17 @@ def test_positive_config_on_sat_without_network_protocol(module_target_sat, modu
 
     :customerscenario: true
     """
-    # Get the default organization, content view, and lifecycle environment from Satellite
-    org = module_target_sat.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
-    cv = module_target_sat.api.ContentView().search(query={'search': f'name="{DEFAULT_CV}"'})[0]
+
+    # Get the Library lifecycle environment and default content view for the organization
+    cv = module_target_sat.api.ContentView().search(
+        query={'search': f'name="{DEFAULT_CV}" AND organization_id={module_org.id}'}
+    )[0]
     lce = module_target_sat.api.LifecycleEnvironment().search(
-        query={'search': f'name="{ENVIRONMENT}"'}
+        query={'search': f'name="{ENVIRONMENT}" AND organization_id={module_org.id}'}
     )[0]
 
     # Upload manifest to enable Red Hat content
-    module_target_sat.upload_manifest(org.id, module_sca_manifest.content)
+    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
 
     # Enable and sync RHEL BaseOS and AppStream repositories based on Satellite's OS version
     rhel_ver = module_target_sat.os_version.major
@@ -586,7 +590,7 @@ def test_positive_config_on_sat_without_network_protocol(module_target_sat, modu
         # Enable the Red Hat repository and get its ID
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=org.id,
+            org_id=module_org.id,
             product=constants.REPOS[name]['product'],
             repo=constants.REPOS[name]['name'],
             reposet=constants.REPOS[name]['reposet'],
@@ -598,14 +602,21 @@ def test_positive_config_on_sat_without_network_protocol(module_target_sat, modu
 
     # Create an activation key for Satellite self-registration
     ac_key = module_target_sat.api.ActivationKey(
-        content_view=cv.id,
-        environment=lce.id,
-        organization=org,
+        content_view=cv,
+        environment=lce,
+        organization=module_org,
     ).create()
 
     # Register the Satellite to itself using the activation key
-    result = module_target_sat.register(org, None, ac_key.name, module_target_sat, force=False)
+    result = module_target_sat.register(
+        module_org, None, ac_key.name, module_target_sat, force=True
+    )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Add finalizer to ensure the Satellite is always unregistered
+    @request.addfinalizer
+    def cleanup():
+        module_target_sat.unregister()
 
     # Enable cloud connector
     result = module_target_sat.cli.Insights.cloud_connector_enable({})
