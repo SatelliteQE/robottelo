@@ -546,7 +546,7 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
 
 
 def test_positive_config_on_sat_without_network_protocol(
-    request, module_target_sat, module_sca_manifest, module_org
+    request, target_sat, function_sca_manifest, function_org
 ):
     """Test cloud connector configuration on Satellite without explicit network protocol.
 
@@ -572,74 +572,79 @@ def test_positive_config_on_sat_without_network_protocol(
 
     :customerscenario: true
     """
+    # Ensure Satellite is not registered from previous test runs
+    target_sat.unregister()
+
+    # Delete the host from Satellite's database if it exists from a previous test run
+    existing_host = target_sat.api.Host().search(query={'search': f'name="{target_sat.hostname}"'})
+    if existing_host:
+        existing_host[0].delete()
 
     # Get the Library lifecycle environment and default content view for the organization
-    cv = module_target_sat.api.ContentView().search(
-        query={'search': f'name="{DEFAULT_CV}" AND organization_id={module_org.id}'}
+    cv = target_sat.api.ContentView().search(
+        query={'search': f'name="{DEFAULT_CV}" AND organization_id={function_org.id}'}
     )[0]
-    lce = module_target_sat.api.LifecycleEnvironment().search(
-        query={'search': f'name="{ENVIRONMENT}" AND organization_id={module_org.id}'}
+    lce = target_sat.api.LifecycleEnvironment().search(
+        query={'search': f'name="{ENVIRONMENT}" AND organization_id={function_org.id}'}
     )[0]
 
     # Upload manifest to enable Red Hat content
-    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
+    target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
 
     # Enable and sync RHEL BaseOS and AppStream repositories based on Satellite's OS version
-    rhel_ver = module_target_sat.os_version.major
+    rhel_ver = target_sat.os_version.major
     for name in [f'rhel{rhel_ver}_bos', f'rhel{rhel_ver}_aps']:
         # Enable the Red Hat repository and get its ID
-        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=module_org.id,
+            org_id=function_org.id,
             product=constants.REPOS[name]['product'],
             repo=constants.REPOS[name]['name'],
             reposet=constants.REPOS[name]['reposet'],
             releasever=constants.REPOS[name]['version'],
         )
         # Sync the repository
-        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+        rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
         rh_repo.sync(timeout=2000)
 
     # Create an activation key for Satellite self-registration
-    ac_key = module_target_sat.api.ActivationKey(
+    ac_key = target_sat.api.ActivationKey(
         content_view=cv,
         environment=lce,
-        organization=module_org,
+        organization=function_org,
     ).create()
 
     # Register the Satellite to itself using the activation key
-    result = module_target_sat.register(
-        module_org, None, ac_key.name, module_target_sat, force=True
-    )
+    result = target_sat.register(function_org, None, ac_key.name, target_sat, force=True)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Add finalizer to ensure the Satellite is always unregistered
     @request.addfinalizer
     def cleanup():
-        module_target_sat.unregister()
+        target_sat.unregister()
 
     # Enable cloud connector
-    result = module_target_sat.cli.Insights.cloud_connector_enable({})
+    result = target_sat.cli.Insights.cloud_connector_enable({})
     assert "Cloud connector enable task started" in result
 
     # Find the job invocation for the 'Configure Cloud Connector' template
     template_name = 'Configure Cloud Connector'
-    result = module_target_sat.api.JobInvocation().search(
+    result = target_sat.api.JobInvocation().search(
         query={'search': f'description="{template_name}"'}
     )[0]
 
     # Wait for the job to complete
-    module_target_sat.wait_for_tasks(
+    target_sat.wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {result.id}', poll_timeout=600
     )
 
     # Verify the job completed successfully
-    result = module_target_sat.api.JobInvocation(id=result.id).read()
+    result = target_sat.api.JobInvocation(id=result.id).read()
     assert result.status_label == 'succeeded'
 
     # Read the rhcd service proxy configuration file to verify correct setup
-    status = module_target_sat.execute('cat /etc/systemd/system/rhcd.service.d/proxy.conf')
+    status = target_sat.execute('cat /etc/systemd/system/rhcd.service.d/proxy.conf')
     # Check the correct format is present
-    assert f'Environment=NO_PROXY={module_target_sat.hostname}' in status.stdout
+    assert f'Environment=NO_PROXY={target_sat.hostname}' in status.stdout
     # Ensure NO_PROXY doesn't contain https:// prefix
     assert 'Environment=NO_PROXY=https://' not in status.stdout
