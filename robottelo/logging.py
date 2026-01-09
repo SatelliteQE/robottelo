@@ -3,10 +3,15 @@ import os
 from pathlib import Path
 
 from box import Box
-from broker.logger import setup_logzero as broker_log_setup
 import logzero
 from manifester.logger import setup_logzero as manifester_log_setup
 import yaml
+
+try:
+    from broker.logging import RedactingFilter
+    # Importing broker.logging registers the TRACE level automatically
+except ImportError:
+    RedactingFilter = None
 
 robottelo_root_dir = Path(os.environ.get('ROBOTTELO_DIR', Path(__file__).resolve().parent.parent))
 robottelo_log_dir = robottelo_root_dir.joinpath('logs')
@@ -57,11 +62,11 @@ def configure_third_party_logging():
 
 
 configure_third_party_logging()
-broker_log_setup(
-    level=logging_yaml.robottelo.level,
-    file_level=logging_yaml.robottelo.fileLevel,
-    path=str(robottelo_log_file),
-)
+
+if RedactingFilter:
+    sensitive = ["password", "pword", "token", "host_password"]
+    logging.getLogger('broker').addFilter(RedactingFilter(sensitive))
+
 manifester_log_setup(logging_yaml.robottelo.fileLevel, str(robottelo_log_file))
 
 
