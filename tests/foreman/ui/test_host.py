@@ -609,47 +609,47 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
 
     :BZ: 2167146
 
+    :Verifies: SAT-38427
+
     :customerscenario: true
 
-    :BlockedBy: SAT-38427
     """
-    # TODO Rewrite for new all hosts page after SAT-38427 is completed
 
     columns = (
         Box(ui='Power', csv='Power Status', displayed=True),
-        Box(ui='Recommendations', csv='Insights Recommendations Count', displayed=True),
         Box(ui='Name', csv='Name', displayed=True),
-        Box(ui='IPv4', csv='Ip', displayed=True),
-        Box(ui='IPv6', csv='Ip6', displayed=True),
-        Box(ui='MAC', csv='Mac', displayed=True),
-        Box(ui='OS', csv='Operatingsystem', displayed=True),
+        Box(ui='OS', csv='OS', displayed=True),
         Box(ui='Owner', csv='Owner', displayed=True),
-        Box(ui='Host group', csv='Hostgroup', displayed=True),
-        Box(ui='Boot time', csv='Reported Data - Boot Time', displayed=True),
-        Box(ui='Last report', csv='Last Report', displayed=True),
+        Box(ui='Host group', csv='Host group', displayed=True),
+        Box(ui='Boot time', csv='Boot time', displayed=True),
+        Box(ui='Last report', csv='Last report', displayed=True),
         Box(ui='Comment', csv='Comment', displayed=True),
-        Box(ui='Model', csv='Compute Resource Or Model', displayed=True),
-        Box(ui='Sockets', csv='Reported Data - Sockets', displayed=True),
-        Box(ui='Cores', csv='Reported Data - Cores', displayed=True),
-        Box(ui='RAM', csv='Reported Data - Ram', displayed=True),
+        Box(ui='IPv4', csv='IPv4', displayed=True),
+        Box(ui='IPv6', csv='IPv6', displayed=True),
+        Box(ui='MAC', csv='MAC', displayed=True),
+        Box(ui='Model', csv='Model', displayed=True),
+        Box(ui='Sockets', csv='Sockets', displayed=True),
+        Box(ui='Cores', csv='Cores', displayed=True),
+        Box(ui='RAM', csv='RAM', displayed=True),
         Box(ui='Virtual', csv='Virtual', displayed=True),
-        Box(ui='Disks space', csv='Reported Data - Disks Total', displayed=True),
-        Box(ui='Kernel version', csv='Reported Data - Kernel Version', displayed=True),
-        Box(ui='BIOS vendor', csv='Reported Data - Bios Vendor', displayed=True),
-        Box(ui='BIOS release date', csv='Reported Data - Bios Release Date', displayed=True),
-        Box(ui='BIOS version', csv='Reported Data - Bios Version', displayed=True),
-        Box(ui='RHEL Lifecycle status', csv='Rhel Lifecycle Status', displayed=True),
-        Box(ui='Installable updates', csv='Installable ...', displayed=False),
+        Box(ui='Total disk space', csv='Disks space', displayed=True),
+        Box(ui='Kernel version', csv='Kernel version', displayed=True),
+        Box(ui='BIOS vendor', csv='BIOS vendor', displayed=True),
+        Box(ui='BIOS release date', csv='BIOS release date', displayed=True),
+        Box(ui='BIOS version', csv='BIOS version', displayed=True),
+        Box(ui='RHEL Lifecycle status', csv='RHEL Lifecycle status', displayed=True),
+        Box(ui='Installable updates', csv='Installable updates', displayed=False),
+        Box(ui='Last seen', csv='Last Checkin', displayed=True),
         Box(ui='Lifecycle environment', csv='Lifecycle Environment', displayed=True),
         Box(ui='Content view', csv='Content View', displayed=True),
-        Box(ui='Registered', csv='Registered', displayed=True),
-        Box(ui='Last checkin', csv='Last Checkin', displayed=True),
+        Box(ui='Registered at', csv='Registered', displayed=True),
+        Box(ui='Recommendations', csv='Recommendations', displayed=True),
     )
 
     with target_sat.ui_session() as session:
         session.location.select(loc_name=current_sat_location.name)
-        session.host.manage_table_columns({column.ui: column.displayed for column in columns})
-        file_path = session.host.export()
+        session.all_hosts.manage_table_columns({column.ui: column.displayed for column in columns})
+        file_path = session.all_hosts.export()
         with open(file_path, newline='') as fh:
             csvfile = csv.DictReader(fh)
             assert set(csvfile.fieldnames) == set(
