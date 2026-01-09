@@ -429,49 +429,27 @@ class TestRollingContentView:
         normal_cv.update(['rolling'])
         assert not normal_cv.read().rolling
 
-    def test_negative_promote_rolling_version(
-        self, target_sat, default_org, module_org, module_lce
-    ):
+    def test_negative_promote_rolling_version(self, target_sat, module_org, module_lce):
         """Cannot promote the version of the rolling content view to any environment.
 
         :id: b4987bb2-560a-4ead-9c98-48336504a7ba
 
         :expectedresults:
-            1) Rolling Content View Version is not promoted.
-            2) Rolling Content View is only in Library for its organization.
+            1) Rolling Content View has no environments by default.
+            2) Rolling Content View Version is not promoted.
 
         :CaseImportance: Critical
 
         """
-        # try in Default Org with its Library environment
-        def_rolling_cv = target_sat.api.ContentView(rolling=True, organization=default_org).create()
-        with pytest.raises(HTTPError):
-            target_sat.api.ContentViewVersion(id=def_rolling_cv.version[0].id).promote(
-                data={'environment_ids': def_rolling_cv.environment[0].id}
-            )
-        # try in non-default org with non-Library environment
         rolling_cv = target_sat.api.ContentView(rolling=True, organization=module_org).create()
-        with pytest.raises(HTTPError):
-            target_sat.api.ContentViewVersion(id=rolling_cv.version[0].id).promote(
-                data={'environment_ids': module_lce.id}
-            )
-        # try by updating CV's environment
-        def_rolling_cv.environment = [default_org.read().library.read()]
-        with pytest.raises(HTTPError):
-            def_rolling_cv.update(['environment'])
-        rolling_cv.environment = [module_lce]
-        with pytest.raises(HTTPError):
-            rolling_cv.update(['environment'])
-        # try by updating CV Version's env and CV's env
-        rolling_version = rolling_cv.version[0].read()
-        rolling_version.environment = [module_lce]
-        rolling_cv.version = [rolling_version]
-        rolling_cv.environment = [module_lce]
-        with pytest.raises(HTTPError):
-            rolling_cv.update(['environment', 'version'])
-        # both rolling CVs only in their Library
-        assert def_rolling_cv.read().environment == [def_rolling_cv.organization.read().library]
-        assert rolling_cv.read().environment == [rolling_cv.organization.read().library]
+        assert rolling_cv.environment == []
+        for lce_id in [module_org.library.id, module_lce.id]:
+            with pytest.raises(HTTPError) as e:
+                target_sat.api.ContentViewVersion(id=rolling_cv.version[0].id).promote(
+                    data={'environment_ids': lce_id}
+                )
+            assert "It's not possible to promote a rolling content view." in e.value.response.text
+            assert rolling_cv.read().environment == []
 
     def test_negative_change_rolling_version(self, target_sat):
         """Cannot update the rolling content view with another version.
@@ -481,6 +459,8 @@ class TestRollingContentView:
         :expectedresults: Rolling Content View is not updated
 
         :CaseImportance: Critical
+
+        :BlockedBy: SAT-41460
 
         """
         rolling_cv = target_sat.api.ContentView(rolling=True).create()
@@ -516,12 +496,12 @@ class TestRollingContentView:
         """
         rolling_cv = target_sat.api.ContentView(rolling=True).create()
         initial_version = rolling_cv.version[0].read()
-        with pytest.raises(HTTPError):
+        with pytest.raises(HTTPError) as e:
             target_sat.api.ContentViewVersion(id=rolling_cv.version[0].id).delete()
-        # try by updating rolling cv's version list
-        rolling_cv.version = []
-        with pytest.raises(HTTPError):
-            rolling_cv.update(['version'])
+        assert (
+            "It's not possible to destroy a version of a rolling content view."
+            in e.value.response.text
+        )
         assert len(rolling_cv.read().version) == 1
         assert rolling_cv.read().version[0].read() == initial_version
 
@@ -597,18 +577,17 @@ class TestRollingContentView:
             rolling_cv.update(['repository'])
 
     @pytest.mark.upgrade
-    def test_positive_CRUD_rolling(self, target_sat):
+    def test_positive_CRUD_rolling(self, target_sat, function_org):
         """Create, read, update, and delete the rolling content view.
         It has the expected attributes for a rolling content view.
 
         :id: e0b296c6-5fb2-48dd-b324-709fb515dd88
 
         :steps:
-            1) Create new empty rolling CV
-            2) Check CVs attributes
-            3) Update CVs description
-            4) Try to delete the CV while it is still in Library
-            5) Remove Rolling CV from Library, then Delete it
+            1) Create new empty Rolling CV and check its attributes
+            2) Update rolling CV with Library environment and description
+            3) Try to delete the CV while it is still in Library
+            4) Remove Rolling CV from Library, then delete it
 
         :expectedresults:
             1) We can create, read, and update the rolling CV.
@@ -617,25 +596,32 @@ class TestRollingContentView:
         :CaseImportance: Critical
 
         """
-        # created with expected attributes
-        rolling_cv = target_sat.api.ContentView(rolling=True).create()
+        # Create new empty Rolling CV and check its attributes
+        rolling_cv = target_sat.api.ContentView(organization=function_org, rolling=True).create()
         assert all([rolling_cv.rolling, rolling_cv.read().rolling])
         read_cv = target_sat.api.ContentView(id=rolling_cv.id).read()
-        update_cv = target_sat.api.ContentView(id=rolling_cv.id).update()
         assert not rolling_cv.needs_publish
         assert not rolling_cv.auto_publish
-        assert len(rolling_cv.environment) == 1
-        assert rolling_cv.environment[0].id == rolling_cv.organization.read().library.id
-        assert read_cv == rolling_cv == update_cv
-        # mutate and update
-        rolling_cv.description = valid_data_list()['utf8']
-        update_cv = rolling_cv.update(['description'])
+        assert read_cv == rolling_cv
+
+        # Update rolling CV with Library environment and description
+        cv_desc = valid_data_list()['utf8']
+        rolling_cv.description = cv_desc
+        rolling_cv.environment = [function_org.library]
+        update_cv = rolling_cv.update(['description', 'environment'])
         assert update_cv == (rolling_cv := rolling_cv.read())
-        cv_desc = target_sat.api.ContentView(id=rolling_cv.id).read().description
         assert rolling_cv.description == cv_desc
-        # remove from environment prior to deleting
-        with pytest.raises(HTTPError):
+        assert len(rolling_cv.environment) == 1
+        assert rolling_cv.environment[0] == function_org.library
+
+        # Try to delete the CV while it is still in Library
+        with pytest.raises(HTTPError) as e:
             rolling_cv.delete()
+        assert (
+            f"Cannot delete '{rolling_cv.name}' due to associated environments: Library."
+            in e.value.response.text
+        )
+        # Remove Rolling CV from Library, then delete it
         rolling_cv.delete_from_environment(rolling_cv.environment[0].id)
         rolling_cv.delete()
         with pytest.raises(HTTPError):
@@ -644,7 +630,9 @@ class TestRollingContentView:
     @pytest.mark.upgrade
     def test_positive_content_types_in_rolling(self, target_sat, module_org, module_product):
         """Can upload and use the different content types with the rolling content view.
-        Packages, Package Groups, Module Streams, Errata.
+        TODO:
+         - Packages, Package Groups, Module Streams, Errata.
+         - Other content types (File, Docker, Ansible Collection)
 
         :id: c9fb36e2-5241-44c2-8f7b-1069ccec5617
 
@@ -662,8 +650,9 @@ class TestRollingContentView:
         for _url in custom_repos:
             (repo := target_sat.api.Repository(product=module_product, url=_url).create()).sync()
             rolling_cv.repository.append(repo.read())
-        # update rolling cv with the custom repos
-        rolling_cv.update(['repository'])
+        # update rolling cv with the custom repos and Library
+        rolling_cv.environment = [module_org.library]
+        rolling_cv.update(['repository', 'environment'])
         rolling_cv = rolling_cv.read()
         assert len(rolling_cv.repository) == len(custom_repos)
         assert initial_version != (rolling_version := rolling_cv.version[0].read())
@@ -694,7 +683,9 @@ class TestRollingContentView:
 
         """
         rolling_cv = target_sat.api.ContentView(organization=module_org, rolling=True).create()
-        library = rolling_cv.environment[0].read()
+        rolling_cv.environment = [module_org.library]
+        rolling_cv.update(['environment'])
+        library = module_org.library.read()
         # Create new activation key providing rolling CV
         ak = target_sat.api.ActivationKey(
             organization=module_org,
@@ -747,6 +738,8 @@ class TestRollingContentView:
             organization=module_org,
             rolling=True,
         ).create()
+        rolling_cv.environment = [module_org.library]
+        rolling_cv.update(['environment'])
         assert rolling_cv.read().rolling
         assert len(rolling_cv.version) == 1
         rolling_version = deepcopy(
@@ -843,6 +836,8 @@ class TestRollingContentView:
         rolling_cv = target_sat.api.ContentView(
             organization=module_org, repository=[repo.read()], rolling=True
         ).create()
+        rolling_cv.environment = [module_org.library]
+        rolling_cv.update(['environment'])
         rolling_cv = rolling_cv.read()
         # initial version is empty
         rolling_version = rolling_cv.version[0].read()
@@ -888,91 +883,79 @@ class TestRollingContentView:
         :id: 623798f0-0974-4119-986e-a6b756e9d9d0
 
         :setup:
-            1) Create one custom repository, create a rolling cv with it
-            2) add the other custom repos to rolling cv, update
+            1) An organization with uploaded Manifest.
+            2) A product for custom repos.
 
         :steps:
-            1) add multiple Red Hat repositories to the rolling cv
-            2) remove a single custom repository from the rolling cv
-            3) remove a single RedHat repository from the rolling cv
-            4) delete the rolling CV with custom and RH repos still added
+            1) Create and sync one custom repository, create a Rolling CV with it.
+            2) Create, sync and add additional custom repos to the Rolling CV via update.
+            3) Enable, sync and add two Red Hat repositories to the Rolling CV.
+            4) Remove a single RedHat repository from the Rolling CV.
+            5) Remove a single custom repository from the Rolling CV.
+            6) Delete the Rolling CV with custom and RH repos still added.
 
         :expectedresults:
-            1) We can create a rolling cv providing a repository.
+            1) We can create a Rolling CV providing a repository.
             2) We can add and remove Custom and RedHat repositories.
-            3) Version of the rolling CV is updated when a synced repository is added or removed.
-            4) (SAT-37282) We can delete the rolling cv with some repos still added to it.
+            3) (SAT-37282) We can delete the Rolling CV with some repos still added to it.
 
         :CaseImportance: High
 
         :Verifies: SAT-37282
 
         """
-        custom_repo_urls = [
-            settings.repos.yum_3.url,
-            settings.repos.yum_6.url,
-            settings.repos.yum_9.url,
-        ]
-        rolling_cv = None
-        initial_version = None
         org = module_sca_manifest_org
-        # Create rolling cv and add the Custom Repos
-        for _url in custom_repo_urls:
+
+        # Create and sync one custom repository, create a rolling cv with it
+        repo = module_target_sat.api.Repository(
+            product=module_product, url=settings.repos.yum_3.url
+        ).create()
+        repo.sync()
+        rolling_cv = module_target_sat.api.ContentView(
+            organization=org, repository=[repo], rolling=True
+        ).create()
+
+        # Create, sync and add additional custom repos to the Rolling CV via update
+        for _url in [settings.repos.yum_6.url, settings.repos.yum_9.url]:
             repo = module_target_sat.api.Repository(product=module_product, url=_url).create()
             repo.sync()
-            if not rolling_cv:
-                # Create rolling_cv if not yet, with first repo initially
-                rolling_cv = module_target_sat.api.ContentView(
-                    organization=org, repository=[repo.read()], rolling=True
-                ).create()
-                initial_version = rolling_cv.read().version[0].read()
-            else:
-                # rolling cv already created, append custom repo and update
-                rolling_cv.repository.append(repo.read())
-                rolling_cv.update(['repository'])
-                rolling_cv = rolling_cv.read()
+            rolling_cv.repository.append(repo)
+            rolling_cv.update(['repository'])
+        rolling_cv = rolling_cv.read()
 
+        # Enable, sync and add two Red Hat repositories to the Rolling CV
         rhel_major = settings.content_host.default_rhel_version
-        # add RedHat Repositories - RHEL BaseOS, AppStream
         for repo_tail in ['bos', 'aps']:
             _repo = f'rhel{rhel_major}_{repo_tail}'  # 'rhel9_bos', 'rhel9_aps', etc
-            # sync and add to rolling cv
             rh_repo_id = module_target_sat.api_factory.enable_sync_redhat_repo(
                 rh_repo=REPOS[f'{_repo}'],
                 org_id=org.id,
                 timeout=2400,
             )
             rh_repo = module_target_sat.api.Repository(id=rh_repo_id, organization=org).read()
-            rolling_cv.repository.append(rh_repo.read())
+            rolling_cv.repository.append(rh_repo)
             rolling_cv.update(['repository'])
-            rolling_cv = rolling_cv.read()
+        rolling_cv = rolling_cv.read()
 
-        num_repos = len(rolling_cv.repository)
         rolling_repos = deepcopy(rolling_cv.repository)
-        current_version = rolling_cv.version[0].read()
-        assert initial_version != current_version
-        # remove a RedHat repository (tail)
+
+        # Remove a single RedHat repository from the Rolling CV (tail)
         _remove_this = rolling_cv.repository[-1]
         rolling_cv.repository.remove(_remove_this)
         rolling_cv.update(['repository'])
         rolling_cv = rolling_cv.read()
         assert _remove_this not in rolling_cv.repository
-        newest_version = rolling_cv.version[0].read()
-        assert current_version != newest_version
-        current_version = newest_version
-        # remove a custom repo (head)
+
+        # Remove a single custom repository from the Rolling CV (head)
         _remove_this = rolling_cv.repository[0]
         rolling_cv.repository.remove(_remove_this)
         rolling_cv.update(['repository'])
         rolling_cv = rolling_cv.read()
         assert _remove_this not in rolling_cv.repository
-        newest_version = rolling_cv.version[0].read()
-        assert current_version != newest_version
-        assert len(rolling_cv.repository) == num_repos - 2
-        # remove from Library, delete cv with some repos left
-        with pytest.raises(HTTPError):
-            rolling_cv.delete()
-        rolling_cv.delete_from_environment(rolling_cv.environment[0].id)
+
+        assert len(rolling_cv.repository) == len(rolling_repos) - 2
+
+        # Delete the Rolling CV with custom and RH repos still added
         rolling_cv.delete()
         # can't read the deleted cv
         with pytest.raises(HTTPError):
@@ -981,18 +964,6 @@ class TestRollingContentView:
         for repo in rolling_repos:
             repo = repo.read()
             repo.sync(timeout=2400)
-
-    @pytest.mark.stubbed
-    def test_positive_add_remove_repo_collection_from_rolling(self):
-        """Can add and remove a repository collection from the rolling content view.
-        The content contained within the rolling cv is updated as expected.
-
-        :id: 768b8b8a-f75b-405c-b11a-cead9a021079
-
-        :CaseImportance: High
-
-        """
-        # TODO
 
     def test_positive_multi_contentview(self, target_sat, module_org, module_product):
         """Can use the rolling content view with multiple published content views present.
@@ -1046,6 +1017,8 @@ class TestRollingContentView:
             rolling_cv = target_sat.api.ContentView(
                 organization=module_org, repository=[repo.read()], rolling=True
             ).create()
+            rolling_cv.environment = [module_org.library]
+            rolling_cv.update(['environment'])
             rolling_repos.append(repo.read())
             rolling_versions.append(rolling_cv.read().version[0].read())
 
