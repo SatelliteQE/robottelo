@@ -170,3 +170,95 @@ def test_synced_container_pullable_paths(function_org, function_product, target_
         assert repo.name == pullable_paths_info['Repository']
         assert lce.name == pullable_paths_info['Environment']
         assert default_cv_version.name == pullable_paths_info['Content view']
+
+
+def test_positive_verify_synced_container_image_tags(
+    session, module_org, module_product, module_target_sat
+):
+    """Verify synced container image tags and expandable table functionality
+
+    :id: 3116c317-edf9-48a0-9b3b-31b52c18f036
+
+    :steps:
+        1. Create and sync a docker repository
+        2. Navigate to Container Images page
+        3. Read the synced container images table with expanded rows
+        4. Verify table structure and data
+        5. Verify expandable rows contain child manifests
+
+    :expectedresults:
+        - The container image tags are synced and visible in the Container Images page
+        - Parent manifest list rows can be expanded
+        - Child manifests are displayed in expanded rows
+        - Child manifest data matches expected values
+
+    :verifies: SAT-38202
+
+    """
+    repo = module_target_sat.api.Repository(
+        name=gen_alpha(),
+        content_type='docker',
+        docker_upstream_name=BOOTABLE_REPO['upstream_name'],
+        product=module_product,
+        url=settings.container.pulp.registry_hub,
+    ).create()
+    repo.sync()
+    repo = repo.read()
+    assert repo.content_counts['docker_manifest'] > 0
+    manifest_list = module_target_sat.api.Repository(id=repo.id).docker_manifest_lists()['results'][
+        0
+    ]
+    manifest = module_target_sat.api.Repository(id=repo.id).docker_manifests()['results'][0]
+    manifest_tag = manifest_list['tags'][0]['name']
+
+    with session:
+        session.organization.select(org_name=module_org.name)
+        # Navigate to Container Images page and read table with expanded rows
+        table_data = session.containerimages.read_synced_table(
+            manifest_tag=manifest_tag, expand=True
+        )
+        # Verify that the table contains data
+        assert len(table_data) > 0, 'Container images table should contain synced images'
+        # Verify table structure - check that expected columns are present
+        expected_columns = ['Tag', 'Manifest digest', 'Type', 'Product']
+        for column in expected_columns:
+            assert column in table_data[0], f'Table should contain {column} column'
+        # Find the row matching the manifest list tag
+        manifest_list_row = None
+        for row in table_data:
+            if row.get('Tag') == manifest_tag:
+                manifest_list_row = row
+                break
+        assert manifest_list_row is not None, (
+            f'Manifest list with tag {manifest_tag} should be present in the table'
+        )
+        # Verify that synced container images are present in the table
+        assert module_product.name == manifest_list_row.get('Product'), (
+            f'Product {module_product.name} should match the manifest list row product'
+        )
+        # Verify the row is expandable and has children
+        assert 'children' in manifest_list_row, (
+            'Manifest list row should have children when expanded'
+        )
+        assert len(manifest_list_row['children']) > 0, (
+            'Manifest list row should contain at least one child manifest'
+        )
+        # Verify that the child manifest is present in the expanded rows
+        child_manifest_found = False
+        for child_row in manifest_list_row['children']:
+            if child_row.get('Manifest digest') == manifest['digest']:
+                child_manifest_found = True
+                # Verify child manifest has expected structure
+                assert 'Type' in child_row, 'Child manifest should have Type column'
+                assert child_row.get('Type') in ('Image', 'Bootable'), (
+                    f'Child manifest Type should be Image or Bootable, got: {child_row.get("Type")}'
+                )
+                assert 'Product' in child_row, 'Child manifest should have Product column'
+                # Child manifests have empty Product cells (as shown in the HTML structure)
+                assert child_row.get('Product') == '' or child_row.get('Product') is None, (
+                    'Child manifest Product should be empty'
+                )
+                break
+        assert child_manifest_found, (
+            f'Child manifest with digest {manifest["digest"]} should be present in expanded rows'
+        )
