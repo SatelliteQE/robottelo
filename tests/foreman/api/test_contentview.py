@@ -429,49 +429,27 @@ class TestRollingContentView:
         normal_cv.update(['rolling'])
         assert not normal_cv.read().rolling
 
-    def test_negative_promote_rolling_version(
-        self, target_sat, default_org, module_org, module_lce
-    ):
+    def test_negative_promote_rolling_version(self, target_sat, module_org, module_lce):
         """Cannot promote the version of the rolling content view to any environment.
 
         :id: b4987bb2-560a-4ead-9c98-48336504a7ba
 
         :expectedresults:
-            1) Rolling Content View Version is not promoted.
-            2) Rolling Content View is only in Library for its organization.
+            1. Rolling Content View has no environments by default.
+            2. Rolling Content View Version is not promoted.
 
         :CaseImportance: Critical
 
         """
-        # try in Default Org with its Library environment
-        def_rolling_cv = target_sat.api.ContentView(rolling=True, organization=default_org).create()
-        with pytest.raises(HTTPError):
-            target_sat.api.ContentViewVersion(id=def_rolling_cv.version[0].id).promote(
-                data={'environment_ids': def_rolling_cv.environment[0].id}
-            )
-        # try in non-default org with non-Library environment
         rolling_cv = target_sat.api.ContentView(rolling=True, organization=module_org).create()
-        with pytest.raises(HTTPError):
-            target_sat.api.ContentViewVersion(id=rolling_cv.version[0].id).promote(
-                data={'environment_ids': module_lce.id}
-            )
-        # try by updating CV's environment
-        def_rolling_cv.environment = [default_org.read().library.read()]
-        with pytest.raises(HTTPError):
-            def_rolling_cv.update(['environment'])
-        rolling_cv.environment = [module_lce]
-        with pytest.raises(HTTPError):
-            rolling_cv.update(['environment'])
-        # try by updating CV Version's env and CV's env
-        rolling_version = rolling_cv.version[0].read()
-        rolling_version.environment = [module_lce]
-        rolling_cv.version = [rolling_version]
-        rolling_cv.environment = [module_lce]
-        with pytest.raises(HTTPError):
-            rolling_cv.update(['environment', 'version'])
-        # both rolling CVs only in their Library
-        assert def_rolling_cv.read().environment == [def_rolling_cv.organization.read().library]
-        assert rolling_cv.read().environment == [rolling_cv.organization.read().library]
+        assert rolling_cv.environment == []
+        for lce_id in [module_org.library.id, module_lce.id]:
+            with pytest.raises(HTTPError) as e:
+                target_sat.api.ContentViewVersion(id=rolling_cv.version[0].id).promote(
+                    data={'environment_ids': lce_id}
+                )
+            assert "It's not possible to promote a rolling content view." in e.value.response.text
+            assert rolling_cv.read().environment == []
 
     def test_negative_change_rolling_version(self, target_sat):
         """Cannot update the rolling content view with another version.
@@ -481,6 +459,8 @@ class TestRollingContentView:
         :expectedresults: Rolling Content View is not updated
 
         :CaseImportance: Critical
+
+        :BlockedBy: SAT-41460
 
         """
         rolling_cv = target_sat.api.ContentView(rolling=True).create()
