@@ -437,6 +437,8 @@ def test_positive_download_reports_job_cli_disconnected(
         2. Execute hammer insights inventory download-report.
 
     :expectedresults: Reports download works as expected.
+
+    BlockedBy: SAT-41462
     """
     org = rhcloud_manifest_org
     generate_report(org, module_target_sat, disconnected=True)
@@ -528,7 +530,7 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
     timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     assert success_msg in result
     # Check task details
-    generate_job_name = 'ForemanInventoryUpload::Async::GenerateReportJob'
+    generate_job_name = 'ForemanInventoryUpload::Async::HostInventoryReportJob'
     wait_for(
         lambda: module_target_sat.api.ForemanTask()
         .search(query={'search': f'{generate_job_name} and started_at >= "{timestamp}"'})[0]
