@@ -181,16 +181,19 @@ def test_positive_verify_synced_container_image_tags(
 
     :steps:
         1. Create and sync a docker repository
-        2. Navigate to Container Images page
-        3. Read the synced container images table with expanded rows
-        4. Verify table structure and data
-        5. Verify expandable rows contain child manifests
+        2. Get Docker tags via API for the repository
+        3. Navigate to Container Images page
+        4. Read the synced container images table with expanded rows
+        5. Verify table structure and data
+        6. Verify expandable rows contain child manifests
+        7. Verify Docker API tags match UI table data
 
     :expectedresults:
         - The container image tags are synced and visible in the Container Images page
         - Parent manifest list rows can be expanded
         - Child manifests are displayed in expanded rows
         - Child manifest data matches expected values
+        - Docker API tags match the tags displayed in the UI
 
     :verifies: SAT-38202
 
@@ -210,6 +213,18 @@ def test_positive_verify_synced_container_image_tags(
     ]
     manifest = module_target_sat.api.Repository(id=repo.id).docker_manifests()['results'][0]
     manifest_tag = manifest_list['tags'][0]['name']
+
+    # Get Docker tags via API for the repository
+    docker_tags = module_target_sat.api.DockerTag().search(
+        query={'repository_id': repo.id, 'per_page': '999'}
+    )
+    assert len(docker_tags) > 0, 'Repository should have at least one Docker tag'
+    # Extract tag names from API
+    api_tag_names = [tag.name for tag in docker_tags]
+    # Verify the manifest tag is in the API tags
+    assert manifest_tag in api_tag_names, (
+        f'Manifest tag {manifest_tag} should be present in Docker API tags'
+    )
 
     with session:
         session.organization.select(org_name=module_org.name)
@@ -262,3 +277,22 @@ def test_positive_verify_synced_container_image_tags(
         assert child_manifest_found, (
             f'Child manifest with digest {manifest["digest"]} should be present in expanded rows'
         )
+        # Verify Docker API tags match UI table tags
+        ui_tag_names = [row.get('Tag') for row in table_data if row.get('Tag')]
+        # Check that all UI tags are present in API tags
+        for ui_tag in ui_tag_names:
+            assert ui_tag in api_tag_names, f'UI tag {ui_tag} should be present in Docker API tags'
+        # Verify manifest digest from API matches UI
+        matching_api_tag = next((tag for tag in docker_tags if tag.name == manifest_tag), None)
+        assert matching_api_tag is not None, f'Docker API should return tag {manifest_tag}'
+        # Verify the manifest digest from API matches what we see in the UI
+        if hasattr(matching_api_tag, 'manifest') and 'digest' in matching_api_tag.manifest:
+            api_manifest_digest = matching_api_tag.manifest['digest']
+            ui_manifest_digest = manifest_list_row.get('Manifest digest', '')
+            # The digest should match (may need to handle different formats)
+            assert (
+                api_manifest_digest in ui_manifest_digest
+                or ui_manifest_digest in api_manifest_digest
+            ), (
+                f'Manifest digest from API ({api_manifest_digest}) should match UI ({ui_manifest_digest})'
+            )
