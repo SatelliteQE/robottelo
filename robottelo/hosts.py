@@ -2654,7 +2654,7 @@ class Satellite(Capsule, SatelliteMixins):
 
     def generate_inventory_report(self, org, disconnected='false'):
         """Function to perform inventory upload."""
-        generate_report_task = 'ForemanInventoryUpload::Async::GenerateReportJob'
+        generate_report_task = 'ForemanInventoryUpload::Async::HostInventoryReportJob'
         timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         self.api.Organization(id=org.id).rh_cloud_generate_report(
             data={'disconnected': disconnected}
