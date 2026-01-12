@@ -630,6 +630,7 @@ class TestRollingContentView:
     @pytest.mark.upgrade
     def test_positive_content_types_in_rolling(self, target_sat, module_org, module_product):
         """Can upload and use the different content types with the rolling content view.
+
         TODO:
          - Packages, Package Groups, Module Streams, Errata.
          - Other content types (File, Docker, Ansible Collection)
