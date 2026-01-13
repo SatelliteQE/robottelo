@@ -1342,25 +1342,20 @@ class TestRollingContentView:
 
         :Verifies: SAT-37739
         """
-        child_envs_each_parent = 3
-        parent_envs = 3
-        # create multiple tail environments, each with multiple prior environments
-        for _p in range(parent_envs):
-            most_prior_env = function_org.library
-            for _c in range(child_envs_each_parent):
-                child_lce = target_sat.api.LifecycleEnvironment(
-                    name=f'C-{_c}_{valid_data_list()["alphanumeric"][:10]}',
-                    organization=function_org,
-                    prior=most_prior_env,
+        child_lces = 3
+        parent_lces = 3
+        for i in range(parent_lces):
+            lces = [
+                target_sat.api.LifecycleEnvironment(
+                    name=f'LCE-{i}', organization=function_org
                 ).create()
-                most_prior_env = child_lce
-            # create tail lce (parent) after all the nested priors
-            target_sat.api.LifecycleEnvironment(
-                name=f'P-{_p}_{valid_data_list()["alphanumeric"][:10]}',
-                organization=function_org,
-                prior=most_prior_env,
-            ).create()
-        # gather all environments for this organization
+            ]
+            for j in range(child_lces):
+                lce = target_sat.api.LifecycleEnvironment(
+                    name=f'LCE-{i}-{j}', organization=function_org, prior=lces[-1].id
+                ).create()
+                lces.append(lce)
+                # gather all environments for this organization
         all_envs = [
             env.read()
             for env in target_sat.api.LifecycleEnvironment().search(
@@ -1372,9 +1367,11 @@ class TestRollingContentView:
             rolling=True, environment=all_envs, organization=function_org
         ).create()
         rolling_cv = rolling_cv.read()
-        expected_env_count = 1 + parent_envs + (parent_envs * child_envs_each_parent)
+        # Library LCE + 3 parent LCE + 3 child LCE, per parent = 13
+        expected_env_count = 1 + parent_lces + (parent_lces * child_lces)
         assert expected_env_count == len(rolling_cv.environment) == len(all_envs)
         # rolling cv contains all the environments (match sets by :ids)
+        assert set(cv.id for cv in rolling_cv.environment) == set(cv.id for cv in all_envs)
 
     @pytest.mark.stubbed
     @pytest.mark.e2e
