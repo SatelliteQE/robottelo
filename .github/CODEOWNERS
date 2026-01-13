@@ -24,6 +24,7 @@
 tests/foreman/api/test_acs.py @SatelliteQE/team-artemis
 tests/foreman/api/test_capsulecontent.py @SatelliteQE/team-artemis
 tests/foreman/api/test_contentcredentials.py @SatelliteQE/team-artemis
+tests/foreman/api/test_contentview.py @SatelliteQE/team-artemis
 tests/foreman/api/test_contentviewfilter.py @SatelliteQE/team-artemis
 tests/foreman/api/test_docker.py @SatelliteQE/team-artemis
 tests/foreman/api/test_imagemode.py @SatelliteQE/team-artemis
@@ -134,7 +135,6 @@ tests/upgrades/test_hostcontent.py @SatelliteQE/team-proton
 tests/upgrades/test_hostgroup.py @SatelliteQE/team-proton
 tests/upgrades/test_subscription.py @SatelliteQE/team-proton
 tests/upgrades/test_virtwho.py @SatelliteQE/team-proton
-tests/foreman/api/test_contentview.py @SatelliteQE/team-proton
 tests/foreman/api/test_registration.py @SatelliteQE/team-proton
 tests/foreman/cli/test_fact.py @SatelliteQE/team-proton
 tests/foreman/cli/test_registration.py @SatelliteQE/team-proton
