@@ -1310,17 +1310,15 @@ class TestRollingContentView:
         # pass Library environment at creation
         library_rolling_cv = target_sat.api.ContentView(
             rolling=True, organization=module_org, environment=[module_org.library]
-        )
+        ).create()
+        library_rolling_cv = library_rolling_cv.read()
         assert len(library_rolling_cv.environment) == 1
         assert library_rolling_cv.environment[0].id == module_org.library.id
         # pass non-Library environment at creation
-        lce_rolling_cv = (
-            target_sat.api.ContentView(
-                rolling=True, organization=module_org, environment=[module_lce.id]
-            )
-            .create()
-            .read()
-        )
+        lce_rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=module_org, environment=[module_lce.id]
+        ).create()
+        lce_rolling_cv = lce_rolling_cv.read()
         assert len(lce_rolling_cv.environment) == 1
         assert lce_rolling_cv.environment[0].id == module_lce.id
         # update the first rolling cv to add the non-Library environment
@@ -1370,14 +1368,10 @@ class TestRollingContentView:
             )
         ]
         # create the rolling cv with all the environments assigned
-        rolling_cv = (
-            target_sat.api.ContentView(
-                rolling=True, environment=all_envs, organization=function_org
-            )
-            .create()
-            .read()
-        )
-
+        rolling_cv = target_sat.api.ContentView(
+            rolling=True, environment=all_envs, organization=function_org
+        ).create()
+        rolling_cv = rolling_cv.read()
         expected_env_count = 1 + parent_envs + (parent_envs * child_envs_each_parent)
         assert expected_env_count == len(rolling_cv.environment) == len(all_envs)
         # rolling cv contains all the environments (match sets by :ids)
