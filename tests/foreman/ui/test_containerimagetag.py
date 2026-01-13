@@ -226,7 +226,7 @@ def test_positive_verify_synced_container_image_tags(
         f'Manifest tag {manifest_tag} should be present in Docker API tags'
     )
 
-    with session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         # Navigate to Container Images page and read table with expanded rows
         table_data = session.containerimages.read_synced_table(
@@ -239,11 +239,9 @@ def test_positive_verify_synced_container_image_tags(
         for column in expected_columns:
             assert column in table_data[0], f'Table should contain {column} column'
         # Find the row matching the manifest list tag
-        manifest_list_row = None
-        for row in table_data:
-            if row.get('Tag') == manifest_tag:
-                manifest_list_row = row
-                break
+        manifest_list_row = next(
+            (row for row in table_data if row.get('Tag') == manifest_tag), None
+        )
         assert manifest_list_row is not None, (
             f'Manifest list with tag {manifest_tag} should be present in the table'
         )
@@ -289,10 +287,11 @@ def test_positive_verify_synced_container_image_tags(
         if hasattr(matching_api_tag, 'manifest') and 'digest' in matching_api_tag.manifest:
             api_manifest_digest = matching_api_tag.manifest['digest']
             ui_manifest_digest = manifest_list_row.get('Manifest digest', '')
-            # The digest should match (may need to handle different formats)
-            assert (
-                api_manifest_digest in ui_manifest_digest
-                or ui_manifest_digest in api_manifest_digest
-            ), (
+            # Normalize digests by removing 'sha256:' prefix if present for comparison
+            # Docker digests may be displayed with or without the 'sha256:' prefix
+            api_digest_normalized = api_manifest_digest.replace('sha256:', '')
+            ui_digest_normalized = ui_manifest_digest.replace('sha256:', '')
+            # Assert exact match after normalization
+            assert api_digest_normalized == ui_digest_normalized, (
                 f'Manifest digest from API ({api_manifest_digest}) should match UI ({ui_manifest_digest})'
             )
