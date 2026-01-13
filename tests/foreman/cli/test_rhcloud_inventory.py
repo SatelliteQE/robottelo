@@ -438,7 +438,7 @@ def test_positive_download_reports_job_cli_disconnected(
 
     :expectedresults: Reports download works as expected.
 
-    BlockedBy: SAT-41462
+    :BlockedBy: SAT-41462
     """
     org = rhcloud_manifest_org
     generate_report(org, module_target_sat, disconnected=True)
