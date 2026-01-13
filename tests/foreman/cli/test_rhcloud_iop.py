@@ -15,6 +15,7 @@
 import pytest
 import yaml
 
+from pytest_fixtures.component.rh_cloud import enable_insights
 from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand
 
@@ -332,3 +333,49 @@ def test_insights_client_registration_with_http_proxy(
     assert rhel_contenthost.execute('insights-client --test-connection').status == 0
     assert rhel_contenthost.execute('insights-client --status').status == 0
     assert rhel_contenthost.execute('insights-client --unregister').status == 0
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_host_insights_registration_status_when_enabling_iop(
+    target_sat,
+    function_sca_manifest_org,
+    rhel_contenthost,
+    function_activation_key,
+):
+    """Verify that a host registered to hosted Insights does not need to re-register to Insights
+    after enabling IOP.
+
+    :id: c0b669a2-295d-478d-969a-0888c96ad17c
+
+    :steps:
+        1. Deploy Satellite without enabling IOP.
+        2. Register a host to the Satellite and configure Insights on the host.
+        3. Enable IOP on the Satellite.
+        4. Run `insights-client` on the host.
+
+    :expectedresults:
+        1. Enabling IOP on the Satellite does not require re-registering the host to Insights.
+           The host can continue reporting to IOP, even though it was originally registered to
+           hosted Insights.
+
+    :Verifies: SAT-40987
+
+    """
+    enable_insights(
+        rhel_contenthost, target_sat, function_sca_manifest_org, function_activation_key
+    )
+    assert rhel_contenthost.execute('insights-client --version').status == 0
+
+    result = target_sat.execute(
+        f'podman login --authfile /etc/foreman/registry-auth.json -u {settings.subscription.rhn_username} -p {settings.subscription.rhn_password} registry.redhat.io'
+    )
+    assert result.status == 0
+
+    result = target_sat.execute('satellite-installer --enable-iop')
+    assert result.status == 0
+
+    # Required until SAT-39088 is resolved
+    target_sat.execute('systemctl restart foreman')
+
+    assert rhel_contenthost.execute('insights-client').status == 0
