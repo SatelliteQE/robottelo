@@ -14,7 +14,6 @@
 
 from copy import deepcopy
 import random
-from time import sleep
 
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
@@ -3382,7 +3381,7 @@ class TestRollingContentView:
         :id: 177784f0-c241-410b-9dae-f25d9ff8d1db
 
         :steps:
-            1) Create new empty rolling CV
+            1) Create new Rolling CV assigned with Library LCE
             2) Check CVs attributes
             3) Update CVs description
             4) Try to delete the CV while it is still in Library
@@ -3411,6 +3410,7 @@ class TestRollingContentView:
                 'rolling': True,
                 'name': cv_name,
                 'repository-ids': [custom_repo['id']],
+                'lifecycle-environment-ids': [library_id],
                 'organization-id': module_org.id,
             }
         )
@@ -3469,7 +3469,11 @@ class TestRollingContentView:
         """
         library_id = module_org.read().library.id
         rolling_cv = target_sat.cli_factory.make_content_view(
-            {'rolling': True, 'organization-id': module_org.id}
+            {
+                'organization-id': module_org.id,
+                'rolling': True,
+                'lifecycle-environment-ids': [library_id],
+            }
         )
         rolling_info = target_sat.cli.ContentView.info({'id': rolling_cv['id']})
         # field 'activation-keys' does not exist if there are None added
@@ -3810,13 +3814,12 @@ class TestRollingContentView:
         :Verifies: SAT-37282
 
         """
+        org = module_sca_manifest_org
         custom_repo_urls = [
             settings.repos.yum_3.url,
             settings.repos.yum_6.url,
             settings.repos.yum_9.url,
         ]
-        initial_version = None
-        org = module_sca_manifest_org
         for _url in custom_repo_urls:
             # create each custom repo and add to rolling cv
             repo = module_target_sat.cli.Repository.create(
@@ -3835,9 +3838,12 @@ class TestRollingContentView:
                     'repository-id': repo['id'],
                 }
             )
-            sleep(30)  # repo metadata update(s)
             # sync after adding to cv, to trigger new rolling version via updated repo content
             module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+        module_target_sat.cli.ContentView.update(
+            {'id': module_rolling_cv.id, 'lifecycle-environment-ids': [org.read().library.id]}
+        )
 
         rolling_info = module_target_sat.cli.ContentView.info({'id': module_rolling_cv.id})
         assert len(rolling_info['versions']) == 1
