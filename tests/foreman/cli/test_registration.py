@@ -438,7 +438,7 @@ def test_positive_verify_default_location_for_registered_host(
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_invalidate_users_tokens(
-    target_sat, rhel_contenthost, function_activation_key, function_org, request
+    target_sat, rhel_contenthost, function_activation_key, function_org, function_location, request
 ):
     """Verify invalidating single and multiple users tokens.
 
@@ -467,8 +467,11 @@ def test_positive_invalidate_users_tokens(
         login=gen_string('alpha'),
         password=password,
         organization=[function_org],
+        location=[function_location],
     ).create()
-    role = target_sat.cli_factory.make_role({'organization-id': function_org.id})
+    role = target_sat.cli_factory.make_role(
+        {'organization-id': function_org.id, 'location-id': function_location.id}
+    )
     target_sat.cli_factory.add_role_permissions(
         role.id,
         resource_permissions={'User': {'permissions': ['edit_users']}},
@@ -490,6 +493,7 @@ def test_positive_invalidate_users_tokens(
                 'activation-keys': function_activation_key.name,
                 'insecure': 'true',
                 'organization-id': function_org.id,
+                'location-id': function_location.id,
                 'setup-insights': 'false',
             }
         )
@@ -519,7 +523,7 @@ def test_positive_invalidate_users_tokens(
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_negative_users_permission_for_invalidating_tokens(
-    target_sat, rhel_contenthost, function_activation_key, function_org
+    target_sat, rhel_contenthost, function_activation_key, function_org, function_location
 ):
     """Verify invalidating single and multiple users tokens require "edit_users" permission for non_admin user.
 
@@ -546,6 +550,7 @@ def test_negative_users_permission_for_invalidating_tokens(
             'login': gen_string('alpha'),
             'password': password,
             'organization-ids': function_org.id,
+            'location-ids': function_location.id,
             'roles': ['Register hosts'],
         }
     )
@@ -558,6 +563,7 @@ def test_negative_users_permission_for_invalidating_tokens(
             'activation-keys': function_activation_key.name,
             'insecure': 'true',
             'organization-id': function_org.id,
+            'location-id': function_location.id,
             'setup-insights': 'false',
         }
     )

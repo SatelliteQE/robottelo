@@ -276,7 +276,7 @@ def module_capsule_configured_mqtt(request, module_capsule_configured_ansible):
 
 
 @pytest.fixture(scope='module')
-def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
+def module_lb_capsules(retry_limit=3, delay=300, **broker_args):
     """A fixture that spins 2 capsule for loadbalancer
     :return: List of capsules
     """
