@@ -2210,6 +2210,8 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
     :CaseComponent:Hosts
 
     :Team: Proton
+
+    :BlockedBy: SAT-41505
     """
 
     module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
