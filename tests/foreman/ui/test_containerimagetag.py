@@ -287,11 +287,7 @@ def test_positive_verify_synced_container_image_tags(
         if hasattr(matching_api_tag, 'manifest') and 'digest' in matching_api_tag.manifest:
             api_manifest_digest = matching_api_tag.manifest['digest']
             ui_manifest_digest = manifest_list_row.get('Manifest digest', '')
-            # Normalize digests by removing 'sha256:' prefix if present for comparison
-            # Docker digests may be displayed with or without the 'sha256:' prefix
-            api_digest_normalized = api_manifest_digest.replace('sha256:', '')
-            ui_digest_normalized = ui_manifest_digest.replace('sha256:', '')
-            # Assert exact match after normalization
-            assert api_digest_normalized == ui_digest_normalized, (
+            # Assert exact match - digests should be in the same format
+            assert api_manifest_digest == ui_manifest_digest, (
                 f'Manifest digest from API ({api_manifest_digest}) should match UI ({ui_manifest_digest})'
             )
