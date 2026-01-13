@@ -362,10 +362,14 @@ def test_host_insights_registration_status_when_enabling_iop(
     :Verifies: SAT-40987
 
     """
+    import epdb
+    epdb.serve(port=6000)
+
     enable_insights(
         rhel_contenthost, target_sat, function_sca_manifest_org, function_activation_key
     )
     assert rhel_contenthost.execute('insights-client --version').status == 0
+    assert rhel_contenthost.execute('insights-client').status == 0
 
     result = target_sat.execute(
         f'podman login --authfile /etc/foreman/registry-auth.json -u {settings.subscription.rhn_username} -p {settings.subscription.rhn_password} registry.redhat.io'
