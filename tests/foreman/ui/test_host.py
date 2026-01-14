@@ -618,26 +618,26 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
     columns = (
         Box(ui='Power', csv='Power Status', displayed=True),
         Box(ui='Name', csv='Name', displayed=True),
-        Box(ui='OS', csv='OS', displayed=True),
+        Box(ui='OS', csv='Operatingsystem', displayed=True),
         Box(ui='Owner', csv='Owner', displayed=True),
-        Box(ui='Host group', csv='Host group', displayed=True),
-        Box(ui='Boot time', csv='Boot time', displayed=True),
-        Box(ui='Last report', csv='Last report', displayed=True),
+        Box(ui='Host group', csv='Hostgroup', displayed=True),
+        Box(ui='Boot time', csv='Reported Data - Boot Time', displayed=True),
+        Box(ui='Last report', csv='Last Report', displayed=True),
         Box(ui='Comment', csv='Comment', displayed=True),
-        Box(ui='IPv4', csv='IPv4', displayed=True),
-        Box(ui='IPv6', csv='IPv6', displayed=True),
-        Box(ui='MAC', csv='MAC', displayed=True),
-        Box(ui='Model', csv='Model', displayed=True),
-        Box(ui='Sockets', csv='Sockets', displayed=True),
-        Box(ui='Cores', csv='Cores', displayed=True),
-        Box(ui='RAM', csv='RAM', displayed=True),
+        Box(ui='IPv4', csv='Ip', displayed=True),
+        Box(ui='IPv6', csv='Ip6', displayed=True),
+        Box(ui='MAC', csv='Mac', displayed=True),
+        Box(ui='Model', csv='Compute Resource Or Model', displayed=True),
+        Box(ui='Sockets', csv='Reported Data - Sockets', displayed=True),
+        Box(ui='Cores', csv='Reported Data - Cores', displayed=True),
+        Box(ui='RAM', csv='Reported Data - Ram', displayed=True),
         Box(ui='Virtual', csv='Virtual', displayed=True),
-        Box(ui='Total disk space', csv='Disks space', displayed=True),
-        Box(ui='Kernel version', csv='Kernel version', displayed=True),
-        Box(ui='BIOS vendor', csv='BIOS vendor', displayed=True),
-        Box(ui='BIOS release date', csv='BIOS release date', displayed=True),
-        Box(ui='BIOS version', csv='BIOS version', displayed=True),
-        Box(ui='RHEL Lifecycle status', csv='RHEL Lifecycle status', displayed=True),
+        Box(ui='Total disk space', csv='Reported Data - Disks Total', displayed=True),
+        Box(ui='Kernel version', csv='Reported Data - Kernel Version', displayed=True),
+        Box(ui='BIOS vendor', csv='Reported Data - Bios Vendor', displayed=True),
+        Box(ui='BIOS release date', csv='Reported Data - Bios Release Date', displayed=True),
+        Box(ui='BIOS version', csv='Reported Data - Bios Version', displayed=True),
+        Box(ui='RHEL Lifecycle status', csv='Rhel Lifecycle Status', displayed=True),
         Box(ui='Installable updates', csv='Installable updates', displayed=False),
         Box(ui='Last seen', csv='Last Checkin', displayed=True),
         Box(ui='Lifecycle environment', csv='Lifecycle Environment', displayed=True),
@@ -648,6 +648,11 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
 
     with target_sat.ui_session() as session:
         session.location.select(loc_name=current_sat_location.name)
+        # Save original column settings
+        original_headers = session.all_hosts.get_displayed_table_headers()
+        original_columns = {header: True for header in original_headers if header is not None}
+
+        # Set test-specific columns
         session.all_hosts.manage_table_columns({column.ui: column.displayed for column in columns})
         file_path = session.all_hosts.export()
         with open(file_path, newline='') as fh:
@@ -655,6 +660,12 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
             assert set(csvfile.fieldnames) == set(
                 [column.csv for column in columns if column.displayed]
             )
+
+        # Restore original column settings
+        wait_for(lambda: session.browser.refresh(), timeout=5)
+        all_possible_columns = {column.ui: False for column in columns}
+        all_possible_columns.update(original_columns)
+        session.all_hosts.manage_table_columns(all_possible_columns)
 
 
 def test_positive_create_with_inherited_params(
