@@ -1258,6 +1258,95 @@ class TestRollingContentView:
         with pytest.raises(HTTPError):
             rolling_cv.read()
 
+    def test_positive_rolling_cv_lce(self, target_sat, module_org, module_lce):
+        """Create rolling CVs with various types of LCEs assigned to them, and then
+        update them.
+
+        :id: a1644d2f-07b7-4307-a027-f018acc3513f
+
+        :steps:
+            1) Create new rolling CV with no LCE.
+            2) Create new rolling CV with Library LCE.
+            3) Create new rolling CV with custom LCE.
+            4) Update rolling CV from no LCE to custom LCE.
+
+        :expectedresults:
+            1) Rolling CVs can be created with no LCE, Library lce or a custom LCE
+            2) Rolling CVs can be updated to a different LCE.
+
+        :Verifies: SAT-37739
+        """
+        # no environment passed, rolling CV is assigned to no LCE
+        blank_rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=module_org
+        ).create()
+        assert len(blank_rolling_cv.environment) == 0
+        # pass Library environment at creation
+        library_rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=module_org, environment=[module_org.library]
+        ).create()
+        library_rolling_cv = library_rolling_cv.read()
+        assert len(library_rolling_cv.environment) == 1
+        assert library_rolling_cv.environment[0].id == module_org.library.id
+        # pass non-Library environment at creation
+        lce_rolling_cv = target_sat.api.ContentView(
+            rolling=True, organization=module_org, environment=[module_lce.id]
+        ).create()
+        lce_rolling_cv = lce_rolling_cv.read()
+        assert len(lce_rolling_cv.environment) == 1
+        assert lce_rolling_cv.environment[0].id == module_lce.id
+        # update the first rolling cv to add the non-Library environment
+        blank_rolling_cv.environment.append(module_lce)
+        blank_rolling_cv.update(['environment'])
+        blank_rolling_cv = blank_rolling_cv.read()
+        assert len(blank_rolling_cv.environment) == 1
+        assert module_lce.id == blank_rolling_cv.environment[0].id
+
+    def test_positive_rolling_cv_nested_lce(self, target_sat, function_org):
+        """Create a rolling CV with nested LCEs assigned to it
+
+        :id: 19c64165-1c0e-4bc8-8c45-f1634c601465
+
+        :steps:
+            1) Create multiple nested LCEs.
+            2) Create new rolling CV with these LCEs assigned.
+
+        :expectedresults:
+            1) Rolling CVs can be created with nested LCEs.
+
+        :Verifies: SAT-37739
+        """
+        child_lces = 3
+        parent_lces = 3
+        for i in range(parent_lces):
+            lces = [
+                target_sat.api.LifecycleEnvironment(
+                    name=f'LCE-{i}', organization=function_org
+                ).create()
+            ]
+            for j in range(child_lces):
+                lce = target_sat.api.LifecycleEnvironment(
+                    name=f'LCE-{i}-{j}', organization=function_org, prior=lces[-1].id
+                ).create()
+                lces.append(lce)
+        # gather all environments for this organization
+        all_envs = [
+            env.read()
+            for env in target_sat.api.LifecycleEnvironment().search(
+                query={'organization_id': function_org.id}
+            )
+        ]
+        # create the rolling cv with all the environments assigned
+        rolling_cv = target_sat.api.ContentView(
+            rolling=True, environment=all_envs, organization=function_org
+        ).create()
+        rolling_cv = rolling_cv.read()
+        # Library LCE + 3 parent LCE + 3 child LCE, per parent = 13
+        expected_env_count = 1 + parent_lces + (parent_lces * child_lces)
+        assert expected_env_count == len(rolling_cv.environment) == len(all_envs)
+        # rolling cv contains all the environments (match sets by :ids)
+        assert set(cv.id for cv in rolling_cv.environment) == set(cv.id for cv in all_envs)
+
     @pytest.mark.stubbed
     @pytest.mark.e2e
     def test_positive_host_collection_with_rolling_content_source(self, target_sat):
