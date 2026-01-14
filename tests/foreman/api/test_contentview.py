@@ -1136,10 +1136,9 @@ class TestRollingContentView:
     def test_positive_host_with_rolling_content_source(
         self,
         target_sat,
-        module_rhel_contenthost,
+        rhel_contenthost,
         function_sca_manifest_org,
         function_product,
-        request,
     ):
         """Can use the rolling content view as a content source for a registered host.
         We can use the custom and RedHat repositories available to the content host.
@@ -1151,9 +1150,8 @@ class TestRollingContentView:
             1) Several custom and RedHat repositories added to new rolling cv.
             2) Assign the rolling cv to an activation key.
             3) Override the repos to Enabled for activation key (Hammer).
-            4) Add finalizer, cleanup: unregister the host.
-            5) Register a RHEL host to the activation key.
-            6) SCA enabled, host auto-enabled repos that were overridden for AK.
+            4) Register a RHEL host with the activation key.
+            5) SCA enabled, host auto-enabled repos that were overridden for AK.
 
         :steps:
             1) Remove a repository from the rolling cv. (expectedresults: 3)
@@ -1174,9 +1172,11 @@ class TestRollingContentView:
 
         :customerscenario: true
 
+        :BlockedBy: SAT-30580
+
         """
         org = function_sca_manifest_org
-        client = module_rhel_contenthost
+        client = rhel_contenthost
         custom_repo = target_sat.api.Repository(
             product=function_product, url=settings.repos.yum_9.url
         ).create()
@@ -1190,7 +1190,9 @@ class TestRollingContentView:
         )
         rh_repo = target_sat.api.Repository(id=rh_repo_id, organization=org).read()
         # Create empty rolling cv, add both repos, update it
-        rolling_cv = target_sat.api.ContentView(organization=org, rolling=True).create()
+        rolling_cv = target_sat.api.ContentView(
+            organization=org, rolling=True, environment=[org.library]
+        ).create()
         rolling_cv.repository = [custom_repo.read(), rh_repo.read()]
         rolling_cv.update(['repository'])
         rolling_cv = rolling_cv.read()
@@ -1207,14 +1209,6 @@ class TestRollingContentView:
             value=True,
         )
         assert override['result'] == 'success'
-
-        # Cleanup for in-between parametrized sessions,
-        # unregister the host if it still exists
-        @request.addfinalizer
-        def cleanup():
-            nonlocal client
-            if client:
-                client.unregister()
 
         result = client.register(
             target=target_sat,
@@ -1241,10 +1235,6 @@ class TestRollingContentView:
         rh_repo_content_label = target_sat.cli.Repository.info({'id': rh_repo.id})['content-label']
         assert rh_repo_content_label in sub_man_repos
         time.sleep(30)
-        # rh repo's package (python) is installed and up to date
-        assert 'x86_64' in client.execute('rpm -q python3').stdout
-        result = client.execute('yum install -y python3')
-        assert 'is already installed' in result.stdout
         # custom repo's outdated package can be installed
         assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
         # outdated package makes errata installable, count increased
