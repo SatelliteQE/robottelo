@@ -69,7 +69,7 @@ def common_assertion(
     else:
         # When connection disabled, just verify report was generated
         assert (
-            f'Generated /var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
+            f'/var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
             in inventory_data['report_saved_to']
         )
 
@@ -132,7 +132,11 @@ def test_rhcloud_inventory_e2e(
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinventory.generate_and_upload_report(org.name)
+        # Generate report based on subscription connection setting
+        if subscription_setting:
+            session.cloudinventory.generate_and_upload_report(org.name)
+        else:
+            session.cloudinventory.generate_report_only(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
             lambda: (
@@ -158,7 +162,7 @@ def test_rhcloud_inventory_e2e(
         else:
             # When disabled, get from filesystem
             remote_report_path = (
-                f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
+                f'/var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
             )
 
             # Verify file exists on Satellite
