@@ -1329,7 +1329,7 @@ class TestRollingContentView:
                     name=f'LCE-{i}-{j}', organization=function_org, prior=lces[-1].id
                 ).create()
                 lces.append(lce)
-                # gather all environments for this organization
+        # gather all environments for this organization
         all_envs = [
             env.read()
             for env in target_sat.api.LifecycleEnvironment().search(
