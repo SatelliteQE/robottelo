@@ -596,7 +596,7 @@ def test_positive_export(session, target_sat, function_org, function_location):
 @pytest.mark.skipif(
     (settings.ui.webdriver != 'chrome'), reason='Currently only chrome is supported'
 )
-def test_positive_export_selected_columns(target_sat, current_sat_location):
+def test_positive_export_selected_columns(request, target_sat, current_sat_location):
     """Select certain columns in the hosts table and check that they are exported in the CSV file.
 
     :id: 2b65c1d6-0b94-11ef-a4b7-000c2989e153
@@ -652,6 +652,17 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
         original_headers = session.all_hosts.get_displayed_table_headers()
         original_columns = {header: True for header in original_headers if header is not None}
 
+        def restore_columns():
+            """Restore original column settings after test"""
+            with target_sat.ui_session() as restore_session:
+                restore_session.location.select(loc_name=current_sat_location.name)
+                wait_for(lambda: restore_session.browser.refresh(), timeout=5)
+                all_possible_columns = {column.ui: False for column in columns}
+                all_possible_columns.update(original_columns)
+                restore_session.all_hosts.manage_table_columns(all_possible_columns)
+
+        request.addfinalizer(restore_columns)
+
         # Set test-specific columns
         session.all_hosts.manage_table_columns({column.ui: column.displayed for column in columns})
         file_path = session.all_hosts.export()
@@ -660,12 +671,6 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
             assert set(csvfile.fieldnames) == set(
                 [column.csv for column in columns if column.displayed]
             )
-
-        # Restore original column settings
-        wait_for(lambda: session.browser.refresh(), timeout=5)
-        all_possible_columns = {column.ui: False for column in columns}
-        all_possible_columns.update(original_columns)
-        session.all_hosts.manage_table_columns(all_possible_columns)
 
 
 def test_positive_create_with_inherited_params(
