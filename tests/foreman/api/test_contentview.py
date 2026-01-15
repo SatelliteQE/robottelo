@@ -1190,9 +1190,7 @@ class TestRollingContentView:
         )
         rh_repo = target_sat.api.Repository(id=rh_repo_id, organization=org).read()
         # Create empty rolling cv, add both repos, update it
-        rolling_cv = target_sat.api.ContentView(
-            organization=org, rolling=True, environment=[org.library]
-        ).create()
+        rolling_cv = target_sat.api.ContentView(organization=org, rolling=True).create()
         rolling_cv.repository = [custom_repo.read(), rh_repo.read()]
         rolling_cv.update(['repository'])
         rolling_cv = rolling_cv.read()
