@@ -23,6 +23,7 @@ from fauxfactory import gen_string
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -282,13 +283,26 @@ def test_positive_candlepin_events_processed_by_stomp(
     pre_candlepin_events = target_sat.api.Ping().search_json()['services']['candlepin_events'][
         'message'
     ]
+    pre_processed_count = parse(pre_candlepin_events)['Processed']
+
     target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
-    time.sleep(5)
+
+    # Wait for candlepin to process the manifest upload events
+    # Use polling instead of fixed sleep to avoid flakiness
+    wait_for(
+        lambda: parse(
+            target_sat.api.Ping().search_json()['services']['candlepin_events']['message']
+        )['Processed'] > pre_processed_count,
+        timeout=60,
+        delay=5,
+        handle_exception=True,
+    )
+
     assert target_sat.api.Ping().search_json()['services']['candlepin_events']['status'] == 'ok'
     post_candlepin_events = target_sat.api.Ping().search_json()['services']['candlepin_events'][
         'message'
     ]
-    assert parse(post_candlepin_events)['Processed'] > parse(pre_candlepin_events)['Processed']
+    assert parse(post_candlepin_events)['Processed'] > pre_processed_count
     assert parse(pre_candlepin_events)['Failed'] == 0
     assert parse(post_candlepin_events)['Failed'] == 0
 
