@@ -17,7 +17,6 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 """
 
 import re
-import time
 
 from fauxfactory import gen_string
 from nailgun.config import ServerConfig
@@ -292,7 +291,8 @@ def test_positive_candlepin_events_processed_by_stomp(
     wait_for(
         lambda: parse(
             target_sat.api.Ping().search_json()['services']['candlepin_events']['message']
-        )['Processed'] > pre_processed_count,
+        )['Processed']
+        > pre_processed_count,
         timeout=60,
         delay=5,
         handle_exception=True,
