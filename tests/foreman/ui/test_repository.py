@@ -635,7 +635,7 @@ def test_positive_no_errors_on_repo_scan(target_sat, function_sca_manifest_org):
         session.redhatrepository.read(sat_rpm_extras.data['repository-set'])
         result = target_sat.execute(
             'grep "Failed at scanning for repository: undefined method '
-            '`resolve_substitutions\' for nil:NilClass" /var/log/foreman/production.log'
+            '\\`resolve_substitutions\' for nil:NilClass" /var/log/foreman/production.log'
         )
         assert result.status == 1
 
