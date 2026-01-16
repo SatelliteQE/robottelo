@@ -23,7 +23,7 @@ from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials
+from robottelo.config import get_credentials, settings
 from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
@@ -662,7 +662,12 @@ def test_positive_end_to_end_with_host_parameters(module_org, module_location, m
 
 @pytest.mark.e2e
 def test_positive_end_to_end_with_image(
-    module_org, module_location, module_cr_libvirt, module_libvirt_image, module_target_sat
+    module_org,
+    module_location,
+    module_cr_libvirt,
+    default_architecture,
+    module_os,
+    module_target_sat,
 ):
     """Create a host with an image specified then remove it
     and update the host with the same image afterwards
@@ -671,9 +676,20 @@ def test_positive_end_to_end_with_image(
 
     :expectedresults: A host is created with expected image, image is removed and
         host is updated with expected image
-
-    :BlockedBy: SAT-32733
     """
+    # Configure SSH authentication for libvirt connection before creating image
+    module_target_sat.configure_libvirt_cr(server_fqdn=settings.libvirt.libvirt_hostname)
+
+    module_libvirt_image = module_target_sat.api.Image(
+        compute_resource=module_cr_libvirt,
+        name=gen_string('alpha'),
+        operatingsystem=module_os,
+        architecture=default_architecture,
+        username=settings.libvirt.image_username,
+        password=settings.libvirt.image_password,
+        uuid=settings.libvirt.libvirt_image_path,
+    ).create()
+
     host = module_target_sat.api.Host(
         organization=module_org,
         location=module_location,
