@@ -205,7 +205,7 @@ def test_rhcloud_inventory_e2e(
 
 
 @pytest.mark.run_in_one_thread
-def test_rh_cloud_inventory_settings(
+def test_rhcloud_inventory_settings(
     module_target_sat,
     inventory_settings,
     rhcloud_manifest_org,
@@ -589,7 +589,7 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
 
 @pytest.mark.no_containers
 @pytest.mark.run_in_one_thread
-def test_rh_cloud_minimal_report(
+def test_rhcloud_minimal_report(
     module_target_sat,
     inventory_settings,
     rhcloud_manifest_org,

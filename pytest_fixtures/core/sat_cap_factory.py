@@ -232,28 +232,31 @@ def get_iop_deploy_args():
 
 
 @pytest.fixture(scope='module')
-def module_satellite_iop():
+def module_satellite_iop(module_target_sat):
     """Deploy and configure Red Hat Lightspeed in Satellite
 
     Use the IoP workflow which deploys Satellite + IoP
     """
-    deploy_args = get_iop_deploy_args()
+    # deploy_args = get_iop_deploy_args()
 
-    with Broker(
-        workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
-    ) as satellite:
-        yield satellite
+    # with Broker(
+    #     workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
+    # ) as satellite:
+    #     satellite.execute('satellite-maintain service restart --only foreman')
+    #     yield satellite
+    return module_target_sat
 
 
 @pytest.fixture
-def satellite_iop():
+def satellite_iop(target_sat):
     """Deploy and configure Red Hat Lightspeed in Satellite"""
-    deploy_args = get_iop_deploy_args()
+    # deploy_args = get_iop_deploy_args()
 
-    with Broker(
-        workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
-    ) as satellite:
-        yield satellite
+    # with Broker(
+    #     workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
+    # ) as satellite:
+    #     satellite.execute('satellite-maintain service restart --only foreman')
+    return target_sat
 
 
 @pytest.fixture(scope='module')
