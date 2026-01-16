@@ -112,4 +112,7 @@ def module_discovery_sat(
     discovery_auto.value = 'true'
     discovery_auto.update(['value'])
 
+    # Restart dhcpd to pick up new PXE configuration for discovery
+    assert sat.execute('systemctl restart dhcpd').status == 0
+
     return Box(sat=sat, iso=disc_img_name)
