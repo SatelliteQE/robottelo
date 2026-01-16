@@ -15,7 +15,8 @@
 from fauxfactory import gen_ipaddr, gen_string
 import pytest
 
-from robottelo.constants import ANY_CONTEXT, INSTALL_MEDIUM_URL
+from robottelo.config import settings
+from robottelo.constants import ANY_CONTEXT, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 
 
 @pytest.mark.e2e
@@ -171,14 +172,15 @@ def test_positive_add_org_hostgroup_template(session, target_sat):
 
 
 @pytest.mark.skip_if_not_set('libvirt')
-def test_positive_update_compresource(session, target_sat, libvirt):
+def test_positive_update_compresource(session, target_sat):
     """Add/Remove compute resource from/to location
 
     :id: 1d24414a-666d-490d-89b9-cd0704684cdd
 
     :expectedresults: compute resource is added and removed from the location
     """
-    resource = target_sat.api.LibvirtComputeResource(url=libvirt.url).create()
+    url = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
+    resource = target_sat.api.LibvirtComputeResource(url=url).create()
     resource_name = resource.name + ' (Libvirt)'
     loc = target_sat.api.Location().create()
     with session:

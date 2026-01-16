@@ -62,7 +62,7 @@ def test_positive_cli_find_admin_user(module_target_sat):
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-def test_positive_cli_end_to_end(function_sca_manifest, target_sat, rhel_contenthost, libvirt):
+def test_positive_cli_end_to_end(function_sca_manifest, target_sat, rhel_contenthost):
     """Perform end to end smoke tests using RH and custom repos.
 
     1. Create a new user with admin permissions
@@ -269,7 +269,7 @@ def test_positive_cli_end_to_end(function_sca_manifest, target_sat, rhel_content
         {
             'name': gen_alphanumeric(),
             'provider': 'Libvirt',
-            'url': libvirt.url,
+            'url': f'qemu+ssh://root@{settings.libvirt.libvirt_hostname}/system',
         },
     )
 
