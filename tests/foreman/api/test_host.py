@@ -665,7 +665,6 @@ def test_positive_end_to_end_with_image(
     module_org,
     module_location,
     module_cr_libvirt,
-    libvirt,
     default_architecture,
     module_os,
     module_target_sat,
@@ -679,7 +678,7 @@ def test_positive_end_to_end_with_image(
         host is updated with expected image
     """
     # Configure SSH authentication for libvirt connection before creating image
-    module_target_sat.configure_libvirt_cr(server_fqdn=libvirt.fqdn)
+    module_target_sat.configure_libvirt_cr(server_fqdn=settings.libvirt.libvirt_hostname)
 
     module_libvirt_image = module_target_sat.api.Image(
         compute_resource=module_cr_libvirt,
