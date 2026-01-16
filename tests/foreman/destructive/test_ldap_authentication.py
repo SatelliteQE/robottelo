@@ -295,6 +295,8 @@ def test_external_logout_rhsso(rhsso_setting_setup, enable_external_auth_rhsso, 
         3. Logout from Satellite and Verify the external_logout page displayed
 
     :expectedresults: After logout from Satellite navigate should be external_loout page
+
+    :BlockedBy: SAT-41562
     """
     with module_target_sat.ui_session(login=False) as session:
         login_details = {
