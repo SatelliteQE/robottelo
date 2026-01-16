@@ -126,25 +126,28 @@ def setup_haproxy(
     module_haproxy.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
     module_haproxy.execute('firewall-cmd --runtime-to-permanent')
     module_haproxy.register(module_org, None, haproxy_ak.name, module_target_sat)
-    result = module_haproxy.execute('yum install haproxy policycoreutils-python-utils -y')
+    result = module_haproxy.execute('yum install -y haproxy policycoreutils-python-utils')
     assert result.status == 0
-    module_haproxy.execute('rm -f /etc/haproxy/haproxy.cfg')
+    config_file = '/etc/haproxy/haproxy.cfg'
+    module_haproxy.execute(f'mv {config_file} {config_file}.bak')
     module_haproxy.session.sftp_write(
         source=DataFile.DATA_DIR.joinpath('haproxy.cfg'),
-        destination='/etc/haproxy/haproxy.cfg',
+        destination=config_file,
     )
     module_haproxy.execute(
         f'sed -i -e s/CAPSULE_1/{setup_capsules[0].hostname}/g '
-        f' --e s/CAPSULE_2/{setup_capsules[1].hostname}/g '
-        f' /etc/haproxy/haproxy.cfg'
+        f'-e s/CAPSULE_2/{setup_capsules[1].hostname}/g '
+        f'{config_file}'
     )
-    module_haproxy.execute('systemctl restart haproxy.service')
+    module_haproxy.execute('systemctl enable haproxy.service')
+    module_haproxy.execute('semanage boolean -m --on haproxy_connect_any')
+    # HAProxy logging setup
     module_haproxy.execute('mkdir /var/lib/haproxy/dev')
     module_haproxy.session.sftp_write(
         source=DataFile.DATA_DIR.joinpath('99-haproxy.conf'),
         destination='/etc/rsyslog.d/99-haproxy.conf',
     )
-    module_haproxy.execute('setenforce permissive')
+    module_haproxy.execute('setenforce permissive')  # logging setup requires permissive mode
     assert module_haproxy.execute('systemctl restart haproxy.service rsyslog.service').status == 0
 
     haproxy_url = f'https://{module_haproxy.hostname}:9090'
@@ -166,6 +169,7 @@ def setup_haproxy(
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_loadbalancer_install_package(
+    setup_haproxy,
     setup_capsules,
     content_for_client,
     module_target_sat,
