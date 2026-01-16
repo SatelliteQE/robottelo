@@ -901,8 +901,12 @@ def test_positive_check_permissions_affect_create_procedure(
         content_view = content_view.read()
         content_view.version[0].promote(data={'environment_ids': filter_lc_env.id})
     # Create two host groups
-    hg = target_sat.api.HostGroup(organization=[function_org]).create()
-    filter_hg = target_sat.api.HostGroup(organization=[function_org]).create()
+    hg = target_sat.api.HostGroup(
+        organization=[function_org], location=[smart_proxy_location]
+    ).create()
+    filter_hg = target_sat.api.HostGroup(
+        organization=[function_org], location=[smart_proxy_location]
+    ).create()
     # Create lifecycle environment permissions and select one specific
     # environment user will have access to
     target_sat.api_factory.create_role_permissions(
