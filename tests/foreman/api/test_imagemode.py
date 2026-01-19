@@ -770,8 +770,6 @@ def test_positive_transient_packages_containerfile_command(target_sat):
     :expectedresults: The endpoint returns a properly formatted dnf install command
 
     :Verifies: SAT-36791
-
-    :Team: Artemis
     """
     # Create a host
     host = target_sat.api.Host().create()
@@ -814,8 +812,6 @@ def test_positive_transient_packages_containerfile_command_with_search(target_sa
     :expectedresults: The endpoint returns a dnf install command with only filtered packages
 
     :Verifies: SAT-36791
-
-    :Team: Artemis
     """
     # Create a host
     host = target_sat.api.Host().create()
@@ -854,8 +850,6 @@ def test_negative_transient_packages_containerfile_command_no_packages(target_sa
     :expectedresults: Endpoint returns 404 with appropriate message
 
     :Verifies: SAT-36791
-
-    :Team: Artemis
     """
     # Create a host without any packages
     host = target_sat.api.Host().create()
@@ -884,8 +878,6 @@ def test_negative_transient_packages_containerfile_command_search_no_match(targe
     :expectedresults: Endpoint returns 404 with message about no packages found
 
     :Verifies: SAT-36791
-
-    :Team: Artemis
     """
     # Create a host
     host = target_sat.api.Host().create()
