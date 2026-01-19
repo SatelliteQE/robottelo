@@ -181,8 +181,12 @@ def test_positive_provision_end_to_end(
         )
         name = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
         request.addfinalizer(lambda: sat.provisioning_cleanup(name))
+
         result = session.host_new.search(name)[0]
         assert result['Name'] == name
+
+        assert session.host_new.search(name)[0]['Name'] == name
+
         # Check on Libvirt, if VM exists
         result = sat.execute(
             f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
@@ -209,7 +213,12 @@ def test_positive_provision_end_to_end(
             provisioning_host.wait_for_connection()
             assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
-        session.host.delete(name)
+        session.host_new.delete(name)
+        wait_for(
+            lambda: session.host_new.search(name)[0].get('Name') == 'No Results',
+            timeout=300,
+            delay=10,
+        )
         assert not sat.api.Host().search(query={'search': f'name="{name}"'})
 
 
