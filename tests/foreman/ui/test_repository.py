@@ -1175,7 +1175,8 @@ def test_positive_able_to_disable_and_enable_rhel_repos(
     )
     rhel8_repo_set_name = rhel8_bos_info['enabled-repositories'][0]['name']
     rhel8_repo_name = rhel8_bos_info['name']
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(function_sca_manifest_org.name)
         # disable and re-enable rhel7
         session.redhatrepository.disable(rhel7_repo_name)
         assert not session.redhatrepository.search(
