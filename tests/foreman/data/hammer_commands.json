@@ -23711,7 +23711,7 @@
                   "help": "Show specified fields or predefined field sets only. (See below)",
                   "name": "full-result",
                   "shortname": null,
-                  "value": "LIST"
+                  "value": "BOOLEAN"
                 },
                 {
                   "help": "VALUE/NUMBER            Name/id of the host",
@@ -23724,6 +23724,12 @@
                   "name": "host-id",
                   "shortname": null,
                   "value": null
+                },
+                {
+                  "help": "Include packages with unknown persistence in addition to transient packages",
+                  "name": "include-unknown-persistence",
+                  "shortname": null,
+                  "value": "BOOLEAN"
                 },
                 {
                   "help": "Sort field and order, eg. 'id DESC'",
@@ -23834,6 +23840,12 @@
                   "name": "per-page",
                   "shortname": null,
                   "value": "NUMBER"
+                },
+                {
+                  "help": "Return only packages of a particular persistence (transient, persistent, or nil)",
+                  "name": "persistence",
+                  "shortname": null,
+                  "value": "BOOLEAN"
                 },
                 {
                   "help": "Search string",
