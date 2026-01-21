@@ -17,7 +17,6 @@ import copy
 import csv
 from datetime import UTC, datetime, timedelta
 import json
-import os
 import re
 import time
 
@@ -564,35 +563,6 @@ def test_positive_assign_taxonomies(
         )
 
 
-@pytest.mark.skipif((settings.ui.webdriver != 'chrome'), reason='Only tested on Chrome')
-def test_positive_export(session, target_sat, function_org, function_location):
-    """Create few hosts and export them via UI
-
-    :id: ffc512ad-982e-4b60-970a-41e940ebc74c
-
-    :expectedresults: csv file contains same values as on web UI
-
-    :BlockedBy: SAT-38427
-    """
-    # TODO Rewrite for new all hosts page after SAT-38427 is completed
-
-    hosts = [
-        target_sat.api.Host(organization=function_org, location=function_location).create()
-        for _ in range(3)
-    ]
-    expected_fields = {(host.name, host.operatingsystem.read().title) for host in hosts}
-    with target_sat.ui_session() as session:
-        session.organization.select(function_org.name)
-        session.location.select(function_location.name)
-        file_path = session.host.export()
-        assert os.path.isfile(file_path)
-        with open(file_path, newline='') as csvfile:
-            actual_fields = []
-            for row in csv.DictReader(csvfile):
-                actual_fields.append((row['Name'], row['Operatingsystem']))
-        assert set(actual_fields) == expected_fields
-
-
 @pytest.mark.skipif(
     (settings.ui.webdriver != 'chrome'), reason='Currently only chrome is supported'
 )
@@ -901,8 +871,12 @@ def test_positive_check_permissions_affect_create_procedure(
         content_view = content_view.read()
         content_view.version[0].promote(data={'environment_ids': filter_lc_env.id})
     # Create two host groups
-    hg = target_sat.api.HostGroup(organization=[function_org]).create()
-    filter_hg = target_sat.api.HostGroup(organization=[function_org]).create()
+    hg = target_sat.api.HostGroup(
+        organization=[function_org], location=[smart_proxy_location]
+    ).create()
+    filter_hg = target_sat.api.HostGroup(
+        organization=[function_org], location=[smart_proxy_location]
+    ).create()
     # Create lifecycle environment permissions and select one specific
     # environment user will have access to
     target_sat.api_factory.create_role_permissions(

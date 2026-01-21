@@ -45,7 +45,8 @@ def validate_repo_content(repo, content_types, after_sync=True):
             )
 
 
-def test_positive_end_to_end(session, module_org, target_sat):
+@pytest.mark.e2e
+def test_positive_end_to_end(module_org, module_target_sat):
     """Perform end to end scenario for sync plan component
 
     :id: 39c140a6-ca65-4b6a-a640-4a023a2f0f12
@@ -59,9 +60,8 @@ def test_positive_end_to_end(session, module_org, target_sat):
     plan_name = gen_string('alpha')
     description = gen_string('alpha')
     new_description = gen_string('alpha')
-    with session:
-        # workaround: force session.browser to point to browser object on next line
-        session.contenthost.read_all('current_user')
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
         startdate = session.browser.get_client_datetime() + timedelta(minutes=10)
         # Create new sync plan and check all values in entity that was created
         session.syncplan.create(
@@ -88,8 +88,8 @@ def test_positive_end_to_end(session, module_org, target_sat):
         assert syncplan_values['details']['description'] == new_description
         # Create and add two products to sync plan
         for _ in range(2):
-            product = target_sat.api.Product(organization=module_org).create()
-            target_sat.api.Repository(product=product).create()
+            product = module_target_sat.api.Product(organization=module_org).create()
+            module_target_sat.api.Repository(product=product).create()
             session.syncplan.add_product(plan_name, product.name)
         # Remove a product and assert syncplan still searchable
         session.syncplan.remove_product(plan_name, product.name)
@@ -99,7 +99,7 @@ def test_positive_end_to_end(session, module_org, target_sat):
         assert plan_name not in session.syncplan.search(plan_name)
 
 
-def test_positive_end_to_end_custom_cron(session):
+def test_positive_end_to_end_custom_cron(module_org, module_target_sat):
     """Perform end to end scenario for sync plan component with custom cron
 
     :id: 48c88529-6318-47b0-97bc-eb46aae0294a
@@ -109,9 +109,8 @@ def test_positive_end_to_end_custom_cron(session):
     plan_name = gen_string('alpha')
     description = gen_string('alpha')
     cron_expression = gen_choice(valid_cron_expressions())
-    with session:
-        # workaround: force session.browser to point to browser object on next line
-        session.contenthost.read_all('current_user')
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
         startdate = session.browser.get_client_datetime() + timedelta(minutes=10)
         # Create new sync plan and check all values in entity that was created
         session.syncplan.create(
@@ -176,7 +175,7 @@ def test_positive_search_scoped(session, request, target_sat):
 
 
 @pytest.mark.e2e
-def test_positive_synchronize_custom_product_custom_cron_real_time(session, module_org, target_sat):
+def test_positive_synchronize_custom_product_custom_cron_real_time(module_org, module_target_sat):
     """Create a sync plan with real datetime as a sync date,
     add a custom product and verify the product gets synchronized
     on the next sync occurrence based on custom cron interval
@@ -186,11 +185,10 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
     :expectedresults: Product is synchronized successfully.
     """
     plan_name = gen_string('alpha')
-    product = target_sat.api.Product(organization=module_org).create()
-    repo = target_sat.api.Repository(product=product).create()
-    with session:
-        # workaround: force session.browser to point to browser object on next line
-        session.contenthost.read_all('current_user')
+    product = module_target_sat.api.Product(organization=module_org).create()
+    repo = module_target_sat.api.Repository(product=product).create()
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
         start_date = session.browser.get_client_datetime()
         # forming cron expression sync repo after 5 min
         expected_next_run_time = start_date + timedelta(minutes=5)
@@ -210,7 +208,7 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         session.syncplan.add_product(plan_name, product.name)
         # check that product was not synced
         with pytest.raises(AssertionError) as context:
-            target_sat.wait_for_tasks(
+            module_target_sat.wait_for_tasks(
                 search_query='Actions::Katello::Repository::Sync'
                 f' and organization_id = {module_org.id}'
                 f' and resource_id = {repo.id}'
@@ -221,7 +219,7 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
         assert 'No task was found using query' in str(context.value)
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
         # Waiting part of delay that is left and check that product was synced
-        target_sat.wait_for_tasks(
+        module_target_sat.wait_for_tasks(
             search_query='Actions::Katello::Repository::Sync'
             f' and organization_id = {module_org.id}'
             f' and resource_id = {repo.id}'
@@ -239,7 +237,7 @@ def test_positive_synchronize_custom_product_custom_cron_real_time(session, modu
 
 
 def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
-    session, module_org, target_sat
+    module_org, module_target_sat
 ):
     """Create a sync plan with past datetime as a sync date,
     add a custom product and verify the product gets synchronized
@@ -250,11 +248,10 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
     :expectedresults: Product is synchronized successfully.
     """
     plan_name = gen_string('alpha')
-    product = target_sat.api.Product(organization=module_org).create()
-    repo = target_sat.api.Repository(product=product).create()
-    with session:
-        # workaround: force session.browser to point to browser object on next line
-        session.contenthost.read_all('current_user')
+    product = module_target_sat.api.Product(organization=module_org).create()
+    repo = module_target_sat.api.Repository(product=product).create()
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
         start_date = session.browser.get_client_datetime()
         # forming cron expression sync repo after 5 min
         expected_next_run_time = start_date + timedelta(minutes=5)
@@ -274,7 +271,7 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
         session.syncplan.add_product(plan_name, product.name)
         # check that product was not synced
         with pytest.raises(AssertionError) as context:
-            target_sat.wait_for_tasks(
+            module_target_sat.wait_for_tasks(
                 search_query='Actions::Katello::Repository::Sync'
                 f' and organization_id = {module_org.id}'
                 f' and resource_id = {repo.id}'
@@ -285,7 +282,7 @@ def test_positive_synchronize_custom_product_custom_cron_past_sync_date(
         assert 'No task was found using query' in str(context.value)
         validate_repo_content(repo, ['erratum', 'rpm', 'package_group'], after_sync=False)
         # Waiting part of delay that is left and check that product was synced
-        target_sat.wait_for_tasks(
+        module_target_sat.wait_for_tasks(
             search_query='Actions::Katello::Repository::Sync'
             f' and organization_id = {module_org.id}'
             f' and resource_id = {repo.id}'
