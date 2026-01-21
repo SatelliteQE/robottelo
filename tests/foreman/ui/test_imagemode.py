@@ -444,25 +444,32 @@ def test_synced_repo_manifest_read(function_org, function_product, setting_updat
         assert synced_child_manifest_info['manifest_digest'] == manifest['digest']
 
 
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_bootc_transient_package_column(
-    session, bootc_host, function_org, function_ak_with_cv, target_sat
+    session, bootc_host, rhel_contenthost, function_org, function_ak_with_cv, target_sat
 ):
-    """Verify Container Images Synced Containers table shows correct persistence data for a bootc host
+    """Verify Host Details Package table shows correct persistence data for a bootc host, and isn't displayed for a regular host.
 
     :id: 451317d5-4e77-4173-bcbe-4cf7b9108baf
 
     :steps:
         1. Register a bootc host.
-        2. Setup dummy transient package data on it, including a package of each possible type.
-        3. Navigate to the Synced Containers table, and read it.
+        2. Register a regular host.
+        3. Setup dummy transient package data on both hosts, including a package of each possible type.
+        4. Navigate to the Host Details Package table for both hosts, and read it.
 
-    :expectedresults: The bootc host displays correct persistence data in the table.
+    :expectedresults: The bootc host displays correct persistence data in the table, and that the column doesn't display for regular hosts.
 
     :Verifies: SAT-36790
     """
     assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
     assert bootc_host.subscribed
-    # Insert fake package persistence data
+    assert (
+        rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat).status
+        == 0
+    )
+    assert rhel_contenthost.subscribed
+    # Insert fake package persistence data in both hosts.
     package_data = [
         {
             'name': 'test-package-1',
@@ -487,10 +494,11 @@ def test_bootc_transient_package_column(
         },
     ]
     _create_transient_packages(target_sat, bootc_host.nailgun_host, package_data)
+    _create_transient_packages(target_sat, rhel_contenthost.nailgun_host, package_data)
 
     with target_sat.ui_session() as session:
         session.organization.select(org_name=function_org.name)
-        # Navigate to Host Details page and read persistence data column
+        # Navigate to Host Details page for the bootc_host, and verify the column is present and has appropriate information.
         packages = session.host_new.get_packages(bootc_host.hostname, 'test-package')
         assert packages[0]['Package'] == 'test-package-1'
         assert packages[0]['Persistence'] == 'Transient'
@@ -498,3 +506,6 @@ def test_bootc_transient_package_column(
         assert packages[1]['Persistence'] == 'Persistent'
         assert packages[2]['Package'] == 'test-package-3'
         assert packages[2]['Persistence'] == '—'
+        # Navigate to Host Details page for the normal host, and verify the column is not present.
+        rhel_packages = session.host_new.get_packages(rhel_contenthost.hostname, 'test-package')
+        assert 'Persistence' not in rhel_packages[0]
