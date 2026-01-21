@@ -879,10 +879,13 @@ def test_positive_transient_packages_search_with_many_packages(target_sat):
     assert result['command'] is not None
     assert result['command'].startswith('RUN dnf install -y')
 
-    # Verify both packages are in the command
+    # Verify all packages are in the command
     for pkg in package_data:
         nvra = f"{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
         assert nvra in result['command']
+
+    # Verify packageCount is accurate
+    assert result['packageCount'] == 30
 
 
 def test_negative_transient_packages_containerfile_command_no_packages(target_sat):
