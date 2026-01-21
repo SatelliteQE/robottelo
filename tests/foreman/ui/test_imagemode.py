@@ -26,6 +26,7 @@ from robottelo.constants import (
     OSCAP_PROFILE,
     OSCAP_WEEKDAY,
 )
+from tests.foreman.api.test_host import _create_transient_packages
 from tests.foreman.longrun.test_oscap import (
     fetch_scap_and_profile_id,
     find_content_to_update,
@@ -441,3 +442,59 @@ def test_synced_repo_manifest_read(function_org, function_product, setting_updat
             assert label in synced_child_manifest_info['manifest_labels']
         assert synced_child_manifest_info['manifest_repository'] == repo.name
         assert synced_child_manifest_info['manifest_digest'] == manifest['digest']
+
+
+def test_bootc_transient_package_column(
+    session, bootc_host, function_org, function_ak_with_cv, target_sat
+):
+    """Verify Container Images Synced Containers table shows correct persistence data for a bootc host
+
+    :id: 451317d5-4e77-4173-bcbe-4cf7b9108baf
+
+    :steps:
+        1. Register a bootc host.
+        2. Setup dummy transient package data on it, including a package of each possible type.
+        3. Navigate to the Synced Containers table, and read it.
+
+    :expectedresults: The bootc host displays correct persistence data in the table.
+
+    :Verifies: SAT-36790
+    """
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+    # Insert fake package persistence data
+    package_data = [
+        {
+            'name': 'test-package-1',
+            'version': '1.0.0',
+            'release': '1.el9',
+            'arch': 'x86_64',
+            'persistence': 'transient',
+        },
+        {
+            'name': 'test-package-2',
+            'version': '2.1.3',
+            'release': '2.el9',
+            'arch': 'x86_64',
+            'persistence': 'persistent',
+        },
+        {
+            'name': 'test-package-3',
+            'version': '2.1.3',
+            'release': '2.el9',
+            'arch': 'x86_64',
+            'persistence': None,
+        },
+    ]
+    _create_transient_packages(target_sat, bootc_host.nailgun_host, package_data)
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_org.name)
+        # Navigate to Host Details page and read persistence data column
+        packages = session.host_new.get_packages(bootc_host.hostname, 'test-package')
+        assert packages[0]['Package'] == 'test-package-1'
+        assert packages[0]['Persistence'] == 'Transient'
+        assert packages[1]['Package'] == 'test-package-2'
+        assert packages[1]['Persistence'] == 'Persistent'
+        assert packages[2]['Package'] == 'test-package-3'
+        assert packages[2]['Persistence'] == '—'
