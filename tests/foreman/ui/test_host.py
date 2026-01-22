@@ -177,9 +177,17 @@ def host_ui_default(target_sat):
 
 
 @pytest.fixture
-def ui_view_hosts_user(target_sat, current_sat_org, current_sat_location):
+def ui_view_hosts_user(target_sat, current_sat_org, current_sat_location, expected_permissions):
     """User with View hosts role."""
-    role = target_sat.api.Role().search(query={'search': 'name="View hosts"'})[0]
+    role = target_sat.api.Role(organization=[current_sat_org]).create()
+    target_sat.api_factory.create_role_permissions(
+        role,
+        {
+            'Host': ['view_hosts'],
+            'Organization': expected_permissions['Organization'],
+            'Location': expected_permissions['Location'],
+        },
+    )
     password = gen_string('alphanumeric')
     user = target_sat.api.User(
         admin=False,
@@ -743,7 +751,7 @@ def test_positive_view_hosts_with_non_admin_user(
 
 
 def test_positive_remove_parameter_non_admin_user(
-    test_name, module_org, smart_proxy_location, target_sat, expected_permissions
+    test_name, module_org, smart_proxy_location, target_sat, host_ui_default, expected_permissions
 ):
     """Remove a host parameter as a non-admin user with enough permissions
 
@@ -763,6 +771,8 @@ def test_positive_remove_parameter_non_admin_user(
             'Parameter': expected_permissions['Parameter'],
             'Host': expected_permissions['Host'],
             'Operatingsystem': ['view_operatingsystems'],
+            'Organization': expected_permissions['Organization'],
+            'Location': expected_permissions['Location'],
         },
     )
     user = target_sat.api.User(
@@ -775,10 +785,6 @@ def test_positive_remove_parameter_non_admin_user(
         default_location=smart_proxy_location,
     ).create()
     host = target_sat.api.Host(
-        content_facet_attributes={
-            'content_view_id': module_org.default_content_view.id,
-            'lifecycle_environment_id': module_org.library.id,
-        },
         location=smart_proxy_location,
         organization=module_org,
         host_parameters_attributes=[parameter],
@@ -786,11 +792,18 @@ def test_positive_remove_parameter_non_admin_user(
     with target_sat.ui_session(
         testname=test_name, user=user.login, password=user_password
     ) as session:
-        values = session.host_new.read(host.name, 'parameters')
-        assert values['parameters']['host_params'][0] == parameter
-        session.host_new.update(host.name, {'parameters.host_params': []})
-        values = session.host_new.read(host.name, 'parameters')
-        assert not values['parameters']['host_params']
+        read_parameters = session.host_new.get_parameters(host.name)
+        parameters_table = read_parameters.get('parameters_table', [])
+        assert any(
+            row.get('Name') == parameter['name'] and row.get('Value') == parameter['value']
+            for row in parameters_table
+        ), f'Parameter {parameter["name"]} not found in parameters table.'
+        session.host_new.delete_parameter(host.name, parameter['name'])
+        read_parameters = session.host_new.get_parameters(host.name)
+        parameters_table = read_parameters.get('parameters_table', [])
+        assert all(row.get('Name') != parameter['name'] for row in parameters_table), (
+            f'Parameter {parameter["name"]} still present after delete.'
+        )
 
 
 def test_negative_remove_parameter_non_admin_user(
@@ -816,8 +829,10 @@ def test_negative_remove_parameter_non_admin_user(
         role,
         {
             'Parameter': ['view_params'],
-            'Host': expected_permissions['Host'],
+            'Host': ['view_hosts'],
             'Operatingsystem': ['view_operatingsystems'],
+            'Organization': expected_permissions['Organization'],
+            'Location': expected_permissions['Location'],
         },
     )
     user = module_target_sat.api.User(
@@ -841,11 +856,14 @@ def test_negative_remove_parameter_non_admin_user(
     with module_target_sat.ui_session(
         testname=test_name, user=user.login, password=user_password
     ) as session:
-        values = session.host_new.read(host.name, 'parameters')
-        assert values['parameters']['host_params'][0] == parameter
-        with pytest.raises(NoSuchElementException) as context:
-            session.host_new.update(host.name, {'parameters.host_params': []})
-        assert 'Remove Parameter' in str(context.value)
+        read_parameters = session.host_new.get_parameters(host.name)
+        parameters_table = read_parameters.get('parameters_table', [])
+        assert any(
+            row.get('Name') == parameter['name'] and row.get('Value') == parameter['value']
+            for row in parameters_table
+        ), f'Parameter {parameter["name"]} not found in parameters table.'
+        with pytest.raises(NoSuchElementException):
+            session.host_new.delete_parameter(host.name, parameter['name'])
 
 
 def test_positive_check_permissions_affect_create_procedure(
