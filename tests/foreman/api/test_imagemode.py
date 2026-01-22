@@ -838,13 +838,13 @@ def test_positive_transient_packages_containerfile_command_with_search(target_sa
 
 
 def test_positive_transient_packages_search_with_many_packages(target_sat):
-    """Test the transient_packages containerfile_install_command endpoint with more than 20 transient_packages
+    """Test the transient_packages containerfile_install_command endpoint with more than 20 transient_packages.
 
     :id: 1f133a31-2be0-4677-bcc5-0d023ba08cc9
 
     :steps:
         1. Create a host
-        2. Add more than 20 transient packages to the host
+        2. Add more than 20 transient packages to the host, so the total is above the default pagination amount.
         3. Call containerfile_install_command endpoint
         4. Verify all transient packages are included in the install command.
 
