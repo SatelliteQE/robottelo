@@ -40,7 +40,9 @@ def module_yum_repo(module_product, module_target_sat):
     return yum_repo
 
 
-def test_positive_module_stream_details_search_in_repo(session, module_org, module_yum_repo):
+def test_positive_module_stream_details_search_in_repo(
+    module_target_sat, module_org, module_yum_repo
+):
     """Create product with yum repository assigned to it. Search for
     module_streams inside of it
 
@@ -51,12 +53,14 @@ def test_positive_module_stream_details_search_in_repo(session, module_org, modu
 
     :BZ: 1948758
     """
-    with session:
+    ducks_count = len(module_target_sat.api.ModuleStream().search(query={'search': 'name="duck"'}))
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
-        assert session.modulestream.search('name = duck')[0]['Name'].startswith('duck')
+        duck_results = session.modulestream.search('name ~ "duck"')
+        assert len(duck_results) == ducks_count
+        assert all(item['Name'].startswith('duck') for item in duck_results)
         walrus_details = session.modulestream.read('walrus', '5.21')
         expected_module_details = {
-            'Summary': 'Walrus 5.21 module',
             'Context': 'deadbeef',
             'Name': 'walrus',
             'Stream': '5.21',

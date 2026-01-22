@@ -635,7 +635,7 @@ def test_positive_no_errors_on_repo_scan(target_sat, function_sca_manifest_org):
         session.redhatrepository.read(sat_rpm_extras.data['repository-set'])
         result = target_sat.execute(
             'grep "Failed at scanning for repository: undefined method '
-            '`resolve_substitutions\' for nil:NilClass" /var/log/foreman/production.log'
+            '\\`resolve_substitutions\' for nil:NilClass" /var/log/foreman/production.log'
         )
         assert result.status == 1
 
@@ -1175,7 +1175,8 @@ def test_positive_able_to_disable_and_enable_rhel_repos(
     )
     rhel8_repo_set_name = rhel8_bos_info['enabled-repositories'][0]['name']
     rhel8_repo_name = rhel8_bos_info['name']
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(function_sca_manifest_org.name)
         # disable and re-enable rhel7
         session.redhatrepository.disable(rhel7_repo_name)
         assert not session.redhatrepository.search(
