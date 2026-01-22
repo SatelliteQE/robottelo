@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import RHEL8_VER, RHEL9_VER, RHEL10_VER
+from robottelo.constants import DEFAULT_LOC, RHEL8_VER, RHEL9_VER, RHEL10_VER
 from robottelo.utils import ohsnap
 
 
@@ -70,6 +70,7 @@ def test_positive_leapp_upgrade_rhel(
                 'login': login,
                 'password': password,
                 'organization-ids': org.id,
+                'location': DEFAULT_LOC,
             }
         )
         request.addfinalizer(lambda: module_target_sat.cli.User.delete({'login': user.login}))

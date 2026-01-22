@@ -553,11 +553,11 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
         if 'partition_capacity' in virt_card:
             assert virt_card['partition_capacity'] != ''
         if 'partition_path' in virt_card:
-            assert virt_card['partition_path'] == '/boot'
+            assert virt_card['partition_path'] == '/boot/efi'
         if 'partition_allocation' in virt_card:
             assert virt_card['partition_allocation'] != ''
         assert virt_card['cores_per_socket'] == '1'
-        assert virt_card['firmware'] == 'bios'
+        assert virt_card['firmware'] == 'efi'
         assert virt_card['hypervisor'] != ''
         assert virt_card['connection_state'] == 'connected'
         assert virt_card['overall_status'] == 'green'
@@ -679,14 +679,15 @@ def test_positive_provision_end_to_end(
         assert values['Build']['Status'] == 'Installed'
         assert values['Execution']['Status'] == 'Last execution succeeded'
 
+        host = target_sat.api.Host().search(query={'search': f'name={host_fqdn}'})[0].read()
+        provisioning_host = ContentHost(host.ip)
+
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
+
         # Verify SecureBoot is enabled on host after provisioning is completed successfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
-            host = target_sat.api.Host().search(query={'host': host_name})[0].read()
-            provisioning_host = ContentHost(host.ip)
-            # Wait for the host to be rebooted and SSH daemon to be started.
-            provisioning_host.wait_for_connection()
             assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
         # Verify if assigned role is executed on the host, and correct host passwd is set
-        host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)
-        assert host.execute('yum list installed foreman_scap_client_bash').status == 0
+        assert provisioning_host.execute('yum list installed foreman_scap_client_bash').status == 0

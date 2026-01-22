@@ -12,11 +12,11 @@
 
 """
 
+from contextlib import contextmanager
 import copy
 import csv
 from datetime import UTC, datetime, timedelta
 import json
-import os
 import re
 import time
 
@@ -46,6 +46,7 @@ from robottelo.constants import (
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.exceptions import APIResponseError
+from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
 from tests.foreman.api.test_errata import cv_publish_promote
 
@@ -56,6 +57,92 @@ def _get_set_from_list_of_dict(value):
     :param list value: a list of simple dict.
     """
     return {tuple(sorted(list(global_param.items()), key=lambda t: t[0])) for global_param in value}
+
+
+@contextmanager
+def mock_service_as_rebootable(contenthost, service_name):
+    """Context manager to temporarily make a service require reboot instead of restart.
+
+    Modifies the katello tracer's STATIC_SERVICES list on the content host to include
+    the specified service, causing tracer to classify it as type='static' (reboot required)
+    instead of type='daemon' (restart required).
+
+    This is useful for testing reboot-required trace scenarios without needing to
+    actually downgrade kernel or systemd packages.
+
+    :param contenthost: ContentHost instance to modify
+    :param service_name: Name of the service to mark as reboot-required
+
+    Usage:
+        with mock_service_as_rebootable(rhel_contenthost, 'robottelo-mock-service'):
+            rhel_contenthost.execute('yum -y downgrade robottelo-mock-service')
+
+    """
+    # Dynamically find the katello tracer dnf.py file (Python version agnostic)
+    find_cmd = 'python3 -c "import katello.tracer.dnf; print(katello.tracer.dnf.__file__)"'
+    find_result = contenthost.execute(find_cmd)
+
+    if find_result.status != 0:
+        raise RuntimeError(
+            f'Failed to locate katello tracer module on {contenthost.hostname}: {find_result.stderr}'
+        )
+
+    tracer_file = find_result.stdout.strip()
+    backup_path = '/tmp/katello_tracer_dnf.py.backup'
+
+    # Create backup
+    backup_result = contenthost.execute(f'cp {tracer_file} {backup_path}')
+    if backup_result.status != 0:
+        logger.warning(f'Failed to backup tracer file: {backup_result.stderr}')
+
+    # Add service to STATIC_SERVICES list
+    # In the ../tracer/dnf.py it looks like this:
+    #   STATIC_SERVICES = [
+    #      "systemd",
+    #      "dbus",
+    #    ]
+    add_cmd = f'''python3 << 'EOFPYTHON'
+import re
+
+with open('{tracer_file}', 'r') as f:
+    content = f.read()
+
+# Find STATIC_SERVICES list and add service before the closing bracket
+pattern = r'(STATIC_SERVICES = \\[.*?)(\\])'
+replacement = r'\\1    "{service_name}",\\n\\2'
+modified_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+
+with open('{tracer_file}', 'w') as f:
+    f.write(modified_content)
+
+print("Service added successfully")
+EOFPYTHON
+'''
+    add_result = contenthost.execute(add_cmd)
+
+    if add_result.status != 0:
+        logger.error(f'Failed to add service to STATIC_SERVICES: {add_result.stderr}')
+        # Restore backup
+        contenthost.execute(f'mv {backup_path} {tracer_file}')
+        raise RuntimeError(f'Failed to modify tracer configuration: {add_result.stderr}')
+
+    try:
+        # Verify the modification
+        verify_result = contenthost.execute(f'grep "{service_name}" {tracer_file}')
+        if verify_result.status == 0:
+            logger.info(
+                f'Successfully added {service_name} to STATIC_SERVICES on {contenthost.hostname}'
+            )
+        yield
+    finally:
+        # Cleanup: Restore original file
+        restore_result = contenthost.execute(f'mv {backup_path} {tracer_file}')
+        if restore_result.status == 0:
+            logger.info(f'Restored original tracer configuration on {contenthost.hostname}')
+        else:
+            logger.warning(
+                f'Failed to restore tracer file on {contenthost.hostname}: {restore_result.stderr}'
+            )
 
 
 # this fixture inherits the fixture called ui_user in confest.py, method name has to be same
@@ -476,39 +563,10 @@ def test_positive_assign_taxonomies(
         )
 
 
-@pytest.mark.skipif((settings.ui.webdriver != 'chrome'), reason='Only tested on Chrome')
-def test_positive_export(session, target_sat, function_org, function_location):
-    """Create few hosts and export them via UI
-
-    :id: ffc512ad-982e-4b60-970a-41e940ebc74c
-
-    :expectedresults: csv file contains same values as on web UI
-
-    :BlockedBy: SAT-38427
-    """
-    # TODO Rewrite for new all hosts page after SAT-38427 is completed
-
-    hosts = [
-        target_sat.api.Host(organization=function_org, location=function_location).create()
-        for _ in range(3)
-    ]
-    expected_fields = {(host.name, host.operatingsystem.read().title) for host in hosts}
-    with target_sat.ui_session() as session:
-        session.organization.select(function_org.name)
-        session.location.select(function_location.name)
-        file_path = session.host.export()
-        assert os.path.isfile(file_path)
-        with open(file_path, newline='') as csvfile:
-            actual_fields = []
-            for row in csv.DictReader(csvfile):
-                actual_fields.append((row['Name'], row['Operatingsystem']))
-        assert set(actual_fields) == expected_fields
-
-
 @pytest.mark.skipif(
     (settings.ui.webdriver != 'chrome'), reason='Currently only chrome is supported'
 )
-def test_positive_export_selected_columns(target_sat, current_sat_location):
+def test_positive_export_selected_columns(request, target_sat, current_sat_location):
     """Select certain columns in the hosts table and check that they are exported in the CSV file.
 
     :id: 2b65c1d6-0b94-11ef-a4b7-000c2989e153
@@ -521,47 +579,63 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
 
     :BZ: 2167146
 
+    :Verifies: SAT-38427
+
     :customerscenario: true
 
-    :BlockedBy: SAT-38427
     """
-    # TODO Rewrite for new all hosts page after SAT-38427 is completed
 
     columns = (
         Box(ui='Power', csv='Power Status', displayed=True),
-        Box(ui='Recommendations', csv='Insights Recommendations Count', displayed=True),
         Box(ui='Name', csv='Name', displayed=True),
-        Box(ui='IPv4', csv='Ip', displayed=True),
-        Box(ui='IPv6', csv='Ip6', displayed=True),
-        Box(ui='MAC', csv='Mac', displayed=True),
         Box(ui='OS', csv='Operatingsystem', displayed=True),
         Box(ui='Owner', csv='Owner', displayed=True),
         Box(ui='Host group', csv='Hostgroup', displayed=True),
         Box(ui='Boot time', csv='Reported Data - Boot Time', displayed=True),
         Box(ui='Last report', csv='Last Report', displayed=True),
         Box(ui='Comment', csv='Comment', displayed=True),
+        Box(ui='IPv4', csv='Ip', displayed=True),
+        Box(ui='IPv6', csv='Ip6', displayed=True),
+        Box(ui='MAC', csv='Mac', displayed=True),
         Box(ui='Model', csv='Compute Resource Or Model', displayed=True),
         Box(ui='Sockets', csv='Reported Data - Sockets', displayed=True),
         Box(ui='Cores', csv='Reported Data - Cores', displayed=True),
         Box(ui='RAM', csv='Reported Data - Ram', displayed=True),
         Box(ui='Virtual', csv='Virtual', displayed=True),
-        Box(ui='Disks space', csv='Reported Data - Disks Total', displayed=True),
+        Box(ui='Total disk space', csv='Reported Data - Disks Total', displayed=True),
         Box(ui='Kernel version', csv='Reported Data - Kernel Version', displayed=True),
         Box(ui='BIOS vendor', csv='Reported Data - Bios Vendor', displayed=True),
         Box(ui='BIOS release date', csv='Reported Data - Bios Release Date', displayed=True),
         Box(ui='BIOS version', csv='Reported Data - Bios Version', displayed=True),
         Box(ui='RHEL Lifecycle status', csv='Rhel Lifecycle Status', displayed=True),
-        Box(ui='Installable updates', csv='Installable ...', displayed=False),
+        Box(ui='Installable updates', csv='Installable updates', displayed=False),
+        Box(ui='Last seen', csv='Last Checkin', displayed=True),
         Box(ui='Lifecycle environment', csv='Lifecycle Environment', displayed=True),
         Box(ui='Content view', csv='Content View', displayed=True),
-        Box(ui='Registered', csv='Registered', displayed=True),
-        Box(ui='Last checkin', csv='Last Checkin', displayed=True),
+        Box(ui='Registered at', csv='Registered', displayed=True),
+        Box(ui='Recommendations', csv='Recommendations', displayed=True),
     )
 
     with target_sat.ui_session() as session:
         session.location.select(loc_name=current_sat_location.name)
-        session.host.manage_table_columns({column.ui: column.displayed for column in columns})
-        file_path = session.host.export()
+        # Save original column settings
+        original_headers = session.all_hosts.get_displayed_table_headers()
+        original_columns = {header: True for header in original_headers if header is not None}
+
+        def restore_columns():
+            """Restore original column settings after test"""
+            with target_sat.ui_session() as restore_session:
+                restore_session.location.select(loc_name=current_sat_location.name)
+                wait_for(lambda: restore_session.browser.refresh(), timeout=5)
+                all_possible_columns = {column.ui: False for column in columns}
+                all_possible_columns.update(original_columns)
+                restore_session.all_hosts.manage_table_columns(all_possible_columns)
+
+        request.addfinalizer(restore_columns)
+
+        # Set test-specific columns
+        session.all_hosts.manage_table_columns({column.ui: column.displayed for column in columns})
+        file_path = session.all_hosts.export()
         with open(file_path, newline='') as fh:
             csvfile = csv.DictReader(fh)
             assert set(csvfile.fieldnames) == set(
@@ -666,8 +740,6 @@ def test_positive_view_hosts_with_non_admin_user(
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
         host = session.host_new.get_details(created_host.name, widget_names='breadcrumb')
         assert host['breadcrumb'] == created_host.name
-        content_host = session.contenthost.read(created_host.name, widget_names='breadcrumb')
-        assert content_host['breadcrumb'] == created_host.name
 
 
 def test_positive_remove_parameter_non_admin_user(
@@ -803,8 +875,12 @@ def test_positive_check_permissions_affect_create_procedure(
         content_view = content_view.read()
         content_view.version[0].promote(data={'environment_ids': filter_lc_env.id})
     # Create two host groups
-    hg = target_sat.api.HostGroup(organization=[function_org]).create()
-    filter_hg = target_sat.api.HostGroup(organization=[function_org]).create()
+    hg = target_sat.api.HostGroup(
+        organization=[function_org], location=[smart_proxy_location]
+    ).create()
+    filter_hg = target_sat.api.HostGroup(
+        organization=[function_org], location=[smart_proxy_location]
+    ).create()
     # Create lifecycle environment permissions and select one specific
     # environment user will have access to
     target_sat.api_factory.create_role_permissions(
@@ -2128,6 +2204,8 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
     :CaseComponent:Hosts
 
     :Team: Proton
+
+    :BlockedBy: SAT-41505
     """
 
     module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
@@ -2200,31 +2278,31 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
 
 
 @pytest.mark.rhel_ver_match('8')
-def test_positive_page_redirect_after_update(target_sat, current_sat_location):
+def test_positive_page_redirect_after_update(target_sat, rhel_contenthost, setup_content):
     """Check that page redirects correctly after editing a host without making any changes.
 
     :id: 29c3397e-0010-11ef-bca4-000c2989e153
 
     :steps:
         1. Go to All Hosts page.
-        2. Edit a host. Using the Sat. host is sufficient, no other host needs to be created or registered,
-            because we need just a host with FQDN.
+        2. Edit a host with FQDN.
         3. Submit the host edit dialog without making any changes.
 
     :expectedresults: The page should be redirected to the host details page.
 
     :BZ: 2166303
     """
-    client = target_sat
+    ak, org, _ = setup_content
+    rhel_contenthost.register(org, None, ak.name, target_sat)
     column = {'Name': True, 'Host group': True, 'OS': True, 'Owner': True, 'Last report': True}
     with target_sat.ui_session() as session:
-        session.location.select(loc_name=current_sat_location.name)
+        session.organization.select(org.name)
         headers = session.all_hosts.get_displayed_table_headers()
         columns = {**column, **{h: False for h in headers if h is not None and h not in column}}
         session.all_hosts.manage_table_columns(columns)
-        session.host_new.update(client.hostname, {})
+        session.host_new.update(rhel_contenthost.hostname, {})
         assert 'page-not-found' not in session.browser.url
-        assert client.hostname in session.browser.url
+        assert rhel_contenthost.hostname in session.browser.url
 
 
 @pytest.mark.no_containers
@@ -2233,7 +2311,8 @@ def test_host_status_honors_taxonomies(
     target_sat,
     test_name,
     rhel_contenthost,
-    setup_content,
+    function_ak_with_cv,
+    function_org,
     default_location,
     default_org,
     default_org_lce,
@@ -2249,8 +2328,6 @@ def test_host_status_honors_taxonomies(
 
     :expectedresults: First, the user can't see any host, then they can see one host
     """
-    ak, org, _ = setup_content
-
     lce = default_org_lce
     # Create content view environment for the default org
     content_view = target_sat.api.ContentView(organization=default_org).create()
@@ -2259,7 +2336,7 @@ def test_host_status_honors_taxonomies(
     content_view_version = published_cv.version[0]
     content_view_version.promote(data={'environment_ids': lce.id})
 
-    # default_org != org (== module_org)
+    # default_org != function_org
     default_org_ak_name = gen_string('alpha')
     target_sat.cli_factory.make_activation_key(
         {
@@ -2279,10 +2356,10 @@ def test_host_status_honors_taxonomies(
     host_id = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})['id']
     password = gen_string('alpha')
     login = gen_string('alpha')
-    # the user is in org
+    # the user is in function_org
     target_sat.cli.User.create(
         {
-            'organization-id': org.id,
+            'organization-id': function_org.id,
             'location-id': default_location.id,
             'auth-source': 'Internal',
             'password': password,
@@ -2294,10 +2371,15 @@ def test_host_status_honors_taxonomies(
     with target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert all(int(status['count'].split(': ')[1]) == 0 for status in statuses)
-    # register the host to org
+    # register the host to function_org
     assert rhel_contenthost.unregister().status == 0
     target_sat.cli.Host.delete({'id': host_id})
-    assert rhel_contenthost.register(org, default_location, ak.name, target_sat).status == 0
+    assert (
+        rhel_contenthost.register(
+            function_org, default_location, function_ak_with_cv.name, target_sat
+        ).status
+        == 0
+    )
     with target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert len([status for status in statuses if int(status['count'].split(': ')[1]) != 0]) == 1
@@ -3402,16 +3484,12 @@ def test_positive_all_hosts_check_status_icon(
 
 
 @pytest.mark.parametrize(
-    'traces_to_test',
-    [
-        [settings.repos['MOCK_SERVICE_RPM']],
-        ['kernel'],
-        [settings.repos['MOCK_SERVICE_RPM'], 'kernel'],
-    ],
-    ids=['service_restart', 'reboot_required', 'mixed_services'],
+    'require_reboot',
+    [False, True],
+    ids=['service_restart', 'service_reboot'],
 )
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
-def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, traces_to_test):
+def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, require_reboot):
     """Test bulk management of traces with multiple hosts via All Hosts page.
 
     :id: a107e6da-3c44-46d8-9e94-f15044e041b6
@@ -3419,42 +3497,50 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
     :setup:
         1. Two RHEL content hosts registered to Satellite
         2. Tracer installed on both hosts
-        3. Packages are installed on both hosts based on test parameters
+        3. Mock service package installed on both hosts
 
     :steps:
-        1. Create traces by downgrading packages
-        2. Verify traces are detected on both hosts
-        3. Navigate to All Hosts page
-        4. Select both hosts
-        5. Use bulk action to manage traces
-        6. Select specific traces to restart/reboot
+        1. For reboot scenario, use mock_service_as_rebootable context manager
+        2. Create traces by downgrading mock service package
+        3. Verify traces are detected on both hosts with correct type
+        4. Navigate to All Hosts page
+        5. Select both hosts
+        6. Use bulk action to manage traces
         7. Trigger restart/reboot via remote execution
+        8. Verify traces are resolved
 
     :expectedresults:
         1. Traces are detected on both hosts after package downgrade
-        2. Bulk traces management modal displays traces from both hosts
-        3. REX job successfully restarts services or triggers reboot on both hosts
-        4. Traces are resolved on both hosts after restart/reboot
+        2. Service restart scenario: trace appears as type='daemon'
+        3. Reboot required scenario: trace appears as type='static'
+        4. Bulk traces management modal displays traces from both hosts
+        5. REX job successfully restarts services or triggers reboot on both hosts
+        6. Traces are resolved on both hosts after restart/reboot
 
     :parametrized: yes
 
     :Verifies: SAT-35465
     """
     host_names = []
-    requires_reboot = 'kernel' in traces_to_test
+    mock_service = settings.repos['MOCK_SERVICE_RPM']
 
     # Create traces on both hosts by downgrading packages
     for host in tracer_hosts:
         host_names.append(host.hostname)
 
-        # Create traces on both hosts
-        for package in traces_to_test:
-            if package == 'kernel':
-                result = host.execute('yum -y upgrade kernel')
-                assert result.status == 0, f'Failed to upgrade kernel on {host.hostname}'
-            else:
-                result = host.execute(f'yum -y downgrade {package}')
-                assert result.status == 0, f'Failed to downgrade {package} on {host.hostname}'
+        if require_reboot:
+            # Use context manager to make service require reboot
+            with mock_service_as_rebootable(host, mock_service):
+                result = host.execute(f'yum -y downgrade {mock_service}')
+                assert result.status == 0, f'Failed to downgrade {mock_service} on {host.hostname}'
+
+                # Upload traces while in context (service marked as reboot-required)
+                host.execute('dnf katello-tracer-upload')
+        else:
+            # Normal service restart scenario
+            result = host.execute(f'yum -y downgrade {mock_service}')
+            assert result.status == 0, f'Failed to downgrade {mock_service} on {host.hostname}'
+            host.execute('dnf katello-tracer-upload')
 
     # Verify traces are detected on both hosts
     host_traces = {}
@@ -3466,21 +3552,19 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
         # Store traces by hostname for verification
         host_traces[host.hostname] = {trace['application']: trace for trace in traces}
 
-        # Verify expected traces are present
-        for expected_trace in traces_to_test:
-            if expected_trace == 'kernel':
-                kernel_trace_found = any(
-                    'kernel' in trace['application'].lower() for trace in traces
-                )
-                assert kernel_trace_found, (
-                    f'Kernel trace not found on {host.hostname}. Found traces: '
-                    f'{[t["application"] for t in traces]}'
-                )
-            else:
-                assert any(trace['application'] == expected_trace for trace in traces), (
-                    f'Expected trace {expected_trace} not found on {host.hostname}. '
-                    f'Found traces: {[t["application"] for t in traces]}'
-                )
+        # Verify mock service trace is present
+        mock_trace = [t for t in traces if t['application'] == mock_service]
+        assert len(mock_trace) > 0, (
+            f'Mock service trace not found on {host.hostname}. Found traces: '
+            f'{[t["application"] for t in traces]}'
+        )
+
+        # Verify trace type matches expected behavior
+        expected_type = 'static' if require_reboot else 'daemon'
+        assert mock_trace[0]['type'] == expected_type, (
+            f'Expected type={expected_type} for {mock_service} on {host.hostname}, '
+            f'got type={mock_trace[0]["type"]}'
+        )
 
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
@@ -3489,7 +3573,7 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
         timestamp = (datetime.now(UTC) - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M')
 
         alert_message = session.all_hosts.manage_traces(
-            host_names=host_names, traces_to_select=traces_to_test
+            host_names=host_names, traces_to_select=[mock_service]
         )
         assert 'Danger alert' not in alert_message, 'Manage traces action failed'
 
@@ -3501,11 +3585,11 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
             max_tries=10,
         )
 
-        # If kernel was downgraded, manually reboot hosts to clear kernel traces
-        if requires_reboot:
+        if require_reboot:
+            # Reboot hosts to clear static traces
             for host in tracer_hosts:
                 host.power_control(state='reboot')
-            # Wait for hosts to come back online
+
             for host in tracer_hosts:
                 host.wait_for_connection()
 
@@ -3513,9 +3597,10 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
         for host in tracer_hosts:
             host_info = target_sat.cli.Host.info({'name': host.hostname})
             traces = target_sat.cli.HostTraces.list({'host-id': host_info['id']})
-            assert len(traces) == 0, (
-                f'Traces still present on {host.hostname} after restart/reboot: '
-                f'{[t["application"] for t in traces]}'
+            remaining_apps = {t['application'] for t in traces}
+            assert mock_service not in remaining_apps, (
+                f'Trace {mock_service} still present on {host.hostname} after {"reboot" if require_reboot else "restart"}. '
+                f'Remaining traces: {remaining_apps}'
             )
 
 

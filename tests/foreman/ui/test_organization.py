@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT, DEFAULT_ORG, INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
+from robottelo.constants import ANY_CONTEXT, DEFAULT_ORG, INSTALL_MEDIUM_URL
 from robottelo.logging import logger
 
 CUSTOM_REPO_ERRATA_ID = settings.repos.yum_0.errata[0]
@@ -216,15 +216,14 @@ def test_positive_create_with_all_users(session, module_target_sat):
 
 
 @pytest.mark.skip_if_not_set('libvirt')
-def test_positive_update_compresource(session, module_target_sat):
+def test_positive_update_compresource(session, module_target_sat, libvirt):
     """Add/Remove compute resource from/to organization.
 
     :id: a49349b9-4637-4ef6-b65b-bd3eccb5a12a
 
     :expectedresults: Compute resource is added and then removed.
     """
-    url = f'{LIBVIRT_RESOURCE_URL}{settings.libvirt.libvirt_hostname}'
-    resource = module_target_sat.api.LibvirtComputeResource(url=url).create()
+    resource = module_target_sat.api.LibvirtComputeResource(url=libvirt.url).create()
     resource_name = resource.name + ' (Libvirt)'
     org = module_target_sat.api.Organization().create()
     with session:

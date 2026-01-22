@@ -16,6 +16,8 @@ import random
 import re
 
 from fauxfactory import gen_string
+import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import FLATPAK_REMOTES, FLATPAK_RHEL_RELEASE_VER
@@ -59,10 +61,14 @@ def test_view_flatpak_remotes(target_sat, function_org, function_flatpak_remote)
         details = session.flatpak_remotes.read_remote_details(
             name=remote['Name'], repo_search=random_repo.name
         )
-        assert len(details['table']) == 1
-        assert details['table'][0]['Name'] == random_repo.name
-        assert details['table'][0]['ID'] == random_repo.id
-        assert details['table'][0]['Last mirrored'] == 'Never'
+        # Search can return multiple results due to partial matching (e.g., searching "kicad"
+        # returns both "org.kicad.kicad" and "org.kicad.kicad.Library")
+        assert len(details['table']) > 0
+        matching_rows = [row for row in details['table'] if row['Name'] == random_repo.name]
+        assert len(matching_rows) == 1
+        assert matching_rows[0]['Name'] == random_repo.name
+        assert matching_rows[0]['ID'] == random_repo.id
+        assert matching_rows[0]['Last mirrored'] == 'Never'
 
 
 def test_CRUD_scan_and_mirror_flatpak_remote(target_sat, function_org, function_product):
@@ -198,3 +204,94 @@ def test_rh_flatpak_remote_info_alert(target_sat, function_org):
         # Open Create Flatpak Remote modal again, ensure the information alert is not displayed.
         rh_info = session.flatpak_remotes.read_create_modal_alert()
         assert not rh_info
+
+
+@pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
+def test_rh_flatpak_mirror_repo_dependancy_alert(
+    target_sat, function_org, function_product, function_flatpak_remote
+):
+    """Verify dependency detection in the Flatpak mirror modal.
+
+    :id: 1f4d8a0a-1a67-4ac6-98c3-0ac8d787b419
+
+    :setup:
+        1. Create a Red Hat flatpak remote in an Organization and scan it.
+
+    :steps:
+        1. Navigate to Flatpak Remotes and open a remote repository with dependencies.
+        2. Open the Mirror modal and verify the dependency alert and checkboxes.
+        3. Select dependency repositories, choose a product, and mirror.
+        4. Verify a toast indicates mirroring with dependencies started.
+        5. Verify the main repository and selected dependencies are mirrored.
+
+    :expectedresults:
+        1. Dependency alert is displayed with dependency checkboxes.
+        2. Mirroring starts with dependencies included.
+        3. Selected repositories are mirrored into the chosen product.
+
+    """
+    candidate_repos = [
+        repo
+        for repo in function_flatpak_remote.repos
+        if 'flatpak' in repo.name and 'runtime' not in repo.name and 'sdk' not in repo.name
+    ]
+    assert candidate_repos, 'No flatpak app repositories found to mirror'
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        mirror_modal = None
+        dependency_info = None
+        app_repo = None
+        for repo in candidate_repos:
+            mirror_modal = session.flatpak_remotes.open_mirror_modal(
+                remote=function_flatpak_remote.remote.name,
+                repo=repo.name,
+            )
+            dependency_info = session.flatpak_remotes.read_mirror_dependency_alert(mirror_modal)
+            if not dependency_info:
+                mirror_modal.searchbar.fill(function_product.name)
+                session.browser.plugin.ensure_page_safe()
+                dependency_info = session.flatpak_remotes.read_mirror_dependency_alert(mirror_modal)
+            if dependency_info:
+                app_repo = repo
+                break
+            mirror_modal.cancel_btn.click()
+            session.browser.plugin.ensure_page_safe()
+        assert dependency_info, (
+            'No dependency alert displayed for candidate repos: '
+            f'{", ".join(repo.name for repo in candidate_repos)}'
+        )
+        assert 'Dependency found' in dependency_info['title']
+        assert 'Ensure the runtime dependency' in dependency_info['body']
+        assert dependency_info['dependencies']
+
+        dependencies_to_mirror = dependency_info['dependencies'][:1]
+        details_view = session.flatpak_remotes.submit_mirror_modal(
+            mirror_modal=mirror_modal,
+            product=function_product,
+            dependencies=dependencies_to_mirror,
+        )
+        expected_toast = 'Mirroring flatpak repository with dependencies has started'
+
+        wait_for(
+            lambda: any(expected_toast in msg.text for msg in details_view.flash.messages()),
+            timeout=30,
+            delay=2,
+            handle_exception=True,
+        )
+        assert any(expected_toast in msg.text for msg in details_view.flash.messages())
+
+        target_sat.wait_for_tasks(
+            search_query='Actions::Katello::Flatpak::MirrorRemoteRepository',
+            max_tries=5,
+            search_rate=5,
+            poll_rate=10,
+            poll_timeout=30,
+        )
+        for repo_name in [app_repo.name, *dependencies_to_mirror]:
+            details = session.flatpak_remotes.read_remote_details(
+                name=function_flatpak_remote.remote.name, repo_search=repo_name
+            )
+            assert len(details['table']) == 1
+            assert details['table'][0]['Name'] == repo_name
+            assert details['table'][0]['Last mirrored'] != 'Never'

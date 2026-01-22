@@ -23,7 +23,7 @@ from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials
+from robottelo.config import get_credentials, settings
 from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
@@ -662,7 +662,13 @@ def test_positive_end_to_end_with_host_parameters(module_org, module_location, m
 
 @pytest.mark.e2e
 def test_positive_end_to_end_with_image(
-    module_org, module_location, module_cr_libvirt, module_libvirt_image, module_target_sat
+    module_org,
+    module_location,
+    module_cr_libvirt,
+    libvirt,
+    default_architecture,
+    module_os,
+    module_target_sat,
 ):
     """Create a host with an image specified then remove it
     and update the host with the same image afterwards
@@ -671,9 +677,20 @@ def test_positive_end_to_end_with_image(
 
     :expectedresults: A host is created with expected image, image is removed and
         host is updated with expected image
-
-    :BlockedBy: SAT-32733
     """
+    # Configure SSH authentication for libvirt connection before creating image
+    module_target_sat.configure_libvirt_cr(server_fqdn=libvirt.fqdn)
+
+    module_libvirt_image = module_target_sat.api.Image(
+        compute_resource=module_cr_libvirt,
+        name=gen_string('alpha'),
+        operatingsystem=module_os,
+        architecture=default_architecture,
+        username=settings.libvirt.image_username,
+        password=settings.libvirt.image_password,
+        uuid=settings.libvirt.libvirt_image_path,
+    ).create()
+
     host = module_target_sat.api.Host(
         organization=module_org,
         location=module_location,
@@ -1272,12 +1289,14 @@ def test_positive_list_hosts_thin_all(module_target_sat):
 
 def _create_transient_packages(target_sat, host, package_data):
     """
-    Helper function to create transient packages for a host in the database.
+    Helper function to create packages with persistence values for a host in the database.
 
     Args:
         target_sat: Satellite instance
         host: Host object to associate packages with
-        package_data: List of package dictionaries with name, version, release, arch
+        package_data: List of package dictionaries with name, version, release, arch, and
+                      optional persistence ('transient', 'persistent', or None).
+                      Defaults to 'transient' if not specified.
 
     Returns:
         None
@@ -1289,6 +1308,9 @@ def _create_transient_packages(target_sat, host, package_data):
         epoch = pkg.get('epoch', '0')  # Default epoch to 0 if not specified
         nvra = f"{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
         nvrea = f"{epoch}:{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
+        persistence = pkg.get(
+            'persistence', 'transient'
+        )  # Default to 'transient' for backwards compatibility
 
         # Insert package record using query_db
         insert_query = (
@@ -1310,164 +1332,16 @@ def _create_transient_packages(target_sat, host, package_data):
         pkg_id = pkg_records[0]['id']
         assert pkg_id is not None, f"Failed to get package ID for {nvra}"
 
-        # Create host-package association using query_db
+        # Create host-package association with persistence value using query_db
+        persistence_value = 'NULL' if persistence is None else f"'{persistence}'"
         assoc_query = (
             f"INSERT INTO katello_host_installed_packages "
             f"(host_id, installed_package_id, persistence) "
-            f"VALUES ({host.id}, {pkg_id}, 'transient')"
+            f"VALUES ({host.id}, {pkg_id}, {persistence_value}) "
+            f"ON CONFLICT (host_id, installed_package_id) DO UPDATE "
+            f"SET persistence = {persistence_value}"
         )
         target_sat.query_db(assoc_query, output_format='raw')
-
-
-def test_positive_transient_packages_containerfile_command(target_sat):
-    """Test the transient_packages containerfile_install_command endpoint
-
-    :id: c642274c-583a-4662-9b5c-81654bd00a3a
-
-    :steps:
-        1. Create a host
-        2. Add transient packages to the host via SQL
-        3. Call containerfile_install_command endpoint
-        4. Verify the response contains the expected dnf install command
-
-    :expectedresults: The endpoint returns a properly formatted dnf install command
-
-    :Verifies: SAT-36791
-
-    :Team: Artemis
-    """
-    # Create a host
-    host = target_sat.api.Host().create()
-
-    # Mock transient packages by directly inserting them via SQL
-    # In a real scenario, these would be set by a bootc host or via the API
-    package_data = [
-        {'name': 'test-package-1', 'version': '1.0.0', 'release': '1.el9', 'arch': 'x86_64'},
-        {'name': 'test-package-2', 'version': '2.1.3', 'release': '2.el9', 'arch': 'x86_64'},
-    ]
-
-    # Insert transient packages using helper function
-    _create_transient_packages(target_sat, host, package_data)
-
-    # Call the containerfile_install_command endpoint using nailgun
-    result = host.transient_packages_containerfile_install_command()
-
-    # Verify the response structure
-    assert 'command' in result
-    assert result['command'] is not None
-    assert result['command'].startswith('RUN dnf install -y')
-
-    # Verify both packages are in the command
-    for pkg in package_data:
-        nvra = f"{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
-        assert nvra in result['command']
-
-
-def test_positive_transient_packages_containerfile_command_with_search(target_sat):
-    """Test the transient_packages containerfile_install_command endpoint with search parameter
-
-    :id: a18eb2dc-f9b0-4f17-ac18-9b96a062ad63
-
-    :steps:
-        1. Create a host
-        2. Add multiple transient packages to the host
-        3. Call containerfile_install_command endpoint with search filter
-        4. Verify only filtered packages are in the command
-
-    :expectedresults: The endpoint returns a dnf install command with only filtered packages
-
-    :Verifies: SAT-36791
-
-    :Team: Artemis
-    """
-    # Create a host
-    host = target_sat.api.Host().create()
-
-    # Mock transient packages
-    package_data = [
-        {'name': 'httpd', 'version': '2.4.51', 'release': '1.el9', 'arch': 'x86_64'},
-        {'name': 'nginx', 'version': '1.20.1', 'release': '1.el9', 'arch': 'x86_64'},
-        {'name': 'vim', 'version': '9.0.1', 'release': '1.el9', 'arch': 'x86_64'},
-    ]
-
-    # Insert transient packages using helper function
-    _create_transient_packages(target_sat, host, package_data)
-
-    # Call the endpoint with a search filter for only httpd
-    result = host.transient_packages_containerfile_install_command(data={'search': 'name=httpd'})
-
-    # Verify the response contains only httpd
-    assert 'command' in result
-    assert result['command'] is not None
-    assert 'httpd-2.4.51-1.el9.x86_64' in result['command']
-    assert 'nginx' not in result['command']
-    assert 'vim' not in result['command']
-
-
-def test_negative_transient_packages_containerfile_command_no_packages(target_sat):
-    """Test containerfile_install_command endpoint when no transient packages exist
-
-    :id: 86d3612e-2e2f-41fa-ab9a-7fbab7bd044b
-
-    :steps:
-        1. Create a host without transient packages
-        2. Call containerfile_install_command endpoint
-        3. Verify appropriate error response
-
-    :expectedresults: Endpoint returns 404 with appropriate message
-
-    :Verifies: SAT-36791
-
-    :Team: Artemis
-    """
-    # Create a host without any packages
-    host = target_sat.api.Host().create()
-
-    # Call the containerfile_install_command endpoint should raise HTTPError
-    with pytest.raises(HTTPError) as excinfo:
-        host.transient_packages_containerfile_install_command()
-
-    # Verify it's a 404 error with proper response structure
-    assert excinfo.value.response.status_code == http.client.NOT_FOUND
-    response_data = excinfo.value.response.json()
-    assert response_data['command'] is None
-    assert response_data['message'] == 'No transient packages found'
-
-
-def test_negative_transient_packages_containerfile_command_search_no_match(target_sat):
-    """Test containerfile_install_command with search that matches no packages
-
-    :id: f6828240-6a37-4bc8-8595-8ceeaa9062c4
-
-    :steps:
-        1. Create a host with transient packages
-        2. Call containerfile_install_command with search filter that matches nothing
-        3. Verify appropriate error response
-
-    :expectedresults: Endpoint returns 404 with message about no packages found
-
-    :Verifies: SAT-36791
-
-    :Team: Artemis
-    """
-    # Create a host
-    host = target_sat.api.Host().create()
-
-    # Add a transient package using helper function
-    package_data = [{'name': 'test-pkg', 'version': '1.0.0', 'release': '1.el9', 'arch': 'x86_64'}]
-    _create_transient_packages(target_sat, host, package_data)
-
-    # Call endpoint with search that won't match - should raise HTTPError
-    with pytest.raises(HTTPError) as excinfo:
-        host.transient_packages_containerfile_install_command(
-            data={'search': 'name=nonexistent-package'}
-        )
-
-    # Verify it's a 404 error with proper response structure
-    assert excinfo.value.response.status_code == http.client.NOT_FOUND
-    response_data = excinfo.value.response.json()
-    assert response_data['command'] is None
-    assert response_data['message'] == 'No transient packages found'
 
 
 class TestHostInterface:

@@ -1838,8 +1838,9 @@ class TestRepository:
         )
         assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_accessible_content_status(
-        self, module_org, module_ak_with_synced_repo, rhel7_contenthost, target_sat
+        self, module_org, module_ak_with_synced_repo, rhel_contenthost, target_sat
     ):
         """Verify that the Candlepin response accesible_content returns a 304 when no
             certificate has been updated
@@ -1855,9 +1856,12 @@ class TestRepository:
 
         :CaseImportance: Critical
         """
-        rhel7_contenthost.register(module_org, None, module_ak_with_synced_repo['name'], target_sat)
-        assert rhel7_contenthost.subscribed
-        rhel7_contenthost.run('yum repolist')
+        result = rhel_contenthost.register(
+            module_org, None, module_ak_with_synced_repo['name'], target_sat
+        )
+        assert result.status == 0, f'Registration failed: {result.stderr}'
+        assert rhel_contenthost.subscribed
+        rhel_contenthost.run('yum repolist')
         access_log = target_sat.execute(
             'tail -n 10 /var/log/httpd/foreman-ssl_access_ssl.log | grep "/rhsm"'
         )

@@ -18,6 +18,7 @@ from pathlib import Path, PurePath
 
 from lxml import etree
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import (
@@ -30,6 +31,14 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.utils.datafactory import gen_string
+
+
+@pytest.fixture
+def module_start_postfix_service(target_sat):
+    """Start postfix service for module."""
+    assert target_sat.execute('systemctl start postfix').status == 0
+    result = target_sat.execute('systemctl is-active --wait postfix')
+    assert result.status == 0, f'Postfix service failed to start: {result.stderr}'
 
 
 @pytest.fixture(scope='module')
@@ -859,7 +868,7 @@ def test_positive_autocomplete(session):
 
 
 def test_positive_schedule_generation_and_get_mail(
-    session, module_sca_manifest_org, module_location, target_sat
+    session, module_sca_manifest_org, module_location, target_sat, module_start_postfix_service
 ):
     """Schedule generating a report. Request the result be sent via e-mail.
 
@@ -877,8 +886,6 @@ def test_positive_schedule_generation_and_get_mail(
                       The result is compressed.
     :CaseImportance: High
     """
-    # make sure postfix daemon is running
-    target_sat.execute('systemctl start postfix')
     # generate Subscriptions report
     with target_sat.ui_session() as session:
         session.reporttemplate.schedule(
@@ -890,6 +897,11 @@ def test_positive_schedule_generation_and_get_mail(
                 'email_to': 'root@localhost',
             },
         )
+    wait_for(
+        lambda: target_sat.execute('test -f /var/mail/root').status == 0,
+        timeout=120,
+        delay=5,
+    )
     randstring = gen_string('alpha')
     file_path = PurePath('/tmp/').joinpath(f'{randstring}.json')
     gzip_path = PurePath(f'{file_path}.gz')

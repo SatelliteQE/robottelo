@@ -231,9 +231,11 @@ def _get_hypervisor_mapping(hypervisor_type):
     :raises: VirtWhoError: If hypervisor_name is None.
     :return: hypervisor_name and guest_name
     """
+    # Increase timeout for hypervisors like Nutanix Prism Central which can be slower
+    timeout = 60 if hypervisor_type == 'ahv' else 20
     wait_for(
         lambda: 'Host-to-guest mapping being sent to' in get_rhsm_log(),
-        timeout=20,
+        timeout=timeout,
         delay=2,
     )
     logs = get_rhsm_log()
@@ -670,26 +672,11 @@ def vw_run_option(option):
     runcmd(f'virt-who -{option}')
 
 
-def hypervisor_guest_mapping_check_legacy_ui(
-    org_session, form_data_ui, default_location, hypervisor_name, guest_name
-):
-    # Check virt-who config status
-    assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
-    # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in Legacy UI
-    org_session.location.select(default_location.name)
-    hypervisor_display_name = org_session.contenthost.search(hypervisor_name)[0]['Name']
-    hypervisorhost = org_session.contenthost.read_legacy_ui(hypervisor_display_name)
-    assert hypervisorhost['details']['virtual_guest'] == '1 Content Host'
-    # Check virtual guest subscription status and hypervisor host and virtual guest mapping in Legacy UI
-    virtualguest = org_session.contenthost.read_legacy_ui(guest_name)
-    assert virtualguest['details']['virtual_host'] == hypervisor_display_name
-
-
 def hypervisor_guest_mapping_newcontent_ui(
     org_session, default_location, hypervisor_name, guest_name
 ):
     org_session.location.select(default_location.name)
-    hypervisor_display_name = org_session.contenthost.search(hypervisor_name)[0]['Name']
+    hypervisor_display_name = org_session.all_hosts.search(hypervisor_name)[0]['Name']
     hypervisorhost_new_overview = org_session.host_new.get_details(
         hypervisor_display_name, 'overview'
     )
