@@ -555,6 +555,7 @@ def test_generate_containerfile_command(
         },
     ]
     pkg1_nvra = f"{package_data[0]['name']}-{package_data[0]['version']}-{package_data[0]['release']}.{package_data[0]['arch']}"
+    pkg2_nvra = f"{package_data[1]['name']}-{package_data[1]['version']}-{package_data[1]['release']}.{package_data[1]['arch']}"
     pkg3_nvra = f"{package_data[2]['name']}-{package_data[2]['version']}-{package_data[2]['release']}.{package_data[2]['arch']}"
     _create_transient_packages(target_sat, bootc_host.nailgun_host, package_data)
 
@@ -574,11 +575,14 @@ def test_generate_containerfile_command(
         )
         # Assert the proper packages are in the various install commands
         assert pkg1_nvra in known_persistence['command']
+        assert pkg2_nvra not in known_persistence['command']
+        assert pkg3_nvra not in known_persistence['command']
         assert (
             'Command contains 1 of 3 selected packages' in known_persistence['command_description']
         )
         assert pkg1_nvra in unknown_persistence['command']
-        assert pkg3_nvra in unknown_persistence['command']
+        assert pkg2_nvra in unknown_persistence['command']
+        assert pkg3_nvra not in known_persistence['command']
         assert (
             'Command contains 2 of 3 selected packages'
             in unknown_persistence['command_description']
