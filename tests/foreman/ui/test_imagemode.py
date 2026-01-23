@@ -11,6 +11,7 @@
 :CaseImportance: High
 """
 
+from asyncio import wait_for
 import json
 import time
 
@@ -509,3 +510,77 @@ def test_bootc_transient_package_column(
         # Navigate to Host Details page for the normal host, and verify the column is not present.
         rhel_packages = session.host_new.get_packages(rhel_contenthost.hostname, 'test-package')
         assert 'Persistence' not in rhel_packages[0]
+
+
+def test_generate_containerfile_command(
+    session, bootc_host, function_org, function_ak_with_cv, target_sat
+):
+    """Verify the Generate Containerfile Command modal generates the proper command.
+
+    :id: 189f3834-0592-4f43-a20a-67ea6a50b3b2
+    :steps:
+        1. Register a bootc host.
+        2. Setup dummy transient package data on it, including a package of each possible type.
+        3. Navigate to the Host details package information UI, and select the packages.
+        4. Open the Generate Containerfile Command modal.
+
+    :expectedresults: The modal correctly generates commands when unknown persistence value packages are and aren't included.
+
+    :Verifies: SAT-36793
+    """
+    assert bootc_host.register(function_org, None, function_ak_with_cv.name, target_sat).status == 0
+    assert bootc_host.subscribed
+    # Insert fake package persistence data
+    package_data = [
+        {
+            'name': 'test-package-1',
+            'version': '1.0.0',
+            'release': '1.el9',
+            'arch': 'x86_64',
+            'persistence': 'transient',
+        },
+        {
+            'name': 'test-package-2',
+            'version': '2.1.3',
+            'release': '2.el9',
+            'arch': 'x86_64',
+            'persistence': 'persistent',
+        },
+        {
+            'name': 'test-package-3',
+            'version': '2.1.3',
+            'release': '2.el9',
+            'arch': 'x86_64',
+            'persistence': None,
+        },
+    ]
+    pkg1_nvra = f"{package_data[0]['name']}-{package_data[0]['version']}-{package_data[0]['release']}.{package_data[0]['arch']}"
+    pkg3_nvra = f"{package_data[2]['name']}-{package_data[2]['version']}-{package_data[2]['release']}.{package_data[2]['arch']}"
+    _create_transient_packages(target_sat, bootc_host.nailgun_host, package_data)
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_org.name)
+        # Generate a Containerfile install command both with and without packages with unknown persistence included
+        known_persistence = session.host_new.generate_containerfile_install_command(
+            bootc_host.hostname, 3, 'test-package'
+        )
+        wait_for(lambda: session.browser.refresh(), timeout=5)
+        unknown_persistence = session.host_new.generate_containerfile_install_command(
+            bootc_host.hostname, 3, 'test-package', unknown_persistence=True
+        )
+        wait_for(lambda: session.browser.refresh(), timeout=5)
+        no_transient_packages = session.host_new.generate_containerfile_install_command(
+            bootc_host.hostname, 1, 'test-package-2'
+        )
+        # Assert the proper packages are in the various install commands
+        assert pkg1_nvra in known_persistence['command']
+        assert (
+            'Command contains 1 of 3 selected packages' in known_persistence['command_description']
+        )
+        assert pkg1_nvra in unknown_persistence['command']
+        assert pkg3_nvra in unknown_persistence['command']
+        assert (
+            'Command contains 2 of 3 selected packages'
+            in unknown_persistence['command_description']
+        )
+        assert 'No transient packages found in selection' in no_transient_packages['no_packages']
