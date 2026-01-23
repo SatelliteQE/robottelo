@@ -837,6 +837,57 @@ def test_positive_transient_packages_containerfile_command_with_search(target_sa
     assert 'vim' not in result['command']
 
 
+def test_positive_transient_packages_search_with_many_packages(target_sat):
+    """Test the transient_packages containerfile_install_command endpoint with more than 20 transient_packages.
+
+    :id: 1f133a31-2be0-4677-bcc5-0d023ba08cc9
+
+    :steps:
+        1. Create a host
+        2. Add more than 20 transient packages to the host, so the total is above the default pagination amount.
+        3. Call containerfile_install_command endpoint
+        4. Verify all transient packages are included in the install command.
+
+    :expectedresults: The endpoint returns a dnf install command with all the transient packages.
+
+    :Verifies: SAT-41161
+
+    :Team: Artemis
+    """
+    # Create a host
+    host = target_sat.api.Host().create()
+
+    # Create more than 20 transient packages
+    package_data = []
+    for i in range(30):
+        transient_package = {
+            'name': f'test-package-{i}',
+            'version': f'2.4.{i}',
+            'release': f'{i}.el9',
+            'arch': 'x86_64',
+        }
+        package_data.append(transient_package)
+
+    # Insert transient packages using helper function
+    _create_transient_packages(target_sat, host, package_data)
+
+    # Call the containerfile_install_command endpoint using nailgun
+    result = host.transient_packages_containerfile_install_command()
+
+    # Verify the response structure
+    assert 'command' in result
+    assert result['command'] is not None
+    assert result['command'].startswith('RUN dnf install -y')
+
+    # Verify all packages are in the command
+    for pkg in package_data:
+        nvra = f"{pkg['name']}-{pkg['version']}-{pkg['release']}.{pkg['arch']}"
+        assert nvra in result['command']
+
+    # Verify packageCount is accurate
+    assert result['packageCount'] == 30
+
+
 def test_negative_transient_packages_containerfile_command_no_packages(target_sat):
     """Test containerfile_install_command endpoint when no transient packages exist
 
