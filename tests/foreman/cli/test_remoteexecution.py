@@ -823,6 +823,7 @@ class TestPullProviderRex:
     @pytest.mark.upgrade
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.client_release
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],
@@ -1035,6 +1036,7 @@ class TestPullProviderRex:
     @pytest.mark.pit_client
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.client_release
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],

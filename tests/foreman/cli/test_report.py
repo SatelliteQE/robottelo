@@ -51,6 +51,7 @@ def test_positive_CRD_satellite(run_puppet_agent, session_puppet_enabled_sat):
 
 
 @pytest.mark.e2e
+@pytest.mark.client_release
 @pytest.mark.rhel_ver_match('[^6]')
 def test_positive_install_configure_host(
     session_puppet_enabled_sat, session_puppet_enabled_capsule, content_hosts
