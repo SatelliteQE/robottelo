@@ -27,12 +27,13 @@ from robottelo.utils.datafactory import parametrized
 def _read_log(ch, pattern):
     """Read the first line from the given channel buffer and return the matching line"""
     # read lines until the buffer is empty
-    for log_line in ch.stdout().splitlines():
+    # Try hussh-style stdout first (attribute), fall back to ssh2-python style (method)
+    stdout = getattr(ch.result, 'stdout', None) if hasattr(ch, 'result') else ch.stdout()
+    for log_line in (stdout or '').splitlines():
         logger.debug(f'foreman-tail: {log_line}')
         if re.search(pattern, log_line):
             return log_line
-    else:
-        return None
+    return None
 
 
 def _wait_for_log(channel, pattern, timeout=2, delay=0.2):
