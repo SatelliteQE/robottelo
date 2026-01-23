@@ -182,6 +182,7 @@ def test_rh_flatpak_remote_info_alert(target_sat, function_org):
         2. The shortcut button provides correct link to Red Hat flatpak registry.
         3. No info alert is displayed when RH Flatpak Remote already exists.
 
+    :verifies: SAT-36751
     """
     with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
@@ -229,6 +230,7 @@ def test_rh_flatpak_mirror_repo_dependancy_alert(
         2. Mirroring starts with dependencies included.
         3. Selected repositories are mirrored into the chosen product.
 
+    :verifies: SAT-28473
     """
     candidate_repos = [
         repo
