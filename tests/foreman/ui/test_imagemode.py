@@ -573,18 +573,20 @@ def test_generate_containerfile_command(
         no_transient_packages = session.host_new.generate_containerfile_install_command(
             bootc_host.hostname, 1, 'test-package-2'
         )
-        # Assert the proper packages are in the various install commands
+        # Assert only the known persistent packages are in the command.
         assert pkg1_nvra in known_persistence['command']
         assert pkg2_nvra not in known_persistence['command']
         assert pkg3_nvra not in known_persistence['command']
         assert (
             'Command contains 1 of 3 selected packages' in known_persistence['command_description']
         )
+        # Assert only the known persistent packages, and packages with unknown persistence are in the command.
         assert pkg1_nvra in unknown_persistence['command']
-        assert pkg2_nvra in unknown_persistence['command']
-        assert pkg3_nvra not in known_persistence['command']
+        assert pkg2_nvra not in unknown_persistence['command']
+        assert pkg3_nvra in known_persistence['command']
         assert (
             'Command contains 2 of 3 selected packages'
             in unknown_persistence['command_description']
         )
+        # When no persistent or unknown packages are selected, verify the modal notifies the user.
         assert 'No transient packages found in selection' in no_transient_packages['no_packages']
