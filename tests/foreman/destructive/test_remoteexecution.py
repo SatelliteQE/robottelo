@@ -141,6 +141,7 @@ def test_positive_use_alternate_directory(
 
 
 def create_CA(host, path='/root/CA', name=None):
+    """Create a new CA keypair"""
     assert host.execute(f'mkdir -p {path}').status == 0
     filename = 'id_ca' if name is None else f'id_{name}_ca'
     assert (
@@ -154,6 +155,7 @@ def create_CA(host, path='/root/CA', name=None):
 
 @pytest.fixture
 def ca_sat(target_sat):
+    """Setup SSH key certs and CA public key on Satellite"""
     path = "/root/CA"
     sat_ssh_path = '/var/lib/foreman-proxy/ssh/'
     filename = create_CA(target_sat, path)
@@ -177,6 +179,7 @@ def ca_sat(target_sat):
 
 @pytest.fixture
 def ca_contenthost(rhel_contenthost):
+    """Setup SSH key certs and CA public key on content host"""
     path = '/root/CA'
     host_ssh_path = '/etc/ssh'
     filename = create_CA(rhel_contenthost, path, 'host')
@@ -186,7 +189,7 @@ def ca_contenthost(rhel_contenthost):
     cert_name = f'{key_name}-cert.pub'
     assert (
         rhel_contenthost.execute(
-            f'cd {host_ssh_path} && if ! [ -f ssh_host_ed25519_key ]; then ssh-keygen -t ed25519 -f {key_name} -N ""; fi'
+            f'cd {host_ssh_path} && if ! [ -f {key_name} ]; then ssh-keygen -t ed25519 -f {key_name} -N ""; fi'
         ).status
         == 0
     )
@@ -209,10 +212,12 @@ def ca_contenthost(rhel_contenthost):
 
 @pytest.fixture
 def host_ca_file_on_satellite(ca_contenthost):
+    """Return path of CA public key on Satellite"""
     return f'/var/lib/foreman-proxy/ssh/{ca_contenthost[1].split("/")[-1]}'
 
 
 def register_host(satellite, host, cockpit=False):
+    """Register a content host to Satellite"""
     org = satellite.api.Organization().create()
     if cockpit:
         rhelver = host.os_version.major
@@ -227,6 +232,7 @@ def register_host(satellite, host, cockpit=False):
 
 
 def test_execution(satellite, host):
+    """Run a job invocation and return its results"""
     command = "echo rex_passed $(date) > /root/test"
     invocation_command = satellite.cli_factory.job_invocation(
         {
@@ -239,18 +245,25 @@ def test_execution(satellite, host):
 
 
 def log_save(satellite, host):
+    """Save a number of lines mentioning CA was used in sshd log,
+    for later use
+    """
     host.execute(
         f'journalctl -u sshd | grep {satellite.ip_addr} | grep CA | wc -l > /root/saved_sshd_log'
     )
 
 
 def log_compare(satellite, host):
+    """Compare a number of lines mentioning CA was used in sshd log
+    with previously stored value
+    """
     return host.execute(
         f'[ $(( $(cat /root/saved_sshd_log) + 1 )) -eq $(journalctl -u sshd | grep {satellite.ip_addr} | grep " CA " | wc -l) ]'
     ).status
 
 
 def copy_host_CA(host, satellite, host_path, satellite_path):
+    """Copy CA public key from host to Satellite (for use in installer)"""
     host_ca_file_local = f'/tmp/{gen_string("alpha")}'
     host.get(host_path, host_ca_file_local)
     satellite.put(host_ca_file_local, satellite_path)
