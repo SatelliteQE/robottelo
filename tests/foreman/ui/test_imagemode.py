@@ -11,12 +11,12 @@
 :CaseImportance: High
 """
 
-from asyncio import wait_for
 import json
 import time
 
 from fauxfactory import gen_alpha, gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
