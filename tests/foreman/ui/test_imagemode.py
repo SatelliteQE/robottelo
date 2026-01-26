@@ -583,7 +583,7 @@ def test_generate_containerfile_command(
         # Assert only the known persistent packages, and packages with unknown persistence are in the command.
         assert pkg1_nvra in unknown_persistence['command']
         assert pkg2_nvra not in unknown_persistence['command']
-        assert pkg3_nvra in known_persistence['command']
+        assert pkg3_nvra in unknown_persistence['command']
         assert (
             'Command contains 2 of 3 selected packages'
             in unknown_persistence['command_description']
