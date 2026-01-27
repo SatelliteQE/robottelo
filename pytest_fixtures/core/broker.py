@@ -5,6 +5,7 @@ from broker import Broker
 import pytest
 
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 from robottelo.exceptions import ContentHostError
 from robottelo.hosts import Satellite, lru_sat_ready_rhel
 
@@ -111,5 +112,10 @@ def module_discovery_sat(
     discovery_auto = sat.api.Setting().search(query={'search': 'name=discovery_auto'})[0]
     discovery_auto.value = 'true'
     discovery_auto.update(['value'])
+
+    # Clear stale DHCP leases from provisioning setup workflow
+    if sat.network_type == NetworkType.IPV4:
+        assert sat.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
+        assert sat.execute('systemctl restart dhcpd').status == 0
 
     return Box(sat=sat, iso=disc_img_name)
