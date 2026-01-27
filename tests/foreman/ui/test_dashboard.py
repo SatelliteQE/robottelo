@@ -107,7 +107,7 @@ def test_positive_host_configuration_chart(session, target_sat):
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=loc.name)
         dashboard_values = session.dashboard.read('HostConfigurationChart')
-        assert '100%' in dashboard_values['chart'].values()
+        assert '100.0%' in dashboard_values['chart'].values()
 
 
 @pytest.mark.upgrade
