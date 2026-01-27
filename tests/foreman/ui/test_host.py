@@ -3049,6 +3049,7 @@ def test_disassociate_multiple_hosts(
                 f"Compute resource ID for {vm_name} is not None after disassociation"
             )
 
+
 def test_change_power_state(
     request,
     target_sat,
@@ -3134,7 +3135,11 @@ def test_change_power_state(
             session.organization.select(org_name=module_org.name)
             session.location.select(loc_name=module_location.name)
             try:
-                session.all_hosts.manage_table_columns({'Power': False, })
+                session.all_hosts.manage_table_columns(
+                    {
+                        'Power': False,
+                    }
+                )
                 session.all_hosts.change_power_state(state='Start', select_all_hosts=True)
                 session.all_hosts.disassociate_hosts(select_all_hosts=True)
             except Exception:
@@ -3183,15 +3188,19 @@ def test_change_power_state(
         # Ensure the 'Power' column is displayed in the All Hosts table
         headers = session.all_hosts.get_displayed_table_headers()
         if "Power" not in headers:
-            session.all_hosts.manage_table_columns({'Power': True,})
-        session.all_hosts.change_power_state(state='Power Off',select_all_hosts=True)
+            session.all_hosts.manage_table_columns(
+                {
+                    'Power': True,
+                }
+            )
+        session.all_hosts.change_power_state(state='Power Off', select_all_hosts=True)
         # Wait for the modal to close and table to refresh after power state change
         session.browser.plugin.ensure_page_safe(timeout='10s')
         time.sleep(5)  # Additional wait for power state to propagate
         # UI check
         for host in vm_names_with_domains:
             state = session.all_hosts.read_power_state_icon(host_name=host)
-            assert state['state'] == 'Off', f"Host {host} state didnt change to Off"
+            assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
         time.sleep(10)
         session.all_hosts.change_power_state(state='Start', select_all_hosts=True)
         # Wait for the modal to close and table to refresh after power state change
@@ -3199,7 +3208,7 @@ def test_change_power_state(
         time.sleep(5)  # Additional wait for power state to propagate
         for host in vm_names_with_domains:
             state = session.all_hosts.read_power_state_icon(host_name=host)
-            assert state['state'] == 'On', f"Host {host} state didnt change to On"
+            assert state['state'] == 'On', f"Host {host} state didn't change to On"
         # Stop sends a shutdown command to the server or vm and that can take anywhere
         # from a few minutes to 15-20 so if we send Stop twice then it shutdown immediately
         session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
@@ -3209,7 +3218,7 @@ def test_change_power_state(
         time.sleep(5)  # Additional wait for power state to propagate
         for host in vm_names_with_domains:
             state = session.all_hosts.read_power_state_icon(host_name=host)
-            assert state['state'] == 'Off', f"Host {host} state didnt change to Off"
+            assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
 
 
 def assert_hosts_owner_helper(target_sat, session, hosts, expected_owner, owner_type='user'):
