@@ -372,3 +372,78 @@ def test_rolling_cv(session, target_sat):
     with target_sat.ui_session() as session:
         session.contentview_new.create(dict(name=cv_name), rolling=True)
         assert session.contentview_new.rolling_cv_read(cv_name)
+
+
+@pytest.mark.parametrize(
+    'status_filter',
+    ['All', 'Added', 'Not added'],
+)
+def test_positive_repo_status_filter(session, target_sat, module_org, status_filter):
+    """Filter repositories by status in content view
+
+    :id: d3ccba96-24bc-45a9-929f-a16d97bccb14
+
+    :parametrized: yes
+
+    :steps:
+        1. Create a content view
+        2. Create three repositories
+        3. Add two repositories to the content view
+        4. Filter repositories by status (All, Added, Not added)
+
+    :expectedresults:
+        1. Filtering by 'All' shows all three repositories
+        2. Filtering by 'Added' shows only the two added repositories
+        3. Filtering by 'Not added' shows only the one repository not in the CV
+    """
+    cv_name = gen_string('alpha')
+    repo_added_1 = gen_string('alpha')
+    repo_added_2 = gen_string('alpha')
+    repo_not_added = gen_string('alpha')
+
+    # Create a product and three repositories (without syncing)
+    product = target_sat.api.Product(organization=module_org).create()
+    for repo_name in [repo_added_1, repo_added_2, repo_not_added]:
+        target_sat.api.Repository(
+            name=repo_name,
+            product=product,
+            content_type='yum',
+        ).create()
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        # Create CV and add two repositories
+        session.contentview_new.create({'name': cv_name})
+        session.contentview_new.add_content(cv_name, repo_added_1)
+        session.contentview_new.add_content(cv_name, repo_added_2)
+
+        # Navigate to the repositories tab and test the status filter
+        view = session.contentview_new.navigate_to(
+            session.contentview_new, 'Edit', entity_name=cv_name
+        )
+        view.repositories.click()
+        view.browser.plugin.ensure_page_safe(timeout='5s')
+
+        # Set the status filter and read table directly (avoid using read() which resets to 'All')
+        view.repositories.resources.status.fill(status_filter)
+        view.repositories.resources.table.wait_displayed()
+        repositories = view.repositories.resources.table.read()
+
+        # Verify filter results
+        repo_names = [repo['Name'] for repo in repositories]
+
+        if status_filter == 'All':
+            assert len(repositories) == 3, f'Expected 3 repos with "All" filter, got {len(repositories)}'
+            assert repo_added_1 in repo_names
+            assert repo_added_2 in repo_names
+            assert repo_not_added in repo_names
+        elif status_filter == 'Added':
+            assert len(repositories) == 2, f'Expected 2 repos with "Added" filter, got {len(repositories)}'
+            assert repo_added_1 in repo_names
+            assert repo_added_2 in repo_names
+            assert repo_not_added not in repo_names
+        elif status_filter == 'Not added':
+            assert len(repositories) == 1, f'Expected 1 repo with "Not added" filter, got {len(repositories)}'
+            assert repo_added_1 not in repo_names
+            assert repo_added_2 not in repo_names
+            assert repo_not_added in repo_names

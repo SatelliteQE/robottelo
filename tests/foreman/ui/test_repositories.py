@@ -144,3 +144,72 @@ def test_positive_override_custom_products_not_using_select_all(
         repo = session.host_new.get_repo_sets(rhel_contenthost.hostname, custom_repo.name)
         assert repo[0]['Repository'] == custom_repo.name
         assert repo[0]['Status'] == 'Enabled'
+
+
+@pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.parametrize(
+    'status_filter',
+    ['All statuses', 'Enabled', 'Disabled', 'Overridden'],
+)
+def test_positive_repo_sets_status_filter(
+    session,
+    default_location,
+    setup_content,
+    rhel_contenthost,
+    target_sat,
+    status_filter,
+):
+    """Filter repository sets by status on host details page
+
+    :id: 8d8d41d8-50d8-41fd-a6a6-7d9662599864
+
+    :parametrized: yes
+
+    :steps:
+        1. Create custom product and upload repository
+        2. Attach to activation key and register host
+        3. Navigate to host repository sets tab
+        4. Use status filter to filter by 'Enabled', 'Disabled', 'Overridden', and 'All statuses'
+
+    :expectedresults:
+        1. Filtering by 'Disabled' shows only disabled repositories
+        2. Filtering by 'Enabled' shows only enabled repositories
+        3. Filtering by 'Overridden' shows only overridden repositories
+        4. Filtering by 'All statuses' shows all repositories
+    """
+    ak, org, custom_repo = setup_content
+    rhel_contenthost.register(org, default_location, ak.name, target_sat)
+    assert rhel_contenthost.subscribed
+    with session:
+        session.organization.select(org.name)
+        session.location.select(default_location.name)
+
+        # Navigate to host repository sets tab
+        view = session.host_new.navigate_to(
+            session.host_new, 'Edit', entity_name=rhel_contenthost.hostname
+        )
+        view.content.repository_sets.click()
+        view.browser.plugin.ensure_page_safe(timeout='5s')
+
+        # Apply status filter
+        view.content.repository_sets.status_filter.fill(status_filter)
+        view.content.repository_sets.table.wait_displayed()
+
+        # Read filtered results
+        repos = view.content.repository_sets.table.read()
+
+        # Verify filter results based on status
+        if status_filter == 'Disabled':
+            # Should only show disabled repos (custom repos are disabled by default)
+            assert len(repos) > 0
+            for repo in repos:
+                assert repo['Status'] == 'Disabled'
+        elif status_filter == 'Enabled':
+            # Should show no repos initially (none enabled yet)
+            assert len(repos) == 0
+        elif status_filter == 'Overridden':
+            # Should show no repos initially (none overridden yet)
+            assert len(repos) == 0
+        elif status_filter == 'All statuses':
+            # Should show all available repos
+            assert len(repos) > 0
