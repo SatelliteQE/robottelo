@@ -16,6 +16,22 @@ class InvalidArgumentError(Exception):
     """Indicates an error when an invalid argument is received."""
 
 
+def filter_bmp_only(text):
+    """Filter out non-BMP characters, keeping only Basic Multilingual Plane (BMP) characters.
+
+    ChromeDriver only supports BMP characters (U+0000 to U+FFFF).
+    Characters above U+FFFF are in supplementary planes and will cause errors.
+
+    :param str text: Input string that may contain non-BMP characters
+    :returns: String containing only BMP characters
+    :rtype: str
+    """
+    if not text:
+        return text
+    # Filter to keep only BMP characters (U+0000 to U+FFFF)
+    return ''.join(char for char in text if ord(char) <= 0xFFFF)
+
+
 def filtered_datapoint(func):
     """Overrides the data creator functions in this class to return 1 value and
     transforms data dictionary to pytest's parametrize acceptable format for
@@ -41,6 +57,24 @@ def filtered_datapoint(func):
                 utf8 = dataset.pop('utf8', None)
                 if utf8:
                     dataset['utf8'] = gen_utf8(len(utf8), smp=False)
+                # Filter CJK characters to BMP only
+                cjk = dataset.get('cjk', None)
+                if cjk:
+                    original_length = len(cjk)
+                    filtered_cjk = filter_bmp_only(cjk)
+                    # If filtering removed too many characters, regenerate until we get enough BMP chars
+                    min_length = max(original_length // 2, 1)
+                    max_attempts = 10
+                    attempts = 0
+                    while len(filtered_cjk) < min_length and attempts < max_attempts:
+                        # Regenerate CJK string and filter again
+                        new_cjk = gen_string('cjk', original_length)
+                        filtered_cjk = filter_bmp_only(new_cjk)
+                        attempts += 1
+                    # Use filtered string, or fallback to a minimal BMP CJK string if all attempts failed
+                    dataset['cjk'] = (
+                        filtered_cjk if filtered_cjk else filter_bmp_only(gen_string('cjk', 10))
+                    )
             if settings.robottelo.run_one_datapoint:
                 key = random.choice(list(dataset.keys()))
                 dataset = {key: dataset[key]}
