@@ -7,6 +7,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import configure_airgun, configure_nailgun, settings
+from robottelo.exceptions import SatelliteHostError
 from robottelo.hosts import (
     Capsule,
     IPAHost,
@@ -232,22 +233,26 @@ def get_iop_deploy_args():
 
 
 @pytest.fixture(scope='module')
-def module_satellite_iop():
-    """Deploy and configure Red Hat Lightspeed in Satellite
+def module_satellite_iop(module_target_sat):
+    """Configure Red Hat Lightspeed in Satellite"""
+    satellite = module_target_sat
+    iop_settings = settings.rh_cloud.iop_advisor_engine
+    satellite.configure_iop(
+        username=iop_settings.stage_username,
+        password=iop_settings.stage_token,
+        registry=iop_settings.stage_registry,
+    )
 
-    Use the IoP workflow which deploys Satellite + IoP
-    """
-    deploy_args = get_iop_deploy_args()
+    yield satellite
 
-    with Broker(
-        workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
-    ) as satellite:
-        yield satellite
+    result = satellite.execute('satellite-installer --iop-ensure absent')
+    if result.status != 0:
+        raise SatelliteHostError(f'Error disabling IoP: {result.stdout}')
 
 
 @pytest.fixture
 def satellite_iop():
-    """Deploy and configure Red Hat Lightspeed in Satellite"""
+    """Deploy Satellite and configure Red Hat Lightspeed"""
     deploy_args = get_iop_deploy_args()
 
     with Broker(
