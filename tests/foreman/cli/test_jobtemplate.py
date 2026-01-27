@@ -30,12 +30,17 @@ def module_template():
     ssh.command(f'touch {TEMPLATE_FILE_EMPTY}')
 
 
-def test_positive_create_job_template(module_org, module_target_sat):
-    """Create a simple Job Template
+def test_positive_job_template_crud(module_org, module_target_sat):
+    """Create and delete a Job Template
 
-    :id: a5a67b10-61b0-4362-b671-9d9f095c452c
+    :id: e765ebdf-f9fe-47af-aa32-390516e87ada
 
-    :expectedresults: The job template was successfully created
+    :steps:
+        1. Create a job template
+        2. Update the job template
+        3. Delete the job template
+
+    :expectedresults: The job template was successfully performing CRUD operations.
 
     :CaseImportance: Critical
     """
@@ -47,7 +52,22 @@ def test_positive_create_job_template(module_org, module_target_sat):
             'file': TEMPLATE_FILE,
         }
     )
-    assert module_target_sat.cli.JobTemplate.info({'name': template_name}) is not None
+    template = module_target_sat.cli.JobTemplate.info({'name': template_name})
+    assert template["name"] == template_name
+    # Update job template
+    new_template_name = gen_string('alpha', 7)
+    module_target_sat.cli.JobTemplate.update(
+        {
+            'name': new_template_name,
+            'id': template["id"],
+            'description': gen_string('alpha'),
+        }
+    )
+    assert module_target_sat.cli.JobTemplate.info({'name': new_template_name}) is not None
+    # Delete job template
+    module_target_sat.cli.JobTemplate.delete({'name': new_template_name})
+    with pytest.raises(CLIReturnCodeError):
+        module_target_sat.cli.JobTemplate.info({'name': new_template_name})
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
@@ -207,15 +227,24 @@ def test_negative_create_empty_job_template(module_org, module_target_sat):
         )
 
 
-@pytest.mark.upgrade
-def test_positive_delete_job_template(module_org, module_target_sat):
-    """Delete a job template
+def test_positive_clone_job_template(module_org, module_target_sat):
+    """Clone a job template
 
-    :id: 33104c04-20e9-47aa-99da-4bf3414ea31a
+    :id: 5b7c6809-9199-448c-abf2-bb160709a345
 
-    :expectedresults: The Job Template has been deleted
+    :steps:
+        1. Create a job template
+        2. Clone the job template
+        3. assert dump of the data of the cloned job template is working
+        4. update job template to unlocked
+        5. Delete the cloned job template
+        6. Delete the original job template
+
+    :expectedresults: The job template is cloned successfully
 
     :CaseImportance: Critical
+
+    :verifies: SAT-34616
     """
     template_name = gen_string('alpha', 7)
     module_target_sat.cli_factory.job_template(
@@ -223,27 +252,35 @@ def test_positive_delete_job_template(module_org, module_target_sat):
             'organizations': module_org.name,
             'name': template_name,
             'file': TEMPLATE_FILE,
+            'locked': "true",
         }
     )
+    template = module_target_sat.cli.JobTemplate.info({'name': template_name})
+    assert template["name"] == template_name
+    # assert job is not None
+    clone_name = gen_string('alpha', 7)
+    module_target_sat.cli.JobTemplate.clone(
+        {
+            'new-name': clone_name,
+            'id': template['id'],
+        }
+    )
+    assert module_target_sat.cli.JobTemplate.info({'name': clone_name})['name'] == clone_name
+    # assert dump of the data of the cloned job template is working
+    dump = module_target_sat.cli.JobTemplate.dump({'name': clone_name})
+    assert len(dump) > 0
+    # update job template to unlocked
+    module_target_sat.cli.JobTemplate.update(
+        {
+            'id': template['id'],
+            'locked': "false",
+        }
+    )
+    # Delete cloned job template
+    module_target_sat.cli.JobTemplate.delete({'name': clone_name})
+    with pytest.raises(CLIReturnCodeError):
+        module_target_sat.cli.JobTemplate.info({'name': clone_name})
+    # Delete original job template
     module_target_sat.cli.JobTemplate.delete({'name': template_name})
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.JobTemplate.info({'name': template_name})
-
-
-def test_positive_view_dump(module_org, module_target_sat):
-    """Export contents of a job template
-
-    :id: 25fcfcaa-fc4c-425e-919e-330e36195c4a
-
-    :expectedresults: Verify no errors are thrown
-    """
-    template_name = gen_string('alpha', 7)
-    module_target_sat.cli_factory.job_template(
-        {
-            'organizations': module_org.name,
-            'name': template_name,
-            'file': TEMPLATE_FILE,
-        }
-    )
-    dumped_content = module_target_sat.cli.JobTemplate.dump({'name': template_name})
-    assert len(dumped_content) > 0
