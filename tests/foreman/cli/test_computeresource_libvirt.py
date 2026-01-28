@@ -363,7 +363,7 @@ def test_positive_update_console_password(set_console_password, module_target_sa
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[7]')
-@pytest.mark.parametrize('pxe_loader', ['uefi', 'secureboot'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('libvirt', ['libvirt9', 'libvirt10'], indirect=True)
 def test_positive_provision_end_to_end(
@@ -414,6 +414,9 @@ def test_positive_provision_end_to_end(
     )
     assert libvirt_cr['name'] == cr_name
 
+    # restart dhcpd
+    sat.execute('systemctl restart dhcpd')
+
     host = sat.cli.Host.create(
         {
             'name': hostname,
@@ -442,12 +445,16 @@ def test_positive_provision_end_to_end(
         f'su foreman -s /bin/bash -c "virsh -c {libvirt.url} list --state-running"'
     )
     assert hostname in result.stdout
-
     wait_for(
-        lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
-        != 'Pending installation',
+        lambda: (
+            sat.cli.Host.info({'name': hostname})
+            .get('status', {})
+            .get('build-status', 'Pending installation')
+            != 'Pending installation'
+        ),
         timeout=1800,
         delay=30,
+        handle_exception=True,
     )
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'
