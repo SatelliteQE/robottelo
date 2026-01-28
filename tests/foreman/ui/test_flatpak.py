@@ -297,3 +297,67 @@ def test_rh_flatpak_mirror_repo_dependancy_alert(
             assert len(details['table']) == 1
             assert details['table'][0]['Name'] == repo_name
             assert details['table'][0]['Last mirrored'] != 'Never'
+
+
+@pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
+def test_rh_flatpak_cv_publish_dependancy_alert(
+    target_sat, function_org, function_product, function_flatpak_remote
+):
+    """Verify dependency warning in Content View publish wizard for Flatpak repos.
+
+    :id: 8f5e0f0d-1e56-4d74-9dbe-5fdf4ad0f5a0
+
+    :setup:
+        1. Create a Red Hat flatpak remote in an Organization and scan it.
+
+    :steps:
+        1. Mirror a flatpak app repo into a product.
+        2. Create a Content View with the app repository.
+        3. Open Publish wizard and verify the flatpak dependency warning.
+
+    :expectedresults:
+        1. Dependency warning appears for content views with flatpak apps.
+
+    :verifies: SAT-28473
+    """
+    app_repos = [
+        repo
+        for repo in function_flatpak_remote.repos
+        if 'flatpak' in repo.name and 'runtime' not in repo.name and 'sdk' not in repo.name
+    ]
+    assert app_repos, 'No flatpak app repositories found for dependency warning test'
+    app_repo = app_repos[0]
+    target_sat.cli.FlatpakRemote().repository_mirror(
+        {
+            'flatpak-remote-id': function_flatpak_remote.remote['id'],
+            'id': app_repo['id'],
+            'product-id': function_product.id,
+        }
+    )
+    target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Flatpak::MirrorRemoteRepository',
+        max_tries=5,
+        search_rate=5,
+        poll_rate=10,
+        poll_timeout=30,
+    )
+
+    app_repo_info = target_sat.cli.Repository.list(
+        {'product-id': function_product.id, 'name': app_repo['name']}
+    )[0]
+    app_repo_entity = target_sat.api.Repository(id=app_repo_info['id']).read()
+
+    cv_with_deps = target_sat.api.ContentView(
+        organization=function_org,
+        name=gen_string('alpha'),
+        repository=[app_repo_entity],
+    ).create()
+
+    with target_sat.ui_session() as session:
+        session.organization.select(function_org.name)
+        warning_text = session.contentview_new.read_flatpak_dependencies_alert(cv_with_deps.name)
+        assert warning_text
+        assert (
+            'Make sure the runtimes required by the Flatpak apps in this content view are available to the host(s).'
+            in warning_text
+        )
