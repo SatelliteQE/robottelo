@@ -94,14 +94,16 @@ class TestDockerClient:
             )
             assert result.status == 0
             try:
-                result = module_container_contenthost.execute(f'docker run {repo["published-at"]}')
+                result = module_container_contenthost.execute(
+                    f'docker run -d {repo["published-at"]}'
+                )
                 assert result.status == 0
             finally:
                 # Stop and remove the container
                 result = module_container_contenthost.execute(
                     f'docker ps -a | grep {repo["published-at"]}'
                 )
-                container_id = result.stdout[0].split()[0]
+                container_id = result.stdout.split()[0]
                 module_container_contenthost.execute(f'docker stop {container_id}')
                 module_container_contenthost.execute(f'docker rm {container_id}')
         finally:
