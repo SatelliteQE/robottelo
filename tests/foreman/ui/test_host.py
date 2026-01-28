@@ -3101,12 +3101,7 @@ def test_change_power_state(
     medium = target_sat.api.Media(
         organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
     ).create()
-    lce = (
-        target_sat.api.LifecycleEnvironment(name="Library", organization=module_org.id)
-        .search()[0]
-        .read()
-        .id
-    )
+    lce = target_sat.api.LifecycleEnvironment(id=module_org.library.id).read()
     cv = target_sat.api.ContentView(organization=module_org).create()
     cv.publish()
 
@@ -3122,7 +3117,7 @@ def test_change_power_state(
         operatingsystem=operatingsystem,
         organization=[module_org],
         ptable=ptable,
-        lifecycle_environment=lce,
+        lifecycle_environment=lce.id,
         content_view=cv,
         content_source=target_sat.nailgun_smart_proxy.id,
     ).create()
