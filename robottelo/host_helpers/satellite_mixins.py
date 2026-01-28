@@ -456,7 +456,7 @@ class IoPSetup:
             for service, path in settings.rh_cloud.iop_advisor_engine.image_paths.items()
         }
 
-    def configure_insights_on_prem(self, username=None, password=None, registry=None):
+    def configure_iop(self, username=None, password=None, registry=None):
         """Configure on prem Advisor engine on Satellite"""
         logger.info('Configuring Satellite with local Red Hat Lightspeed')
         iop_settings = settings.rh_cloud.iop_advisor_engine
