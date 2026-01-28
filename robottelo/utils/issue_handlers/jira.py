@@ -53,9 +53,8 @@ class JiraStatusCache:
             logger.debug(f"Loading Jira cache from {self.cache_file}")
             data = json.loads(self.cache_file.read_text())
             self._clean_expired_entries(data)
-            cache = data.get("issues", {})
-            logger.debug(f"Loaded {len(cache)} entries from Jira cache")
-            return cache
+            logger.debug(f"Loaded {len(self.cache)} entries from Jira cache")
+            return self.cache
         logger.debug("Jira cache file does not exist, using empty cache")
         return {}
 
