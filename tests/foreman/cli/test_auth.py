@@ -66,11 +66,13 @@ def test_positive_create_session(admin_user, target_sat, setting_update):
 
     :id: fcee7f5f-1040-41a9-bf17-6d0c24a93e22
 
-    :Verifies: SAT-38951
+    :Verifies: SAT-38951, SAT-42049
 
     :setup:
 
         1. Set short session idle timeout
+
+    :BlockedBy: SAT-42049
 
     :steps:
 
