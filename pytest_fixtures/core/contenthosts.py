@@ -116,13 +116,6 @@ def rhel7_contenthost(request):
         yield host
 
 
-@pytest.fixture(scope="class", params=[{'rhel_version': '7'}])
-def rhel7_contenthost_class(request):
-    """A fixture for use with unittest classes. Provides a rhel7 Content Host object"""
-    with contenthost_factory(request=request) as host:
-        yield host
-
-
 @pytest.fixture(scope='module', params=[{'rhel_version': '7'}])
 def rhel7_contenthost_module(request):
     """A module-level fixture that provides a rhel7 content host object"""
@@ -133,13 +126,6 @@ def rhel7_contenthost_module(request):
 @pytest.fixture(params=[{'rhel_version': '8'}])
 def rhel8_contenthost(request):
     """A fixture that provides a rhel8 content host object"""
-    with contenthost_factory(request=request) as host:
-        yield host
-
-
-@pytest.fixture(scope='module', params=[{'rhel_version': '8'}])
-def rhel8_contenthost_module(request):
-    """A module-level fixture that provides a rhel8 content host object"""
     with contenthost_factory(request=request) as host:
         yield host
 
@@ -326,7 +312,6 @@ def centos_host(request, version):
         "rhel_version": version.split('.')[0],
         "distro": "centos",
         "no_containers": True,
-        "deploy_network_type": settings.content_host.network_type,
     }
     with contenthost_factory(request=request) as host:
         yield host
@@ -338,7 +323,6 @@ def oracle_host(request, version):
         "rhel_version": version.split('.')[0],
         "distro": "oracle",
         "no_containers": True,
-        "deploy_network_type": settings.content_host.network_type,
     }
     with contenthost_factory(request=request) as host:
         yield host
@@ -377,8 +361,7 @@ def bootc_host():
 
 @pytest.fixture(scope='module', params=[{'rhel_version': 8, 'no_containers': True}])
 def external_puppet_server(request):
-    request.param.update({'target_cores': 2, 'target_memory': '4GiB'})
-    with contenthost_factory(request=request) as host:
+    with contenthost_factory(request=request, target_cores=2, target_memory='4GiB') as host:
         host.register_to_cdn()
         # Install puppet packages
         assert (
@@ -409,21 +392,34 @@ def external_puppet_server(request):
 
 
 @pytest.fixture(scope="module")
-def sat_upgrade_chost(request):  # This leaks! Be sure to clean up manually.
-    """A module-level fixture that provides a UBI_8 content host for upgrade scenario testing"""
-    request.param = {"container_host": settings.content_host.ubi8.container.container_host}
-    with contenthost_factory(request=request) as host:
+def sat_upgrade_chost(request):
+    """A module-level fixture that provides a RHEL8 container content host for upgrade scenario testing"""
+    with contenthost_factory(
+        request=request, container_host=settings.content_host.rhel8.container.container_host
+    ) as host:
         yield host
 
 
 @pytest.fixture
 def custom_host(request):
     """A rhel content host that passes custom host config through request.param"""
-    request.param['deploy_rhel_version'] = request.param.get(
+    # Make a copy to avoid mutating the original
+    params = request.param.copy() if hasattr(request, 'param') else {}
+
+    # Extract known parameters and set defaults
+    deploy_rhel_version = params.pop(
         'deploy_rhel_version', settings.content_host.default_rhel_version
     )
-    request.param['workflow'] = 'deploy-rhel'
-    with contenthost_factory(request=request, host_class=Satellite) as host:
+    workflow = params.pop('workflow', 'deploy-rhel')
+
+    # Pass all parameters explicitly to contenthost_factory
+    with contenthost_factory(
+        request=request,
+        host_class=Satellite,
+        workflow=workflow,
+        deploy_rhel_version=deploy_rhel_version,
+        **params,  # Pass any remaining custom params
+    ) as host:
         yield host
 
 
