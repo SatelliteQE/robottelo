@@ -63,7 +63,7 @@ def test_positive_create_session(admin_user, target_sat):
 
     :id: fcee7f5f-1040-41a9-bf17-6d0c24a93e22
 
-    :BlockedBy: SAT-38951
+    :BlockedBy: SAT-42049
 
     :steps:
 
