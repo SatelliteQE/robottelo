@@ -119,7 +119,7 @@ VALIDATORS = dict(
             'container.upstream_name',
             must_exist=True,
             is_type_of=str,
-            default='library/busybox',
+            default='jmalloc/echo-server',
         ),
         Validator(
             'container.alternative_upstream_names',
