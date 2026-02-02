@@ -24,7 +24,7 @@ from robottelo.constants import (
 )
 from robottelo.utils.shared_resource import SharedResource
 
-provisioning_template_kinds = ['provision', 'PXEGrub', 'PXEGrub2', 'PXELinux', 'iPXE']
+provisioning_template_kinds = ['provision', 'PXEGrub2', 'PXELinux', 'iPXE']
 
 PXE_LOADER_MAP = {
     'bios': {'vm_firmware': 'bios', 'pxe_loader': 'PXELinux BIOS'},
