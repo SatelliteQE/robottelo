@@ -304,7 +304,6 @@ tests/foreman/ui/test_search.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_templatesync.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_user.py @SatelliteQE/team-endeavour
 tests/foreman/ui/test_usergroup.py @SatelliteQE/team-endeavour
-tests/foreman/ui/test_webhook.py @SatelliteQE/team-endeavour
 tests/new_upgrades/test_bookmarks.py @SatelliteQE/team-endeavour
 tests/new_upgrades/test_remoteexecution.py @SatelliteQE/team-endeavour
 tests/new_upgrades/test_usergroup.py @SatelliteQE/team-endeavour
