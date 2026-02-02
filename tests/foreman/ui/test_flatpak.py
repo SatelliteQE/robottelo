@@ -69,6 +69,8 @@ def test_view_flatpak_remotes(target_sat, function_org, function_flatpak_remote)
         assert matching_rows[0]['Name'] == random_repo.name
         assert matching_rows[0]['ID'] == random_repo.id
         assert matching_rows[0]['Last mirrored'] == 'Never'
+        assert not details['last_scan_words_text']
+        assert not details['last_scan_text']
 
 
 def test_CRUD_scan_and_mirror_flatpak_remote(target_sat, function_org, function_product):
@@ -139,6 +141,8 @@ def test_CRUD_scan_and_mirror_flatpak_remote(target_sat, function_org, function_
         )
         assert len(details['table']) == 1
         assert details['table'][0]['Name'] == repo_to_mirror
+        assert 'ago' in details['last_scan_words_text']
+        assert details['last_scan_text']
 
         # Mirror
         session.flatpak_remotes.mirror(
