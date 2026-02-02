@@ -21,6 +21,7 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import FLATPAK_REMOTES, FLATPAK_RHEL_RELEASE_VER
+from robottelo.logging import logger
 
 
 def test_view_flatpak_remotes(target_sat, function_org, function_flatpak_remote):
@@ -92,6 +93,7 @@ def test_CRUD_scan_and_mirror_flatpak_remote(target_sat, function_org, function_
     init_url = 'https://some.fakeurl.com'
     fr_name = gen_string('alpha')
     repo_to_mirror = f'rhel{FLATPAK_RHEL_RELEASE_VER}/flatpak-runtime'
+    logger.info(f"{repo_to_mirror=}")
 
     with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
@@ -139,6 +141,7 @@ def test_CRUD_scan_and_mirror_flatpak_remote(target_sat, function_org, function_
         details = session.flatpak_remotes.read_remote_details(
             name=fr_name, repo_search=repo_to_mirror
         )
+        logger.info(f"{details=}")
         assert len(details['table']) == 1
         assert details['table'][0]['Name'] == repo_to_mirror
         assert 'ago' in details['last_scan_words_text']
