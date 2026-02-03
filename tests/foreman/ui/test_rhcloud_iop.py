@@ -13,8 +13,8 @@
 """
 
 import pytest
-
 from selenium.common.exceptions import NoSuchElementException
+
 from robottelo.constants import OPENSSH_RECOMMENDATION
 from robottelo.utils.datafactory import gen_string
 from tests.foreman.ui.test_rhcloud_insights import (
@@ -431,9 +431,7 @@ def test_iop_insights_rbac_view_only_permissions(
     create_insights_recommendation(rhel_insights_vm)
 
     # Log in as the view-only user
-    with module_target_sat_insights.ui_session(
-        test_name, user.login, user_password
-    ) as session:
+    with module_target_sat_insights.ui_session(test_name, user.login, user_password) as session:
         session.organization.select(org_name=org_name)
 
         # Verify that we can see the rule hit via insights-client
@@ -535,9 +533,7 @@ def test_iop_insights_rbac_edit_permissions(
     create_insights_recommendation(rhel_insights_vm)
 
     # Log in as the user with edit permissions
-    with module_target_sat_insights.ui_session(
-        test_name, user.login, user_password
-    ) as session:
+    with module_target_sat_insights.ui_session(test_name, user.login, user_password) as session:
         session.organization.select(org_name=org_name)
 
         # Verify that we can see the rule hit via insights-client
@@ -637,15 +633,13 @@ def test_iop_insights_rbac_no_permissions(
 
     # Log in as the user with no insights permissions
     # User is already in their default organization, no need to select
-    with module_target_sat_insights.ui_session(
-        test_name, user.login, user_password
-    ) as session:
+    with module_target_sat_insights.ui_session(test_name, user.login, user_password) as session:
         # Verify that we can see the rule hit via insights-client (as admin)
         result = rhel_insights_vm.execute('insights-client --diagnosis')
         assert result.status == 0
         assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
         # Attempt to access Recommendations - should fail or be inaccessible
         permission = session.recommendationstab.read_no_authorized_message()
-        assert "You do not have access to Advisor" == permission
+        assert permission == "You do not have access to Advisor"
         permission = session.cloudvulnerability.read_no_authorized_message()
-        assert "You do not have access to Vulnerability" == permission
+        assert permission == "You do not have access to Vulnerability"
