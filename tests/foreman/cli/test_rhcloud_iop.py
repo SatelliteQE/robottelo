@@ -173,8 +173,8 @@ def test_positive_install_iop_custom_certs(
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-0')
-def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost):
-    """Install Satellite + IoP, disable, re-enable.
+def test_disable_enable_iop(module_satellite_iop, module_sca_manifest, rhel_contenthost):
+    """Disable and re-enable IoP on Satellite.
 
     :id: abe165e1-a3a4-413d-b6aa-5cb51acfeb2e
 
@@ -191,7 +191,7 @@ def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost
 
     :CaseAutomation: Automated
     """
-    satellite = satellite_iop
+    satellite = module_satellite_iop
     host = rhel_contenthost
 
     # Register the Insights client
