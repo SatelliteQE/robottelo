@@ -3050,7 +3050,7 @@ def test_disassociate_multiple_hosts(
             )
 
 
-def test_change_power_state(
+def test_positive_change_power_state(
     request,
     target_sat,
     module_location,
