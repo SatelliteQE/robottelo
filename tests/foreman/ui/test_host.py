@@ -3074,9 +3074,6 @@ def test_change_power_state(
 
     :expectedresults: VMs are Power off and Power icon should change to red.
 
-    :CaseComponent: Hosts
-
-    :Team: Proton
     """
 
     cr_name = gen_string('alpha')
