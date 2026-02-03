@@ -3200,7 +3200,7 @@ def test_positive_change_power_state(
         time.sleep(5)  # Additional wait for power state to propagate
         for host in vm_names_with_domains:
             state = session.all_hosts.read_power_state_icon(host_name=host)
-            assert state['state'] == 'On', f'Host {host} state didn't change to On'
+            assert state['state'] == 'On', f"Host {host} state didn't change to On"
         # Stop sends a shutdown command to the server or vm and that can take anywhere
         # from a few minutes to 15-20 so if we send Stop twice then it shutdown immediately
         session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
