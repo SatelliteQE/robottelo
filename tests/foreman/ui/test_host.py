@@ -3048,6 +3048,188 @@ def test_disassociate_multiple_hosts(
             )
 
 
+def test_positive_change_power_state(
+    request,
+    target_sat,
+    module_location,
+    module_org,
+    vmware,
+    default_location,
+):
+    """
+    Import multiple VMs from a VMware compute resource, Power Off them via the UI,
+    and verify Hosts are Power Off .
+
+    :id: e23bcd69-4c57-4967-aeec-7b4fbf6eaff3
+
+    :steps:
+        1. Create all required entities (domain, subnet, hostgroup, etc.)
+        2. Import 2 VMs from VMware into Satellite
+        3. Power Off the VMs via the All Hosts UI
+        4. Verify via UI that Hosts are Power off
+        5. Powers them back on and verifies "On" state
+        6. Stops them twice and verifies final "Off" state
+
+    :expectedresults: VMs are Power off and Power icon should change to red.
+
+    """
+
+    cr_name = gen_string('alpha')
+
+    # create entities for hostgroup
+    target_sat.api.SmartProxy(
+        id=target_sat.nailgun_smart_proxy.id, location=[default_location.id, module_location.id]
+    ).update()
+    domain = target_sat.api.Domain(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    subnet = target_sat.api.Subnet(
+        organization=[module_org.id], location=[module_location], domain=[domain]
+    ).create()
+    architecture = target_sat.api.Architecture().create()
+    ptable = target_sat.api.PartitionTable(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    operatingsystem = target_sat.api.OperatingSystem(
+        architecture=[architecture], ptable=[ptable]
+    ).create()
+    medium = target_sat.api.Media(
+        organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
+    ).create()
+    lce = target_sat.api.LifecycleEnvironment(id=module_org.library.id).read()
+    cv = target_sat.api.ContentView(organization=module_org).create()
+    cv.publish()
+
+    # create hostgroup
+    hostgroup_name = gen_string('alpha')
+    target_sat.api.HostGroup(
+        name=hostgroup_name,
+        architecture=architecture,
+        domain=domain,
+        subnet=subnet,
+        location=[module_location.id],
+        medium=medium,
+        operatingsystem=operatingsystem,
+        organization=[module_org],
+        ptable=ptable,
+        lifecycle_environment=lce.id,
+        content_view=cv,
+        content_source=target_sat.nailgun_smart_proxy.id,
+    ).create()
+    cr_vm_names = [settings.vmware.vm_name, 'proton-testing-guest-rhel-8']
+    vm_names_with_domains = [f'{name.replace(".", "")}.{domain.name}' for name in cr_vm_names]
+
+    # Create compute resource via API
+    compute_resource = target_sat.api.VMWareComputeResource(
+        name=cr_name,
+        provider='Vmware',
+        url=vmware.hostname,
+        user=settings.vmware.username,
+        password=settings.vmware.password,
+        datacenter=settings.vmware.datacenter,
+        organization=[module_org],
+        location=[module_location],
+    ).create()
+
+    @request.addfinalizer
+    def _cleanup():
+        # Clean up each host: power on, disassociate, and delete via API
+        for vm_name in vm_names_with_domains:
+            try:
+                hosts = target_sat.api.Host().search(query={"search": f'name={vm_name}'})
+                if hosts:
+                    host = hosts[0]
+                    # Power on (in case test failed during power-off state)
+                    try:
+                        host.power(data={'power_action': 'start'})
+                    except Exception as e:
+                        print(f"Failed to power on VM {vm_name}: {e}")
+
+                    # Disassociate from compute resource
+                    try:
+                        host.disassociate()
+                    except Exception as e:
+                        print(f"Failed to disassociate VM {vm_name}: {e}")
+
+                    # Delete host
+                    try:
+                        host.delete()
+                    except APIResponseError as e:
+                        print(f"Failed to delete VM {vm_name}: {e}")
+            except Exception as e:
+                print(f"Failed to find host {vm_name}: {e}")
+
+        # Clean up compute resource
+        try:
+            compute_resource.delete()
+        except Exception as e:
+            print(f"Failed to delete compute resource: {e}")
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+
+        try:
+            session.hostgroup.update(
+                hostgroup_name, {'host_group.deploy': f'{cr_name} ({FOREMAN_PROVIDERS["vmware"]})'}
+            )
+
+            # Import VMs from VMware compute resource
+            for cr_vm_name, _vm_name_with_domain in zip(
+                cr_vm_names, vm_names_with_domains, strict=False
+            ):
+                session.computeresource.vm_import(
+                    cr_name,
+                    cr_vm_name,
+                    hostgroup_name,
+                    module_location.name,
+                    name=cr_vm_name.replace('.', ''),
+                )
+            for vm_name in cr_vm_names:
+                power_status = session.computeresource.vm_status(cr_name, vm_name)
+                if not power_status:
+                    session.computeresource.vm_poweron(cr_name, vm_name)
+
+            # Ensure the 'Power' column is displayed in the All Hosts table
+            headers = session.all_hosts.get_displayed_table_headers()
+            if "Power" not in headers:
+                session.all_hosts.manage_table_columns(
+                    {
+                        'Power': True,
+                    }
+                )
+            session.all_hosts.change_power_state(state='Power Off', select_all_hosts=True)
+            # Wait for the modal to close and table to refresh after power state change
+            session.browser.plugin.ensure_page_safe(timeout='20s')
+            # UI check
+            for host in vm_names_with_domains:
+                state = session.all_hosts.read_power_state_icon(host_name=host)
+                assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
+            session.all_hosts.change_power_state(state='Start', select_all_hosts=True)
+            # Wait for the modal to close and table to refresh after power state change
+            session.browser.plugin.ensure_page_safe(timeout='20s')
+            for host in vm_names_with_domains:
+                state = session.all_hosts.read_power_state_icon(host_name=host)
+                assert state['state'] == 'On', f"Host {host} state didn't change to On"
+            # Stop sends a shutdown command to the server or vm and that can take anywhere
+            # from a few minutes to 15-20 so if we send Stop twice then it shutdown immediately
+            session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
+            session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
+            # Wait for the modal to close and table to refresh after power state change
+            session.browser.plugin.ensure_page_safe(timeout='20s')
+            for host in vm_names_with_domains:
+                state = session.all_hosts.read_power_state_icon(host_name=host)
+                assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
+
+        finally:
+            # Reset Power column state before session closes
+            session.all_hosts.manage_table_columns(
+                {
+                    'Power': False,
+                }
+            )
+
+
 def assert_hosts_owner_helper(target_sat, session, hosts, expected_owner, owner_type='user'):
     """
     Assert that all hosts have the expected owner both via API and UI.
