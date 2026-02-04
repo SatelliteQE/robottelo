@@ -385,6 +385,7 @@ def test_positive_oscap_update_default_content(
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.client_release
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 def test_positive_oscap_run_via_ansible(
@@ -462,6 +463,7 @@ def test_positive_oscap_run_via_ansible(
 
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_list([8])
+@pytest.mark.client_release
 def test_positive_oscap_remediation(
     module_org, default_proxy, content_view, lifecycle_env, target_sat, rex_contenthost
 ):

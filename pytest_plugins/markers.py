@@ -11,6 +11,7 @@ def pytest_configure(config):
         "stream: Tests unique to stream builds; purged when robottelo is branched.",
         "pit_server: PIT server scenario tests",
         "pit_client: PIT client scenario tests",
+        "client_release: For Client release testing; selected client side tests from OpenSCAP, pull provider, tracer etc.",
         "run_in_one_thread: Sequential tests",
         "build_sanity: Fast, basic tests that confirm build is ready for full test suite",
         "rhel_ver_list: Filter rhel_contenthost versions by list",
