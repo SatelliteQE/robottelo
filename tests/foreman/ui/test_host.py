@@ -3230,7 +3230,8 @@ def test_positive_change_power_state(
                     'Power': False,
                 }
             )
-        
+
+
 def assert_hosts_owner_helper(target_sat, session, hosts, expected_owner, owner_type='user'):
     """
     Assert that all hosts have the expected owner both via API and UI.
