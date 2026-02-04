@@ -1024,7 +1024,7 @@ def test_positive_search_by_parameter(session, module_org, smart_proxy_location,
         assert values[0]['Name'] == param_host.name
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_positive_search_by_reported_data(
     target_sat, rhel_contenthost, module_org, module_ak_with_cv
@@ -1037,11 +1037,9 @@ def test_positive_search_by_reported_data(
 
     :expectedresults: Return only hosts matching the reported data.
 
-    :Verifies: SAT-9132
+    :Verifies: SAT-9132, SAT-38761
 
     :customerscenario: true
-
-    :BlockedBy: SAT-38761
     """
     result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
