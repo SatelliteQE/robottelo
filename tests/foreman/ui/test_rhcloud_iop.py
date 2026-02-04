@@ -440,13 +440,17 @@ def test_iop_insights_rbac_view_only_permissions(
         result = rhel_insights_vm.execute('insights-client --diagnosis')
         assert result.status == 0
         assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
-
+        result = session.recommendationstab.search(OPENSSH_RECOMMENDATION)
+        assert result[0]['Name'] == OPENSSH_RECOMMENDATION
         # Verify edit actions are hidden (disable/enable action should not be available) in the UI
         with pytest.raises(NoSuchElementException):
             # Disable recommendation
             session.recommendationstab.disable_recommendation(
                 recommendation_name=OPENSSH_RECOMMENDATION
             )
+        vulnerabilities = session.cloudvulnerability.read()
+        # Find the edited CVE in the list of vulnerabilities
+        assert CVE_ID in vulnerabilities[0]['CVE ID']
         # Test Vulnerability without edit permissions
         with pytest.raises(NoSuchElementException):
             session.cloudvulnerability.edit_vulnerabilities(CVE_ID)
@@ -557,9 +561,7 @@ def test_iop_insights_rbac_edit_permissions(
         session.cloudvulnerability.edit_vulnerabilities(CVE_ID)
         vulnerabilities = session.cloudvulnerability.read()
         # Find the edited CVE in the list of vulnerabilities
-        edited_cve = next((v for v in vulnerabilities if CVE_ID in v.get('CVE ID', '')), None)
-        assert edited_cve is not None, f"CVE {CVE_ID} not found in vulnerabilities list"
-        assert edited_cve['Status'] == 'In review'
+        assert vulnerabilities[0]['Status'] == 'In review'
 
 
 @pytest.mark.no_containers
