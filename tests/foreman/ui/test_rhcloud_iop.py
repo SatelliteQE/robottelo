@@ -594,7 +594,7 @@ def test_iop_insights_rbac_no_permissions(
 
     :parametrized: yes
 
-    :CaseAutomation:
+    :CaseAutomation: Automated
 
     :BlockedBy: RHINENG-23601
     """
