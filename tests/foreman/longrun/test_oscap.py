@@ -124,6 +124,7 @@ def update_scap_content(module_org, module_target_sat):
 @pytest.mark.upgrade
 @pytest.mark.tier4
 @pytest.mark.parametrize('distro', ['rhel7', 'rhel8'])
+@pytest.mark.client_release
 def test_positive_oscap_run_via_ansible(
     module_org, default_proxy, content_view, lifecycle_env, distro, target_sat
 ):

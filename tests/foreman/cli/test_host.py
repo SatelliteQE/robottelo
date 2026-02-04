@@ -2311,6 +2311,7 @@ def test_positive_dump_enc_yaml(target_sat):
 @pytest.mark.pit_client
 @pytest.mark.tier3
 @pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.client_release
 def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
     """Install tracer on client, downgrade the service, check from the satellite
     that tracer shows and resolves the problem. The test works with a package specified
