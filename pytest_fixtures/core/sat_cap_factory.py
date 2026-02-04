@@ -232,28 +232,14 @@ def get_iop_deploy_args():
 
 
 @pytest.fixture(scope='module')
-def module_satellite_iop():
-    """Deploy and configure Red Hat Lightspeed in Satellite
+def module_satellite_iop(module_target_sat):
+    """Configure Red Hat Lightspeed in Satellite"""
+    satellite = module_target_sat
+    satellite.configure_iop()
 
-    Use the IoP workflow which deploys Satellite + IoP
-    """
-    deploy_args = get_iop_deploy_args()
+    yield satellite
 
-    with Broker(
-        workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
-    ) as satellite:
-        yield satellite
-
-
-@pytest.fixture
-def satellite_iop():
-    """Deploy and configure Red Hat Lightspeed in Satellite"""
-    deploy_args = get_iop_deploy_args()
-
-    with Broker(
-        workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
-    ) as satellite:
-        yield satellite
+    satellite.uninstall_iop()
 
 
 @pytest.fixture(scope='module')
