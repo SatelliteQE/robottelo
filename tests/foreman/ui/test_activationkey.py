@@ -715,7 +715,10 @@ def test_positive_access_non_admin_user(session, test_name, target_sat):
             session.activationkey.create(
                 {'name': name, 'lce': {env_name: True}, 'content_view': cv.name}
             )
-            assert session.activationkey.read(name, widget_names='details')['details']['lce'][0] == env_name
+            assert (
+                session.activationkey.read(name, widget_names='details')['details']['lce'][0]
+                == env_name
+            )
 
     with target_sat.ui_session(test_name, user=user_login, password=user_password) as session:
         session.organization.select(org.name)
