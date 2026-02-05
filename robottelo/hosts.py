@@ -2486,6 +2486,7 @@ class Satellite(Capsule, SatelliteMixins):
 
         :param ad_data: Callable method that returns AD server details
         :type ad_data: Callable
+        :return: New Satellite hostname if hostname changed, otherwise None
         """
         ad_data = ad_data()
         version_dependent = (
@@ -2529,6 +2530,7 @@ class Satellite(Capsule, SatelliteMixins):
         # if this is an IPv6 machine, we'll probably get a hostname
         # that is TOOOO LOOOONG for Active Directory which can only count to 15
         hostname_changed = False
+        new_fqdn = None
         if self.network_type == NetworkType.IPV6:
             original_shortname = self.execute('hostname -s').stdout.strip()
             if len(original_shortname) > 15:
@@ -2651,6 +2653,8 @@ class Satellite(Capsule, SatelliteMixins):
         assert (
             self.execute('systemctl daemon-reload && systemctl restart httpd.service').status == 0
         )
+
+        return new_fqdn
 
     def generate_inventory_report(self, org, disconnected='false'):
         """Function to perform inventory upload."""
