@@ -49,8 +49,8 @@ def test_positive_end_to_end_crud(session, module_org, module_target_sat):
         # Verify content view and LCE are assigned
         ak_values = session.activationkey.read(name, widget_names='details')
         assert ak_values['details']['name'] == name
-        assert ak_values['details']['content_view'] == cv.name
-        assert ak_values['details']['lce'][0] == constants.ENVIRONMENT
+        assert ak_values['details']['content_view_details'][0]['content_view'] == cv.name
+        assert ak_values['details']['content_view_details'][0]['lce'] == constants.ENVIRONMENT
         # Update activation key with new name
         session.activationkey.update(name, {'details.name': new_name})
         assert session.activationkey.search(new_name)[0]['Name'] == new_name
@@ -134,7 +134,7 @@ def test_positive_create_with_cv(session, module_org, cv_name, target_sat):
         ak = session.activationkey.read(name, widget_names='details')
         # For long CV names, the UI truncates with "..." which gets stripped
         # Check if the read value is contained in the full CV name
-        assert ak['details']['content_view'] in cv_name
+        assert ak['details']['content_view_details'][0]['content_view'] in cv_name
 
 
 @pytest.mark.upgrade
@@ -217,7 +217,7 @@ def test_positive_create_with_envs(session, module_org, target_sat):
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
-        assert ak['details']['lce'][0] == env_name
+        assert ak['details']['content_view_details'][0]['lce'] == env_name
 
 
 def test_positive_add_host_collection_non_admin(
@@ -240,6 +240,7 @@ def test_positive_add_host_collection_non_admin(
     user_permissions = {
         'Katello::ActivationKey': constants.PERMISSIONS['Katello::ActivationKey'],
         'Katello::HostCollection': constants.PERMISSIONS['Katello::HostCollection'],
+        'Katello::KTEnvironment': constants.PERMISSIONS['Katello::KTEnvironment'],
     }
     viewer_role = target_sat.api.Role().search(query={'search': 'name="Viewer"'})[0]
     roles.append(viewer_role)
@@ -281,6 +282,7 @@ def test_positive_remove_host_collection_non_admin(
     user_permissions = {
         'Katello::ActivationKey': constants.PERMISSIONS['Katello::ActivationKey'],
         'Katello::HostCollection': constants.PERMISSIONS['Katello::HostCollection'],
+        'Katello::KTEnvironment': constants.PERMISSIONS['Katello::KTEnvironment'],
     }
     viewer_role = target_sat.api.Role().search(query={'search': 'name="Viewer"'})[0]
     roles.append(viewer_role)
@@ -372,12 +374,12 @@ def test_positive_update_env(session, module_org, target_sat):
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
-        assert ak['details']['lce'][0] == constants.ENVIRONMENT
-        assert ak['details']['lce'][0] != env_name
+        assert ak['details']['content_view_details'][0]['lce'] == constants.ENVIRONMENT
+        assert ak['details']['content_view_details'][0]['lce'] != env_name
         session.activationkey.update(name, {'details.lce': {env_name: True}})
         ak = session.activationkey.read(name, widget_names='details')
-        assert ak['details']['lce'][0] != constants.ENVIRONMENT
-        assert ak['details']['lce'][0] == env_name
+        assert ak['details']['content_view_details'][0]['lce'] != constants.ENVIRONMENT
+        assert ak['details']['content_view_details'][0]['lce'] == env_name
 
 
 @pytest.mark.run_in_one_thread
@@ -413,14 +415,14 @@ def test_positive_update_cv(session, module_org, cv2_name, target_sat):
         ak = session.activationkey.read(name, widget_names='details')
         # For long CV names, the UI truncates with "..." which gets stripped
         # Check if the read value is contained in the full CV name
-        assert ak['details']['content_view'] in cv1_name
+        assert ak['details']['content_view_details'][0]['content_view'] in cv1_name
         session.activationkey.update(
             name, {'details': {'lce': {env2_name: True}, 'content_view': cv2_name}}
         )
         ak = session.activationkey.read(name, widget_names='details')
         # For long CV names, the UI truncates with "..." which gets stripped
         # Check if the read value is contained in the full CV name
-        assert ak['details']['content_view'] in cv2_name
+        assert ak['details']['content_view_details'][0]['content_view'] in cv2_name
 
 
 @pytest.mark.run_in_one_thread
@@ -468,12 +470,12 @@ def test_positive_update_rh_product(function_sca_manifest_org, session, target_s
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
-        assert ak['details']['content_view'] == cv1_name
+        assert ak['details']['content_view_details'][0]['content_view'] == cv1_name
         session.activationkey.update(
             name, {'details': {'lce': {env2_name: True}, 'content_view': cv2_name}}
         )
         ak = session.activationkey.read(name, widget_names='details')
-        assert ak['details']['content_view'] == cv2_name
+        assert ak['details']['content_view_details'][0]['content_view'] == cv2_name
 
 
 @pytest.mark.run_in_one_thread
@@ -716,7 +718,9 @@ def test_positive_access_non_admin_user(session, test_name, target_sat):
                 {'name': name, 'lce': {env_name: True}, 'content_view': cv.name}
             )
             assert (
-                session.activationkey.read(name, widget_names='details')['details']['lce'][0]
+                session.activationkey.read(name, widget_names='details')['details'][
+                    'content_view_details'
+                ][0]['lce']
                 == env_name
             )
 
@@ -799,8 +803,8 @@ def test_positive_add_docker_repo_cv(session, module_org, module_target_sat):
             {'name': ak_name, 'lce': {lce.name: True}, 'content_view': content_view.name}
         )
         ak = session.activationkey.read(ak_name, 'details')
-        assert ak['details']['content_view'] == content_view.name
-        assert ak['details']['lce'][0] == lce.name
+        assert ak['details']['content_view_details'][0]['content_view'] == content_view.name
+        assert ak['details']['content_view_details'][0]['lce'] == lce.name
 
 
 def test_positive_add_docker_repo_ccv(session, module_org, module_target_sat):
@@ -839,8 +843,8 @@ def test_positive_add_docker_repo_ccv(session, module_org, module_target_sat):
             {'name': ak_name, 'lce': {lce.name: True}, 'content_view': composite_cv.name}
         )
         ak = session.activationkey.read(ak_name, 'details')
-        assert ak['details']['content_view'] == composite_cv.name
-        assert ak['details']['lce'][0] == lce.name
+        assert ak['details']['content_view_details'][0]['content_view'] == composite_cv.name
+        assert ak['details']['content_view_details'][0]['lce'] == lce.name
 
 
 def test_positive_add_host(
@@ -1132,9 +1136,9 @@ def test_positive_new_ak_lce_cv_assignment(target_sat):
         )
         ak_values = session.activationkey.read(ak_name, widget_names='details')
 
-        assert ak_values['details']['content_view'] == constants.DEFAULT_CV, (
+        assert ak_values['details']['content_view_details'][0]['content_view'] == constants.DEFAULT_CV, (
             'Default Organization View is not assigned to newly created AK'
         )
         assert (
-            ak_values['details']['lce'][0] == 'Library'  # noqa: E712, explicit comparison fits this case
+            ak_values['details']['content_view_details'][0]['lce'] == 'Library'  # noqa: E712, explicit comparison fits this case
         ), 'Library view is not assigned to newly created AK'
