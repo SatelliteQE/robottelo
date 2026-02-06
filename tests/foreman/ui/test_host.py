@@ -4137,3 +4137,49 @@ def test_cloud_billing_details(
             assert str(cloud_billing[ui_field]) == str(expected_value), (
                 f'{cloud_provider.upper()}: {field} value mismatch. Expected: {expected_value}, Got: {cloud_billing[ui_field]}'
             )
+
+
+@pytest.mark.rhel_ver_match(f'{settings.content_host.default_rhel_version}')
+@pytest.mark.no_containers
+def test_assign_multi_cv_from_host_page(
+    module_target_sat, module_org, module_lce, module_cv_repo, rhel_contenthost
+):
+    """Ensure that multiple content views can be assigned via the host details page
+
+    :id: 518e6229-d728-4908-b95d-28de5d9b6f65
+
+    :steps:
+        1. Create a content view and an activation key associated with the content view and the Library lifecycle environment.
+        2. Register a host using the activation key.
+        3. On the Overview tab of the details page for the host, select the 'Assign content view environments' action from the 'Content view environments' card dropdown.
+        4. Assign a new content view environment with a non-Library lifecycle environment and the content view created previously.
+
+    :expectedresults:
+        1. The content view environments card on the host details page shows two content view environments.
+        2. One of the content view environments is associated with the Library lifecycle environment.
+        3. The other content view environment is associated with the non-Library lifecycle environment.
+
+    :verifies: SAT-25846
+    """
+    ak = module_target_sat.api.ActivationKey(
+        organization=module_org.id,
+        content_view=module_cv_repo.id,
+        environment=module_org.library.id,
+    ).create()
+    result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
+    assert result.status == 0
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.host_new.add_content_view_env(
+            rhel_contenthost.hostname, module_cv_repo.name, module_lce.name
+        )
+        cv_envs = session.host_new.get_content_view_envs(rhel_contenthost.hostname)
+
+    assert len(cv_envs) == 2
+
+    library_cv_env = [env for env in cv_envs if env['lce'] == 'Library'][0]
+    assert library_cv_env['content_view'] == module_cv_repo.name
+
+    new_cv_env = [env for env in cv_envs if env['lce'] == module_lce.name][0]
+    assert new_cv_env['content_view'] == module_cv_repo.name
