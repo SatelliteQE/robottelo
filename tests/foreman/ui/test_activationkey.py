@@ -1136,9 +1136,9 @@ def test_positive_new_ak_lce_cv_assignment(target_sat):
         )
         ak_values = session.activationkey.read(ak_name, widget_names='details')
 
-        assert ak_values['details']['content_view_details'][0]['content_view'] == constants.DEFAULT_CV, (
-            'Default Organization View is not assigned to newly created AK'
-        )
+        assert (
+            ak_values['details']['content_view_details'][0]['content_view'] == constants.DEFAULT_CV
+        ), 'Default Organization View is not assigned to newly created AK'
         assert (
             ak_values['details']['content_view_details'][0]['lce'] == 'Library'  # noqa: E712, explicit comparison fits this case
         ), 'Library view is not assigned to newly created AK'
