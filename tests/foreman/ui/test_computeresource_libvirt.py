@@ -190,8 +190,10 @@ def test_positive_provision_end_to_end(
         assert hostname in result.stdout
         # Wait for provisioning to complete and report status back to Satellite
         wait_for(
-            lambda: session.host_new.get_host_statuses(name)['Build']['Status']
-            != 'Pending installation',
+            lambda: (
+                session.host_new.get_host_statuses(name)['Build']['Status']
+                != 'Pending installation'
+            ),
             timeout=1800,
             delay=30,
             fail_func=session.browser.refresh,
@@ -494,8 +496,10 @@ def test_positive_image_provision_end_to_end(
         # The host should transition from 'Pending installation' to 'Installed'
         host_fqdn = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
         wait_for(
-            lambda: session.host_new.get_host_statuses(host_fqdn)['Build']['Status']
-            != 'Pending installation',
+            lambda: (
+                session.host_new.get_host_statuses(host_fqdn)['Build']['Status']
+                != 'Pending installation'
+            ),
             timeout=1800,
             delay=30,
             fail_func=session.browser.refresh,

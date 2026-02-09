@@ -28,8 +28,9 @@ from robottelo.utils import ohsnap
         {'source_version': RHEL8_VER, 'target_version': RHEL9_VER},
         {'source_version': RHEL9_VER, 'target_version': RHEL10_VER},
     ],
-    ids=lambda upgrade_path: f'{upgrade_path["source_version"]}'
-    f'_to_{upgrade_path["target_version"]}',
+    ids=lambda upgrade_path: (
+        f'{upgrade_path["source_version"]}_to_{upgrade_path["target_version"]}'
+    ),
 )
 @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
 def test_positive_leapp_upgrade_rhel(
@@ -114,8 +115,9 @@ def test_positive_leapp_upgrade_rhel(
     [
         {'source_version': RHEL8_VER, 'target_version': RHEL9_VER},
     ],
-    ids=lambda upgrade_path: f'{upgrade_path["source_version"]}'
-    f'_to_{upgrade_path["target_version"]}',
+    ids=lambda upgrade_path: (
+        f'{upgrade_path["source_version"]}_to_{upgrade_path["target_version"]}'
+    ),
 )
 @pytest.mark.parametrize(
     'setting_update',

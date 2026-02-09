@@ -696,15 +696,17 @@ class TestVirtwhoConfigforEsx:
         org_session.cloudinventory.generate_report(module_sca_manifest_org.name)
         # wait_for_tasks report generation task to finish
         wait_for(
-            lambda: module_target_sat.api.ForemanTask()
-            .search(
-                query={
-                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
-                    f'and started_at >= "{timestamp}"'
-                }
-            )[0]
-            .result
-            == 'success',
+            lambda: (
+                module_target_sat.api.ForemanTask()
+                .search(
+                    query={
+                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        f'and started_at >= "{timestamp}"'
+                    }
+                )[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,

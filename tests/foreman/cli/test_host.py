@@ -1732,12 +1732,14 @@ def test_positive_erratum_applicability(
     # Verify that the applied erratum is no longer in applicable errata list
     try:
         applicable_erratum, _ = wait_for(
-            lambda: security_errata
-            not in [
-                errata['erratum-id']
-                for errata in target_sat.cli.Host.errata_list({'host-id': host_info['id']})
-                if errata['installable'] == 'true'
-            ],
+            lambda: (
+                security_errata
+                not in [
+                    errata['erratum-id']
+                    for errata in target_sat.cli.Host.errata_list({'host-id': host_info['id']})
+                    if errata['installable'] == 'true'
+                ]
+            ),
             handle_exception=True,
             timeout=300,
             delay=5,

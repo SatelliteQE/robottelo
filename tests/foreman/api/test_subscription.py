@@ -289,10 +289,12 @@ def test_positive_candlepin_events_processed_by_stomp(
     # Wait for candlepin to process the manifest upload events
     # Use polling instead of fixed sleep to avoid flakiness
     wait_for(
-        lambda: parse(
-            target_sat.api.Ping().search_json()['services']['candlepin_events']['message']
-        )['Processed']
-        > pre_processed_count,
+        lambda: (
+            parse(target_sat.api.Ping().search_json()['services']['candlepin_events']['message'])[
+                'Processed'
+            ]
+            > pre_processed_count
+        ),
         timeout=60,
         delay=5,
         handle_exception=True,
