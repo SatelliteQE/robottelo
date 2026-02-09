@@ -1142,3 +1142,117 @@ def test_positive_new_ak_lce_cv_assignment(target_sat):
         assert (
             ak_values['details']['content_view_details'][0]['lce'] == 'Library'  # noqa: E712, explicit comparison fits this case
         ), 'Library view is not assigned to newly created AK'
+
+
+def test_positive_multi_lce_with_single_cv(session, module_org, target_sat):
+    """Create and Update an Activation key with single Content View assigned to multiple Lifecycle Environments
+
+    :id: 9898d03a-d76b-4a9f-8c9a-dfdc1905c45b
+
+    :steps:
+        1. Create a content view with repositories and promote it to two different lifecycle environments
+        2. Create an activation key with the content view and first lifecycle environment
+        3. Update the activation key to add the same content view with the second lifecycle environment
+        4. Verify that the activation key has two content view environment assignments
+
+    :expectedresults: Activation key has the same content view assigned to multiple lifecycle environments
+
+    :Verifies: SAT-30913
+    """
+    name = gen_string('alpha')
+    env1_name = gen_string('alpha')
+    env2_name = gen_string('alpha')
+    cv_name = gen_string('alpha')
+    repo1_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    # Create CV with first repo and promote to env1
+    cv = target_sat.api_factory.cv_publish_promote(cv_name, env1_name, repo1_id, module_org.id)
+
+    # Add second repo to the same CV and promote to env2
+    repo2_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    lce2 = target_sat.api.LifecycleEnvironment(
+        organization=module_org.id, name=env2_name
+    ).create()
+    cv.repository = [target_sat.api.Repository(id=repo2_id)]
+    cv = cv.update(['repository'])
+    cv.publish()
+    cv_version = cv.read().version[0]
+    cv_version.promote(data={'environment_ids': lce2.id})
+    with session:
+        session.activationkey.create(
+            {'name': name, 'lce': {env1_name: True}, 'content_view': cv_name}
+        )
+        assert session.activationkey.search(name)[0]['Name'] == name
+        session.activationkey.update(
+            name, {'details': {'lce': {env2_name: True}, 'content_view': cv_name}}, update_existing=False
+        )
+        ak = session.activationkey.read(name, widget_names='details')
+        cv_details = ak['details']['content_view_details']
+
+        assert len(cv_details) == 2
+        expected_combinations = {
+            (env1_name, cv_name),
+            (env2_name, cv_name),
+        }
+        actual_combinations = {
+            (detail['lce'], detail['content_view'])
+            for detail in cv_details
+        }
+        assert actual_combinations == expected_combinations
+
+
+def test_positive_multi_lce_with_multi_cv(session, module_org, target_sat):
+    """Create and Update an Activation key with multiple Content Views assigned to multiple Lifecycle Environments
+
+    :id: 8c36c54a-b5e8-4f3c-9d4a-e1e2f3a4b5c6
+
+    :steps:
+        1. Create three different content views, each promoted to a different lifecycle environment
+        2. Create an activation key with the first content view and lifecycle environment
+        3. Update the activation key to add the second content view and lifecycle environment
+        4. Update the activation key to add the third content view and lifecycle environment
+        5. Verify that the activation key has three different content view environment assignments
+
+    :expectedresults: Activation key has multiple content views assigned to multiple lifecycle environments
+
+    :Verifies: SAT-30913
+    """
+    name = gen_string('alpha')
+    env1_name = gen_string('alpha')
+    env2_name = gen_string('alpha')
+    env3_name = gen_string('alpha')
+    cv1_name = gen_string('alpha')
+    cv2_name = gen_string('alpha')
+    cv3_name = gen_string('alpha')
+    # Create three different CVs, each promoted to a different LCE
+    repo1_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv1_name, env1_name, repo1_id, module_org.id)
+    repo2_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv2_name, env2_name, repo2_id, module_org.id)
+    repo3_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
+    target_sat.api_factory.cv_publish_promote(cv3_name, env3_name, repo3_id, module_org.id)
+    with session:
+        session.activationkey.create(
+            {'name': name, 'lce': {env1_name: True}, 'content_view': cv1_name}
+        )
+        assert session.activationkey.search(name)[0]['Name'] == name
+        session.activationkey.update(
+            name, {'details': {'lce': {env2_name: True}, 'content_view': cv2_name}}, update_existing=False
+        )
+        session.activationkey.update(
+            name, {'details': {'lce': {env3_name: True}, 'content_view': cv3_name}}, update_existing=False
+        )
+        ak = session.activationkey.read(name, widget_names='details')
+        # Get the content view details
+        cv_details = ak['details']['content_view_details']
+
+        assert len(cv_details) == 3
+        expected_combinations = {
+            (env1_name, cv1_name),
+            (env2_name, cv2_name),
+            (env3_name, cv3_name),
+        }
+        actual_combinations = {
+            (detail['lce'], detail['content_view'])
+            for detail in cv_details
+        }
+        assert actual_combinations == expected_combinations
