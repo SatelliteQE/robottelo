@@ -1169,9 +1169,7 @@ def test_positive_multi_lce_with_single_cv(session, module_org, target_sat):
 
     # Add second repo to the same CV and promote to env2
     repo2_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
-    lce2 = target_sat.api.LifecycleEnvironment(
-        organization=module_org.id, name=env2_name
-    ).create()
+    lce2 = target_sat.api.LifecycleEnvironment(organization=module_org.id, name=env2_name).create()
     cv.repository = [target_sat.api.Repository(id=repo2_id)]
     cv = cv.update(['repository'])
     cv.publish()
@@ -1183,7 +1181,9 @@ def test_positive_multi_lce_with_single_cv(session, module_org, target_sat):
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.update(
-            name, {'details': {'lce': {env2_name: True}, 'content_view': cv_name}}, update_existing=False
+            name,
+            {'details': {'lce': {env2_name: True}, 'content_view': cv_name}},
+            update_existing=False,
         )
         ak = session.activationkey.read(name, widget_names='details')
         cv_details = ak['details']['content_view_details']
@@ -1193,10 +1193,7 @@ def test_positive_multi_lce_with_single_cv(session, module_org, target_sat):
             (env1_name, cv_name),
             (env2_name, cv_name),
         }
-        actual_combinations = {
-            (detail['lce'], detail['content_view'])
-            for detail in cv_details
-        }
+        actual_combinations = {(detail['lce'], detail['content_view']) for detail in cv_details}
         assert actual_combinations == expected_combinations
 
 
@@ -1236,10 +1233,14 @@ def test_positive_multi_lce_with_multi_cv(session, module_org, target_sat):
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         session.activationkey.update(
-            name, {'details': {'lce': {env2_name: True}, 'content_view': cv2_name}}, update_existing=False
+            name,
+            {'details': {'lce': {env2_name: True}, 'content_view': cv2_name}},
+            update_existing=False,
         )
         session.activationkey.update(
-            name, {'details': {'lce': {env3_name: True}, 'content_view': cv3_name}}, update_existing=False
+            name,
+            {'details': {'lce': {env3_name: True}, 'content_view': cv3_name}},
+            update_existing=False,
         )
         ak = session.activationkey.read(name, widget_names='details')
         # Get the content view details
@@ -1251,8 +1252,5 @@ def test_positive_multi_lce_with_multi_cv(session, module_org, target_sat):
             (env2_name, cv2_name),
             (env3_name, cv3_name),
         }
-        actual_combinations = {
-            (detail['lce'], detail['content_view'])
-            for detail in cv_details
-        }
+        actual_combinations = {(detail['lce'], detail['content_view']) for detail in cv_details}
         assert actual_combinations == expected_combinations
