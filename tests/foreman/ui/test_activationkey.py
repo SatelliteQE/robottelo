@@ -1159,7 +1159,7 @@ def test_positive_multi_lce_with_single_cv(session, module_org, target_sat):
 
     :Verifies: SAT-30913
     """
-    name = gen_string('alpha')
+    ak_name = gen_string('alpha')
     env1_name = gen_string('alpha')
     env2_name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -1176,16 +1176,18 @@ def test_positive_multi_lce_with_single_cv(session, module_org, target_sat):
     cv_version = cv.read().version[0]
     cv_version.promote(data={'environment_ids': lce2.id})
     with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(constants.DEFAULT_LOC)
         session.activationkey.create(
-            {'name': name, 'lce': {env1_name: True}, 'content_view': cv_name}
+            {'name': ak_name, 'lce': {env1_name: True}, 'content_view': cv_name}
         )
-        assert session.activationkey.search(name)[0]['Name'] == name
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.update(
-            name,
+            ak_name,
             {'details': {'lce': {env2_name: True}, 'content_view': cv_name}},
             update_existing=False,
         )
-        ak = session.activationkey.read(name, widget_names='details')
+        ak = session.activationkey.read(ak_name, widget_names='details')
         cv_details = ak['details']['content_view_details']
 
         assert len(cv_details) == 2
@@ -1213,7 +1215,7 @@ def test_positive_multi_lce_with_multi_cv(session, module_org, target_sat):
 
     :Verifies: SAT-30913
     """
-    name = gen_string('alpha')
+    ak_name = gen_string('alpha')
     env1_name = gen_string('alpha')
     env2_name = gen_string('alpha')
     env3_name = gen_string('alpha')
@@ -1228,21 +1230,23 @@ def test_positive_multi_lce_with_multi_cv(session, module_org, target_sat):
     repo3_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
     target_sat.api_factory.cv_publish_promote(cv3_name, env3_name, repo3_id, module_org.id)
     with target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.location.select(constants.DEFAULT_LOC)
         session.activationkey.create(
-            {'name': name, 'lce': {env1_name: True}, 'content_view': cv1_name}
+            {'name': ak_name, 'lce': {env1_name: True}, 'content_view': cv1_name}
         )
-        assert session.activationkey.search(name)[0]['Name'] == name
+        assert session.activationkey.search(ak_name)[0]['Name'] == ak_name
         session.activationkey.update(
-            name,
+            ak_name,
             {'details': {'lce': {env2_name: True}, 'content_view': cv2_name}},
             update_existing=False,
         )
         session.activationkey.update(
-            name,
+            ak_name,
             {'details': {'lce': {env3_name: True}, 'content_view': cv3_name}},
             update_existing=False,
         )
-        ak = session.activationkey.read(name, widget_names='details')
+        ak = session.activationkey.read(ak_name, widget_names='details')
         # Get the content view details
         cv_details = ak['details']['content_view_details']
 
