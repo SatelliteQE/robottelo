@@ -181,8 +181,8 @@ def test_positive_provision_end_to_end(
         )
         name = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
         request.addfinalizer(lambda: sat.provisioning_cleanup(name))
-        assert session.host_new.search(name)[0]['Name'] == name
-
+        result = session.host_new.search(name)[0]
+        assert result['Name'] == name
         # Check on Libvirt, if VM exists
         result = sat.execute(
             f'su foreman -s /bin/bash -c "virsh -c {libvirt.url} list --state-running"'
