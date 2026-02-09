@@ -1227,7 +1227,7 @@ def test_positive_multi_lce_with_multi_cv(session, module_org, target_sat):
     target_sat.api_factory.cv_publish_promote(cv2_name, env2_name, repo2_id, module_org.id)
     repo3_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
     target_sat.api_factory.cv_publish_promote(cv3_name, env3_name, repo3_id, module_org.id)
-    with session:
+    with target_sat.ui_session() as session:
         session.activationkey.create(
             {'name': name, 'lce': {env1_name: True}, 'content_view': cv1_name}
         )
