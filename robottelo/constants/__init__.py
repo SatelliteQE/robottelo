@@ -1095,6 +1095,7 @@ PULP_PRN_TABLES = [
         'name': 'katello_distribution_references',
         'href_key': 'content_guard_href',
         'prn_key': 'content_guard_prn',
+        'skip': '/pulp/api/v3/contentguards/core/content_redirect',
     },  # Only for RH repos, otherwise NULL
     {
         'name': 'katello_repository_references',
