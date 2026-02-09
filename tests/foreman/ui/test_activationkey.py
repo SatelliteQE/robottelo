@@ -1175,7 +1175,7 @@ def test_positive_multi_lce_with_single_cv(session, module_org, target_sat):
     cv.publish()
     cv_version = cv.read().version[0]
     cv_version.promote(data={'environment_ids': lce2.id})
-    with session:
+    with target_sat.ui_session() as session:
         session.activationkey.create(
             {'name': name, 'lce': {env1_name: True}, 'content_view': cv_name}
         )
