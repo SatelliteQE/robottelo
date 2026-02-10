@@ -580,20 +580,20 @@ def test_rh_cloud_minimal_report(
     """
     org = rhcloud_manifest_org
     virtual_host, baremetal_host = rhcloud_registered_hosts
-    with module_target_sat.ui_session() as session:
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=DEFAULT_LOC)
-        session.cloudinventory.update(
-            {
-                'data_collection': 'Minimal data collectionOnly send the minimum required data to Red Hat cloud, obfuscation settings are disabled'
-            }
-        )
-        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinventory.generate_and_upload_report(org.name)
-        # wait_for_tasks report generation task to finish
-        wait_for(
-            lambda: (
-                module_target_sat.api.ForemanTask()
+    try:
+        with module_target_sat.ui_session() as session:
+            session.organization.select(org_name=org.name)
+            session.location.select(loc_name=DEFAULT_LOC)
+            session.cloudinventory.update(
+                {
+                    'data_collection': 'Minimal data collectionOnly send the minimum required data to Red Hat cloud, obfuscation settings are disabled'
+                }
+            )
+            timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+            session.cloudinventory.generate_and_upload_report(org.name)
+            # wait_for_tasks report generation task to finish
+            wait_for(
+                lambda: module_target_sat.api.ForemanTask()
                 .search(
                     query={
                         'search': f'label = ForemanInventoryUpload::Async::HostInventoryReportJob '
@@ -601,37 +601,49 @@ def test_rh_cloud_minimal_report(
                     }
                 )[0]
                 .result
-                == 'success'
-            ),
-            timeout=400,
-            delay=15,
-            silent_failure=True,
-            handle_exception=True,
-        )
-        report_path = session.cloudinventory.download_report_only(org.name)
-        inventory_data = session.cloudinventory.read(org.name)
-        # Verify that generated archive is valid
-        common_assertion(report_path, inventory_data, org, module_target_sat)
-        # Get report data for assertion
-        json_data = get_report_data(report_path)
-        # Verify that hostnames are NOT in report
-        host_data = [item for item in json_data['hosts']]
-        hostnames = [item['fqdn'] for item in host_data if 'fqdn' in item]
-        assert virtual_host.hostname not in hostnames, f"'hostname' found in: {hostnames}"
-        assert baremetal_host.hostname not in hostnames, f"'hostname' found in: {hostnames}"
-        # Verify that ip addresses are NOT in report
-        ip_address = [item['ip_addresses'] for item in host_data if 'ip_addresses' in item]
-        assert not ip_address, f"'ip_addresses' found in: {ip_address}"
-        # Verify that installed_products are IN report
-        system_profile = [item.get('system_profile', {}) for item in host_data]
-        assert all('installed_products' in item for item in system_profile), (
-            "'installed_products' is missing in one or more entries"
-        )
-        # Verify that proper fields are IN report
-        required_fields = ['account', 'subscription_manager_id', 'insights_id']
-        assert all(all(key in item for key in required_fields) for item in host_data), (
-            "Not all required keys are present in every dictionary"
-        )
+                == 'success',
+                timeout=400,
+                delay=15,
+                silent_failure=True,
+                handle_exception=True,
+            )
+            report_path = session.cloudinventory.download_report_only(org.name)
+            inventory_data = session.cloudinventory.read(org.name)
+            # Verify that generated archive is valid
+            common_assertion(report_path, inventory_data, org, module_target_sat)
+            # Get report data for assertion
+            json_data = get_report_data(report_path)
+            # Verify that hostnames are NOT in report
+            host_data = [item for item in json_data['hosts']]
+            hostnames = [item['fqdn'] for item in host_data if 'fqdn' in item]
+            assert virtual_host.hostname not in hostnames, f"'hostname' found in: {hostnames}"
+            assert baremetal_host.hostname not in hostnames, f"'hostname' found in: {hostnames}"
+            # Verify that ip addresses are NOT in report
+            ip_address = [item['ip_addresses'] for item in host_data if 'ip_addresses' in item]
+            assert not ip_address, f"'ip_addresses' found in: {ip_address}"
+            # Verify that installed_products are IN report
+            system_profile = [item.get('system_profile', {}) for item in host_data]
+            assert all('installed_products' in item for item in system_profile), (
+                "'installed_products' is missing in one or more entries"
+            )
+            # Verify that proper fields are IN report
+            required_fields = ['account', 'subscription_manager_id', 'insights_id']
+            assert all(all(key in item for key in required_fields) for item in host_data), (
+                "Not all required keys are present in every dictionary"
+            )
+    finally:
+        # CRITICAL: Reset UI dropdown to default
+        with module_target_sat.ui_session() as session:
+            session.organization.select(org_name=org.name)
+            session.location.select(loc_name=DEFAULT_LOC)
+            session.cloudinventory.update(
+                {
+                    'data_collection': 'Analytics data collectionSend additional data to enhance Red Hat Lightspeed services, as per the settings'
+                }
+            )
+            session.cloudinventory.update({'obfuscate_hostnames': False})
+            session.cloudinventory.update({'obfuscate_ips': False})
+            session.cloudinventory.update({'exclude_packages': False})
 
 
 @pytest.mark.e2e
