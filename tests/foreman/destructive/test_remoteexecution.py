@@ -216,9 +216,8 @@ def test_positive_use_alternate_directory(
     assert search[0]['action'] == task['action']
 
 
-def register_host(satellite, host, cockpit=False):
+def register_host(satellite, host, org, cockpit=False):
     """Register a content host to Satellite"""
-    org = satellite.api.Organization().create()
     if cockpit:
         rhelver = host.os_version.major
         if rhelver > 7:
@@ -264,7 +263,7 @@ def copy_host_CA(host, satellite, host_path, satellite_path):
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
-def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
+def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost, function_org):
     """Setup Satellite's SSH cert, register host and run REX on that host
 
     :id: 353a21bf-f379-440a-9dc6-e17bf6414713
@@ -281,7 +280,7 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
         foreman_proxy_plugin_remote_execution_script_ssh_user_ca_public_key_file=sat_ca_file,
     )
     assert sat.install(command).status == 0
-    register_host(sat, host)
+    register_host(sat, host, function_org, cockpit=True)
     result = test_execution(sat, host)
     # assert the run actually happened and it was authenticated using cert
     assert result['success'] == '1'
@@ -295,7 +294,7 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
-def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost):
+def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost, function_org):
     """Setup Satellite's SSH cert, register host, setup incorrect cert on Satellite and run REX on the host
 
     :id: 7ddd170b-d489-4e2a-93af-ccf0c1a9d4ca
@@ -311,7 +310,7 @@ def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost):
         foreman_proxy_plugin_remote_execution_script_ssh_user_ca_public_key_file=sat_ca_file,
     )
     assert sat.install(command).status == 0
-    register_host(sat, host)
+    register_host(sat, host, function_org, cockpit=True)
 
     # create a different cert for the Satellite, with a wrong principal
     sat_ssh_path = '/var/lib/foreman-proxy/ssh/'
@@ -334,7 +333,9 @@ def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost):
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
-def test_positive_ssh_ca_host_only(target_sat, ca_contenthost, host_ca_file_on_satellite):
+def test_positive_ssh_ca_host_only(
+    target_sat, ca_contenthost, host_ca_file_on_satellite, function_org
+):
     """Setup host's SSH cert, add CA to Sat, register host and run REX on that host
 
     :id: 0ad9bbf7-0be5-49ca-8d79-969242b6b9bc
@@ -352,7 +353,7 @@ def test_positive_ssh_ca_host_only(target_sat, ca_contenthost, host_ca_file_on_s
         foreman_proxy_plugin_remote_execution_script_ssh_host_ca_public_keys_file=host_ca_file_on_satellite,
     )
     assert sat.install(command).status == 0
-    register_host(sat, host)
+    register_host(sat, host, function_org, cockpit=True)
     result = test_execution(sat, host)
     # assert the run actually happened and it was NOT authenticated using cert
     assert result['success'] == '1'
@@ -364,7 +365,9 @@ def test_positive_ssh_ca_host_only(target_sat, ca_contenthost, host_ca_file_on_s
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
-def test_negative_ssh_ca_host_wrong_cert(target_sat, ca_contenthost, host_ca_file_on_satellite):
+def test_negative_ssh_ca_host_wrong_cert(
+    target_sat, ca_contenthost, host_ca_file_on_satellite, function_org
+):
     """Setup host's SSH cert, add a different CA to Sat, register host and run REX on that host
 
     :id: 9e23d27d-a3a8-4c0d-9a0f-892d392aa660
@@ -384,7 +387,7 @@ def test_negative_ssh_ca_host_wrong_cert(target_sat, ca_contenthost, host_ca_fil
         foreman_proxy_plugin_remote_execution_script_ssh_host_ca_public_keys_file=host_ca_file_on_satellite,
     )
     assert sat.install(command).status == 0
-    register_host(sat, host)
+    register_host(sat, host, function_org, cockpit=True)
     # assert the run failed
     with pytest.raises(CLIFactoryError) as err:
         test_execution(sat, host)
@@ -396,7 +399,7 @@ def test_negative_ssh_ca_host_wrong_cert(target_sat, ca_contenthost, host_ca_fil
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
-    ca_sat, ca_contenthost, host_ca_file_on_satellite
+    ca_sat, ca_contenthost, host_ca_file_on_satellite, function_org
 ):
     """Setup Satellite's SSH cert, setup host's SSH cert, add CA to Sat, register host and run REX on that host
 
@@ -419,7 +422,7 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
         foreman_proxy_plugin_remote_execution_script_ssh_host_ca_public_keys_file=host_ca_file_on_satellite,
     )
     assert sat.install(command).status == 0
-    org = register_host(sat, host, cockpit=True)
+    register_host(sat, host, function_org, cockpit=True)
     # SSH REX
     result = test_execution(sat, host)
     # assert the run actually happened and it was authenticated using cert
@@ -459,7 +462,7 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
     # note that merely opening a cockpit in UI connects to ssh already
     # note that this is a UI part, as opposed to the previous parts and previous SSH CA tests
     with sat.ui_session() as session:
-        session.organization.select(org_name=org.name)
+        session.organization.select(org_name=function_org.name)
         hostname_inside_cockpit = session.host.get_webconsole_content(
             entity_name=host.hostname,
             rhel_version=host.os_version.major,
