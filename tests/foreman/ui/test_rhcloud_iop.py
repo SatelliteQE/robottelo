@@ -14,6 +14,7 @@
 
 import pytest
 from selenium.common.exceptions import NoSuchElementException
+
 from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION
 from robottelo.utils.datafactory import gen_string
@@ -48,9 +49,9 @@ def create_rbac_user(
 
     # Add built-in ForemanRhCloud role if specified
     if rhcloud_role_name:
-        rhcloud_role = target_sat.api.Role().search(query={'search': f'name="{rhcloud_role_name}"'})[
-            0
-        ]
+        rhcloud_role = target_sat.api.Role().search(
+            query={'search': f'name="{rhcloud_role_name}"'}
+        )[0]
         roles.append(rhcloud_role)
 
     # Create additional role with specified permissions if provided
