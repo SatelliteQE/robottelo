@@ -2069,22 +2069,28 @@ def test_all_hosts_bulk_cve_reassign(
     with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
         session.location.select(module_location.name)
-        headers = session.all_hosts.get_displayed_table_headers()
-        if "Lifecycle environment" not in headers:
+        try:
+            headers = session.all_hosts.get_displayed_table_headers()
+            if "Lifecycle environment" not in headers:
+                session.all_hosts.manage_table_columns(
+                    {
+                        'Lifecycle environment': True,
+                    }
+                )
+            pre_table = session.all_hosts.read_table()
+            for row in pre_table:
+                assert row['Lifecycle environment'] == module_lce.name
+            session.all_hosts.manage_cve(lce_name=lce2.name, cv_name=module_cv.name)
             wait_for(lambda: session.browser.refresh(), timeout=5)
+            post_table = session.all_hosts.read_table()
+            for row in post_table:
+                assert row['Lifecycle environment'] == lce2.name
+        finally:
             session.all_hosts.manage_table_columns(
                 {
-                    'Lifecycle environment': True,
+                    'Lifecycle environment': False,
                 }
             )
-        pre_table = session.all_hosts.read_table()
-        for row in pre_table:
-            assert row['Lifecycle environment'] == module_lce.name
-        session.all_hosts.manage_cve(lce=lce2.name, cv=module_cv.name)
-        wait_for(lambda: session.browser.refresh(), timeout=5)
-        post_table = session.all_hosts.read_table()
-        for row in post_table:
-            assert row['Lifecycle environment'] == lce2.name
 
 
 def test_all_hosts_redirect_button(target_sat):
