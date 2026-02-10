@@ -130,8 +130,15 @@ def _setup_prn_content(sat, manifest, test_name=None):
         docker_repository,
         ac_repository,
     ]
-    cv = sat.api.ContentView(organization=org, repository=repos).create()
-    lce = sat.api.LifecycleEnvironment(organization=org).create()
+    cv = sat.api.ContentView(organization=org, repository=repos, name=gen_string('alpha')).create()
+    library = (
+        sat.api.LifecycleEnvironment()
+        .search(query={'search': f'name={constants.ENVIRONMENT} and organization_id={org.id}'})[0]
+        .read()
+    )
+    lce = sat.api.LifecycleEnvironment(
+        organization=org, prior=library.id, name=gen_string('alpha')
+    ).create()
 
     cv.publish()
     cvv = cv.read().version[0].read()
