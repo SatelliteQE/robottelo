@@ -284,3 +284,76 @@ def test_positive_clone_job_template(module_org, module_target_sat):
     module_target_sat.cli.JobTemplate.delete({'name': template_name})
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.JobTemplate.info({'name': template_name})
+
+
+def test_positive_job_template_lock(module_org, module_target_sat):
+    """Verify Locked field
+
+    :id: 18c8bd52-1457-453c-b50d-49b5b6d2b8ef
+
+    :steps:
+        1. Create a job template
+        2. Verify that Locked field is present and template is unlocked
+        3. Lock job template
+        4. Verify that template cannot be updated
+        5. Unlock job template
+        6. Verify that template can be updated
+
+    :expectedresults: When unlocked, template can be edited. When locked, template cannot be edited.
+
+    :CaseImportance: High
+
+    :Verifies: SAT-38149
+    """
+
+    # Create job template
+    template_name = gen_string('alpha', 7)
+    description = gen_string('alpha', 10)
+    module_target_sat.cli_factory.job_template(
+        {
+            'description': description,
+            'organizations': module_org.name,
+            'name': template_name,
+            'file': TEMPLATE_FILE,
+        }
+    )
+
+    template = module_target_sat.cli.JobTemplate.info({'name': template_name})
+
+    # Verify that template is unlocked
+    assert 'locked' in template
+    assert template['locked'] == 'false'
+
+    # Lock template
+    module_target_sat.cli.JobTemplate.update(
+        {
+            'id': template['id'],
+            'locked': 'true',
+        }
+    )
+    template = module_target_sat.cli.JobTemplate.info({'name': template_name})
+    assert template['locked'] == 'true'
+
+    # Verify that template cannot be updated when locked
+    new_description = gen_string('alpha')
+    with pytest.raises(CLIReturnCodeError):
+        module_target_sat.cli.JobTemplate.update(
+            {'id': template['id'], 'description': new_description}
+        )
+    template = module_target_sat.cli.JobTemplate.info({'name': template_name})
+    assert description in template['description']
+
+    # Unlock template
+    module_target_sat.cli.JobTemplate.update(
+        {
+            'id': template['id'],
+            'locked': 'false',
+        }
+    )
+    template = module_target_sat.cli.JobTemplate.info({'name': template_name})
+    assert template['locked'] == 'false'
+
+    # Verify that template can be updated when unlocked
+    module_target_sat.cli.JobTemplate.update({'id': template['id'], 'description': new_description})
+    template = module_target_sat.cli.JobTemplate.info({'name': template_name})
+    assert new_description in template['description']
