@@ -28,6 +28,82 @@ CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 pytestmark = pytest.mark.destructive
 
 
+def create_CA(host, path='/root/CA', name=None):
+    """Create a new CA keypair"""
+    assert host.execute(f'mkdir -p {path}').status == 0
+    filename = 'id_ca' if name is None else f'id_{name}_ca'
+    assert (
+        host.execute(
+            f'cd {path} && if ! [ -f {filename} ]; then ssh-keygen -t ed25519 -f {filename} -N ""; fi'
+        ).status
+        == 0
+    )
+    return filename
+
+
+@pytest.fixture
+def ca_sat(target_sat):
+    """Setup SSH key certs and CA public key on Satellite"""
+    path = "/root/CA"
+    sat_ssh_path = '/var/lib/foreman-proxy/ssh/'
+    filename = create_CA(target_sat, path)
+    ca_path = f'{path}/{filename}'
+    key_name = 'id_rsa_foreman_proxy'
+    cert_name = f'{key_name}-cert.pub'
+    assert (
+        target_sat.execute(
+            f'cd {sat_ssh_path} && cp {ca_path}.pub . && restorecon {filename}.pub && chown foreman-proxy {filename}.pub && chgrp foreman-proxy {filename}.pub'
+        ).status
+        == 0
+    )
+    assert (
+        target_sat.execute(
+            f'cd {sat_ssh_path} && ssh-keygen -s {ca_path} -I satellite -n root {key_name}.pub && restorecon {cert_name} && chown foreman-proxy {cert_name} && chgrp foreman-proxy {cert_name}'
+        ).status
+        == 0
+    )
+    return (target_sat, f'{sat_ssh_path}/{filename}.pub')
+
+
+@pytest.fixture
+def ca_contenthost(rhel_contenthost):
+    """Setup SSH key certs and CA public key on content host"""
+    path = '/root/CA'
+    host_ssh_path = '/etc/ssh'
+    filename = create_CA(rhel_contenthost, path, 'host')
+    ca_path = f'{path}/{filename}'
+    # create a host key and sign it
+    key_name = 'ssh_host_ed25519_key'
+    cert_name = f'{key_name}-cert.pub'
+    assert (
+        rhel_contenthost.execute(
+            f'cd {host_ssh_path} && if ! [ -f {key_name} ]; then ssh-keygen -t ed25519 -f {key_name} -N ""; fi'
+        ).status
+        == 0
+    )
+    assert (
+        rhel_contenthost.execute(
+            f'cd {host_ssh_path} && ssh-keygen -s {ca_path} -I host -n {rhel_contenthost.hostname} -h {key_name}.pub'
+        ).status
+        == 0
+    )
+    # setup cert usage
+    assert (
+        rhel_contenthost.execute(
+            f'mkdir -p {host_ssh_path}/sshd_config.d && cd {host_ssh_path}/sshd_config.d && echo "HostCertificate {host_ssh_path}/{cert_name}" > 60-host-cert.conf'
+        ).status
+        == 0
+    )
+    assert rhel_contenthost.execute('systemctl restart sshd').status == 0
+    return (rhel_contenthost, f'{ca_path}.pub')
+
+
+@pytest.fixture
+def host_ca_file_on_satellite(ca_contenthost):
+    """Return path of CA public key on Satellite"""
+    return f'/var/lib/foreman-proxy/ssh/{ca_contenthost[1].split("/")[-1]}'
+
+
 def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
     """Run Capsule Upgrade playbook against the Satellite itself
 
@@ -140,82 +216,6 @@ def test_positive_use_alternate_directory(
     assert search[0]['action'] == task['action']
 
 
-def create_CA(host, path='/root/CA', name=None):
-    """Create a new CA keypair"""
-    assert host.execute(f'mkdir -p {path}').status == 0
-    filename = 'id_ca' if name is None else f'id_{name}_ca'
-    assert (
-        host.execute(
-            f'cd {path} && if ! [ -f {filename} ]; then ssh-keygen -t ed25519 -f {filename} -N ""; fi'
-        ).status
-        == 0
-    )
-    return filename
-
-
-@pytest.fixture
-def ca_sat(target_sat):
-    """Setup SSH key certs and CA public key on Satellite"""
-    path = "/root/CA"
-    sat_ssh_path = '/var/lib/foreman-proxy/ssh/'
-    filename = create_CA(target_sat, path)
-    ca_path = f'{path}/{filename}'
-    key_name = 'id_rsa_foreman_proxy'
-    cert_name = f'{key_name}-cert.pub'
-    assert (
-        target_sat.execute(
-            f'cd {sat_ssh_path} && cp {ca_path}.pub . && restorecon {filename}.pub && chown foreman-proxy {filename}.pub && chgrp foreman-proxy {filename}.pub'
-        ).status
-        == 0
-    )
-    assert (
-        target_sat.execute(
-            f'cd {sat_ssh_path} && ssh-keygen -s {ca_path} -I satellite -n root {key_name}.pub && restorecon {cert_name} && chown foreman-proxy {cert_name} && chgrp foreman-proxy {cert_name}'
-        ).status
-        == 0
-    )
-    return (target_sat, f'{sat_ssh_path}/{filename}.pub')
-
-
-@pytest.fixture
-def ca_contenthost(rhel_contenthost):
-    """Setup SSH key certs and CA public key on content host"""
-    path = '/root/CA'
-    host_ssh_path = '/etc/ssh'
-    filename = create_CA(rhel_contenthost, path, 'host')
-    ca_path = f'{path}/{filename}'
-    # create a host key and sign it
-    key_name = 'ssh_host_ed25519_key'
-    cert_name = f'{key_name}-cert.pub'
-    assert (
-        rhel_contenthost.execute(
-            f'cd {host_ssh_path} && if ! [ -f {key_name} ]; then ssh-keygen -t ed25519 -f {key_name} -N ""; fi'
-        ).status
-        == 0
-    )
-    assert (
-        rhel_contenthost.execute(
-            f'cd {host_ssh_path} && ssh-keygen -s {ca_path} -I host -n {rhel_contenthost.hostname} -h {key_name}.pub'
-        ).status
-        == 0
-    )
-    # setup cert usage
-    assert (
-        rhel_contenthost.execute(
-            f'mkdir -p {host_ssh_path}/sshd_config.d && cd {host_ssh_path}/sshd_config.d && echo "HostCertificate {host_ssh_path}/{cert_name}" > 60-host-cert.conf'
-        ).status
-        == 0
-    )
-    assert rhel_contenthost.execute('systemctl restart sshd').status == 0
-    return (rhel_contenthost, f'{ca_path}.pub')
-
-
-@pytest.fixture
-def host_ca_file_on_satellite(ca_contenthost):
-    """Return path of CA public key on Satellite"""
-    return f'/var/lib/foreman-proxy/ssh/{ca_contenthost[1].split("/")[-1]}'
-
-
 def register_host(satellite, host, cockpit=False):
     """Register a content host to Satellite"""
     org = satellite.api.Organization().create()
@@ -244,22 +244,15 @@ def test_execution(satellite, host):
     return satellite.cli.JobInvocation.info({'id': invocation_command['id']})
 
 
-def log_save(satellite, host):
-    """Save a number of lines mentioning CA was used in sshd log,
+def log_count(satellite, host):
+    """Return number of lines mentioning CA was used in sshd log,
     for later use
     """
-    host.execute(
-        f'journalctl -u sshd | grep {satellite.ip_addr} | grep CA | wc -l > /root/saved_sshd_log'
+    return int(
+        host.execute(
+            f'journalctl -u sshd | grep {satellite.ip_addr} | grep CA | wc -l'
+        ).stdout.strip()
     )
-
-
-def log_compare(satellite, host):
-    """Compare a number of lines mentioning CA was used in sshd log
-    with previously stored value
-    """
-    return host.execute(
-        f'[ $(( $(cat /root/saved_sshd_log) + 1 )) -eq $(journalctl -u sshd | grep {satellite.ip_addr} | grep " CA " | wc -l) ]'
-    ).status
 
 
 def copy_host_CA(host, satellite, host_path, satellite_path):
@@ -272,18 +265,18 @@ def copy_host_CA(host, satellite, host_path, satellite_path):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
-    """Setup Satellite's SSH key's cert, register host and run REX on that host
+    """Setup Satellite's SSH cert, register host and run REX on that host
 
     :id: 353a21bf-f379-440a-9dc6-e17bf6414713
 
-    :expectedresults: Verify the job has been run successfully against the host, Sat's cert hasn't been added to host's authorized_keys and CA verification has been used instead
+    :expectedresults: Verify the job has been run successfully against the host, Sat's public key hasn't been added to host's authorized_keys and CA verification has been used instead
 
     :parametrized: yes
     """
     sat = ca_sat[0]
     host = rhel_contenthost
     sat_ca_file = ca_sat[1]
-    log_save(sat, host)
+    saved_count = log_count(sat, host)
     command = InstallerCommand(
         foreman_proxy_plugin_remote_execution_script_ssh_user_ca_public_key_file=sat_ca_file,
     )
@@ -293,7 +286,7 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
     # assert the run actually happened and it was authenticated using cert
     assert result['success'] == '1'
     logger.debug(result)
-    assert log_compare(sat, host) == 0
+    assert log_count(sat, host) == saved_count + 1
     check = host.execute('grep rex_passed /root/test')
     assert check.status == 0
     check = host.execute(f'grep {sat.hostname} /root/.ssh/authorized_keys')
@@ -303,7 +296,7 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost):
-    """Setup Satellite's SSH key's cert, register host, setup incorrect cert on Satellite and run REX on the host
+    """Setup Satellite's SSH cert, register host, setup incorrect cert on Satellite and run REX on the host
 
     :id: 7ddd170b-d489-4e2a-93af-ccf0c1a9d4ca
 
@@ -342,7 +335,7 @@ def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_host_only(target_sat, ca_contenthost, host_ca_file_on_satellite):
-    """Setup host's SSH key's cert, add CA to Sat, register host and run REX on that host
+    """Setup host's SSH cert, add CA to Sat, register host and run REX on that host
 
     :id: 0ad9bbf7-0be5-49ca-8d79-969242b6b9bc
 
@@ -354,7 +347,7 @@ def test_positive_ssh_ca_host_only(target_sat, ca_contenthost, host_ca_file_on_s
     host = ca_contenthost[0]
     host_ca_file = ca_contenthost[1]
     copy_host_CA(host, sat, host_ca_file, host_ca_file_on_satellite)
-    log_save(sat, host)
+    saved_count = log_count(sat, host)
     command = InstallerCommand(
         foreman_proxy_plugin_remote_execution_script_ssh_host_ca_public_keys_file=host_ca_file_on_satellite,
     )
@@ -364,7 +357,7 @@ def test_positive_ssh_ca_host_only(target_sat, ca_contenthost, host_ca_file_on_s
     # assert the run actually happened and it was NOT authenticated using cert
     assert result['success'] == '1'
     logger.debug(result)
-    assert log_compare(sat, host) != 0
+    assert log_count(sat, host) == saved_count
     check = host.execute('grep rex_passed /root/test')
     assert check.status == 0
 
@@ -372,7 +365,7 @@ def test_positive_ssh_ca_host_only(target_sat, ca_contenthost, host_ca_file_on_s
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_negative_ssh_ca_host_wrong_cert(target_sat, ca_contenthost, host_ca_file_on_satellite):
-    """Setup host's SSH key's cert, add a different CA to Sat, register host and run REX on that host
+    """Setup host's SSH cert, add a different CA to Sat, register host and run REX on that host
 
     :id: 9e23d27d-a3a8-4c0d-9a0f-892d392aa660
 
@@ -405,11 +398,11 @@ def test_negative_ssh_ca_host_wrong_cert(target_sat, ca_contenthost, host_ca_fil
 def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
     ca_sat, ca_contenthost, host_ca_file_on_satellite
 ):
-    """Setup Satellite's SSH key's cert, setup host's SSH key's cert, add CA to Sat, register host and run REX on that host
+    """Setup Satellite's SSH cert, setup host's SSH cert, add CA to Sat, register host and run REX on that host
 
     :id: 97c17417-3b20-4876-bf9c-7219a91acee2
 
-    :expectedresults: Verify the job has been run successfully against the host, Sat's cert hasn't been added to host's authorized_keys and CA verification has been used instead
+    :expectedresults: Verify the job has been run successfully against the host, Sat's public key hasn't been added to host's authorized_keys and CA verification has been used instead
 
 
     :parametrized: yes
@@ -420,7 +413,7 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
     host_ca_file = ca_contenthost[1]
     copy_host_CA(host, sat, host_ca_file, host_ca_file_on_satellite)
     # setup CA
-    log_save(sat, host)
+    saved_count = log_count(sat, host)
     command = InstallerCommand(
         foreman_proxy_plugin_remote_execution_script_ssh_user_ca_public_key_file=sat_ca_file,
         foreman_proxy_plugin_remote_execution_script_ssh_host_ca_public_keys_file=host_ca_file_on_satellite,
@@ -432,13 +425,13 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
     # assert the run actually happened and it was authenticated using cert
     assert result['success'] == '1'
     logger.debug(result)
-    assert log_compare(sat, host) == 0
+    assert log_count(sat, host) == saved_count + 1
     check = host.execute('grep rex_passed /root/test')
     assert check.status == 0
     check = host.execute(f'grep {sat.hostname} /root/.ssh/authorized_keys')
     assert check.status != 0
     # ANSIBLE REX
-    log_save(sat, host)
+    saved_count = log_count(sat, host)
     command = "echo rex2_passed $(date) > /root/test"
     invocation_command = sat.cli_factory.job_invocation(
         {
@@ -451,11 +444,11 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
     # assert the run actually happened and it was authenticated using cert
     assert result['success'] == '1'
     logger.debug(result)
-    assert log_compare(sat, host) == 0
+    assert log_count(sat, host) == saved_count + 1
     check = host.execute('grep rex2_passed /root/test')
     assert check.status == 0
     # COCKPIT
-    log_save(sat, host)
+    saved_count = log_count(sat, host)
     # setup Satellite for cockpit
     sat.register_to_cdn()
     sat.install_cockpit()
@@ -474,4 +467,5 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
         assert host.hostname in hostname_inside_cockpit, (
             f'cockpit page shows hostname {hostname_inside_cockpit} instead of {host.hostname}'
         )
-    assert log_compare(sat, host) == 0
+    # assert the cockpit access was authenticated using cert
+    assert log_count(sat, host) == saved_count + 1
