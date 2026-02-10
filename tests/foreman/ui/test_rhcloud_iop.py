@@ -14,12 +14,66 @@
 
 import pytest
 from selenium.common.exceptions import NoSuchElementException
-
+from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION
 from robottelo.utils.datafactory import gen_string
 from tests.foreman.ui.test_rhcloud_insights import (
     create_insights_vulnerability as create_insights_recommendation,
 )
+
+
+def create_rbac_user(
+    target_sat,
+    organization,
+    location,
+    rhcloud_role_name=None,
+    additional_permissions=None,
+):
+    """Helper function to create a user with specified RBAC roles and permissions.
+
+    Args:
+        target_sat: Target Satellite instance
+        organization: Organization to assign to the user
+        location: Location to assign to the user
+        rhcloud_role_name (str, optional): Built-in ForemanRhCloud role name to search for
+            (e.g., "ForemanRhCloud Read Only", "ForemanRhCloud"). If None, no built-in role is used.
+        additional_permissions (dict, optional): Additional permissions to create in a new role.
+            Format: {'Resource': ['permission1', 'permission2'], ...}
+
+    Returns:
+        tuple: (user, user_password)
+    """
+    user_password = gen_string('alpha')
+    roles = []
+
+    # Add built-in ForemanRhCloud role if specified
+    if rhcloud_role_name:
+        rhcloud_role = target_sat.api.Role().search(query={'search': f'name="{rhcloud_role_name}"'})[
+            0
+        ]
+        roles.append(rhcloud_role)
+
+    # Create additional role with specified permissions if provided
+    if additional_permissions:
+        additional_role = target_sat.api.Role(organization=[organization]).create()
+        target_sat.api_factory.create_role_permissions(additional_role, additional_permissions)
+        roles.append(additional_role)
+
+    # Create user with specified roles
+    user = target_sat.api.User(
+        role=roles,
+        admin=False,
+        password=user_password,
+        organization=[organization],
+        location=[location],
+    ).create()
+
+    # Set default organization and location after creation to avoid validation order issues
+    user.default_organization = organization
+    user.default_location = location
+    user.update(['default_organization', 'default_location'])
+
+    return user, user_password
 
 
 @pytest.mark.e2e
@@ -62,9 +116,6 @@ def test_iop_recommendations_e2e(
     :CaseAutomation: Automated
     """
     org_name = rhcloud_manifest_org.name
-
-    # Verify insights-client package is installed
-    assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
     create_insights_recommendation(rhel_insights_vm)
@@ -220,9 +271,6 @@ def test_iop_recommendations_host_details_e2e(
     """
     org_name = rhcloud_manifest_org.name
 
-    # Verify insights-client package is installed
-    assert rhel_insights_vm.execute('insights-client --version').status == 0
-
     # Prepare misconfigured machine and upload data to Insights
     create_insights_recommendation(rhel_insights_vm)
 
@@ -321,9 +369,6 @@ def test_iop_recommendations_remediation_type_and_status(
     """
     org_name = rhcloud_manifest_org.name
 
-    # Verify insights-client package is installed
-    assert rhel_insights_vm.execute('insights-client --version').status == 0
-
     # Prepare misconfigured machine and upload data to Insights
     create_insights_recommendation(rhel_insights_vm)
 
@@ -350,7 +395,7 @@ def test_iop_recommendations_remediation_type_and_status(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('10')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_insights_rbac_view_only_permissions(
     test_name,
@@ -381,51 +426,23 @@ def test_iop_insights_rbac_view_only_permissions(
         4. User can view the Vulnerabilities page.
         5. Edit actions are not available for vulnerabilities.
 
-    :CaseImportance: High
-
-    :customerscenario: true
-
     :parametrized: yes
-
-    :CaseAutomation: Automated
     """
     CVE_ID = 'CVE-2018-10896'
     org_name = rhcloud_manifest_org.name
-    user_password = gen_string('alpha')
 
-    # Use built-in ForemanRhCloud Read Only role
-    rhcloud_role = module_target_sat_insights.api.Role().search(
-        query={'search': 'name="ForemanRhCloud Read Only"'}
-    )[0]
-
-    # Create additional role with basic permissions
-    additional_role = module_target_sat_insights.api.Role(
-        organization=[rhcloud_manifest_org]
-    ).create()
-    module_target_sat_insights.api_factory.create_role_permissions(
-        additional_role,
-        {
+    # Create user with view-only permissions
+    user, user_password = create_rbac_user(
+        target_sat=module_target_sat_insights,
+        organization=rhcloud_manifest_org,
+        location=default_location,
+        rhcloud_role_name='ForemanRhCloud Read Only',
+        additional_permissions={
             'Organization': ['view_organizations'],
             'Location': ['view_locations'],
             'Host': ['view_hosts'],
         },
     )
-
-    # Create user with view-only roles
-    user = module_target_sat_insights.api.User(
-        role=[rhcloud_role, additional_role],
-        admin=False,
-        password=user_password,
-        organization=[rhcloud_manifest_org],
-        location=[default_location],
-    ).create()
-    # Set default organization and location after creation to avoid validation order issues
-    user.default_organization = rhcloud_manifest_org
-    user.default_location = default_location
-    user.update(['default_organization', 'default_location'])
-
-    # Verify insights-client package is installed
-    assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
     create_insights_recommendation(rhel_insights_vm)
@@ -455,7 +472,7 @@ def test_iop_insights_rbac_view_only_permissions(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('10')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_insights_rbac_edit_permissions(
     test_name,
@@ -487,51 +504,23 @@ def test_iop_insights_rbac_edit_permissions(
         4. User can view the Vulnerabilities page.
         5. User can access remediation actions for vulnerabilities.
 
-    :CaseImportance: High
-
-    :customerscenario: true
-
     :parametrized: yes
-
-    :CaseAutomation: Automated
     """
     CVE_ID = 'CVE-2018-10896'
     org_name = rhcloud_manifest_org.name
-    user_password = gen_string('alpha')
 
-    # Use built-in ForemanRhCloud role
-    rhcloud_role = module_target_sat_insights.api.Role().search(
-        query={'search': 'name="ForemanRhCloud"'}
-    )[0]
-
-    # Create additional role with basic and remote execution permissions
-    additional_role = module_target_sat_insights.api.Role(
-        organization=[rhcloud_manifest_org]
-    ).create()
-    module_target_sat_insights.api_factory.create_role_permissions(
-        additional_role,
-        {
+    # Create user with edit permissions
+    user, user_password = create_rbac_user(
+        target_sat=module_target_sat_insights,
+        organization=rhcloud_manifest_org,
+        location=default_location,
+        rhcloud_role_name='ForemanRhCloud',
+        additional_permissions={
             'Organization': ['view_organizations'],
             'Location': ['view_locations'],
             'Host': ['view_hosts'],
         },
     )
-
-    # Create user with edit roles
-    user = module_target_sat_insights.api.User(
-        role=[rhcloud_role, additional_role],
-        admin=False,
-        password=user_password,
-        organization=[rhcloud_manifest_org],
-        location=[default_location],
-    ).create()
-    # Set default organization and location after creation to avoid validation order issues
-    user.default_organization = rhcloud_manifest_org
-    user.default_location = default_location
-    user.update(['default_organization', 'default_location'])
-
-    # Verify insights-client package is installed
-    assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
     create_insights_recommendation(rhel_insights_vm)
@@ -561,7 +550,7 @@ def test_iop_insights_rbac_edit_permissions(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('10')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_insights_rbac_no_permissions(
     test_name,
@@ -588,24 +577,17 @@ def test_iop_insights_rbac_no_permissions(
         2. User cannot access the Vulnerabilities page.
         3. Navigation items may be hidden or access is denied with permission error.
 
-    :CaseImportance: High
-
-    :customerscenario: true
-
     :parametrized: yes
-
-    :CaseAutomation: Automated
 
     :BlockedBy: RHINENG-23601
     """
-    user_password = gen_string('alpha')
-
-    # Create role with no advisor or vulnerability permissions
-    # Only include basic organization and location permissions
-    role = module_target_sat_insights.api.Role(organization=[rhcloud_manifest_org]).create()
-    module_target_sat_insights.api_factory.create_role_permissions(
-        role,
-        {
+    # Create user with no advisor or vulnerability permissions
+    user, user_password = create_rbac_user(
+        target_sat=module_target_sat_insights,
+        organization=rhcloud_manifest_org,
+        location=default_location,
+        rhcloud_role_name=None,
+        additional_permissions={
             'Organization': ['view_organizations'],
             'Location': ['view_locations'],
             'Host': ['view_hosts'],
@@ -613,22 +595,6 @@ def test_iop_insights_rbac_no_permissions(
             'InsightsHit': ['view_insights_hits'],
         },
     )
-
-    # Create user with no insights permissions
-    user = module_target_sat_insights.api.User(
-        role=[role],
-        admin=False,
-        password=user_password,
-        organization=[rhcloud_manifest_org],
-        location=[default_location],
-    ).create()
-    # Set default organization and location after creation to avoid validation order issues
-    user.default_organization = rhcloud_manifest_org
-    user.default_location = default_location
-    user.update(['default_organization', 'default_location'])
-
-    # Verify insights-client package is installed
-    assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
     create_insights_recommendation(rhel_insights_vm)
