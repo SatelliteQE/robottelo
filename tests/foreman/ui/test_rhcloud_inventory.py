@@ -41,6 +41,14 @@ def data_collection_default(module_target_sat):
     settings_object.update({'value'})
 
 
+@pytest.fixture(autouse=True)
+def ensure_default_inventory_state(module_target_sat):
+    """Ensure inventory settings are in default state before each test"""
+    module_target_sat.update_setting('obfuscate_inventory_hostnames', False)
+    module_target_sat.update_setting('obfuscate_inventory_ips', False)
+    module_target_sat.update_setting('exclude_installed_packages', False)
+
+
 @pytest.fixture
 def data_collection_minimal(module_target_sat):
     """Fixture to set minimal data collection setting to 'Yes'"""
