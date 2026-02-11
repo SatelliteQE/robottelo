@@ -298,10 +298,10 @@ def test_insights_client_registration_with_http_proxy(
     module_target_sat_insights,
     setup_http_proxy,
     rhel_contenthost,
-    rhcloud_activation_key,
-    rhcloud_manifest_org,
+    activation_key_with_els_manifest_org,
+    module_els_manifest_org,
 ):
-    """Verify that insights-client registration work with HTTP Proxy.
+    """Verify that insights-client registration works with HTTP Proxy.
 
     :id: 6ab0842e-9e8b-4d9e-aed4-b183f7e8f44d
 
@@ -324,8 +324,8 @@ def test_insights_client_registration_with_http_proxy(
     """
     rhel_contenthost.configure_insights_client(
         module_target_sat_insights,
-        rhcloud_activation_key,
-        rhcloud_manifest_org,
+        activation_key_with_els_manifest_org,
+        module_els_manifest_org,
         f"rhel{rhel_contenthost.os_version.major}",
     )
     assert rhel_contenthost.execute('insights-client --register').status == 0

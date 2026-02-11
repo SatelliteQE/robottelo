@@ -1,5 +1,7 @@
+from manifester import Manifester
 import pytest
 
+from robottelo.config import settings
 from robottelo.constants import CAPSULE_REGISTRATION_OPTS
 
 
@@ -32,6 +34,26 @@ def module_target_sat_insights(request, module_target_sat):
 
 
 @pytest.fixture(scope='module')
+def module_els_manifest():
+    """Module-scoped ELS manifest
+
+    Uses a different manifest (els_rhel_manifest) than module_sca_manifest
+    (golden_ticket) so we get a different allocation/export and avoid the Candlepin error
+    'This subscription management application has already been imported by another owner'.
+    """
+    with Manifester(manifest_category=settings.manifest.els_rhel_manifest) as manifest:
+        yield manifest
+
+
+@pytest.fixture(scope='module')
+def module_els_manifest_org(module_target_sat_insights, module_els_manifest):
+    """A module level fixture to get organization with els manifest."""
+    org = module_target_sat_insights.api.Organization().create()
+    module_target_sat_insights.upload_manifest(org.id, module_els_manifest.content)
+    return org
+
+
+@pytest.fixture(scope='module')
 def rhcloud_manifest_org(module_target_sat_insights, module_sca_manifest):
     """A module level fixture to get organization with manifest."""
     org = module_target_sat_insights.api.Organization().create()
@@ -41,7 +63,7 @@ def rhcloud_manifest_org(module_target_sat_insights, module_sca_manifest):
 
 @pytest.fixture(scope='module')
 def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
-    """A module-level fixture to create an Activation key in module_org"""
+    """A module-level fixture to create an Activation key in rhcloud_manifest_org"""
     return module_target_sat_insights.api.ActivationKey(
         content_view=rhcloud_manifest_org.default_content_view,
         organization=rhcloud_manifest_org,
@@ -51,6 +73,18 @@ def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
+    ).create()
+
+
+@pytest.fixture(scope='module')
+def activation_key_with_els_manifest_org(module_target_sat_insights, module_els_manifest_org):
+    """A module-level fixture to create an Activation key in module_els_manifest_org"""
+    return module_target_sat_insights.api.ActivationKey(
+        content_view=module_els_manifest_org.default_content_view,
+        organization=module_els_manifest_org,
+        environment=module_target_sat_insights.api.LifecycleEnvironment(
+            id=module_els_manifest_org.library.id
+        ),
     ).create()
 
 
