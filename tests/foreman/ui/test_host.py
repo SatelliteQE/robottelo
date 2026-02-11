@@ -1024,7 +1024,7 @@ def test_positive_search_by_parameter(session, module_org, smart_proxy_location,
         assert values[0]['Name'] == param_host.name
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_positive_search_by_reported_data(
     target_sat, rhel_contenthost, module_org, module_ak_with_cv
@@ -1037,11 +1037,9 @@ def test_positive_search_by_reported_data(
 
     :expectedresults: Return only hosts matching the reported data.
 
-    :Verifies: SAT-9132
+    :Verifies: SAT-9132, SAT-38761
 
     :customerscenario: true
-
-    :BlockedBy: SAT-38761
     """
     result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
@@ -2071,22 +2069,28 @@ def test_all_hosts_bulk_cve_reassign(
     with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
         session.location.select(module_location.name)
-        headers = session.all_hosts.get_displayed_table_headers()
-        if "Lifecycle environment" not in headers:
+        try:
+            headers = session.all_hosts.get_displayed_table_headers()
+            if 'Lifecycle environment' not in headers:
+                session.all_hosts.manage_table_columns(
+                    {
+                        'Lifecycle environment': True,
+                    }
+                )
+            pre_table = session.all_hosts.read_table()
+            for row in pre_table:
+                assert row['Lifecycle environment'] == module_lce.name
+            session.all_hosts.manage_cve(lce_name=lce2.name, cv_name=module_cv.name)
             wait_for(lambda: session.browser.refresh(), timeout=5)
+            post_table = session.all_hosts.read_table()
+            for row in post_table:
+                assert row['Lifecycle environment'] == lce2.name
+        finally:
             session.all_hosts.manage_table_columns(
                 {
-                    'Lifecycle environment': True,
+                    'Lifecycle environment': False,
                 }
             )
-        pre_table = session.all_hosts.read_table()
-        for row in pre_table:
-            assert row['Lifecycle environment'] == module_lce.name
-        session.all_hosts.manage_cve(lce=lce2.name, cv=module_cv.name)
-        wait_for(lambda: session.browser.refresh(), timeout=5)
-        post_table = session.all_hosts.read_table()
-        for row in post_table:
-            assert row['Lifecycle environment'] == lce2.name
 
 
 def test_all_hosts_redirect_button(target_sat):
@@ -3050,6 +3054,188 @@ def test_disassociate_multiple_hosts(
             )
 
 
+def test_positive_change_power_state(
+    request,
+    target_sat,
+    module_location,
+    module_org,
+    vmware,
+    default_location,
+):
+    """
+    Import multiple VMs from a VMware compute resource, Power Off them via the UI,
+    and verify Hosts are Power Off .
+
+    :id: e23bcd69-4c57-4967-aeec-7b4fbf6eaff3
+
+    :steps:
+        1. Create all required entities (domain, subnet, hostgroup, etc.)
+        2. Import 2 VMs from VMware into Satellite
+        3. Power Off the VMs via the All Hosts UI
+        4. Verify via UI that Hosts are Power off
+        5. Powers them back on and verifies "On" state
+        6. Stops them twice and verifies final "Off" state
+
+    :expectedresults: VMs are Power off and Power icon should change to red.
+
+    """
+
+    cr_name = gen_string('alpha')
+
+    # create entities for hostgroup
+    target_sat.api.SmartProxy(
+        id=target_sat.nailgun_smart_proxy.id, location=[default_location.id, module_location.id]
+    ).update()
+    domain = target_sat.api.Domain(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    subnet = target_sat.api.Subnet(
+        organization=[module_org.id], location=[module_location], domain=[domain]
+    ).create()
+    architecture = target_sat.api.Architecture().create()
+    ptable = target_sat.api.PartitionTable(
+        organization=[module_org.id], location=[module_location]
+    ).create()
+    operatingsystem = target_sat.api.OperatingSystem(
+        architecture=[architecture], ptable=[ptable]
+    ).create()
+    medium = target_sat.api.Media(
+        organization=[module_org.id], location=[module_location], operatingsystem=[operatingsystem]
+    ).create()
+    lce = target_sat.api.LifecycleEnvironment(id=module_org.library.id).read()
+    cv = target_sat.api.ContentView(organization=module_org).create()
+    cv.publish()
+
+    # create hostgroup
+    hostgroup_name = gen_string('alpha')
+    target_sat.api.HostGroup(
+        name=hostgroup_name,
+        architecture=architecture,
+        domain=domain,
+        subnet=subnet,
+        location=[module_location.id],
+        medium=medium,
+        operatingsystem=operatingsystem,
+        organization=[module_org],
+        ptable=ptable,
+        lifecycle_environment=lce.id,
+        content_view=cv,
+        content_source=target_sat.nailgun_smart_proxy.id,
+    ).create()
+    cr_vm_names = [settings.vmware.vm_name, 'proton-testing-guest-rhel-8']
+    vm_names_with_domains = [f'{name.replace(".", "")}.{domain.name}' for name in cr_vm_names]
+
+    # Create compute resource via API
+    compute_resource = target_sat.api.VMWareComputeResource(
+        name=cr_name,
+        provider='Vmware',
+        url=vmware.hostname,
+        user=settings.vmware.username,
+        password=settings.vmware.password,
+        datacenter=settings.vmware.datacenter,
+        organization=[module_org],
+        location=[module_location],
+    ).create()
+
+    @request.addfinalizer
+    def _cleanup():
+        # Clean up each host: power on, disassociate, and delete via API
+        for vm_name in vm_names_with_domains:
+            try:
+                hosts = target_sat.api.Host().search(query={"search": f'name={vm_name}'})
+                if hosts:
+                    host = hosts[0]
+                    # Power on (in case test failed during power-off state)
+                    try:
+                        host.power(data={'power_action': 'start'})
+                    except Exception as e:
+                        print(f"Failed to power on VM {vm_name}: {e}")
+
+                    # Disassociate from compute resource
+                    try:
+                        host.disassociate()
+                    except Exception as e:
+                        print(f"Failed to disassociate VM {vm_name}: {e}")
+
+                    # Delete host
+                    try:
+                        host.delete()
+                    except APIResponseError as e:
+                        print(f"Failed to delete VM {vm_name}: {e}")
+            except Exception as e:
+                print(f"Failed to find host {vm_name}: {e}")
+
+        # Clean up compute resource
+        try:
+            compute_resource.delete()
+        except Exception as e:
+            print(f"Failed to delete compute resource: {e}")
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+
+        try:
+            session.hostgroup.update(
+                hostgroup_name, {'host_group.deploy': f'{cr_name} ({FOREMAN_PROVIDERS["vmware"]})'}
+            )
+
+            # Import VMs from VMware compute resource
+            for cr_vm_name, _vm_name_with_domain in zip(
+                cr_vm_names, vm_names_with_domains, strict=False
+            ):
+                session.computeresource.vm_import(
+                    cr_name,
+                    cr_vm_name,
+                    hostgroup_name,
+                    module_location.name,
+                    name=cr_vm_name.replace('.', ''),
+                )
+            for vm_name in cr_vm_names:
+                power_status = session.computeresource.vm_status(cr_name, vm_name)
+                if not power_status:
+                    session.computeresource.vm_poweron(cr_name, vm_name)
+
+            # Ensure the 'Power' column is displayed in the All Hosts table
+            headers = session.all_hosts.get_displayed_table_headers()
+            if "Power" not in headers:
+                session.all_hosts.manage_table_columns(
+                    {
+                        'Power': True,
+                    }
+                )
+            session.all_hosts.change_power_state(state='Power Off', select_all_hosts=True)
+            # Wait for the modal to close and table to refresh after power state change
+            session.browser.plugin.ensure_page_safe(timeout='20s')
+            # UI check
+            for host in vm_names_with_domains:
+                state = session.all_hosts.read_power_state_icon(host_name=host)
+                assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
+            session.all_hosts.change_power_state(state='Start', select_all_hosts=True)
+            # Wait for the modal to close and table to refresh after power state change
+            session.browser.plugin.ensure_page_safe(timeout='20s')
+            for host in vm_names_with_domains:
+                state = session.all_hosts.read_power_state_icon(host_name=host)
+                assert state['state'] == 'On', f"Host {host} state didn't change to On"
+            # Stop sends a shutdown command to the server or vm and that can take anywhere
+            # from a few minutes to 15-20 so if we send Stop twice then it shutdown immediately
+            session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
+            session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
+            # Wait for the modal to close and table to refresh after power state change
+            session.browser.plugin.ensure_page_safe(timeout='20s')
+            for host in vm_names_with_domains:
+                state = session.all_hosts.read_power_state_icon(host_name=host)
+                assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
+
+        finally:
+            # Reset Power column state before session closes
+            session.all_hosts.manage_table_columns(
+                {
+                    'Power': False,
+                }
+            )
+
+
 def assert_hosts_owner_helper(target_sat, session, hosts, expected_owner, owner_type='user'):
     """
     Assert that all hosts have the expected owner both via API and UI.
@@ -3957,3 +4143,49 @@ def test_cloud_billing_details(
             assert str(cloud_billing[ui_field]) == str(expected_value), (
                 f'{cloud_provider.upper()}: {field} value mismatch. Expected: {expected_value}, Got: {cloud_billing[ui_field]}'
             )
+
+
+@pytest.mark.rhel_ver_match(f'{settings.content_host.default_rhel_version}')
+@pytest.mark.no_containers
+def test_assign_multi_cv_from_host_page(
+    module_target_sat, module_org, module_lce, module_cv_repo, rhel_contenthost
+):
+    """Ensure that multiple content views can be assigned via the host details page
+
+    :id: 518e6229-d728-4908-b95d-28de5d9b6f65
+
+    :steps:
+        1. Create a content view and an activation key associated with the content view and the Library lifecycle environment.
+        2. Register a host using the activation key.
+        3. On the Overview tab of the details page for the host, select the 'Assign content view environments' action from the 'Content view environments' card dropdown.
+        4. Assign a new content view environment with a non-Library lifecycle environment and the content view created previously.
+
+    :expectedresults:
+        1. The content view environments card on the host details page shows two content view environments.
+        2. One of the content view environments is associated with the Library lifecycle environment.
+        3. The other content view environment is associated with the non-Library lifecycle environment.
+
+    :verifies: SAT-25846
+    """
+    ak = module_target_sat.api.ActivationKey(
+        organization=module_org.id,
+        content_view=module_cv_repo.id,
+        environment=module_org.library.id,
+    ).create()
+    result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
+    assert result.status == 0
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.host_new.add_content_view_env(
+            rhel_contenthost.hostname, module_cv_repo.name, module_lce.name
+        )
+        cv_envs = session.host_new.get_content_view_envs(rhel_contenthost.hostname)
+
+    assert len(cv_envs) == 2
+
+    library_cv_env = [env for env in cv_envs if env['lce'] == 'Library'][0]
+    assert library_cv_env['content_view'] == module_cv_repo.name
+
+    new_cv_env = [env for env in cv_envs if env['lce'] == module_lce.name][0]
+    assert new_cv_env['content_view'] == module_cv_repo.name
