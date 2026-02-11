@@ -2071,7 +2071,7 @@ def test_all_hosts_bulk_cve_reassign(
         session.location.select(module_location.name)
         try:
             headers = session.all_hosts.get_displayed_table_headers()
-            if "Lifecycle environment" not in headers:
+            if 'Lifecycle environment' not in headers:
                 session.all_hosts.manage_table_columns(
                     {
                         'Lifecycle environment': True,
