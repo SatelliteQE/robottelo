@@ -959,12 +959,14 @@ class TestRemoteExecution:
         )
         # wait for the third task to be planned which verifies the BZ
         wait_for(
-            lambda: int(
-                cli.RecurringLogic.info(
-                    {'id': cli.JobInvocation.info({'id': invocation.id})['recurring-logic-id']}
-                )['task-count']
-            )
-            > 2,
+            lambda: (
+                int(
+                    cli.RecurringLogic.info(
+                        {'id': cli.JobInvocation.info({'id': invocation.id})['recurring-logic-id']}
+                    )['task-count']
+                )
+                > 2
+            ),
             timeout=180,
             delay=10,
         )

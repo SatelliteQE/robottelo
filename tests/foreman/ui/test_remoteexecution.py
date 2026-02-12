@@ -363,19 +363,23 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
         # the last read time should not take more than 1/4 of the last left time
         assert job_left_time > 0
         wait_for(
-            lambda: session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')['hosts'][
-                0
-            ]['Status']
-            == 'Pending',
+            lambda: (
+                session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')['hosts'][0][
+                    'Status'
+                ]
+                == 'Pending'
+            ),
             timeout=(job_left_time + 30),
             delay=1,
         )
         # wait the job to change status to "Succeeded"
         wait_for(
-            lambda: session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')['hosts'][
-                0
-            ]['Status']
-            == 'Succeeded',
+            lambda: (
+                session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')['hosts'][0][
+                    'Status'
+                ]
+                == 'Succeeded'
+            ),
             timeout=30,
             delay=1,
         )

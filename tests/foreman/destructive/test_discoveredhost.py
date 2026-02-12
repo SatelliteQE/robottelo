@@ -128,12 +128,14 @@ def _assert_discovered_host(host, channel=None, user_config=None, sat=None):
 
     try:
         wait_for(
-            lambda: len(
-                sat.api.DiscoveredHost(user_config or default_config).search(
-                    query={'search': f'name={host.guest_name}'}
+            lambda: (
+                len(
+                    sat.api.DiscoveredHost(user_config or default_config).search(
+                        query={'search': f'name={host.guest_name}'}
+                    )
                 )
-            )
-            > 0,
+                > 0
+            ),
             timeout=20,
             delay=2,
             logger=logger,

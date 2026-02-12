@@ -194,10 +194,12 @@ def test_positive_gce_provision_end_to_end(
                 }
             )
             wait_for(
-                lambda: sat_gce.api.Host()
-                .search(query={'search': f'name={hostname}'})[0]
-                .build_status_label
-                != 'Pending installation',
+                lambda: (
+                    sat_gce.api.Host()
+                    .search(query={'search': f'name={hostname}'})[0]
+                    .build_status_label
+                    != 'Pending installation'
+                ),
                 timeout=600,
                 delay=15,
                 silent_failure=True,

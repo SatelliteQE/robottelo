@@ -630,8 +630,10 @@ def test_host_content_errata_tab_pagination(
         _invalid_pagination = ({}, _prior_pagination)
         session.browser.refresh()
         wait_for(
-            lambda: session.host_new.get_errata_pagination(_chost_name).read()
-            not in _invalid_pagination,
+            lambda: (
+                session.host_new.get_errata_pagination(_chost_name).read()
+                not in _invalid_pagination
+            ),
             timeout=30,
             delay=5,
         )

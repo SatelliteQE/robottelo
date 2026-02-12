@@ -2660,10 +2660,14 @@ class Satellite(Capsule, SatelliteMixins):
             data={'disconnected': disconnected}
         )
         wait_for(
-            lambda: self.api.ForemanTask()
-            .search(query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
+            lambda: (
+                self.api.ForemanTask()
+                .search(
+                    query={'search': f'{generate_report_task} and started_at >= "{timestamp}"'}
+                )[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,
@@ -2674,10 +2678,12 @@ class Satellite(Capsule, SatelliteMixins):
         """Perform inventory sync"""
         inventory_sync = self.api.Organization(id=org.id).rh_cloud_inventory_sync()
         wait_for(
-            lambda: self.api.ForemanTask()
-            .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
-            .result
-            == 'success',
+            lambda: (
+                self.api.ForemanTask()
+                .search(query={'search': f'id = {inventory_sync["task"]["id"]}'})[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,

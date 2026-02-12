@@ -142,8 +142,10 @@ def test_positive_provision_end_to_end(
     # check if vm is created on vmware
     assert vmwareclient.does_vm_exist(hostname) is True
     wait_for(
-        lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
-        != 'Pending installation',
+        lambda: (
+            sat.cli.Host.info({'name': hostname})['status']['build-status']
+            != 'Pending installation'
+        ),
         timeout=1800,
         delay=30,
     )
@@ -234,8 +236,10 @@ def test_positive_image_provision_end_to_end(
         assert 'VirtualTPM' in vm.get_virtual_device_type_names()
 
     wait_for(
-        lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
-        != 'Pending installation',
+        lambda: (
+            sat.cli.Host.info({'name': hostname})['status']['build-status']
+            != 'Pending installation'
+        ),
         timeout=1800,
         delay=30,
     )

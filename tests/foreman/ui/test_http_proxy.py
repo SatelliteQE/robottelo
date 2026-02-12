@@ -432,9 +432,11 @@ def test_http_proxy_containing_special_characters(
             }
         )
         request.addfinalizer(
-            lambda: target_sat.api.HTTPProxy()
-            .search(query={'search': f'name={proxy_name}'})[0]
-            .delete()
+            lambda: (
+                target_sat.api.HTTPProxy()
+                .search(query={'search': f'name={proxy_name}'})[0]
+                .delete()
+            )
         )
 
         # Update settings to use the proxy for the content ops.
