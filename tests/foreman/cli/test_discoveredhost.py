@@ -123,7 +123,7 @@ def test_rhel_pxe_discovery_provisioning(
 @pytest.mark.rhel_ver_match('7')
 def test_rhel_pxeless_discovery_provisioning(
     module_discovery_sat,
-    pxeless_discovery_host,
+    pxeless_discovery_hosts,
     module_provisioning_rhel_content,
     provisioning_hostgroup,
     request,
@@ -138,10 +138,12 @@ def test_rhel_pxeless_discovery_provisioning(
     :expectedresults: Host should be provisioned successfully
 
     :CaseImportance: Critical
+
+    :Verifies: SAT-39469
     """
     sat = module_discovery_sat.sat
-    pxeless_discovery_host.power_control(ensure=False)
-    mac = pxeless_discovery_host.provisioning_nic_mac_addr
+    pxeless_discovery_hosts.power_control(ensure=False)
+    mac = pxeless_discovery_hosts.provisioning_nic_mac_addr
     org = provisioning_hostgroup.organization[0].read()
     loc = provisioning_hostgroup.location[0].read()
     wait_for(
@@ -203,6 +205,7 @@ def test_rhel_pxeless_discovery_provisioning(
     )
     assert host.read().build_status_label == 'Installed'
     assert not sat.api.DiscoveredHost().search(query={'mac': mac})
+    assert not sat.api.Host().search(query={'search': 'name="localhost.localdomain"'})
 
 
 @pytest.mark.stubbed
