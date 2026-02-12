@@ -254,12 +254,16 @@ def test_single_sign_on_ldap_ad_server(
 
     :BZ: 1941997
     """
+    if func_enroll_ad_and_configure_external_auth is not None:
+        url = f'{settings.server.scheme}://{func_enroll_ad_and_configure_external_auth}'
+    else:
+        url = target_sat.url
     # create the kerberos ticket for authentication
     result = target_sat.execute(f'echo {settings.ldap.password} | kinit {settings.ldap.username}')
     assert result.status == 0
-    result = target_sat.execute(f'curl -k -u : --negotiate {target_sat.url}/users/extlogin/')
+    result = target_sat.execute(f'curl -k -u : --negotiate {url}/users/extlogin/')
     assert 'redirected' in result.stdout
-    assert f'{target_sat.url}/new/hosts' in result.stdout
+    assert f'{url}/new/hosts' in result.stdout
 
 
 @pytest.mark.parametrize(
