@@ -551,3 +551,64 @@ class TestDockerClient:
         request.addfinalizer(lambda: host.execute(f'podman rmi {cv_path}'))
         res = host.execute('podman images')
         assert cv_path in res.stdout
+
+    def test_positive_revoke_registry_token_prevents_access(
+        self, request, target_sat, function_product
+    ):
+        """Verify that revoking a registry access token prevents client access to registry.
+
+        :id: 8b4e5c2a-1f3d-4a7e-9c8b-2d6f4e5a3b1c
+
+        :steps:
+            1. Sync a small container repo (quay/busybox from quay.io)
+            2. Login to Satellite registry
+            3. Pull the synced image - should succeed
+            4. Revoke the registry personal access token via CLI
+            5. Try to pull again - should fail with authentication error
+
+        :expectedresults:
+            After revoking the authentication token, podman pull fails with
+            authentication error.
+
+        :Verifies: SAT-38785
+        """
+        # 1. Sync a small container repo (quay/busybox from quay.io)
+        repo = _repo(
+            target_sat, function_product.id, upstream_name='quay/busybox', url='https://quay.io'
+        )
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+        # Build the registry path for the synced image
+        repo_info = target_sat.cli.Repository.info({'id': repo['id']})
+        registry_path = repo_info['published-at']
+
+        @request.addfinalizer
+        def _cleanup():
+            target_sat.execute(f'podman logout {target_sat.hostname}')
+            target_sat.execute(f'podman rmi {registry_path}')
+
+        # 2. Login to Satellite registry
+        result = target_sat.execute(
+            f'podman login -u {settings.server.admin_username}'
+            f' -p {settings.server.admin_password} {target_sat.hostname}'
+        )
+        assert result.status == 0, f'Failed to login to registry: {result.stderr}'
+
+        # 3. Pull the synced image - should succeed
+        result = target_sat.execute(f'podman pull {registry_path}')
+        assert result.status == 0, f'Failed to pull synced image: {result.stderr}'
+
+        # 4. Revoke the registry personal access token via CLI
+        admin_user = target_sat.cli.User.info({'login': settings.server.admin_username})
+        target_sat.cli.User.access_token(
+            action='revoke',
+            options={'name': 'registry', 'user-id': admin_user['id']},
+        )
+
+        # 5. Try to pull again - should fail with authentication error
+        result = target_sat.execute(f'podman pull {registry_path}')
+        assert result.status != 0, 'Pull should have failed after token revocation'
+        assert (
+            'authentication required' in result.stderr.lower()
+            or 'unauthorized' in result.stderr.lower()
+        ), f'Expected authentication error, got: {result.stderr}'
