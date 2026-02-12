@@ -249,7 +249,7 @@ def test_single_sign_on_ldap_ad_server(
     :BZ: 1941997
     """
     if func_enroll_ad_and_configure_external_auth is not None:
-        url = f'https://{func_enroll_ad_and_configure_external_auth}'
+        url = f'{settings.server.scheme}://{func_enroll_ad_and_configure_external_auth}'
     else:
         url = target_sat.url
     # create the kerberos ticket for authentication
