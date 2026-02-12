@@ -2156,6 +2156,8 @@ RHSSO_NEW_GROUP = {
 
 RHSSO_RESET_PASSWORD = {"temporary": "false", "type": "password", "value": ""}
 
+LOGIN_DELEGATION_LOGOUT_URL = "https://theforeman.org/"
+
 FOREMAN_ANSIBLE_MODULES = [
     "activation_key",
     "architecture",
