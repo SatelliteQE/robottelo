@@ -540,7 +540,7 @@ def test_iop_insights_rbac_edit_permissions(
         )
         # Verify that the disabled recommendation is filtered
         result = session.recommendationstab.apply_filter("Status", "Disabled")
-        assert 'No recommendations' in result[0]['Name']
+        assert 'No recommendations' not in result[0]['Name']
         assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
 
         # Test Vulnerability with edit permissions
