@@ -71,6 +71,9 @@ def test_pulp_href_prn_migration_scenario(pulp_upgrade_setup, table):
     assert len(records), 'No records found in table, probably insufficient content setup'
     for row in records:
         base_path, uuid = row[table['href_key']].rstrip('/').rsplit('/', 1)
+        skip_pattern = table.get('skip')
+        if skip_pattern and skip_pattern in base_path:
+            continue
         assert row[table['prn_key']] == PULP_HREF_PRN_MAP.get(base_path, '') + uuid
 
 
