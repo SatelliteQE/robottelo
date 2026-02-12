@@ -396,6 +396,7 @@ def test_negative_ssh_ca_host_wrong_cert(
     assert check.status != 0
 
 
+@pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
