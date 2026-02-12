@@ -21,7 +21,8 @@ from robottelo.constants import PULP_HREF_PRN_MAP, PULP_PRN_TABLES
 
 @pytest.mark.parametrize('table', PULP_PRN_TABLES, ids=lambda t: f"{t['name']}:{t['prn_key']}")
 def test_pulp_href_prn_mapping(table, target_sat, module_prn_content_setup):
-    """Verify Pulp HREF to PRN mapping for all relevant Katello tables, except for repo versions.
+    """Verify Pulp HREF to Pulp Resource Name (PRN) mapping for all relevant Katello tables,
+       except for repo versions.
 
     :id: c840688e-9a80-491e-bc26-a4636d691662
 
