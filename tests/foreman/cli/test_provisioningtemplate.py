@@ -209,3 +209,32 @@ def test_positive_clone(module_target_sat):
     )
     new_template = module_target_sat.cli.Template.info({'id': result[0]['id']})
     assert new_template['name'] == cloned_template_name
+
+
+def test_positive_clone_provisioning_template(module_target_sat):
+    """Validate provisioning template clone with metadata
+
+    :id: e9003c96-ab78-49a8-86cb-3981fd3d11c1
+
+    :steps:
+        1. Select an existing provisioning template.
+        2. Clone the template with a new name using hammer.
+        3. Verify the clone message and the cloned-from-id metadata.
+        4. Delete the cloned template and confirm it no longer exists.
+
+    :expectedresults: Report template is cloned with correct metadata and can be deleted.
+    """
+    clone_name = gen_string('alpha', 7)
+    template = random.choice(module_target_sat.cli.Template.list())
+    result = module_target_sat.cli.Template.clone(
+        {'new-name': clone_name, 'id': template['id'], 'name': template['name']}
+    )
+    assert 'Provisioning template cloned.' in result[0]['message']
+    cloned_template = module_target_sat.cli.Template.info(
+        {'name': clone_name},
+        output_format='json',
+    )
+    assert cloned_template['name'] == clone_name
+    assert cloned_template['cloned-from-id'] == template['id']
+    module_target_sat.cli.Template.delete({'name': clone_name})
+    assert not module_target_sat.cli.Template.exists(search=('name', clone_name))

@@ -235,10 +235,10 @@ def test_positive_clone_job_template(module_org, module_target_sat):
     :steps:
         1. Create a job template
         2. Clone the job template
-        3. assert dump of the data of the cloned job template is working
-        4. update job template to unlocked
-        5. Delete the cloned job template
-        6. Delete the original job template
+        3. Get cloned template info and verify the cloned-from-id metadata.
+        4. Assert dump of the data of the cloned job template is working
+        5. Update job template to unlocked
+        6. Delete the original and cloned job template
 
     :expectedresults: The job template is cloned successfully
 
@@ -265,7 +265,9 @@ def test_positive_clone_job_template(module_org, module_target_sat):
             'id': template['id'],
         }
     )
-    assert module_target_sat.cli.JobTemplate.info({'name': clone_name})['name'] == clone_name
+    cloned_template = module_target_sat.cli.JobTemplate.info({'name': clone_name})
+    assert cloned_template['name'] == clone_name
+    assert cloned_template['cloned-from-id'] == template['id']
     # assert dump of the data of the cloned job template is working
     dump = module_target_sat.cli.JobTemplate.dump({'name': clone_name})
     assert len(dump) > 0

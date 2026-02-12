@@ -11,8 +11,10 @@
 
 """
 
+import random
+
 from broker import Broker
-from fauxfactory import gen_alpha
+from fauxfactory import gen_alpha, gen_string
 import pytest
 
 from robottelo.config import settings
@@ -30,6 +32,7 @@ from robottelo.constants import (
 )
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.hosts import ContentHost
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -1012,3 +1015,40 @@ def test_positive_generate_with_no_rex_interface(
         }
     )
     assert rex_contenthost.hostname in result_html
+
+
+def test_positive_clone_report_template(module_target_sat):
+    """Validate report template clone along with metadata
+
+    :id: 27f7826d-bd86-4ebc-be64-684e909961da
+
+    :steps:
+        1. Select an existing report template.
+        2. Clone the template with a new name using hammer.
+        3. Verify the clone message and the cloned-from-id metadata.
+        4. Delete the cloned template and confirm it no longer exists.
+
+    :expectedresults: Report template is cloned with correct metadata and can be deleted.
+    """
+    clone_name = gen_string('alpha', 7)
+    template = random.choice(module_target_sat.cli.ReportTemplate.list())
+    result = module_target_sat.cli.ReportTemplate.clone(
+        {'new-name': clone_name, 'id': template['id'], 'name': template['name']}
+    )
+    assert result.strip() == 'Report template cloned.'
+    cloned_template = module_target_sat.cli.ReportTemplate.info({'name': clone_name})
+    assert cloned_template['name'] == clone_name
+    assert cloned_template['cloned-from-id'] == template['id']
+    if is_open('SAT-42163'):
+        module_target_sat.cli.ReportTemplate.update(
+            {'id': cloned_template['id'], 'locked': 'false'}
+        )
+        assert (
+            module_target_sat.cli.ReportTemplate.info({'name': cloned_template['name']}).get(
+                'locked'
+            )
+            == 'no'
+        )
+    module_target_sat.cli.ReportTemplate.delete({'name': clone_name})
+    with pytest.raises(CLIReturnCodeError):
+        module_target_sat.cli.ReportTemplate.info({'name': clone_name})
