@@ -5,30 +5,28 @@
 version: 2
 updates:
   # Maintain dependencies for Robottelo itself
-  - package-ecosystem: "pip"
-    directory: "/"
+  - package-ecosystem: pip
+    directory: /
     schedule:
-      interval: "daily"
+      interval: daily
     labels:
       - '6.18.z'
       - '6.17.z'
       - '6.16.z'
-      - "CherryPick"
-      - "dependencies"
-      - "6.15.z"
+      - 'CherryPick'
+      - 'dependencies'
     ignore:
-      - dependency-name: "cryptography"
-        update-types: ["version-update:semver-minor"]
+      - dependency-name: 'cryptography'
+        update-types: ['version-update:semver-minor']
 
   # Maintain dependencies for our GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "daily"
+      interval: daily
     labels:
       - '6.18.z'
       - '6.17.z'
       - '6.16.z'
-      - "CherryPick"
-      - "dependencies"
-      - "6.15.z"
+      - 'CherryPick'
+      - 'dependencies'
