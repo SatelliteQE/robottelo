@@ -1,6 +1,6 @@
 [project]
 name = "robottelo"
-version = "6.19.z"
+version = "0.1.0"
 description = "Robottelo is a test suite which exercises The Foreman."
 readme = "README.rst"
 authors = [
