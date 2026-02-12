@@ -50,6 +50,18 @@ FOREMAN_PROVIDERS = {
     'openstack': 'RHEL OpenStack Platform',
     'google': 'Google',
     'azurerm': 'Azure Resource Manager',
+    'ocp-v': 'OpenShift Virtualization',
+}
+
+FOREMAN_PROVIDERS_MODEL = {
+    'libvirt': 'Libvirt',
+    'rhev': 'RHV',
+    'ec2': 'EC2',
+    'vmware': 'Vmware',
+    'openstack': 'Openstack',
+    'google': 'Google',
+    'azurerm': 'AzureRm',
+    'ocp-v': 'Kubevirt',
 }
 
 EC2_REGION_CA_CENTRAL_1 = 'ca-central-1'

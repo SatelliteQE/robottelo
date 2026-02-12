@@ -31,7 +31,7 @@ CaseComponent:
     - Capsule-Content
     - ComputeResources
     - ComputeResources-Azure
-    - ComputeResources-CNV
+    - ComputeResources-OCP-V
     - ComputeResources-EC2
     - ComputeResources-GCE
     - ComputeResources-libvirt

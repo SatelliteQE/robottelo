@@ -61,6 +61,7 @@ pytest_plugins = [
     'pytest_fixtures.component.provision_azure',
     'pytest_fixtures.component.provision_gce',
     'pytest_fixtures.component.provision_libvirt',
+    'pytest_fixtures.component.provision_ocpv',
     'pytest_fixtures.component.provision_pxe',
     'pytest_fixtures.component.provision_capsule_pxe',
     'pytest_fixtures.component.provision_vmware',

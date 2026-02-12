@@ -1,0 +1,21 @@
+OCPV:
+  # Kubevirt/OCP-V Hostname
+  HOSTNAME: api.cnv2.example.com
+  # Default API Port to connect to OpenShift
+  API_PORT: 6443
+  # Namespace
+  NAMESPACE: team-satellite-provisioning
+  # Token
+  TOKEN:
+  # CA Certificate
+  CA_CERT:
+  # Image name
+  IMAGE_NAME: rhel10-vm-template
+  # image_os: Operating system of the image
+  IMAGE_OS: RedHat 10.1
+  # image_arch: Architecture of the image
+  IMAGE_ARCH: x86_64
+  # image_username: Login to the image
+  IMAGE_USERNAME: root
+  # image_password: Password to the image
+  IMAGE_PASSWORD:
