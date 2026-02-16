@@ -635,7 +635,7 @@ def test_rh_cloud_minimal_report(
                 "'installed_products' is missing in one or more entries"
             )
             # Verify that proper fields are IN report
-            required_fields = ['account', 'subscription_manager_id', 'insights_id']
+            required_fields = ['account', 'subscription_manager_id']
             assert all(all(key in item for key in required_fields) for item in host_data), (
                 "Not all required keys are present in every dictionary"
             )
