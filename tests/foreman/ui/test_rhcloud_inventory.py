@@ -59,25 +59,18 @@ def common_assertion(
 ):
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
-    upload_error_messages = ['NSS error', 'Permission denied']
 
     if subscription_connection_enabled:
         # Only check upload-related assertions when connection is enabled
-        upload_success_msg = 'Uploaded file moved to done/ folder'
-        assert (
-            'Check the Uploading tab for report uploading status'
-            in inventory_data['generating']['terminal']
-        )
-        assert upload_success_msg in inventory_data['uploading']['terminal']
-        for error_msg in upload_error_messages:
-            assert error_msg not in inventory_data['uploading']['terminal']
+        upload_success_msg = 'Completed'
+        assert upload_success_msg in inventory_data['task_status']
         # Verify uploaded report checksum matches
         assert local_file_data['checksum'] == get_remote_report_checksum(satellite, org.id)
     else:
         # When connection disabled, just verify report was generated
         assert (
-            f'Generated /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
-            in inventory_data['generating']['terminal']
+            f'Generated /var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
+            in inventory_data['report_saved_to']
         )
 
     assert local_file_data['size'] > 0
@@ -139,14 +132,14 @@ def test_rhcloud_inventory_e2e(
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinventory.generate_report(org.name)
+        session.cloudinventory.generate_and_upload_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
             lambda: (
                 module_target_sat.api.ForemanTask()
                 .search(
                     query={
-                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        'search': f'label = ForemanInventoryUpload::Async::HostInventoryReportJob '
                         f'and started_at >= "{timestamp}"'
                     }
                 )[0]
@@ -161,11 +154,11 @@ def test_rhcloud_inventory_e2e(
         # Get report based on subscription_connection_enabled setting
         if subscription_setting:
             # When enabled, download via UI
-            report_path = session.cloudinventory.download_report(org.name)
+            report_path = session.cloudinventory.download_report_only(org.name)
         else:
             # When disabled, get from filesystem
             remote_report_path = (
-                f'/var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+                f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
             )
 
             # Verify file exists on Satellite
@@ -259,14 +252,14 @@ def test_rh_cloud_inventory_settings(
         session.cloudinventory.update({'obfuscate_ips': True})
         session.cloudinventory.update({'exclude_packages': True})
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinventory.generate_report(org.name)
+        session.cloudinventory.generate_and_upload_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
             lambda: (
                 module_target_sat.api.ForemanTask()
                 .search(
                     query={
-                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        'search': f'label = ForemanInventoryUpload::Async::HostInventoryReportJob '
                         f'and started_at >= "{timestamp}"'
                     }
                 )[0]
@@ -278,7 +271,7 @@ def test_rh_cloud_inventory_settings(
             silent_failure=True,
             handle_exception=True,
         )
-        report_path = session.cloudinventory.download_report(org.name)
+        report_path = session.cloudinventory.download_report_only(org.name)
         inventory_data = session.cloudinventory.read(org.name)
         # Verify settings are enabled.
         assert inventory_data['obfuscate_hostnames'] is True
@@ -315,14 +308,14 @@ def test_rh_cloud_inventory_settings(
         module_target_sat.update_setting('obfuscate_inventory_ips', True)
         module_target_sat.update_setting('exclude_installed_packages', True)
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinventory.generate_report(org.name)
+        session.cloudinventory.generate_and_upload_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
             lambda: (
                 module_target_sat.api.ForemanTask()
                 .search(
                     query={
-                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        'search': f'label = ForemanInventoryUpload::Async::HostInventoryReportJob '
                         f'and started_at >= "{timestamp}"'
                     }
                 )[0]
@@ -334,7 +327,7 @@ def test_rh_cloud_inventory_settings(
             silent_failure=True,
             handle_exception=True,
         )
-        report_path = session.cloudinventory.download_report(org.name)
+        report_path = session.cloudinventory.download_report_only(org.name)
         inventory_data = session.cloudinventory.read(org.name)
         # Verify settings are enabled.
         assert inventory_data['obfuscate_hostnames'] is True
@@ -386,53 +379,6 @@ def test_failed_inventory_upload():
     """
 
 
-def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
-    """Verify that proper error message is given when no manifest is imported in an organization.
-
-    :id: 1d90bb24-2380-4653-8ed6-a084fce66d1e
-
-    :steps:
-        1. Don't import manifest to satellite.
-        3. Go to Insights > Inventory upload > Click on restart button.
-
-    :expectedresults:
-        1. No stacktrace in production.log
-        2. Message "Skipping organization '<redacted>', no candlepin certificate defined." is shown.
-
-    :CaseImportance: Medium
-
-    :BZ: 1842903
-
-    :CaseAutomation: Automated
-    """
-    with session:
-        session.organization.select(org_name=module_org.name)
-        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinventory.generate_report(module_org.name)
-        wait_for(
-            lambda: (
-                target_sat.api.ForemanTask()
-                .search(
-                    query={
-                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
-                        f'and started_at >= "{timestamp}"'
-                    }
-                )[0]
-                .result
-                == 'success'
-            ),
-            timeout=400,
-            delay=15,
-            silent_failure=True,
-            handle_exception=True,
-        )
-        inventory_data = session.cloudinventory.read(module_org.name)
-    assert (
-        f'Skipping organization {module_org.name}, no candlepin certificate defined.'
-        in inventory_data['uploading']['terminal']
-    )
-
-
 @pytest.mark.run_in_one_thread
 def test_rhcloud_global_parameters(
     inventory_settings,
@@ -475,14 +421,14 @@ def test_rhcloud_global_parameters(
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinventory.generate_report(org.name)
+        session.cloudinventory.generate_and_upload_report(org.name)
         # wait_for_tasks report generation task to finish
         wait_for(
             lambda: (
                 module_target_sat.api.ForemanTask()
                 .search(
                     query={
-                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        'search': f'label = ForemanInventoryUpload::Async::HostInventoryReportJob '
                         f'and started_at >= "{timestamp}"'
                     }
                 )[0]
@@ -494,7 +440,7 @@ def test_rhcloud_global_parameters(
             silent_failure=True,
             handle_exception=True,
         )
-        report_path = session.cloudinventory.download_report(org.name)
+        report_path = session.cloudinventory.download_report_only(org.name)
         inventory_data = session.cloudinventory.read(org.name)
     # Verify that generated archive is valid
     common_assertion(report_path, inventory_data, org, module_target_sat)
@@ -513,14 +459,14 @@ def test_rhcloud_global_parameters(
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinventory.generate_report(org.name)
+        session.cloudinventory.generate_and_upload_report(org.name)
         # wait_for_tasks report generation task to finish
         wait_for(
             lambda: (
                 module_target_sat.api.ForemanTask()
                 .search(
                     query={
-                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        'search': f'label = ForemanInventoryUpload::Async::HostInventoryReportJob '
                         f'and started_at >= "{timestamp}"'
                     }
                 )[0]
@@ -532,7 +478,7 @@ def test_rhcloud_global_parameters(
             silent_failure=True,
             handle_exception=True,
         )
-        report_path = session.cloudinventory.download_report(org.name)
+        report_path = session.cloudinventory.download_report_only(org.name)
         inventory_data = session.cloudinventory.read(org.name)
     # Verify that generated archive is valid
     common_assertion(report_path, inventory_data, org, module_target_sat)
@@ -576,24 +522,21 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         session.organization.select(org_name=DEFAULT_ORG)
         session.location.select(loc_name=DEFAULT_LOC)
 
-        displayed_inventory_data = session.cloudinventory.read_org(DEFAULT_ORG)
         displayed_settings_options = session.cloudinventory.get_displayed_settings_options()
         displayed_buttons = session.cloudinventory.get_displayed_buttons()
         displayed_descriptions = session.cloudinventory.get_displayed_descriptions()
-        displayed_inventory_tabs = session.cloudinventory.get_displayed_inventory_tabs()
         subscription_setting = setting_update.value == 'true'
-
+        # Verify settings visibility based on subscription connection
         assert displayed_settings_options['auto_update'] is subscription_setting
         assert displayed_buttons['cloud_connector'] is subscription_setting
         assert displayed_buttons['sync_status'] is subscription_setting
         assert displayed_descriptions['auto_upload_desc'] is subscription_setting
         assert displayed_descriptions['manual_upload_desc'] is subscription_setting
-        assert displayed_inventory_tabs['uploading'] is subscription_setting
-        assert (
-            displayed_inventory_data['generating']['generate'] == 'Generate and upload report'
-            if subscription_setting
-            else 'Generate report'
-        )
+        # Verify generate_and_upload button state matches subscription setting
+        assert displayed_buttons['generate_and_upload_enabled'] is subscription_setting
+        # Verify generate_report button is always displayed and enabled
+        assert displayed_buttons['generate_report'] is True
+        assert displayed_buttons['generate_report_enabled'] is True
         if subscription_setting:
             assert displayed_buttons['cloud_connector_text'] == 'Configure cloud connector'
             assert displayed_buttons['sync_status_text'] == 'Sync all inventory status'
@@ -642,14 +585,14 @@ def test_rh_cloud_minimal_report(
             }
         )
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        session.cloudinventory.generate_report(org.name)
+        session.cloudinventory.generate_and_upload_report(org.name)
         # wait_for_tasks report generation task to finish
         wait_for(
             lambda: (
                 module_target_sat.api.ForemanTask()
                 .search(
                     query={
-                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        'search': f'label = ForemanInventoryUpload::Async::HostInventoryReportJob '
                         f'and started_at >= "{timestamp}"'
                     }
                 )[0]
@@ -661,7 +604,7 @@ def test_rh_cloud_minimal_report(
             silent_failure=True,
             handle_exception=True,
         )
-        report_path = session.cloudinventory.download_report(org.name)
+        report_path = session.cloudinventory.download_report_only(org.name)
         inventory_data = session.cloudinventory.read(org.name)
         # Verify that generated archive is valid
         common_assertion(report_path, inventory_data, org, module_target_sat)
