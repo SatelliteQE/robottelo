@@ -1416,7 +1416,7 @@ class TestCapsuleContentManagement:
         'repos_collection',
         [
             {
-                'distro': 'rhel9',
+                'distro': f'rhel{settings.content_host.default_rhel_version}',
                 'YumRepository': {'url': settings.repos.yum_0.url},
             }
         ],
@@ -1527,14 +1527,14 @@ class TestCapsuleContentManagement:
             'Expected to see the Capsule as the content source'
         )
 
-        result = rhel_contenthost.execute('dnf repolist')
+        result = rhel_contenthost.execute('yum repolist')
         assert result.status == 0
         assert repos_collection.setup_content_data['repos'][0].content_label in result.stdout
 
-        result = rhel_contenthost.execute('dnf install -y cheetah')  # with dependencies
+        result = rhel_contenthost.execute('yum install -y cheetah')  # with dependencies
         assert result.status == 0
 
-        result = rhel_contenthost.execute('dnf -y update')
+        result = rhel_contenthost.execute('yum -y update')
         assert result.status == 0
 
     @pytest.mark.skip_if_not_set('capsule')

@@ -31,21 +31,25 @@ ak_name = {
     'rhel9': f'ak_{gen_string("alpha")}_rhel9',
     'rhel8': f'ak_{gen_string("alpha")}_rhel8',
     'rhel7': f'ak_{gen_string("alpha")}_rhel7',
+    'rhel6': f'ak_{gen_string("alpha")}_rhel6',
 }
 cv_name = {
     'rhel9': f'cv_{gen_string("alpha")}_rhel9',
     'rhel8': f'cv_{gen_string("alpha")}_rhel8',
     'rhel7': f'cv_{gen_string("alpha")}_rhel7',
+    'rhel6': f'cv_{gen_string("alpha")}_rhel6',
 }
 profiles = {
     'rhel9': OSCAP_PROFILE['ospp8+'],
     'rhel8': OSCAP_PROFILE['ospp8+'],
     'rhel7': OSCAP_PROFILE['security7'],
+    'rhel6': OSCAP_PROFILE['security6'],
 }
 rhel_repos = {
     'rhel9': settings.repos.rhel9_os,
     'rhel8': settings.repos.rhel8_os,
     'rhel7': settings.repos.rhel7_os,
+    'rhel6': settings.repos.rhel6_os,
 }
 
 

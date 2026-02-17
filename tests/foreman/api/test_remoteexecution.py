@@ -97,8 +97,7 @@ def test_negative_time_to_pickup(
         .search(query={'search': 'name="Run Command - Script Default"'})[0]
         .id
     )
-    if client.os_version.major != 6:
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
     # check mqtt client is running
     service_name = client.get_yggdrasil_service_name()
     result = client.execute(f'systemctl status {service_name}')

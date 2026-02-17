@@ -217,20 +217,18 @@ def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_conte
     )
     if rhel_contenthost.os_version.major != 6:
         assert result.status == 0
+    assert rhel_contenthost.subscribed
     assert f'Unregistering from: {target_sat.hostname}' in str(result.stdout)
     assert f'The registered system name is: {rhel_contenthost.hostname}' in str(result.stdout)
     reg_id_new = re.search(reg_id_pattern, result.stdout).group(1)
     assert f'The system has been registered with ID: {reg_id_new}' in str(result.stdout)
     assert reg_id_new != reg_id_old
-    reg_id_new = re.search(reg_id_pattern, result.stdout).group(1) if result.stdout else None
-    assert rhel_contenthost.subscribed
-    if reg_id_new:
-        assert (
-            target_sat.cli.Host.info({'name': rhel_contenthost.hostname}, output_format='json')[
-                'subscription-information'
-            ]['uuid']
-            == reg_id_new
-        )
+    assert (
+        target_sat.cli.Host.info({'name': rhel_contenthost.hostname}, output_format='json')[
+            'subscription-information'
+        ]['uuid']
+        == reg_id_new
+    )
 
 
 def test_negative_global_registration_without_ak(module_target_sat):

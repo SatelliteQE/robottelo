@@ -90,7 +90,7 @@ def module_sync_kickstart_content(
         assert task_status['result'] == 'success'
     rhel_xy = Version(
         constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
-        if rhel_ver == 7
+        if rhel_ver <= 7
         else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
     )
     o_systems = module_target_sat.api.OperatingSystem().search(

@@ -1148,7 +1148,6 @@ class TestPullProviderRex:
     @pytest.mark.upgrade
     @pytest.mark.no_containers
     @pytest.mark.client_release
-    @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],
@@ -1245,7 +1244,6 @@ class TestPullProviderRex:
         result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
 
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],
@@ -1353,7 +1351,6 @@ class TestPullProviderRex:
     @pytest.mark.pit_client
     @pytest.mark.no_containers
     @pytest.mark.client_release
-    @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],
@@ -1485,7 +1482,6 @@ class TestPullProviderRex:
 
     @pytest.mark.upgrade
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_run_pull_job_on_offline_host(
         self,
         module_org,
@@ -1563,7 +1559,7 @@ class TestPullProviderRex:
 
     @pytest.mark.e2e
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],
