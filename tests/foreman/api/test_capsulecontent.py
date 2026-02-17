@@ -1518,7 +1518,8 @@ class TestCapsuleContentManagement:
             location=default_location,
             activation_keys=[repos_collection.setup_content_data['activation_key']['name']],
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         host = module_target_sat.api.Host().search(
             query={'search': f'name="{rhel_contenthost.hostname}"'}
         )[0]

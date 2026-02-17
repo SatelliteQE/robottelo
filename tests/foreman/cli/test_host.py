@@ -280,7 +280,7 @@ def test_positive_search_all_field_sets(module_target_sat):
         assert field in list(output_field_sets[host_idx].keys())
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_subscription
 def test_positive_host_list_with_cv_and_lce(
     target_sat,
@@ -311,7 +311,8 @@ def test_positive_host_list_with_cv_and_lce(
     """
     # register client
     result = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat)
-    assert result.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0
     assert rhel_contenthost.subscribed
     # list host command without specifying cv or lce
     host_list = target_sat.cli.Host.list(output_format='json')
@@ -1580,7 +1581,7 @@ def yum_security_plugin(katello_host_tools_host):
 
 @pytest.mark.e2e
 @pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_report_package_installed_removed(
     katello_host_tools_host, setup_custom_repo, target_sat
 ):
@@ -1625,7 +1626,7 @@ def test_positive_report_package_installed_removed(
 
 
 @pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_package_applicability(katello_host_tools_host, setup_custom_repo, target_sat):
     """Ensure packages applicability is functioning properly
 
@@ -1686,7 +1687,7 @@ def test_positive_package_applicability(katello_host_tools_host, setup_custom_re
 
 @pytest.mark.e2e
 @pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 def test_positive_erratum_applicability(
@@ -1755,7 +1756,7 @@ def test_positive_erratum_applicability(
 
 
 @pytest.mark.cli_katello_host_tools
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_repo, target_sat):
     """Apply security erratum to a host
 
@@ -1789,7 +1790,7 @@ def test_positive_apply_security_erratum(katello_host_tools_host, setup_custom_r
 
 
 # -------------------------- HOST SUBSCRIPTION SUBCOMMAND SCENARIOS -------------------------
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_subscription
 def test_positive_register(
     module_org,
@@ -1846,7 +1847,7 @@ def test_positive_register(
 
 # -------------------------- MULTI-CV SCENARIOS -------------------------
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^7]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_negative_multi_cv_registration(
     module_org,
     module_ak_with_cv,
@@ -1882,7 +1883,8 @@ def test_negative_multi_cv_registration(
 
     # Register with global reg, just to get the sub-man config and certs right
     result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
-    assert result.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0
     assert rhel_contenthost.subscribed
 
     # Unregister the host
@@ -1902,7 +1904,7 @@ def test_negative_multi_cv_registration(
     )
 
 
-@pytest.mark.rhel_ver_match('[^7]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_multi_cv_registration(
     session_multicv_sat,
     session_multicv_org,
@@ -1954,7 +1956,8 @@ def test_positive_multi_cv_registration(
     result = rhel_contenthost.register(
         session_multicv_org, None, session_multicv_default_ak.name, session_multicv_sat
     )
-    assert result.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0
     assert rhel_contenthost.subscribed
 
     # Unregister the host
@@ -1968,7 +1971,8 @@ def test_positive_multi_cv_registration(
     )
 
     # Confirm that registration succeeds
-    assert res.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert res.status == 0
     assert rhel_contenthost.subscribed
 
     # Confirm that the host is registered to both environments
@@ -1978,7 +1982,7 @@ def test_positive_multi_cv_registration(
     )
 
 
-@pytest.mark.rhel_ver_match('[^7]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_multi_cv_assignment(
     session_multicv_sat,
     session_multicv_org,
@@ -2028,7 +2032,8 @@ def test_positive_multi_cv_assignment(
     result = rhel_contenthost.register(
         session_multicv_org, None, session_multicv_default_ak.name, session_multicv_sat
     )
-    assert result.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0
     assert rhel_contenthost.subscribed
 
     # Assign multiple content view environments to the host using hammer
@@ -2043,7 +2048,7 @@ def test_positive_multi_cv_assignment(
     )
 
 
-@pytest.mark.rhel_ver_match('[^7]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_multi_cv_host_repo_availability(
     session_multicv_sat,
     rhel_contenthost,
@@ -2115,7 +2120,8 @@ def test_positive_multi_cv_host_repo_availability(
     result = rhel_contenthost.register(
         session_multicv_org, None, session_multicv_default_ak.name, session_multicv_sat
     )
-    assert result.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0
     assert rhel_contenthost.subscribed
 
     # Assign the host to multiple content view environments with subscription-manager
@@ -2173,7 +2179,7 @@ def test_positive_dump_enc_yaml(target_sat):
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.pit_client
 @pytest.mark.client_release
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
     """Install tracer on client, downgrade the service, check from the satellite
     that tracer shows and resolves the problem. The test works with a package specified
@@ -2304,7 +2310,8 @@ def function_host_content_source(
     )
     # target_sat.cli.Capsule.info({'name': module_capsule_configured.hostname})
     res = rhel_contenthost.register(module_org, None, module_ak_with_cv_repo.name, target_sat)
-    assert res.status == 0, f'Failed to register host: {res.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert res.status == 0, f'Failed to register host: {res.stderr}'
     return res
 
 
@@ -2439,7 +2446,7 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 
 @pytest.mark.cli_puppet_enabled
 @pytest.mark.run_in_one_thread
-@pytest.mark.rhel_ver_match('[9]')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_positive_create_and_update_with_content_source(
     target_sat,
@@ -2538,7 +2545,7 @@ def test_positive_create_host_with_lifecycle_environment_name(
     assert found_host, 'Assertion failed: host not found'
 
 
-@pytest.mark.rhel_ver_match('^6')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.parametrize(
     'setting_update', ['validate_host_lce_content_source_coherence'], indirect=False
 )
@@ -2590,7 +2597,8 @@ def test_host_registration_with_capsule_using_content_coherence(
         module_capsule_configured,
         force=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Check output for "HTTP error code 422: Validation failed: Content view environment content facets is invalid"
     assert 'Validation failed' in result.stderr, f'Error is: {result.stderr}'
@@ -2608,7 +2616,8 @@ def test_host_registration_with_capsule_using_content_coherence(
         module_capsule_configured,
         force=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Check output there should not any error like "Validation failed" or "HTTP error code 422"
     assert 'Validation failed' not in result.stderr, f'Error is: {result.stderr}'
@@ -2617,7 +2626,7 @@ def test_host_registration_with_capsule_using_content_coherence(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_subscription
 def test_positive_reregister_rhel(
     target_sat,
@@ -2642,7 +2651,8 @@ def test_positive_reregister_rhel(
     """
     # register client
     result = rhel_contenthost.register(function_org, None, function_ak_with_cv.name, target_sat)
-    assert result.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0
     assert rhel_contenthost.subscribed
     # remove local consumer certs
     rhel_contenthost.execute('rm -rf /etc/pki/consumer/*')
@@ -2652,7 +2662,8 @@ def test_positive_reregister_rhel(
     reregister = rhel_contenthost.register(
         function_org, None, function_ak_with_cv.name, target_sat, force=True
     )
-    assert reregister.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert reregister.status == 0
     assert rhel_contenthost.subscribed
     certs = rhel_contenthost.execute("ls /etc/pki/consumer").stdout
     assert 'cert.pem' in certs

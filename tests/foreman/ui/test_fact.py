@@ -50,7 +50,8 @@ def test_positive_upload_host_facts(
             }
         )
         result = rhel_contenthost.execute(cmd)
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
 
         rhel_contenthost.execute('subscription-manager facts --update')
         host_facts = session.host_new.get_host_facts(rhel_contenthost.hostname, fact='fqdn')

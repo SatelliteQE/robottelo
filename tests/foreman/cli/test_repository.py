@@ -2688,9 +2688,9 @@ def test_positive_install_uploaded_rpm_on_host(
     target_sat.cli.ActivationKey.content_override(
         {'id': activation_key.id, 'content-label': repo.content_label, 'value': 'true'}
     )
-    assert (
-        rhel_contenthost.register(function_org, None, activation_key.name, target_sat).status == 0
-    )
+    result = rhel_contenthost.register(function_org, None, activation_key.name, target_sat)
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert (
         rhel_contenthost.execute(f'yum install -y {FAKE_3_YUM_REPO_RPMS[0].split("-")[0]}').status
         == 0

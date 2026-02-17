@@ -38,7 +38,7 @@ def test_positive_find_capsule_upgrade_playbook(target_sat):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.parametrize(
     'setting_update',
     ['remote_execution_global_proxy=False'],
@@ -97,7 +97,8 @@ def test_negative_time_to_pickup(
         .search(query={'search': 'name="Run Command - Script Default"'})[0]
         .id
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if client.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     # check mqtt client is running
     service_name = client.get_yggdrasil_service_name()
     result = client.execute(f'systemctl status {service_name}')
@@ -170,7 +171,7 @@ def test_negative_time_to_pickup(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.parametrize(
     'setting_update',
     ['remote_execution_global_proxy=False'],

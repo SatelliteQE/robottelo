@@ -20,7 +20,7 @@ from robottelo.constants import HTTPS_MEDIUM_URL, SUBNET_IPAM_TYPES
 
 
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_bootdisk_download_https(
     request,
     module_location,

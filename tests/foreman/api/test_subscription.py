@@ -265,7 +265,7 @@ def test_sca_end_to_end(
     assert 'Complete!' in package.stdout or 'already installed' in package.stdout
 
 
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_candlepin_events_processed_by_stomp(
     function_org, target_sat, function_sca_manifest
 ):

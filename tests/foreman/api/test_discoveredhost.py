@@ -17,6 +17,7 @@ from nailgun import entity_mixins
 import pytest
 from wait_for import TimedOutError, wait_for
 
+from robottelo.config import settings
 from robottelo.logging import logger
 from robottelo.utils.datafactory import valid_data_list
 
@@ -169,7 +170,7 @@ class TestDiscoveredHost:
     @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-    @pytest.mark.rhel_ver_list([8, 9])
+    @pytest.mark.rhel_ver_match(r'^\d+$')
     def test_positive_provision_pxe_host(
         self,
         module_provisioning_rhel_content,
@@ -223,7 +224,7 @@ class TestDiscoveredHost:
     @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-    @pytest.mark.rhel_ver_list([8, 9])
+    @pytest.mark.rhel_ver_match(r'^\d+$')
     def test_positive_provision_pxe_less_host(
         self,
         module_discovery_sat,
@@ -352,7 +353,7 @@ class TestDiscoveredHost:
     @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
     @pytest.mark.parametrize('pxe_loader', ['uefi'], indirect=True)
-    @pytest.mark.rhel_ver_match('9')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_reboot_pxe_host(
         self,
         module_provisioning_rhel_content,
@@ -394,7 +395,7 @@ class TestDiscoveredHost:
 
     @pytest.mark.on_premises_provisioning
     @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
-    @pytest.mark.rhel_ver_match('9')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_reboot_all_pxe_hosts(
         self,
         module_provisioning_rhel_content,

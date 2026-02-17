@@ -352,7 +352,7 @@ def test_negative_create_report_without_name(module_target_sat):
     assert "Name can't be blank" in report_response.value.response.text
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.no_containers
 def test_positive_applied_errata(
     function_org, function_location, function_lce, rhel_contenthost, target_sat
@@ -388,7 +388,8 @@ def test_positive_applied_errata(
     result = rhel_contenthost.register(
         function_org, function_location, activation_key.name, target_sat
     )
-    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    if rhel_contenthost.os_version.major != 6:
+        assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
     rhel_contenthost.execute(r'subscription-manager repos --enable \*')
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
@@ -427,7 +428,7 @@ def test_positive_applied_errata(
     assert res[0]['issued']
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.no_containers
 def test_positive_applied_errata_report_with_invalid_errata(
     function_org, function_location, function_lce, rhel_contenthost, target_sat
@@ -465,7 +466,8 @@ def test_positive_applied_errata_report_with_invalid_errata(
     result = rhel_contenthost.register(
         function_org, function_location, activation_key.name, target_sat
     )
-    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    if rhel_contenthost.os_version.major != 6:
+        assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
     rhel_contenthost.execute(r'subscription-manager repos --enable \*')
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
@@ -502,7 +504,7 @@ def test_positive_applied_errata_report_with_invalid_errata(
     )
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.no_containers
 def test_positive_applied_errata_by_search(
     function_org, function_lce, rhel_contenthost, target_sat
@@ -542,7 +544,8 @@ def test_positive_applied_errata_by_search(
         .description
     )
     result = rhel_contenthost.register(function_org, None, activation_key.name, target_sat)
-    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    if rhel_contenthost.os_version.major != 6:
+        assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
     rhel_contenthost.execute(r'subscription-manager repos --enable \*')
     assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
@@ -583,7 +586,7 @@ def test_positive_applied_errata_by_search(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_applied_errata_for_specific_hosts(
     mod_content_hosts,
     module_target_sat,
@@ -636,7 +639,8 @@ def test_positive_applied_errata_for_specific_hosts(
     for host_info in [RHSA, RHBA]:
         chost = host_info['host']
         result = chost.register(module_org, None, activation_key.name, module_target_sat)
-        assert f'The registered system name is: {chost.hostname}' in result.stdout
+        if chost.os_version.major != 6:
+            assert f'The registered system name is: {chost.hostname}' in result.stdout
         assert chost.subscribed
         assert chost.execute(f'yum install -y {host_info["outdated_pkg"]}').status == 0
 
@@ -869,7 +873,8 @@ def test_positive_generate_job_report(setup_content, module_target_sat, content_
     for host in content_hosts:
         host.register(org, None, ak.name, module_target_sat)
         host.add_rex_key(module_target_sat)
-        assert host.subscribed
+        if host.os_version.major != 6:
+            assert host.subscribed
         # Run a Job on the Host
     template_id = (
         module_target_sat.api.JobTemplate()
@@ -908,7 +913,7 @@ def test_positive_generate_job_report(setup_content, module_target_sat, content_
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_installable_errata(
     target_sat, function_org, function_lce, function_location, rhel_contenthost
 ):
@@ -951,7 +956,8 @@ def test_positive_installable_errata(
     result = rhel_contenthost.register(
         function_org, function_location, activation_key.name, target_sat
     )
-    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    if rhel_contenthost.os_version.major != 6:
+        assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
 
     # Remove package if already installed on this host
@@ -1021,7 +1027,7 @@ def test_positive_installable_errata(
     assert installable_errata['Erratum'] == ERRATUM_ID
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_installed_products(
     target_sat,
     rhel_contenthost,

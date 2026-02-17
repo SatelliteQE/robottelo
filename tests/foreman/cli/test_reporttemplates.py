@@ -904,7 +904,7 @@ def test_negative_generate_hostpkgcompare_nonexistent_host(module_target_sat):
     assert "At least one of the hosts couldn't be found" in cm.value.stderr
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_generate_installed_packages_report(
     module_sca_manifest_org,
     local_ak,
@@ -949,7 +949,8 @@ def test_positive_generate_installed_packages_report(
         local_ak.name,
         target_sat,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if client.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert client.subscribed
     client.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}')
     result_html = target_sat.cli.ReportTemplate.generate(

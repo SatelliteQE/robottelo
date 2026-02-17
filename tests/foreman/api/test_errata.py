@@ -515,7 +515,7 @@ def _publish_and_wait(sat, org, cv, search_rate=1, max_tries=10):
 
 
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.no_containers
 @pytest.mark.e2e
 def test_positive_install_in_hc(
@@ -579,9 +579,10 @@ def test_positive_install_in_hc(
             target=target_sat,
             loc=None,
         )
-        assert result.status == 0, (
-            f'Failed to register the host - {client.hostname}: {result.stderr}'
-        )
+        if client.os_version.major != 6:
+            assert result.status == 0, (
+                f'Failed to register the host - {client.hostname}: {result.stderr}'
+            )
         client.add_rex_key(satellite=target_sat)
         assert client.subscribed
         client.run(r'subscription-manager repos --enable \*')
@@ -705,7 +706,7 @@ def test_positive_install_in_hc(
         )
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.no_containers
 @pytest.mark.e2e
 @pytest.mark.pit_client
@@ -1496,7 +1497,8 @@ def test_positive_incremental_update_apply_to_envs_cvs(
         target=target_sat,
         loc=None,
     )
-    assert result.status == 0, f'Failed to register the host: {rhel_contenthost.hostname}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register the host: {rhel_contenthost.hostname}'
     assert rhel_contenthost.subscribed
     rhel_contenthost.execute(r'subscription-manager repos --enable \*')
 

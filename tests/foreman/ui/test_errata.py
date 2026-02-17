@@ -292,7 +292,7 @@ def registered_contenthost(
 
 
 @pytest.mark.e2e
-@pytest.mark.rhel_ver_match('N-3')  # Newest major RHEL version (N), and three prior.
+@pytest.mark.rhel_ver_match(r'^\d+$')  # Newest major RHEL version (N), and three prior.
 @pytest.mark.parametrize('registered_contenthost', [[CUSTOM_REPO_URL]], indirect=True)
 @pytest.mark.no_containers
 def test_end_to_end(

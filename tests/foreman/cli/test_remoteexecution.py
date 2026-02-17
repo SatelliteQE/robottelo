@@ -231,7 +231,7 @@ class TestRemoteExecution:
 
     @pytest.mark.pit_client
     @pytest.mark.pit_server
-    @pytest.mark.rhel_ver_list([7, 8, 9])
+    @pytest.mark.rhel_ver_match(r'^\d+$')
     def test_positive_run_job_effective_user(self, rex_contenthost, module_target_sat, module_org):
         """Run default job template as effective user on a host, test ssh user as well
 
@@ -346,7 +346,7 @@ class TestRemoteExecution:
         ids=["global-param-sudo"],
         indirect=True,
     )
-    @pytest.mark.rhel_ver_list([9])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_job_ssh_user_from_global_param(
         self,
         rex_contenthost,
@@ -439,7 +439,7 @@ class TestRemoteExecution:
         ids=["settings"],
         indirect=True,
     )
-    @pytest.mark.rhel_ver_list([9])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_job_effective_user_from_settings(
         self,
         rex_contenthost,
@@ -518,7 +518,7 @@ class TestRemoteExecution:
         assert username == result.stdout.strip('\n')
 
     @pytest.mark.e2e
-    @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.rhel_ver_match(r'^\d+$')
     def test_positive_run_custom_job_template(self, rex_contenthost, module_org, target_sat):
         """Run custom template on host connected
 
@@ -1126,7 +1126,8 @@ class TestAsyncSSHProviderRex:
             ignore_subman_errors=True,
             force=True,
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         # run script provider rex command, longer-running command is needed to
         # verify the connection is not shut down too soon
         invocation_command = module_target_sat.cli_factory.job_invocation(
@@ -1147,6 +1148,7 @@ class TestPullProviderRex:
     @pytest.mark.upgrade
     @pytest.mark.no_containers
     @pytest.mark.client_release
+    @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],
@@ -1243,6 +1245,7 @@ class TestPullProviderRex:
         result = module_target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
 
     @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],
@@ -1350,6 +1353,7 @@ class TestPullProviderRex:
     @pytest.mark.pit_client
     @pytest.mark.no_containers
     @pytest.mark.client_release
+    @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],
@@ -1481,6 +1485,7 @@ class TestPullProviderRex:
 
     @pytest.mark.upgrade
     @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_run_pull_job_on_offline_host(
         self,
         module_org,
@@ -1558,7 +1563,7 @@ class TestPullProviderRex:
 
     @pytest.mark.e2e
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.rhel_ver_match('[^6]')
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],

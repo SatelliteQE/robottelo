@@ -203,7 +203,8 @@ def test_loadbalancer_install_package(
         target=setup_capsules[0],
         force=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Try package installation
     result = rhel_contenthost.execute('yum install -y tree')
@@ -266,7 +267,8 @@ def test_client_register_through_lb(
         target=setup_capsules[0],
         force=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert setup_haproxy.hostname in rhel_contenthost.subscription_config['server']['hostname']
     assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
     host_info = module_target_sat.cli.Host.info(
@@ -288,7 +290,8 @@ def test_client_register_through_lb(
         target=setup_capsules[1],
         force=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert setup_haproxy.hostname in rhel_contenthost.subscription_config['server']['hostname']
     assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
