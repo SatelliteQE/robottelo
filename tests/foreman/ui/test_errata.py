@@ -1675,39 +1675,34 @@ def test_content_host_errata_search_commands(
         with session:
             session.location.select(loc_name=DEFAULT_LOC)
             # Search for hosts needing RHSA security errata
-            result = session.contenthost.search('errata_status = security_needed')
+            result = session.host.search('errata_status = security_needed')
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result, 'Needs-RHSA host not found'
             # Search for hosts needing RHBA bugfix errata
-            result = session.contenthost.search('errata_status = errata_needed')
+            result = session.host.search('errata_status = errata_needed')
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result, 'Needs-RHBA host not found'
             # Search for applicable RHSA errata by Errata ID
-            result = session.contenthost.search(
-                f'applicable_errata = {settings.repos.yum_6.errata[2]}'
-            )
+            result = session.host.search(f'applicable_errata = {settings.repos.yum_6.errata[2]}')
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result
             # Search for applicable RHBA errata by Errata ID
-            result = session.contenthost.search(
-                f'applicable_errata = {settings.repos.yum_6.errata[0]}'
-            )
+            result = session.host.search(f'applicable_errata = {settings.repos.yum_6.errata[0]}')
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result
             # Search for RHSA applicable RPMs
-            result = session.contenthost.search(f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}')
+            result = session.host.search(f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}')
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result
             # Search for RHBA applicable RPMs
-            result = session.contenthost.search(f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}')
+            result = session.host.search(f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}')
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result
 
             # Search chost for installable RHSA errata by Errata ID
-            result = session.contenthost.search_errata(
+            result = session.host_new.get_errata_table(
                 entity_name=clients[0].hostname,
-                environment='Library Synced Content',
-                errata_id=settings.repos.yum_6.errata[2],
+                search=f'errata_id="{settings.repos.yum_6.errata[2]}"',
             )
             assert len(result) > 0, (
                 f'Found no matching entries in chost errata table, for host: {clients[0].hostname}'
@@ -1715,15 +1710,14 @@ def test_content_host_errata_search_commands(
             )
             for row in result:
                 # rows show expected errata details for client
-                assert row['Id'] == settings.repos.yum_6.errata[2]
-                assert row['Title'] == 'Sea_Erratum'
-                assert row['Type'] == 'Security Advisory'
+                assert row['Errata'] == settings.repos.yum_6.errata[2]
+                assert row['Type'] == 'Security'
+                assert row['Synopsis'] == 'Sea_Erratum'
 
             # Search chost for installable RHBA errata by Errata ID
-            result = session.contenthost.search_errata(
+            result = session.host_new.get_errata_table(
                 entity_name=clients[1].hostname,
-                environment='Library Synced Content',
-                errata_id=settings.repos.yum_6.errata[0],
+                search=f'errata_id="{settings.repos.yum_6.errata[0]}"',
             )
             assert len(result) > 0, (
                 f'Found no matching entries in chost errata table, for host: {clients[1].hostname}'
@@ -1731,6 +1725,6 @@ def test_content_host_errata_search_commands(
             )
             for row in result:
                 # rows show expected errata details for client
-                assert row['Id'] == settings.repos.yum_6.errata[0]
-                assert row['Title'] == 'Kangaroo_Erratum'
-                assert row['Type'] == 'Bug Fix Advisory - low'
+                assert row['Errata'] == settings.repos.yum_6.errata[0]
+                assert row['Type'] == 'Bugfix'
+                assert row['Synopsis'] == 'Kangaroo_Erratum'
