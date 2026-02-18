@@ -348,7 +348,7 @@ def process_iop_log_options(installer_output):
     return options_dict
 
 
-def test_set_iop_log_level_via_installer(module_target_sat_insights):
+def test_set_iop_log_level_via_installer(module_satellite_iop):
     """Set IoP log level to DEBUG using satellite-installer options.
 
     :id: 0268a6c1-56b5-4a0c-9df9-6c1b34f6cbd7
@@ -369,7 +369,7 @@ def test_set_iop_log_level_via_installer(module_target_sat_insights):
 
     # Retrieve the IoP log level settings from satellite-installer help output
     help_command = InstallerCommand('full-help').get_command()
-    log_level_settings = module_target_sat_insights.execute(
+    log_level_settings = module_satellite_iop.execute(
         f'{help_command} | grep iop.*log-level | grep -v reset'
     ).stdout
 
@@ -386,10 +386,10 @@ def test_set_iop_log_level_via_installer(module_target_sat_insights):
         iop_core_engine_log_level_insights_messaging=NEW_LOG_LEVEL,
         iop_core_engine_log_level_root=NEW_LOG_LEVEL,
     ).get_command()
-    module_target_sat_insights.execute(command)
+    module_satellite_iop.execute(command)
 
     # Verify that log levels are now DEBUG
-    new_log_level_settings = module_target_sat_insights.execute(
+    new_log_level_settings = module_satellite_iop.execute(
         f'{help_command} | grep iop.*log-level | grep -v reset'
     ).stdout
     new_settings_dict = process_iop_log_options(new_log_level_settings)
@@ -403,8 +403,8 @@ def test_set_iop_log_level_via_installer(module_target_sat_insights):
         'reset-iop-core-engine-log-level-insights-messaging',
         'reset-iop-core-engine-log-level-root',
     ).get_command()
-    module_target_sat_insights.execute(command)
-    log_level_settings = module_target_sat_insights.execute(
+    module_satellite_iop.execute(command)
+    log_level_settings = module_satellite_iop.execute(
         f'{help_command} | grep iop.*log-level | grep -v reset'
     ).stdout
     settings_dict = process_iop_log_options(log_level_settings)
