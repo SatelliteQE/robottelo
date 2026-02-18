@@ -1215,7 +1215,7 @@ def errata_host(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_apply_errata_using_default_content_view(errata_host, module_sca_manifest_org, target_sat):
     """Updating an applicable errata on a host attached to the default content view
      causes the errata to not be applicable.
@@ -1265,7 +1265,7 @@ def test_apply_errata_using_default_content_view(errata_host, module_sca_manifes
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_update_applicable_package_using_default_content_view(errata_host, target_sat):
     """Updating an applicable package on a host attached to the default content view causes the
     package to not be applicable or installable.
@@ -1323,7 +1323,7 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_downgrade_applicable_package_using_default_content_view(errata_host, target_sat):
     """Downgrading a package on a host attached to the default content view
     causes the package to become applicable and installable.
@@ -1371,7 +1371,7 @@ def test_downgrade_applicable_package_using_default_content_view(errata_host, ta
     assert FAKE_2_CUSTOM_PACKAGE_NAME in applicable_packages[0]['filename']
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_install_applicable_package_to_registered_host(errata_host, target_sat):
     """Installing an older package to an already registered host should show the newer package
     and errata as applicable and installable.
@@ -1418,7 +1418,7 @@ def test_install_applicable_package_to_registered_host(errata_host, target_sat):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_downgrading_package_shows_errata_from_library(
     errata_host, module_sca_manifest_org, target_sat
 ):
@@ -1522,7 +1522,7 @@ def test_errata_list_by_contentview_filter(module_sca_manifest_org, module_targe
     assert errata_count != errata_count_cvf
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_verify_errata_recalculate_tasks(target_sat, errata_host):
     """Verify 'Actions::Katello::Applicability::Hosts::BulkGenerate' tasks proceed on 'worker-hosts-queue-1.service'
 

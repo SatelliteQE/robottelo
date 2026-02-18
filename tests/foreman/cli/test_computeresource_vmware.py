@@ -79,7 +79,7 @@ def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location, 
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_provision_end_to_end(
     request,
     setting_update,
@@ -154,7 +154,7 @@ def test_positive_provision_end_to_end(
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios'], indirect=True)
-@pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_image_provision_end_to_end(
     request,
     setting_update,

@@ -15,7 +15,7 @@
 import pytest
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_custom_products_disabled_by_default(
     session,
     default_location,
@@ -56,7 +56,7 @@ def test_positive_custom_products_disabled_by_default(
         assert repos[0]['Repository type'] == 'Custom'
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_override_custom_products_using_select_all(
     session,
     default_location,

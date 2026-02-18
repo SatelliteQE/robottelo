@@ -38,7 +38,7 @@ def test_positive_find_capsule_upgrade_playbook(target_sat):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.parametrize(
     'setting_update',
     ['remote_execution_global_proxy=False'],
@@ -170,7 +170,7 @@ def test_negative_time_to_pickup(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_match('[^6]')
 @pytest.mark.parametrize(
     'setting_update',
     ['remote_execution_global_proxy=False'],

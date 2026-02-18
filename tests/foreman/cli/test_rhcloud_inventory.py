@@ -317,7 +317,7 @@ def test_positive_generate_all_reports_job(target_sat):
         target_sat.update_setting('allow_auto_inventory_upload', True)
 
 
-@pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_register_insights_client_host(module_target_sat, rhel_insights_vm):
     """Check the below command executed successfully
     command - insights-client --ansible-host=foo.example.com

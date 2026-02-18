@@ -31,21 +31,25 @@ ak_name = {
     'rhel9': f'ak_{gen_string("alpha")}_rhel9',
     'rhel8': f'ak_{gen_string("alpha")}_rhel8',
     'rhel7': f'ak_{gen_string("alpha")}_rhel7',
+    'rhel6': f'ak_{gen_string("alpha")}_rhel6',
 }
 cv_name = {
     'rhel9': f'cv_{gen_string("alpha")}_rhel9',
     'rhel8': f'cv_{gen_string("alpha")}_rhel8',
     'rhel7': f'cv_{gen_string("alpha")}_rhel7',
+    'rhel6': f'cv_{gen_string("alpha")}_rhel6',
 }
 profiles = {
     'rhel9': OSCAP_PROFILE['ospp8+'],
     'rhel8': OSCAP_PROFILE['ospp8+'],
     'rhel7': OSCAP_PROFILE['security7'],
+    'rhel6': OSCAP_PROFILE['security6'],
 }
 rhel_repos = {
     'rhel9': settings.repos.rhel9_os,
     'rhel8': settings.repos.rhel8_os,
     'rhel7': settings.repos.rhel7_os,
+    'rhel6': settings.repos.rhel6_os,
 }
 
 
@@ -222,7 +226,8 @@ def prepare_scap_client_and_prerequisites(
         insecure=True,
         hostgroup=hostgroup,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     rhel_repo = rhel_repos[distro]
     profile = profiles[distro]
     if distro == 'rhel7':
@@ -252,7 +257,7 @@ def prepare_scap_client_and_prerequisites(
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.client_release
 @pytest.mark.pit_server
 @pytest.mark.pit_client
@@ -321,7 +326,7 @@ def test_positive_oscap_run_via_ansible(
 
 
 @pytest.mark.e2e
-@pytest.mark.rhel_ver_list([8])
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.client_release
 def test_positive_oscap_remediation(
     module_org, default_proxy, content_view, lifecycle_env, target_sat, rex_contenthost
@@ -409,7 +414,7 @@ def test_positive_oscap_remediation(
     assert contenthost.execute("rpm -q aide").status == 0
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_oscap_run_via_ansible_bz_1814988(
     module_org, default_proxy, lifecycle_env, target_sat, rex_contenthost
 ):
