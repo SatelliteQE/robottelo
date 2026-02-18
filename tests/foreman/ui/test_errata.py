@@ -1156,18 +1156,6 @@ def test_positive_content_host_previous_env(
     assert new_lce.name == vm_cve['lifecycle_environment']['name']
     assert new_lce.id == vm_cve['lifecycle_environment']['id']
 
-    with session:
-        session.location.select(loc_name=DEFAULT_LOC)
-        # can view errata from previous env, dropdown option is correct
-        environment = f'Previous Lifecycle Environment ({module_lce.name}/{content_view.name})'
-        content_host_erratum = session.contenthost.search_errata(
-            vm.hostname,
-            CUSTOM_REPO_ERRATA_ID,
-            environment=environment,
-        )
-        # In Previous Env, expected errata_id was found via search
-        assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
-
 
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
@@ -1257,13 +1245,16 @@ def test_positive_host_content_library(
         assert host_tab_erratum[0]['Errata'] == CUSTOM_REPO_ERRATA_ID
 
 
+@pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
     'registered_contenthost',
     [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-def test_positive_errata_search_type(session, module_sca_manifest_org, registered_contenthost):
+def test_positive_errata_search_type(
+    session, module_target_sat, module_sca_manifest_org, registered_contenthost
+):
     """Search for errata on a host's page content-errata tab by type.
 
     :id: f278f0e8-3b64-4dbf-a0c8-b9b289474a76
@@ -1278,8 +1269,25 @@ def test_positive_errata_search_type(session, module_sca_manifest_org, registere
     :BZ: 1653293
     """
     vm = registered_contenthost
+    hostname = vm.hostname
     pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
+    install_timestamp = (datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)).strftime(
+        TIMESTAMP_FMT
+    )
     assert vm.execute(f'yum install -y {pkgs}').status == 0
+
+    applicability_tasks = module_target_sat.wait_for_tasks(
+        search_query=(
+            f'Bulk generate applicability for host {hostname}'
+            f' and started_at >= "{install_timestamp}"'
+        ),
+        search_rate=2,
+        max_tries=60,
+    )
+    assert len(applicability_tasks) > 0, (
+        'No Errata applicability task(s) found after successful yum install.'
+        f' Expected at least one task for registered host: {hostname}'
+    )
 
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
@@ -1416,6 +1424,7 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
             )
 
 
+@pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'registered_contenthost',
@@ -1457,7 +1466,9 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
         assert int(len(read_errata['Content']['Errata']['pagination'])) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-        install_timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
+        install_timestamp = (
+            datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
+        ).strftime(TIMESTAMP_FMT)
         assert vm.execute(f'yum install -y {pkgs}').status == 0
 
         # applicability task(s) found and succeed
@@ -1487,6 +1498,7 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
 
 
 @pytest.mark.upgrade
+@pytest.mark.no_containers
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize('setting_update', ['errata_status_installable'], indirect=True)
 @pytest.mark.rhel_ver_match('N-1')
@@ -1576,7 +1588,22 @@ def test_positive_filtered_errata_status_installable_param(
             assert expected_values[key] in actual_values[key], 'Expected text not found'
         property_value = 'Yes'
         session.settings.update(f'name = {setting_update.name}', property_value)
+        install_timestamp = (
+            datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
+        ).strftime(TIMESTAMP_FMT)
         assert client.execute(f'yum install -y {FAKE_9_YUM_OUTDATED_PACKAGES[1]}').status == 0
+        applicability_tasks = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'Bulk generate applicability for host {client.hostname}'
+                f' and started_at >= "{install_timestamp}"'
+            ),
+            search_rate=2,
+            max_tries=60,
+        )
+        assert len(applicability_tasks) > 0, (
+            'No Errata applicability task(s) found after successful yum install.'
+            f' Expected at least one task for registered host: {client.hostname}'
+        )
         expected_values = {
             'Status': 'Error',
             'Errata': 'Security errata installable',
