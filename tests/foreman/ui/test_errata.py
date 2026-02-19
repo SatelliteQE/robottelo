@@ -1267,8 +1267,7 @@ def test_positive_errata_search_type(session, module_sca_manifest_org, registere
     indirect=True,
 )
 def test_positive_show_count_on_host_pages(session, module_org, registered_contenthost):
-    """Available errata by type displayed in New Host>Errata page,
-        and expected count by type in Legacy>Content hosts page.
+    """Available errata by type displayed in New Host>Errata page.
 
     :id: 8575e282-d56e-41dc-80dd-f5f6224417cb
 
@@ -1279,7 +1278,7 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
 
     :steps:
 
-        1. Go to Hosts -> All Hosts, and Legacy ContentHost -> Hosts.
+        1. Go to Hosts -> All Hosts.
         2. None of the erratum are installable.
         3. Install all outdated applicable packages via yum.
         4. Recalculate errata applicablity for host.
@@ -1321,14 +1320,6 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
                 f'Found some installable {errata_type} errata, when none were expected.'
             )
             assert empty_table
-        # legacy contenthost UI
-        content_host_values = session.contenthost.search(hostname)
-        assert content_host_values[0]['Name'] == hostname
-        installable_errata = content_host_values[0]['Installable Updates']['errata']
-        for errata_type in ('security', 'bug_fix', 'enhancement'):
-            assert int(installable_errata[errata_type]) == 0, (
-                f'Found some installable {errata_type} errata, when none were expected.'
-            )
 
         # install outdated packages, recalculate errata applicability
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
