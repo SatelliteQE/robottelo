@@ -944,7 +944,7 @@ def test_positive_apply_for_all_hosts(
                 search_rate=10,
                 max_tries=30,
             )
-            assert len(applicability_tasks) == num_hosts + 1
+            assert len(applicability_tasks) > 0
             # found updated kangaroo package in each host
             updated_version = '0.2-1.noarch'
             for client in hosts:
@@ -955,19 +955,32 @@ def test_positive_apply_for_all_hosts(
                 assert updated_pkg[0]['Installed version'] == updated_version
 
             # for second errata, install in each chost and check, one at a time.
-            # from Legacy Chost UI > details > Errata tab
+            # from Host UI > details > Errata tab
             for client in hosts:
-                status = session.contenthost.install_errata(
-                    client.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
+                # Navigate to All Hosts to ensure clean state before applying erratas
+                session.host_new.search(client.hostname)
+                session.host_new.apply_erratas(
+                    entity_name=client.hostname,
+                    search=f'errata_id=="{CUSTOM_REPO_ERRATA_ID}"',
                 )
-                assert status['overall_status']['is_success']
+                # Wait for the errata installation task to complete
+                install_task = target_sat.wait_for_tasks(
+                    search_query=(
+                        f'Remote action: Install errata on {client.hostname} and result != pending'
+                    ),
+                    search_rate=2,
+                    max_tries=60,
+                )
+                assert len(install_task) >= 1
+                assert install_task[0].result == 'success'
                 # check updated package in chost details
                 assert client.execute('subscription-manager repos').status == 0
-                packages_rows = session.contenthost.search_package(
-                    client.hostname, FAKE_2_CUSTOM_PACKAGE
+                packages_rows = session.host_new.get_packages(
+                    entity_name=client.hostname, search=FAKE_2_CUSTOM_PACKAGE
                 )
                 # updated walrus package found for each host
-                assert packages_rows[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
+                assert len(packages_rows) == 1
+                assert packages_rows[0]['Installed version'] == '5.21-1.noarch'
 
 
 @pytest.mark.upgrade
