@@ -32,7 +32,7 @@ def match_file_to_rule(filename, rule):
     path_pattern = rule.path
 
     try:
-        return bool(re.search(path_pattern, filename))
+        return bool(re.search(path_pattern, filename, flags=re.IGNORECASE))
     except re.error as e:
         logger.error(f"Invalid regex pattern '{path_pattern}': {e}")
         return False
@@ -192,7 +192,7 @@ def pytest_collection_modifyitems(session, items, config):
                     if match_file_to_rule(filename, rule)
                 }
                 if matched_filenames:
-                    components.add(rule.component)
+                    components.add(rule.component.lower())
                     unprocessed_filenames.difference_update(matched_filenames)
                     logger.debug(
                         f"Rule '{rule.path}' matched {len(matched_filenames)} files, "
