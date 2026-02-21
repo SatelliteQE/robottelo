@@ -266,6 +266,7 @@ def test_single_sign_on_ldap_ad_server(
     assert f'{url}/new/hosts' in result.stdout
 
 
+@pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
     'setting_update',
     [f'login_delegation_logout_url={LOGIN_DELEGATION_LOGOUT_URL}'],
