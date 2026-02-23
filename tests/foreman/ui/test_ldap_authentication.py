@@ -289,6 +289,8 @@ def test_positive_update_external_roles(
     :expectedresults: User has access to all NEW functional areas that are
         assigned to aforementioned UserGroup.
 
+    :BlockedBy: SAT-42705
+
     :parametrized: yes
     """
     ldap_data, auth_source = ldap_auth_source
@@ -346,6 +348,8 @@ def test_positive_delete_external_roles(
     :setup: delete roles from an AD UserGroup
 
     :CaseImportance: Medium
+
+    :BlockedBy: SAT-42705
 
     :steps:
         1. Create an UserGroup.
@@ -489,6 +493,8 @@ def test_positive_add_admin_role_with_org_loc(
     :id: 00841778-f89e-4445-a6c6-f1470b6da32e
 
     :parametrized: yes
+
+    :BlockedBy: SAT-42705
 
     :setup: LDAP Auth Source should be created with Org and Location
             Associated.
@@ -1215,6 +1221,8 @@ def test_verify_group_permissions(
         3. Try login with the user common in both external group
 
     :CaseImportance: Medium
+
+    :BlockedBy: SAT-42705
 
     :expectedresults: Group with higher permission is applied on the user
     """
