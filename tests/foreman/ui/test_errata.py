@@ -980,7 +980,9 @@ def test_positive_apply_for_all_hosts(
                 )
                 # updated walrus package found for each host
                 assert len(packages_rows) == 1
-                assert packages_rows[0]['Installed version'] == '5.21-1.noarch'
+                assert (
+                    packages_rows[0]['Installed version'] == FAKE_2_CUSTOM_PACKAGE.split('-', 1)[1]
+                )
 
 
 @pytest.mark.upgrade
@@ -1605,27 +1607,31 @@ def test_content_host_errata_search_commands(
         with session:
             session.location.select(loc_name=DEFAULT_LOC)
             # Search for hosts needing RHSA security errata
-            result = session.host.search('errata_status = security_needed')
+            result = session.host_new.search('errata_status = security_needed')
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result, 'Needs-RHSA host not found'
             # Search for hosts needing RHBA bugfix errata
-            result = session.host.search('errata_status = errata_needed')
+            result = session.host_new.search('errata_status = errata_needed')
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result, 'Needs-RHBA host not found'
             # Search for applicable RHSA errata by Errata ID
-            result = session.host.search(f'applicable_errata = {settings.repos.yum_6.errata[2]}')
+            result = session.host_new.search(
+                f'applicable_errata = {settings.repos.yum_6.errata[2]}'
+            )
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result
             # Search for applicable RHBA errata by Errata ID
-            result = session.host.search(f'applicable_errata = {settings.repos.yum_6.errata[0]}')
+            result = session.host_new.search(
+                f'applicable_errata = {settings.repos.yum_6.errata[0]}'
+            )
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result
             # Search for RHSA applicable RPMs
-            result = session.host.search(f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}')
+            result = session.host_new.search(f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}')
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result
             # Search for RHBA applicable RPMs
-            result = session.host.search(f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}')
+            result = session.host_new.search(f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}')
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result
 
