@@ -548,6 +548,8 @@ def test_user_permissions_rhsso_user_multiple_group(
 
     :CaseImportance: Medium
 
+    :BlockedBy: SAT-42705
+
     :steps:
         1. create sat_users and sat_admins usergroups with non-admin and admin
             permissions respectively
