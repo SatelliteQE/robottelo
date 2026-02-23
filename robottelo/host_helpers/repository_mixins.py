@@ -707,7 +707,7 @@ class RepositoryCollection:
         )
         if override is not None:
             for repo in self.satellite.cli.ActivationKey.product_content(
-                {'id': activation_key['id'], 'content-access-mode-all': 1}
+                {'id': activation_key['id']}
             ):
                 self.satellite.cli.ActivationKey.content_override(
                     {

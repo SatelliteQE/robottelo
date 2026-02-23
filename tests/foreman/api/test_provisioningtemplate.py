@@ -782,7 +782,7 @@ class TestProvisioningTemplate:
             assert f'timesource --ntp-server {ntp_server_value}' in render
             assert f'timezone --utc {timezone}' in render
         else:
-            assert f'timezone --utc {timezone} --ntpservers {ntp_server_value}' in render
+            assert f'timezone --ntpservers {ntp_server_value} --utc {timezone}' in render
 
     @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
     def test_create_host_with_invalid_template(

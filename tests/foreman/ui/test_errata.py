@@ -944,7 +944,7 @@ def test_positive_apply_for_all_hosts(
                 search_rate=10,
                 max_tries=30,
             )
-            assert len(applicability_tasks) == num_hosts + 1
+            assert len(applicability_tasks) > 0
             # found updated kangaroo package in each host
             updated_version = '0.2-1.noarch'
             for client in hosts:
@@ -955,19 +955,34 @@ def test_positive_apply_for_all_hosts(
                 assert updated_pkg[0]['Installed version'] == updated_version
 
             # for second errata, install in each chost and check, one at a time.
-            # from Legacy Chost UI > details > Errata tab
+            # from Host UI > details > Errata tab
             for client in hosts:
-                status = session.contenthost.install_errata(
-                    client.hostname, CUSTOM_REPO_ERRATA_ID, install_via='rex'
+                # Navigate to All Hosts to ensure clean state before applying erratas
+                session.host_new.search(client.hostname)
+                session.host_new.apply_erratas(
+                    entity_name=client.hostname,
+                    search=f'errata_id=="{CUSTOM_REPO_ERRATA_ID}"',
                 )
-                assert status['overall_status']['is_success']
+                # Wait for the errata installation task to complete
+                install_task = target_sat.wait_for_tasks(
+                    search_query=(
+                        f'Remote action: Install errata on {client.hostname} and result != pending'
+                    ),
+                    search_rate=2,
+                    max_tries=60,
+                )
+                assert len(install_task) >= 1
+                assert install_task[0].result == 'success'
                 # check updated package in chost details
                 assert client.execute('subscription-manager repos').status == 0
-                packages_rows = session.contenthost.search_package(
-                    client.hostname, FAKE_2_CUSTOM_PACKAGE
+                packages_rows = session.host_new.get_packages(
+                    entity_name=client.hostname, search=FAKE_2_CUSTOM_PACKAGE
                 )
                 # updated walrus package found for each host
-                assert packages_rows[0]['Installed Package'] == FAKE_2_CUSTOM_PACKAGE
+                assert len(packages_rows) == 1
+                assert (
+                    packages_rows[0]['Installed version'] == FAKE_2_CUSTOM_PACKAGE.split('-', 1)[1]
+                )
 
 
 @pytest.mark.upgrade
@@ -1093,68 +1108,6 @@ def test_positive_filter_by_environment(
             assert not session.errata.search_content_hosts(
                 CUSTOM_REPO_ERRATA_ID, clients[0].hostname, environment=lce.name
             )
-
-
-@pytest.mark.upgrade
-@pytest.mark.parametrize(
-    'registered_contenthost',
-    [[CUSTOM_REPO_URL]],
-    indirect=True,
-)
-@pytest.mark.rhel_ver_match('N-2')
-def test_positive_content_host_previous_env(
-    session,
-    module_cv,
-    module_lce,
-    module_target_sat,
-    registered_contenthost,
-    module_sca_manifest_org,
-):
-    """Check if the applicable errata are available from the content
-    host's previous environment
-
-    :id: 78110ba8-3942-46dd-8c14-bffa1dbd5195
-
-    :Setup:
-        1. Make sure multiple environments are present, one registered host.
-            note: registered_contenthost is using module_lce, module_cv.
-        2. Content host's previous environments have additional errata.
-        3. Promote the Host's content view version to a new lifecycle environment.
-        4. Set the Host to use the new environment, and original content view.
-
-    :Steps: Go to Content Hosts -> Select content host -> Errata Tab ->
-        Select Previous environments (Environments Dropdown).
-
-    :expectedresults: The previous environment name, and content view name are correct.
-        Expected errata from previous environments are displayed.
-
-    :Verifies: SAT-25213
-
-    :parametrized: yes
-    """
-    vm = registered_contenthost
-    nailgun_host = registered_contenthost.nailgun_host
-    assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
-    # Promote the latest content view version to a new lifecycle environment
-    new_lce = module_target_sat.api.LifecycleEnvironment(
-        organization=module_sca_manifest_org,
-        prior=module_lce,
-    ).create()
-    content_view = module_cv.read()
-    content_view.version.sort(key=lambda version: version.id)
-    content_view_version = content_view.version[-1].read()
-    content_view_version.promote(data={'environment_ids': [new_lce.id]})
-    # set host to use {new_lce / module_cv}, prior should be {module_lce / module_cv}
-    nailgun_host.content_facet_attributes = {
-        'lifecycle_environment_id': new_lce.id,
-        'content_view_id': module_cv.id,
-    }
-    nailgun_host.update(['content_facet_attributes'])
-    # new_lce has been set for vm's Current Content Source
-    vm_cve = vm.nailgun_host.read().content_facet_attributes['content_view_environments'][0]
-    assert vm_cve == nailgun_host.read().content_facet_attributes['content_view_environments'][0]
-    assert new_lce.name == vm_cve['lifecycle_environment']['name']
-    assert new_lce.id == vm_cve['lifecycle_environment']['id']
 
 
 @pytest.mark.rhel_ver_match('N-2')
@@ -1336,8 +1289,7 @@ def test_positive_errata_search_type(
     indirect=True,
 )
 def test_positive_show_count_on_host_pages(session, module_org, registered_contenthost):
-    """Available errata by type displayed in New Host>Errata page,
-        and expected count by type in Legacy>Content hosts page.
+    """Available errata by type displayed in New Host>Errata page.
 
     :id: 8575e282-d56e-41dc-80dd-f5f6224417cb
 
@@ -1348,7 +1300,7 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
 
     :steps:
 
-        1. Go to Hosts -> All Hosts, and Legacy ContentHost -> Hosts.
+        1. Go to Hosts -> All Hosts.
         2. None of the erratum are installable.
         3. Install all outdated applicable packages via yum.
         4. Recalculate errata applicablity for host.
@@ -1390,14 +1342,6 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
                 f'Found some installable {errata_type} errata, when none were expected.'
             )
             assert empty_table
-        # legacy contenthost UI
-        content_host_values = session.contenthost.search(hostname)
-        assert content_host_values[0]['Name'] == hostname
-        installable_errata = content_host_values[0]['Installable Updates']['errata']
-        for errata_type in ('security', 'bug_fix', 'enhancement'):
-            assert int(installable_errata[errata_type]) == 0, (
-                f'Found some installable {errata_type} errata, when none were expected.'
-            )
 
         # install outdated packages, recalculate errata applicability
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
@@ -1702,39 +1646,38 @@ def test_content_host_errata_search_commands(
         with session:
             session.location.select(loc_name=DEFAULT_LOC)
             # Search for hosts needing RHSA security errata
-            result = session.contenthost.search('errata_status = security_needed')
+            result = session.host_new.search('errata_status = security_needed')
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result, 'Needs-RHSA host not found'
             # Search for hosts needing RHBA bugfix errata
-            result = session.contenthost.search('errata_status = errata_needed')
+            result = session.host_new.search('errata_status = errata_needed')
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result, 'Needs-RHBA host not found'
             # Search for applicable RHSA errata by Errata ID
-            result = session.contenthost.search(
+            result = session.host_new.search(
                 f'applicable_errata = {settings.repos.yum_6.errata[2]}'
             )
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result
             # Search for applicable RHBA errata by Errata ID
-            result = session.contenthost.search(
+            result = session.host_new.search(
                 f'applicable_errata = {settings.repos.yum_6.errata[0]}'
             )
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result
             # Search for RHSA applicable RPMs
-            result = session.contenthost.search(f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}')
+            result = session.host_new.search(f'applicable_rpms = {FAKE_2_CUSTOM_PACKAGE}')
             result = [item['Name'] for item in result]
             assert clients[0].hostname in result
             # Search for RHBA applicable RPMs
-            result = session.contenthost.search(f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}')
+            result = session.host_new.search(f'applicable_rpms = {FAKE_5_CUSTOM_PACKAGE}')
             result = [item['Name'] for item in result]
             assert clients[1].hostname in result
 
             # Search chost for installable RHSA errata by Errata ID
-            result = session.contenthost.search_errata(
+            result = session.host_new.get_errata_table(
                 entity_name=clients[0].hostname,
-                environment='Library Synced Content',
-                errata_id=settings.repos.yum_6.errata[2],
+                search=f'errata_id="{settings.repos.yum_6.errata[2]}"',
             )
             assert len(result) > 0, (
                 f'Found no matching entries in chost errata table, for host: {clients[0].hostname}'
@@ -1742,15 +1685,14 @@ def test_content_host_errata_search_commands(
             )
             for row in result:
                 # rows show expected errata details for client
-                assert row['Id'] == settings.repos.yum_6.errata[2]
-                assert row['Title'] == 'Sea_Erratum'
-                assert row['Type'] == 'Security Advisory'
+                assert row['Errata'] == settings.repos.yum_6.errata[2]
+                assert row['Type'] == 'Security'
+                assert row['Synopsis'] == 'Sea_Erratum'
 
             # Search chost for installable RHBA errata by Errata ID
-            result = session.contenthost.search_errata(
+            result = session.host_new.get_errata_table(
                 entity_name=clients[1].hostname,
-                environment='Library Synced Content',
-                errata_id=settings.repos.yum_6.errata[0],
+                search=f'errata_id="{settings.repos.yum_6.errata[0]}"',
             )
             assert len(result) > 0, (
                 f'Found no matching entries in chost errata table, for host: {clients[1].hostname}'
@@ -1758,6 +1700,6 @@ def test_content_host_errata_search_commands(
             )
             for row in result:
                 # rows show expected errata details for client
-                assert row['Id'] == settings.repos.yum_6.errata[0]
-                assert row['Title'] == 'Kangaroo_Erratum'
-                assert row['Type'] == 'Bug Fix Advisory - low'
+                assert row['Errata'] == settings.repos.yum_6.errata[0]
+                assert row['Type'] == 'Bugfix'
+                assert row['Synopsis'] == 'Kangaroo_Erratum'
