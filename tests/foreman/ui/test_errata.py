@@ -1369,7 +1369,6 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
             )
 
 
-@pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.parametrize(
     'registered_contenthost',
@@ -1415,6 +1414,7 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
             datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
         ).strftime(TIMESTAMP_FMT)
         assert vm.execute(f'yum install -y {pkgs}').status == 0
+        assert vm.execute('subscription-manager repos').status == 0
 
         # applicability task(s) found and succeed
         applicability_tasks = module_target_sat.wait_for_tasks(
@@ -1443,7 +1443,6 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
 
 
 @pytest.mark.upgrade
-@pytest.mark.no_containers
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize('setting_update', ['errata_status_installable'], indirect=True)
 @pytest.mark.rhel_ver_match('N-1')
@@ -1537,6 +1536,7 @@ def test_positive_filtered_errata_status_installable_param(
             datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
         ).strftime(TIMESTAMP_FMT)
         assert client.execute(f'yum install -y {FAKE_9_YUM_OUTDATED_PACKAGES[1]}').status == 0
+        assert client.execute('subscription-manager repos').status == 0
         applicability_tasks = module_target_sat.wait_for_tasks(
             search_query=(
                 f'Bulk generate applicability for host {client.hostname}'
