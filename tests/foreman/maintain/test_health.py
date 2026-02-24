@@ -47,7 +47,12 @@ def test_podman_login_check(request, sat_maintain):
     """
     iop_settings = settings.rh_cloud.iop_advisor_engine
 
-    request.addfinalizer(lambda: sat_maintain.podman_logout(iop_settings.registry))
+    # Restore podman login after test so the same host is left in good state
+    request.addfinalizer(
+        lambda: sat_maintain.podman_login(
+            iop_settings.username, iop_settings.token, iop_settings.registry
+        )
+    )
 
     check_description = 'Check whether podman needs to be logged in to the registry'
     fail_message = (
