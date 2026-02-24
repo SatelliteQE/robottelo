@@ -1135,6 +1135,7 @@ def test_positive_check_errata(session, registered_contenthost):
     vm = registered_contenthost
     hostname = vm.hostname
     assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert vm.execute('subscription-manager repos').status == 0
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         read_errata = session.host_new.get_details(hostname, 'Content.Errata')
