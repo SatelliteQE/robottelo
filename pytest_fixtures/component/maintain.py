@@ -57,7 +57,9 @@ def sat_maintain(request):
         infra_host.register_to_cdn()
     else:
         infra_host = _get_satellite_host(request)
-
+        if getattr(infra_host, 'iop_enabled', False):
+            satellite = request.getfixturevalue('module_target_sat')
+            satellite.uninstall_iop()
     yield infra_host
 
     if host_type == 'satellite_iop':
