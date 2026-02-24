@@ -112,7 +112,6 @@ def test_positive_userdata_image_provision_end_to_end(
         6. Check if the host status is installed.
 
     :expectedresults: Host is provisioned successfully on OpenShift Virtualization
-
     """
     name = gen_string('alpha').lower()
     sat = module_ocpv_sat
