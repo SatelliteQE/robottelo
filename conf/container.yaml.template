@@ -4,7 +4,7 @@ CONTAINER:
     - docker
     - podman
   REGISTRY_HUB: https://mirror.gcr.io
-  UPSTREAM_NAME: 'library/busybox'
+  UPSTREAM_NAME: jmalloc/echo-server
   ALTERNATIVE_UPSTREAM_NAMES:
     - hello-world
     - alpine
