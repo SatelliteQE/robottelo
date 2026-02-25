@@ -158,6 +158,11 @@ async def test_positive_mcp_user_view_permissions(
         result = await client.call_tool(
             'call_foreman_api_get', {'resource': allowed_resource, 'action': 'index', 'params': {}}
         )
+        if 'error' in result.data and 'Max retries exceeded' in result.data['error']:
+            result = await client.call_tool(
+                'call_foreman_api_get',
+                {'resource': allowed_resource, 'action': 'index', 'params': {}},
+            )
         assert (
             result.data['message']
             == f"Action 'index' on resource '{allowed_resource}' executed successfully."
@@ -170,3 +175,4 @@ async def test_positive_mcp_user_view_permissions(
             f"Failed to execute action 'index' on resource '{denied_resource}'"
             in result.data['message']
         )
+        assert result.data['response']['error']['message'] == 'Access denied'
