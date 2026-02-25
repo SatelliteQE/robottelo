@@ -2,11 +2,11 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: API
+:CaseComponent: MCP
 
 :Team: Endeavour
 
-:Requirement: API
+:Requirement: MCP
 
 :CaseImportance: High
 
