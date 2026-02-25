@@ -4189,3 +4189,62 @@ def test_assign_multi_cv_from_host_page(
 
     new_cv_env = [env for env in cv_envs if env['lce'] == module_lce.name][0]
     assert new_cv_env['content_view'] == module_cv_repo.name
+
+
+@pytest.mark.rhel_ver_match(f'{settings.content_host.default_rhel_version}')
+@pytest.mark.no_containers
+def test_assign_different_cv_from_same_env(
+    module_target_sat,
+    module_org,
+    module_lce,
+    module_cv_repo,
+    rhel_contenthost,
+):
+    """Ensure that a host can be switched to a different content view in the same lifecycle environment
+
+    :id: 64ac7868-18a6-47cc-9a3d-e014bf3ac320
+
+    :steps:
+        1. Create a content view and an activation key associated with the content view and a new lifecycle environment.
+        2. Register a host using the activation key.
+        3. Create a second content view associated with the same lifecycle environment as the previous content view.
+        4. On the Overview tab of the details page for the host, select the 'Assign content view environments' action from the 'Content view environments' card dropdown.
+        5. Use the `Select content view` dropdown to select the content view created in step 3, then click the `Save` button.
+
+    :expectedresults:
+        The host's content view environment is updated to use the content view created in step 3.
+
+    :verifies: SAT-25846
+    """
+    # Create activation key and register host
+    ak = module_target_sat.api.ActivationKey(
+        organization=module_org.id,
+        content_view=module_cv_repo.id,
+        environment=module_org.library.id,
+    ).create()
+    result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
+    assert result.status == 0
+
+    # Sync a new repo, add it to a new CV, and promote the CV
+    repo = module_target_sat.api.Repository(
+        product=module_target_sat.api.Product(organization=module_org).create(),
+        url=settings.repos.yum_0.url,
+    ).create()
+    repo.sync()
+    cv = module_target_sat.api.ContentView(
+        organization=module_org.id, name=gen_string('alpha')
+    ).create()
+    cv.repository = [repo]
+    cv.update(['repository'])
+    cv.publish()
+    cv_version = cv.read().version[0]
+    cv_version.promote(data={'environment_ids': module_lce.id})
+    cv = cv.read()
+
+    # In a UI session, use the CV environment modal to change the host's CV to the new CV
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        session.host_new.switch_associated_cv(rhel_contenthost.hostname, cv.name)
+
+        cv_env = session.host_new.get_content_view_envs(rhel_contenthost.hostname)[0]
+        assert cv_env['content_view'] == cv.name
