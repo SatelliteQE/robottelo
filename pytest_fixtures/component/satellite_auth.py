@@ -441,12 +441,12 @@ def rhsso_setting_setup_with_timeout(module_target_sat, rhsso_setting_setup):
 
 @pytest.fixture(scope='module')
 def module_enroll_ad_and_configure_external_auth(ad_data, module_target_sat):
-    module_target_sat.enroll_ad_and_configure_external_auth(ad_data)
+    return module_target_sat.enroll_ad_and_configure_external_auth(ad_data)
 
 
 @pytest.fixture
 def func_enroll_ad_and_configure_external_auth(ad_data, target_sat):
-    target_sat.enroll_ad_and_configure_external_auth(ad_data)
+    return target_sat.enroll_ad_and_configure_external_auth(ad_data)
 
 
 @pytest.fixture
