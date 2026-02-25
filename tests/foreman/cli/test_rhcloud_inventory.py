@@ -435,6 +435,7 @@ def test_positive_generate_reports_job_cli_disconnected(
     assert expected == result['output']
 
 
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_download_reports_job_cli_disconnected(
     rhcloud_manifest_org, module_target_sat, rhcloud_registered_hosts
 ):
@@ -448,7 +449,7 @@ def test_positive_download_reports_job_cli_disconnected(
 
     :expectedresults: Reports download works as expected.
 
-    :BlockedBy: SAT-41462
+    :Verifies: SAT-41462
     """
     org = rhcloud_manifest_org
     generate_report(org, module_target_sat, disconnected=True)
