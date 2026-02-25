@@ -463,7 +463,7 @@ class IoPSetup:
     def get_iop_image_paths():
         return {
             f'iop::{service}::image': path
-            for service, path in settings.rh_cloud.iop_advisor_engine.image_paths.items()
+            for service, path in settings.rh_cloud.iop.image_paths.items()
         }
 
     def configure_iop(self):
@@ -476,7 +476,7 @@ class IoPSetup:
 
         self.ensure_podman_installed()
 
-        iop_settings = settings.rh_cloud.iop_advisor_engine
+        iop_settings = settings.rh_cloud.iop
         self.podman_login(iop_settings.username, iop_settings.token, iop_settings.registry)
         self.podman_login(
             iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
