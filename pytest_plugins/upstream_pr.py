@@ -118,6 +118,7 @@ def pytest_collection_modifyitems(session, items, config):
 
     auth = None
     if token := gh_settings.get('token'):
+        logger.info(f"DEBUG TEST: token {token[0:7]}")
         auth = Auth.Token(token)
     github_client = Github(auth=auth)
 
