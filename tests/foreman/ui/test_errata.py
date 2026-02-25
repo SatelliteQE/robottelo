@@ -1199,7 +1199,6 @@ def test_positive_host_content_library(
         assert host_tab_erratum[0]['Errata'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
     'registered_contenthost',
@@ -1229,7 +1228,7 @@ def test_positive_errata_search_type(
         TIMESTAMP_FMT
     )
     assert vm.execute(f'yum install -y {pkgs}').status == 0
-
+    assert vm.execute('subscription-manager repos').status == 0
     applicability_tasks = module_target_sat.wait_for_tasks(
         search_query=(
             f'Bulk generate applicability for host {hostname}'
