@@ -70,7 +70,7 @@ def test_positive_install_iop_custom_certs(
     """
     satellite = sat_ready_rhel
     host = rhel_contenthost
-    iop_settings = settings.rh_cloud.iop_advisor_engine
+    iop_settings = settings.rh_cloud.iop
 
     # Satellite + IoP installation
 
