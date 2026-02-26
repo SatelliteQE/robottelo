@@ -28,7 +28,7 @@ from robottelo.enums import NetworkType
         'module_target_sat_foreman_mcp_stage',
         'module_target_sat_foreman_mcp_downstream',
     ],
-    ids=['upstream', 'downstream', 'stage'],
+    ids=['upstream', 'stage', 'downstream'],
 )
 @pytest.mark.skipif(
     settings.server.network_type == NetworkType.IPV6,
