@@ -29,7 +29,6 @@ import yaml
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
-    ANY_LOCATION,
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     DEFAULT_LOC,
@@ -4271,7 +4270,7 @@ def test_positive_only_single_library_option_in_create_form(target_sat):
     """
     with target_sat.ui_session() as session:
         session.organization.select(org_name=DEFAULT_ORG)
-        session.location.select(loc_name=ANY_LOCATION)
+        session.location.select(loc_name=ANY_CONTEXT['location'])
         create_form = session.host.get_create_form()
         create_form.host.lce.open_filter.click()
         # Check that 'Library' appears just once
