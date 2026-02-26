@@ -31,6 +31,7 @@ from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     DEFAULT_LOC,
+    DEFAULT_ORG,
     ENVIRONMENT,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
@@ -3128,3 +3129,29 @@ def test_positive_change_hosts_org_loc(
             assert host_entity.location.id == new_location.id, (
                 f'Host {host_name} not moved to second location'
             )
+
+
+def test_positive_only_single_library_option_in_create_form(target_sat):
+    """Ensure that only 1 Library option is displayed in the Create Host form
+    when location is set to "Any location"
+
+    :id: 559f6324-dc17-4274-99f5-957ef0a2faf0
+
+    :steps:
+        1. Set location to "Any location"
+        2. Read LCE dropdown options in the Create host form
+
+    :expectedresults:
+        1. Only 1 Library option is displayed
+
+    :verifies: SAT-42710, SAT-32425
+
+    :customerscenario: true
+    """
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=ANY_CONTEXT['location'])
+        create_form = session.host.get_create_form()
+        create_form.host.lce.open_filter.click()
+        # Check that 'Library' appears just once
+        assert create_form.host.lce.filter_content.read().count('Library') == 1
