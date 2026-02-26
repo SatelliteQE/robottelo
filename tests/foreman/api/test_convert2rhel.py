@@ -19,6 +19,7 @@ import requests
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS
+from robottelo.content_info import get_baseurl_by_repofile
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -125,7 +126,8 @@ def centos(
     """Deploy and register Centos host"""
     major = version.split('.')[0]
     assert centos_host.execute('yum -y update').status == 0
-    repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
+    repofile_url = settings.repos.convert2rhel.convert_to_rhel_repofile.format(major)
+    repo_url = get_baseurl_by_repofile(repofile_url)
     repo = create_repo(module_target_sat, module_els_sca_manifest_org, repo_url)
     cv = update_cv(
         module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
@@ -215,7 +217,8 @@ def oracle(
     if oracle_host.execute('needs-restarting -r').status == 1:
         oracle_host.power_control(state='reboot')
 
-    repo_url = settings.repos.convert2rhel.convert_to_rhel_repo.format(major)
+    repofile_url = settings.repos.convert2rhel.convert_to_rhel_repofile.format(major)
+    repo_url = get_baseurl_by_repofile(repofile_url)
     repo = create_repo(module_target_sat, module_els_sca_manifest_org, repo_url, ssl_cert)
     cv = update_cv(
         module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
