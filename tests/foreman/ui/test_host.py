@@ -29,9 +29,11 @@ import yaml
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
+    ANY_LOCATION,
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     DEFAULT_LOC,
+    DEFAULT_ORG,
     ENVIRONMENT,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
@@ -4251,8 +4253,7 @@ def test_assign_different_cv_from_same_env(
 
 
 def test_positive_only_single_library_option_in_create_form(target_sat):
-    """
-    Ensure that only 1 Library option is displayed in the Create Host form
+    """Ensure that only 1 Library option is displayed in the Create Host form
     when location is set to "Any location"
 
     :id: 559f6324-dc17-4274-99f5-957ef0a2faf0
@@ -4269,8 +4270,8 @@ def test_positive_only_single_library_option_in_create_form(target_sat):
     :customerscenario: true
     """
     with target_sat.ui_session() as session:
-        session.organization.select(org_name='Default Organization')
-        session.location.select(loc_name='Any location')
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=ANY_LOCATION)
         create_form = session.host.get_create_form()
         create_form.host.lce.open_filter.click()
         # Check that 'Library' appears just once
