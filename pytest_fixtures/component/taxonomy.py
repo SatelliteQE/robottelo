@@ -226,7 +226,7 @@ def sca_manifest_for_upgrade():
 
 
 @pytest.fixture
-def func_future_dated_subscription_manifest(function_org):
-    """Create and upload future date subscription manifest into org"""
+def func_future_dated_subscription_manifest():
+    """Returns future dated manifest. Used only for future date subscription scenarios."""
     with Manifester(manifest_category=settings.manifest.future_date_subscription) as manifest:
         yield manifest
