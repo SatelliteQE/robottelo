@@ -371,6 +371,8 @@ def test_positive_populate_future_date_subcription(
 
     :customerscenario: true
     """
+    target_sat.upload_manifest(function_org.id, func_future_dated_subscription_manifest.content)
+
     with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
         assert session.subscription.has_manifest, 'Manifest not uploaded'
