@@ -4252,7 +4252,8 @@ def test_assign_different_cv_from_same_env(
 
 def test_positive_only_single_library_option_in_create_form(target_sat):
     """
-    Ensure that only the Library option is displayed in the Create Host form
+    Ensure that only 1 Library option is displayed in the Create Host form
+    when location is set to "Any location"
 
     :id: 559f6324-dc17-4274-99f5-957ef0a2faf0
 
