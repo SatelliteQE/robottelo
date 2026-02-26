@@ -390,6 +390,7 @@ class TestDiscoveredHost:
         discovered_host.location = provisioning_hostgroup.location[0]
         discovered_host.organization = provisioning_hostgroup.organization[0]
         discovered_host.build = True
+        discovered_host.update(['hostgroup', 'build', 'location', 'organization'])
         result = sat.api.DiscoveredHost(id=discovered_host.id).reboot()
         assert 'Unable to perform reboot' not in result
 
@@ -436,6 +437,7 @@ class TestDiscoveredHost:
         discovered_host.location = provisioning_hostgroup.location[0]
         discovered_host.organization = provisioning_hostgroup.organization[0]
         discovered_host.build = True
+        discovered_host.update(['hostgroup', 'build', 'location', 'organization'])
         result = sat.api.DiscoveredHost(id=discovered_host.id).reboot_all()
         assert 'Unable to perform reboot' not in result
 
