@@ -2163,6 +2163,127 @@ class TestContentViewPublishPromote:
             f'Auto-publish should create CCV 2.0 when CV 2.0 is published. Got {ccv_versions_after}'
         )
 
+    def test_ccv_publish_dependency_chaining(self, module_target_sat, module_sca_manifest_org):
+        """Test the Composite CV publish task is scheduled and waits for the component CV publish
+        tasks to complete before executing.
+
+        :id: 7c978b97-d9f0-444d-bc41-77f794032696
+
+        :setup:
+            1. Organization with uploaded manifest.
+            2. Custom yum repo from class setup.
+            3. Synchronized one bigger RH repo (RHEL10 BaseOS).
+
+        :steps:
+            1. Create a content view with the RH repo and errata filter, publish it.
+            2. Create a content view with the custom repo, publish it.
+            3. Create a composite CV with both component CVs, set to auto-publish latest version.
+            4. Asynchronously publish both component CVs (simultaneously).
+            5. Wait for the CCV publish task to be scheduled and wait until completed.
+                It should be scheduled after the component CV publish tasks are started.
+            6. Verify all tasks succeeded.
+            7. Verify the CCV publish task waited for component CV tasks to complete.
+            8. Verify both component CVs have version 2.0, CCV has version 1.0 only.
+
+        :expectedresults:
+            1. CCV publish task is scheduled after the component CV publish tasks are started.
+            2. All publish tasks complete successfully.
+
+        :verifies: SAT-24497
+
+        :customerscenario: true
+        """
+        # Setup: Enable and sync RHEL10 BaseOS repository (bigger RH repo)
+        rh_repo_id = module_target_sat.api_factory.enable_sync_redhat_repo(
+            rh_repo=REPOS['rhel10_bos'],
+            org_id=module_sca_manifest_org.id,
+            timeout=600,
+        )
+        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+
+        # 1. Create a content view with the RH repo and errata filter, publish it.
+        cv_rh = module_target_sat.api.ContentView(
+            organization=module_sca_manifest_org,
+            repository=[rh_repo],
+        ).create()
+
+        errata_filter = module_target_sat.api.ErratumByDateContentViewFilter(
+            content_view=cv_rh, inclusion=True
+        ).create()
+        module_target_sat.api.ContentViewFilterRule(
+            content_view_filter=errata_filter,
+            date_type='issued',
+            start_date='2025-07-01',
+            end_date='2025-12-31',
+        ).create()
+
+        cv_rh.publish()
+        cv_rh = cv_rh.read()
+        assert len(cv_rh.version) == 1
+        assert cv_rh.version[0].read().version == '1.0'
+
+        # 2. Create a content view with the custom repo, publish it.
+        cv_custom = module_target_sat.api.ContentView(
+            organization=module_sca_manifest_org,
+            repository=[self.yum_repo],
+        ).create()
+        cv_custom.publish()
+        cv_custom = cv_custom.read()
+        assert len(cv_custom.version) == 1
+        assert cv_custom.version[0].read().version == '1.0'
+
+        # 3. Create a composite CV with both component CVs, set to auto-publish latest version.
+        ccv = module_target_sat.api.ContentView(
+            organization=module_sca_manifest_org,
+            composite=True,
+            auto_publish=True,
+            component=[cv_rh.version[0], cv_custom.version[0]],
+        ).create()
+        ccv = ccv.read()
+        for comp in ccv.content_view_component:
+            comp = comp.read()
+            comp.latest = True
+            comp.update(['latest'])
+
+        # 4. Asynchronously publish both component CVs (simultaneously).
+        rh_task = cv_rh.publish(synchronous=False)
+        custom_task = cv_custom.publish(synchronous=False)
+
+        # 5. Wait for the CCV publish task to be scheduled and wait until completed.
+        #     It should be scheduled after the component CV publish tasks are started.
+        ccv_task = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'label = Actions::Katello::ContentView::Publish '
+                f'and action = "Auto Publish content view \'{ccv.name}\'; '
+                f'organization \'{module_sca_manifest_org.name}\'"'
+            ),
+            search_rate=2,
+            max_tries=30,
+            poll_timeout=600,
+        )[0]
+        assert ccv_task is not None, "CCV auto-publish task should be scheduled"
+
+        # 6. Verify all tasks succeeded.
+        rh_task = module_target_sat.api.ForemanTask(id=rh_task['id']).read()
+        custom_task = module_target_sat.api.ForemanTask(id=custom_task['id']).read()
+        ccv_task = module_target_sat.api.ForemanTask(id=ccv_task.id).read()
+        assert all(task.result == 'success' for task in [rh_task, custom_task, ccv_task])
+
+        # 7. Verify the CCV publish task waited for component CV tasks to complete.
+        rh_ended = datetime.strptime(rh_task.ended_at, TIMESTAMP_FMT_ZONE)
+        custom_ended = datetime.strptime(custom_task.ended_at, TIMESTAMP_FMT_ZONE)
+        ccv_started = datetime.strptime(ccv_task.started_at, TIMESTAMP_FMT_ZONE)
+        latest_component_finished = max([rh_ended, custom_ended])
+        assert ccv_started >= latest_component_finished
+
+        # 8. Verify both component CVs have version 2.0, CCV has version 1.0 only.
+        cv_rh = cv_rh.read()
+        cv_custom = cv_custom.read()
+        assert '2.0' in [v.read().version for v in cv_rh.version]
+        assert '2.0' in [v.read().version for v in cv_custom.version]
+        ccv = ccv.read()
+        assert set(v.read().version for v in ccv.version) == {'1.0'}
+
 
 class TestContentViewUpdate:
     """Tests for updating content views."""
