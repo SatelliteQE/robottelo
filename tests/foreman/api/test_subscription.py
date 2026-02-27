@@ -258,13 +258,13 @@ def test_positive_candlepin_events_processed_by_stomp(
 
         1. Create a manifest
         2. Check the number of candlepin events
-            /katello/api/v2/ping
+            /api/v2/ping
         3. Import a Manifest
         4. Check the number of new candlepin events
-            /katello/api/v2/ping
+            /api/v2/ping
         5. Verify that the new candlepin events value is greater than the old value
         6. Verify that there are no failed candlepin events
-            /katello/api/v2/ping
+            /api/v2/ping
 
     :expectedresults: Candlepin events are being read and processed
                         correctly without any failures
