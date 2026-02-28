@@ -746,3 +746,71 @@ def test_weak_dependency(sat_non_default_install, package):
         'No packages marked for removal.' in result.stderr
         or 'Transaction test succeeded.' in result.stdout
     )
+
+
+def test_pulp_worker_count(module_sat_ready_rhels):
+    """Test dynamic adjustment of Pulp worker count using foremanctl deploy command.
+    This test verifies that the Pulp worker count can be dynamically configured
+    to increase, decrease, or default values using the foremanctl deploy
+    command. It ensures that the number of pulp-worker systemd service units
+    matches the configured worker count in all scenarios.
+
+    :id: 2058742d-e90c-4eef-9b19-42cd4e064f01
+
+    :setup:
+        1. Satellite server with Pulp installed and configured
+
+    :steps:
+        1. Get the current number of CPU cores (nproc) as baseline
+        2. Increase worker count by 2 (baseline + 2) and deploy configuration
+        3. Verify the number of pulp-worker@*.service units matches increased count
+        4. Decrease worker count by 2 (baseline - 2) and deploy configuration
+        5. Verify the number of pulp-worker@*.service units matches decreased count
+        6. Set worker count to default (baseline) and deploy configuration
+        7. Verify the number of pulp-worker@*.service units matches default count
+
+    :expectedresults: Each configuration change results in correct number of pulp-worker services
+
+    :Verifies: SAT-39926
+
+    :CaseAutomation: Automated
+    """
+    # Define operators to test both increasing and decreasing worker count
+    operators = ['+', '-', '']
+    # Get the current number of processors (CPU cores) on the server
+    value = module_sat_ready_rhels.execute("nproc")
+    # Test both increasing (+) and decreasing (-) worker count scenarios
+    for op in operators:
+        if op == '+':
+            # Test Case 1: Increase worker count
+            num = int(value.stdout[0]) + 2
+            # Deploy Satellite with increased pulp-worker-count configuration
+            module_sat_ready_rhels.execute(f"foremanctl deploy --pulp-worker-count {num}")
+            # Query systemctl to list all pulp-worker service units
+            result = module_sat_ready_rhels.execute(
+                "systemctl list-units --all --type=service --no-legend 'pulp-worker@*.service' | awk '{print $1}'"
+            )
+            # Verify the number of pulp-worker services matches the configured count
+            assert len(result.stdout.splitlines()) == num
+        elif op == '-':
+            # Test Case 2: Decrease worker count
+            num = int(value.stdout[0]) - 2
+            # Deploy Satellite with decreased pulp-worker-count configuration
+            module_sat_ready_rhels.execute(f"foremanctl deploy --pulp-worker-count {num}")
+            # Query systemctl again to verify the worker count has decreased
+            result = module_sat_ready_rhels.execute(
+                "systemctl list-units --all --type=service --no-legend 'pulp-worker@*.service' | awk '{print $1}'"
+            )
+            # Verify the reduced number of pulp-worker services matches the new count
+            assert len(result.stdout.splitlines()) == num
+        else:
+            # Test Case 3: Default worker count
+            num = int(value.stdout[0])
+            # Deploy Satellite with default pulp-worker-count
+            module_sat_ready_rhels.execute(f"foremanctl deploy --pulp-worker-count {num}")
+            # Query systemctl again to verify the default worker count
+            result = module_sat_ready_rhels.execute(
+                "systemctl list-units --all --type=service --no-legend 'pulp-worker@*.service' | awk '{print $1}'"
+            )
+            # Verify the default number of pulp-worker services
+            assert len(result.stdout.splitlines()) == num
