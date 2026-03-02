@@ -1311,6 +1311,12 @@ PERMISSIONS = {
         'edit_scap_contents',
         'view_scap_contents',
     ],
+    'ForemanRhCloud': [
+        'view_vulnerability',
+        'edit_vulnerability',
+        'view_advisor',
+        'edit_advisor',
+    ],
     'ForemanTasks::Task': ['edit_foreman_tasks', 'view_foreman_tasks'],
     'JobInvocation': [
         'view_job_invocations',
