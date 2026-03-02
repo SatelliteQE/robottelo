@@ -245,7 +245,7 @@ Test names follow a specific pattern to indicate expected behavior:
 
 - `test_positive_*`: Test should succeed (happy path)
 - `test_negative_*`: Test should fail with expected error (error handling)
-- `test_upgrade_*`: Upgrade scenario test
+- `test_post_*`: Post-upgrade scenario test
 
 Examples:
 - `test_positive_create_activation_key_with_cv()`
