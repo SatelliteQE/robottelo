@@ -34,6 +34,8 @@ def create_insights_vulnerability(host):
     # Upload insights data to Satellite
     result = host.run('insights-client')
     assert result.status == 0
+    # Verify insights-client package is installed
+    assert host.execute('insights-client --version').status == 0
 
 
 def sync_recommendations(session):
@@ -91,9 +93,6 @@ def test_rhcloud_insights_e2e(
 
     # Query for searching the available recommendation
     REC_QUERY = f'hostname = "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
-
-    # Verify insights-client can update to latest version available from server
-    assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
     create_insights_vulnerability(rhel_insights_vm)
