@@ -37,9 +37,9 @@
 - Location: `tests/foreman/api/`
 - Example: `tests/foreman/api/test_activationkey.py`
 
-**Upgrade Tests**: Uses`SharedResource` for single-test upgrade scenarios:
-- Location: 'tests/new_upgrades'
-- Example: 'tests'new_upgrades/test_activation_key.py'
+**Upgrade Tests**: Uses `SharedResource` for single-test upgrade scenarios:
+- Location: `tests/new_upgrades`
+- Example: `tests/new_upgrades/test_activation_key.py`
 
 ---
 
@@ -78,7 +78,7 @@ The bottom layer containing helper classes, utilities, and base implementations.
 - **Location**: `robottelo/`
 - **Components**:
   - **API helpers**: `robottelo/api/` (Nailgun entities)
-  - **Host classes**:  `robottelo.hosts.py` (Base functionality for ContentHost, Capsule, Satellite interaction s)
+  - **Host classes**:  `robottelo.hosts.py` (Base functionality for ContentHost, Capsule, Satellite interactions)
   - **CLI helpers**: `robottelo/cli/` (Hammer command wrappers)
   - **Host helpers**: `robottelo/host_helpers/` (Satellite/ContentHost mixins)
   - **Utilities**: `robottelo/utils/` (decorators, data factories, etc.)
@@ -175,7 +175,7 @@ ak = target_sat.api.ActivationKey(organization=org).create()
 # Using UI session
 with target_sat.ui_session() as session:
     session.organization.select('ORG_NAME')
-	session.location.select('LOC_NAME')
+    session.location.select('LOC_NAME')
     session.activationkey.create({'name': 'my-ak'})
 
 # Using ContentHost methods
@@ -214,7 +214,6 @@ email = gen_email()  # Random email
 
 ```python
 # Standard library
-from robottelo.logging import logger
 from datetime import datetime
 
 # Third-party
@@ -225,6 +224,7 @@ from nailgun.entities import ActivationKey
 # Robottelo
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
+from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
 ```
 
@@ -282,7 +282,7 @@ def test_positive_create_activation_key(module_org, module_target_sat):
 - `:steps:` - Test execution steps
 - `:expectedresults:` - Expected outcome
 
-**Optional fields**
+**Optional fields**:
 - `:Verifies:` - When the test verifies a Bug (Use as :Verifies: SAT-12345) (Formerly there was :BZ: tag, don't use that anymore)
 ---
 
@@ -309,7 +309,7 @@ def test_positive_create_ak_via_ui(module_org, module_target_sat):
         assert ak_values['details']['name'] == ak_name
 ```
 
-### Pattern 3: CLI Test
+### Pattern 2: CLI Test
 
 ```python
 def test_positive_create_ak_via_cli(module_org, module_target_sat):
@@ -333,7 +333,7 @@ def test_positive_create_ak_via_cli(module_org, module_target_sat):
     assert ak_info['name'] == ak_name
 ```
 
-### Pattern 4: Parametrized Test
+### Pattern 3: Parametrized Test
 
 ```python
 @pytest.mark.parametrize('name', [
@@ -362,7 +362,7 @@ def test_positive_create_with_different_names(name, module_org, module_target_sa
         indirect=True,
     )
 ```
-### Pattern 5: End-to-End Test
+### Pattern 4: End-to-End Test
 
 ```python
 @pytest.mark.e2e
@@ -847,7 +847,7 @@ repo_url = settings.repos.yum_3.url
     - Action: `create`, `update`, `delete`, `list`
 
 *   **Test Documentation:** Every test must have:
-    - Unique `:id:` UUID generated with 'uuidgen | tr "[:upper:]" "[:lower:]"'
+    - Unique `:id:` UUID (use `python -c 'import uuid; print(uuid.uuid4())'`)
     - Clear `:steps:`
     - Expected `:expectedresults:`
 
