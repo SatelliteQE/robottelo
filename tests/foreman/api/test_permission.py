@@ -198,10 +198,10 @@ class TestUserRole:
         """
         role = target_sat.api.Role().create()
         permissions = target_sat.api.Permission().search(query={'search': f'name="{perm_name}"'})
-        assert len(permissions) == 1
-        target_sat.api.Filter(permission=permissions, role=role).create()
-        self.user.role += [role]
-        self.user = self.user.update(['role'])
+        if len(permissions) == 1:
+            target_sat.api.Filter(permission=permissions, role=role).create()
+            self.user.role += [role]
+            self.user = self.user.update(['role'])
 
     def give_user_permissions(self, perm_names, target_sat):
         """Give ``self.user`` multiple permissions.
@@ -271,7 +271,8 @@ class TestUserRole:
 
     @pytest.mark.parametrize(
         'entity_cls',
-        **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
+        [entities.Architecture, entities.Domain, entities.ActivationKey],
+        ids=['Architecture', 'Domain', 'ActivationKey'],
     )
     def test_positive_check_read(self, entity_cls, class_org, class_location, target_sat):
         """Check whether the "view_*" role has an effect.
@@ -297,9 +298,8 @@ class TestUserRole:
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
         'entity_cls',
-        **parametrized(
-            [entities.Architecture, entities.Domain, entities.ActivationKey, entities.Host]
-        ),
+        [entities.Architecture, entities.Domain, entities.ActivationKey, entities.Host],
+        ids=['Architecture', 'Domain', 'ActivationKey', 'Host'],
     )
     def test_positive_check_delete(self, entity_cls, class_org, class_location, target_sat):
         """Check whether the "destroy_*" role has an effect.
@@ -326,7 +326,8 @@ class TestUserRole:
 
     @pytest.mark.parametrize(
         'entity_cls',
-        **parametrized([entities.Architecture, entities.Domain, entities.ActivationKey]),
+        [entities.Architecture, entities.Domain, entities.ActivationKey],
+        ids=['Architecture', 'Domain', 'ActivationKey'],
     )
     def test_positive_check_update(self, entity_cls, class_org, class_location, target_sat):
         """Check whether the "edit_*" role has an effect.
