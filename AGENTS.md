@@ -260,7 +260,7 @@ Use **reStructuredText** format with required fields, Reference `testimony.yaml`
 def test_positive_create_activation_key(module_org, module_target_sat):
     """Create activation key with valid name
 
-    :id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d <uuid generated with 'uuidgen | tr "[:upper:]" "[:lower:]"'>
+    :id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d <generated uuid>
 
     :steps:
         1. Create organization
@@ -278,7 +278,7 @@ def test_positive_create_activation_key(module_org, module_target_sat):
 ```
 
 **Required Fields**:
-- `:id:` - Unique test UUID
+- `:id:` - Unique test UUID. Use `python -c 'import uuid; print(uuid.uuid4())'` to generate it
 - `:steps:` - Test execution steps
 - `:expectedresults:` - Expected outcome
 
