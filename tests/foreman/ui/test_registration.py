@@ -820,8 +820,8 @@ def test_registering_with_title_using_global_registration_parameter(
         session.location.select(module_location.name)
         cmd = session.host.get_register_command(
             {
-                'general.operating_system': default_os.title,
                 'general.host_group': hostgroup.name,
+                'general.operating_system': default_os.title,
                 'general.activation_keys': module_activation_key.name,
                 'advanced.setup_insights': 'Yes (override)',
                 'general.insecure': True,
