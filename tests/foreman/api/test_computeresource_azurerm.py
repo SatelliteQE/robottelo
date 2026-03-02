@@ -20,7 +20,7 @@ from robottelo.constants import (
     AZURERM_FILE_URI,
     AZURERM_PLATFORM_DEFAULT,
     AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
-    AZURERM_RHEL7_UD_IMG_URN,
+    AZURERM_RHEL9_UD_IMG_URN,
     AZURERM_VM_SIZE_DEFAULT,
     AZURERM_PREMIUM_OS_Disk,
 )
@@ -106,7 +106,7 @@ class TestAzureRMComputeResourceTestCase:
         assert module_azurerm_cloudimg.architecture.id == sat_azure_default_architecture.id
         assert module_azurerm_cloudimg.compute_resource.id == module_azurerm_cr.id
         assert module_azurerm_cloudimg.username == settings.azurerm.username
-        assert module_azurerm_cloudimg.uuid == AZURERM_RHEL7_UD_IMG_URN
+        assert module_azurerm_cloudimg.uuid == AZURERM_RHEL9_UD_IMG_URN
 
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
@@ -318,7 +318,7 @@ class TestAzureRMUserDataProvisioning:
         """
 
         request.cls.region = settings.azurerm.azure_region
-        request.cls.rhel7_ud_img = AZURERM_RHEL7_UD_IMG_URN
+        request.cls.rhel9_ud_img = AZURERM_RHEL9_UD_IMG_URN
         request.cls.rg_default = settings.azurerm.resource_group
         request.cls.premium_os_disk = AZURERM_PREMIUM_OS_Disk
         request.cls.platform = AZURERM_PLATFORM_DEFAULT
@@ -334,7 +334,7 @@ class TestAzureRMUserDataProvisioning:
             "platform": self.platform,
             "script_command": 'touch /var/tmp/text.txt',
             "script_uris": AZURERM_FILE_URI,
-            "image_id": self.rhel7_ud_img,
+            "image_id": self.rhel9_ud_img,
         }
         results = module_azurerm_cr.available_networks()['results']
         nw_id = next((item for item in results if item['name'] == 'default'), None)['id']
