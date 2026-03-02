@@ -16,6 +16,7 @@ from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 
 from robottelo.config import robottelo_tmp_dir
+from robottelo.enums import NetworkType
 from robottelo.utils.io import get_local_file_data, get_report_data, get_report_metadata
 
 
@@ -90,15 +91,15 @@ def test_rhcloud_inventory_api_e2e(
     assert virtual_host.hostname in hostnames
     assert baremetal_host.hostname in hostnames
     # Verify IP addresses are present in report.
-    ip_addresses = [
-        host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
-        for host in json_data['hosts']
-    ]
-    ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-    assert virtual_host.ip_addr in ip_addresses
-    assert baremetal_host.ip_addr in ip_addresses
-    assert virtual_host.ip_addr in ipv4_addresses
-    assert baremetal_host.ip_addr in ipv4_addresses
+    is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
+    key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
+    ip_addresses = {
+        host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
+    }
+    ips = {host['ip_addresses'][0] for host in json_data['hosts']}
+    for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
+        assert host_ip in ip_addresses
+        assert host_ip in ips
     # Verify infrastructure type.
     infrastructure_type = [
         host['system_profile']['infrastructure_type'] for host in json_data['hosts']
