@@ -299,7 +299,12 @@ class TestDiscoveredHost:
         assert f'provisioned with rule {rule.name}' in result['message']
 
     def test_positive_auto_provision_all(
-        self, module_discovery_hostgroup, module_target_sat, discovery_org, discovery_location
+        self,
+        module_discovery_hostgroup,
+        module_target_sat,
+        discovery_org,
+        discovery_location,
+        request,
     ):
         """Auto provision all host by executing discovery rules
 
@@ -317,13 +322,14 @@ class TestDiscoveredHost:
 
         :CaseImportance: High
         """
-        module_target_sat.api.DiscoveryRule(
+        rule = module_target_sat.api.DiscoveryRule(
             max_count=25,
             hostgroup=module_discovery_hostgroup,
             search_=f'location = "{discovery_location.name}"',
             location=[discovery_location],
             organization=[discovery_org],
         ).create()
+        request.addfinalizer(rule.delete)
 
         for _ in range(2):
             module_target_sat.api_factory.create_discovered_host()
