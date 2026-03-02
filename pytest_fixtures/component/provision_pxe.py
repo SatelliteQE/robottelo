@@ -362,6 +362,55 @@ def pxeless_discovery_host(provisioning_host, module_discovery_sat, pxe_loader):
 
 
 @pytest.fixture
+def pxeless_static_discovery_host(
+    provisioning_host, module_discovery_sat, pxe_loader, provisioning_hostgroup
+):
+    """Fixture for returning a pxe-less discovery host for provisioning"""
+    sat = module_discovery_sat.sat
+    image_name = f"{gen_string('alpha')}-{module_discovery_sat.iso}"
+    subnet = sat.api.Subnet(id=provisioning_hostgroup.subnet.id).read()
+    ip = f"{subnet.from_}"
+    subnet.ipam, subnet.boot_mode, subnet.dhcp = 'Internal DB', 'Static', ''
+    subnet.update(['ipam', 'boot_mode', 'dhcp'])
+    mac = provisioning_host.provisioning_nic_mac_addr
+    # Remaster and upload discovery image to automatically input values
+    result = sat.execute(
+        'cd /var/www/html/pub && '
+        f'discovery-remaster {module_discovery_sat.iso} '
+        f'"proxy.type=foreman proxy.url=https://{sat.hostname}:443 fdi.pxmac={mac} fdi.pxip={ip} fdi.pxgw={subnet.gateway} fdi.pxdns={subnet.dns_primary} fdi.pxmask={subnet.mask} fdi.pxauto=1 fdi.pxfactname=discovery"'
+    )
+    pattern = re.compile(r"foreman-discovery-image\S+")
+    fdi = pattern.findall(result.stdout)[0]
+    Broker(
+        workflow='import-disk-image',
+        import_disk_image_name=image_name,
+        import_disk_image_url=(f'https://{sat.hostname}/pub/{fdi}'),
+        firmware_type=pxe_loader.vm_firmware,
+    ).execute()
+    # Change host to boot discovery image
+    Broker(
+        job_template='configure-pxe-boot',
+        target_host=provisioning_host.name,
+        target_vlan_id=settings.provisioning.vlan_id,
+        target_vm_firmware=provisioning_host._broker_args['target_vm_firmware'],
+        target_pxeless_image=image_name,
+        target_boot_scenario='pxeless_pre',
+    ).execute()
+    yield provisioning_host
+    Broker(workflow='remove-disk-image', remove_disk_image_name=image_name).execute()
+
+
+@pytest.fixture(params=['pxeless_discovery_host', 'pxeless_static_discovery_host'])
+def pxeless_discovery_host_type(request):
+    """Parametrized fixture to select between pxe-less discovery host types
+
+    This fixture allows tests to run with both DHCP-based (pxeless_discovery_host)
+    and static IP-based (pxeless_static_discovery_host) discovery hosts.
+    """
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture
 def configure_secureboot_provisioning(
     request, pxe_loader, module_provisioning_sat, module_provisioning_rhel_content
 ):

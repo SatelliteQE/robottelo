@@ -228,7 +228,7 @@ class TestDiscoveredHost:
     def test_positive_provision_pxe_less_host(
         self,
         module_discovery_sat,
-        pxeless_discovery_host,
+        pxeless_discovery_host_type,
         module_provisioning_rhel_content,
         provisioning_hostgroup,
         request,
@@ -245,10 +245,12 @@ class TestDiscoveredHost:
         :expectedresults: Host should be provisioned successfully
 
         :CaseImportance: Critical
+
+        :Verifies: SAT-39469
         """
         sat = module_discovery_sat.sat
-        pxeless_discovery_host.power_control(ensure=False)
-        mac = pxeless_discovery_host.provisioning_nic_mac_addr
+        pxeless_discovery_host_type.power_control(ensure=False)
+        mac = pxeless_discovery_host_type.provisioning_nic_mac_addr
         wait_for(
             lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
             timeout=1500,
@@ -266,6 +268,7 @@ class TestDiscoveredHost:
             assert host
             shell.close()
         assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
+        assert not sat.api.Host().search(query={'search': 'name="localhost.localdomain"'})
         request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
 
     def test_positive_auto_provision_pxe_host(
