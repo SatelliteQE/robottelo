@@ -57,4 +57,4 @@ def test_negative_api_ping_fail_status(tomcat_service_teardown):
     :expectedresults: API ping fails and shows FAIL status.
     """
     response = tomcat_service_teardown.api.Ping().search_json()
-    assert response['status'] == 'FAIL'
+    assert response['results']['katello']['status'] == 'FAIL'

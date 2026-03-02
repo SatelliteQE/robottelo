@@ -258,13 +258,13 @@ def test_positive_candlepin_events_processed_by_stomp(
 
         1. Create a manifest
         2. Check the number of candlepin events
-            /katello/api/v2/ping
+            /api/v2/ping
         3. Import a Manifest
         4. Check the number of new candlepin events
-            /katello/api/v2/ping
+            /api/v2/ping
         5. Verify that the new candlepin events value is greater than the old value
         6. Verify that there are no failed candlepin events
-            /katello/api/v2/ping
+            /api/v2/ping
 
     :expectedresults: Candlepin events are being read and processed
                         correctly without any failures
@@ -279,9 +279,9 @@ def test_positive_candlepin_events_processed_by_stomp(
     def parse(events):
         return {key: int(value) for value, key in re.findall(r'(\d+)\s(\w+)', events)}
 
-    pre_candlepin_events = target_sat.api.Ping().search_json()['services']['candlepin_events'][
-        'message'
-    ]
+    pre_candlepin_events = target_sat.api.Ping().search_json()['results']['katello']['services'][
+        'candlepin_events'
+    ]['message']
     pre_processed_count = parse(pre_candlepin_events)['Processed']
 
     target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
@@ -290,9 +290,11 @@ def test_positive_candlepin_events_processed_by_stomp(
     # Use polling instead of fixed sleep to avoid flakiness
     wait_for(
         lambda: (
-            parse(target_sat.api.Ping().search_json()['services']['candlepin_events']['message'])[
-                'Processed'
-            ]
+            parse(
+                target_sat.api.Ping().search_json()['results']['katello']['services'][
+                    'candlepin_events'
+                ]['message']
+            )['Processed']
             > pre_processed_count
         ),
         timeout=60,
@@ -300,10 +302,15 @@ def test_positive_candlepin_events_processed_by_stomp(
         handle_exception=True,
     )
 
-    assert target_sat.api.Ping().search_json()['services']['candlepin_events']['status'] == 'ok'
-    post_candlepin_events = target_sat.api.Ping().search_json()['services']['candlepin_events'][
-        'message'
-    ]
+    assert (
+        target_sat.api.Ping().search_json()['results']['katello']['services']['candlepin_events'][
+            'status'
+        ]
+        == 'ok'
+    )
+    post_candlepin_events = target_sat.api.Ping().search_json()['results']['katello']['services'][
+        'candlepin_events'
+    ]['message']
     assert parse(post_candlepin_events)['Processed'] > pre_processed_count
     assert parse(pre_candlepin_events)['Failed'] == 0
     assert parse(post_candlepin_events)['Failed'] == 0
