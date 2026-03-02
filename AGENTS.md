@@ -521,6 +521,7 @@ def function_sca_manifest():
 ```
 
 **Infrastructure Markers**:
+Content hosts are deployed in containers by default. If the host needs to run as a VM, use the `no_containers` marker.
 ```python
 @pytest.mark.no_containers    # Cannot run in containers
 ```
