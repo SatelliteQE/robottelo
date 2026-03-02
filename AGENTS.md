@@ -110,9 +110,9 @@ Pytest fixtures provide test dependencies and setup/teardown logic.
 
 **Fixture Scopes**:
 - `function`: Per test function (default)
+- `class`: Per test class
 - `module`: Per test module
 - `session`: Per test session
-- `class`: Per test class
 
 Example:
 
@@ -431,13 +431,18 @@ def module_satellite_iop(request, satellite_factory):
 **ContentHost Fixtures** (`pytest_fixtures/core/contenthosts.py`):
 
 ```python
-# RHEL ContentHost
+# RHEL ContentHost - parametrized for all supported RHEL versions defined in conf/supportability.yaml
 @pytest.fixture
 def rhel_contenthost(request):
     """Provides a RHEL content host"""
     ...
 
-# If there is no need for multiple RHEL versions to be tested, but RHEL host is still needed for the sake of the test.
+# Parametrized for N latest RHEL versions only (N-0 = latest, N-1 = latest two, etc.)
+@pytest.mark.rhel_ver_match('N-1')
+def test_latest_two_rhels(rhel_contenthost):
+    ...
+
+# If there is no need for multiple RHEL versions to be tested, use only RHEL host of the default version specified in settings.
 from robottelo.config import settings
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_with_default_rhel(rhel_contenthost):
@@ -522,7 +527,7 @@ def function_sca_manifest():
 
 ### RHEL Version Markers
 
-**`@pytest.mark.rhel_ver_match()`**: Match RHEL versions by regex
+**`@pytest.mark.rhel_ver_match()`**: Match RHEL versions based on versions defined in conf/supportability.yaml using regex, or by the N-x convention.
 
 ```python
 # Match RHEL 9 and 10 (exclude 7 and 8)
@@ -533,6 +538,9 @@ def function_sca_manifest():
 
 # Match RHEL 9 including FIPS
 @pytest.mark.rhel_ver_match(r'^9')  # Matches 9, 9_fips
+
+# Using N-x convention
+@pytest.mark.rhel_ver_match('N-2')  # Matches 3 latest RHEL versions
 ```
 
 **`@pytest.mark.rhel_ver_list()`**: Specify exact RHEL versions
