@@ -516,7 +516,7 @@ def function_sca_manifest():
 ```python
 @pytest.mark.e2e              # End-to-end tests
 @pytest.mark.stubbed          # Not yet implemented
-@pytest.mark.destructive      # Modifies Satellite config and needs satellite teardown
+@pytest.mark.destructive      # Forces deployment of a new Satellite instance for a particular test case (more expensive)
 @pytest.mark.skip_if_open()   # Skip if BZ/issue open
 ```
 
