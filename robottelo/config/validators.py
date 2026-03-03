@@ -119,7 +119,7 @@ VALIDATORS = dict(
             'container.upstream_name',
             must_exist=True,
             is_type_of=str,
-            default='library/busybox',
+            default='jmalloc/echo-server',
         ),
         Validator(
             'container.alternative_upstream_names',
@@ -338,9 +338,7 @@ VALIDATORS = dict(
     ],
     rh_cloud=[
         Validator('rh_cloud.token', required=True),
-        Validator(
-            'rh_cloud.iop_advisor_engine.image_paths', default={}, apply_default_on_none=True
-        ),
+        Validator('rh_cloud.iop.image_paths', default={}, apply_default_on_none=True),
     ],
     repos=[
         Validator(

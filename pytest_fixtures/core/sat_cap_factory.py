@@ -225,8 +225,7 @@ def module_unconfigured_satellite():
 def get_iop_deploy_args():
     """Get deploy arguments for IoP workflow"""
     image_args = {
-        f'iop_{service}_image': path
-        for service, path in settings.rh_cloud.iop_advisor_engine.image_paths.items()
+        f'iop_{service}_image': path for service, path in settings.rh_cloud.iop.image_paths.items()
     }
     return settings.server.deploy_arguments.to_dict() | image_args
 

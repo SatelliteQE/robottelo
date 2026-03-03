@@ -45,7 +45,7 @@ def test_podman_login_check(request, sat_maintain):
 
     :Verifies: SAT-35282
     """
-    iop_settings = settings.rh_cloud.iop_advisor_engine
+    iop_settings = settings.rh_cloud.iop
 
     request.addfinalizer(lambda: sat_maintain.podman_logout(iop_settings.registry))
 

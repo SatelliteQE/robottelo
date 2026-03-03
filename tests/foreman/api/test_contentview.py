@@ -2040,6 +2040,129 @@ class TestContentViewPublishPromote:
                 # Control CV, no changes
                 assert comp.version == '1.0'
 
+    def test_ccv_no_double_update_on_incremental_with_propagate_all_composites(
+        self,
+        target_sat,
+        module_org,
+        module_product,
+    ):
+        """CCV with auto-publish and 'Always update to latest' updates once (to 1.1) on
+        incremental update with --propagate-all-composites, not twice (no spurious 2.0).
+        Composite Content Views must not auto-publish on child CV minor version updates
+        when propagate-all-composites is set; only the incremental 1.1 is created.
+        Auto-publish still works for child major version updates (e.g. CV 2.0 -> CCV 2.0).
+
+        :id: c7572e4d-3079-486e-93c9-fb0b183a4e08
+
+        :steps:
+            1. Create and sync a product with a repo containing missing errata
+               (e.g. needed_errata / yum_6).
+            2. Add repo to a Content View and publish it (CV Version 1.0).
+            3. Add this content view to a Composite Content View; set component to
+               'Always update to latest version'; set CCV to auto-publish.
+            4. Manually publish the Composite Content View (CCV Version 1.0).
+            5. Incrementally update the content view with propagate_all_composites: True
+            6. Assert: new CV version 1.1 and new CCV version 1.1 exist; no CCV 2.0.
+            7. Manually publish a new major version of the content view (2.0).
+            8. Assert: Composite Content View auto-published to 2.0.
+
+        :expectedresults:
+            - After step 5, only CV 1.1 and CCV 1.1 exist (no CCV 2.0).
+            - After step 7, CCV auto-publishes to 2.0.
+
+        :verifies: SAT-34620
+
+        :customerscenario: true
+        """
+        # Step 1: repo with missing errata (needed_errata / yum_6)
+        repo = target_sat.api.Repository(
+            product=module_product,
+            url=settings.repos.yum_6.url,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        errata_id = settings.repos.yum_6.errata[0]
+
+        # Step 2: CV with repo, publish 1.0
+        cv = target_sat.api.ContentView(
+            organization=module_org,
+            repository=[repo],
+            auto_publish=False,
+        ).create()
+        cv.publish()
+        cv = cv.read()
+        cvv_1_0 = cv.version[0].read()
+        assert cvv_1_0.version == '1.0'
+
+        # Step 3 & 4: CCV with CV as component (latest=True), auto_publish=True; publish CCV 1.0
+        ccv = target_sat.api.ContentView(
+            organization=module_org,
+            composite=True,
+            auto_publish=True,
+            component=[cvv_1_0],
+        ).create()
+        ccv = ccv.read()
+        for comp in ccv.content_view_component:
+            comp = comp.read()
+            comp.latest = True
+            comp.update(['latest'])
+        ccv.publish()
+        ccv = ccv.read()
+        assert len(ccv.version) == 1
+        assert ccv.version[0].read().version == '1.0'
+
+        # Step 5: incremental update with propagate_all_composites with True flag
+        target_sat.api.ContentViewVersion().incremental_update(
+            data={
+                'content_view_version_environments': [
+                    {
+                        'content_view_version_id': cvv_1_0.id,
+                        'environment_ids': [module_org.library.id],
+                    }
+                ],
+                'add_content': {'errata_ids': [errata_id]},
+                'propagate_all_composites': True,
+            }
+        )
+
+        # Step 6: CV 1.1 and CCV 1.1 only; no CCV 2.0
+        cv = cv.read()
+        ccv = ccv.read()
+        assert set([v.read().version for v in cv.version]) == {'1.0', '1.1'}, (
+            f'Expected CV versions 1.0 and 1.1, got {set([v.read().version for v in cv.version])}'
+        )
+        assert set([v.read().version for v in ccv.version]) == {'1.0', '1.1'}, (
+            f'Expected CCV versions 1.0 and 1.1, got {set([v.read().version for v in ccv.version])}'
+        )
+        # Step 7: new major version of CV (add content and publish 2.0)
+        extra_repo = target_sat.api.Repository(
+            product=module_product,
+            url=settings.repos.yum_1.url,
+        ).create()
+        extra_repo.sync()
+        cv.repository.append(extra_repo.read())
+        cv.update(['repository'])
+        cv = cv.read()
+        cv.publish()
+        # Wait for CV 2.0 publish and CCV 2.0 auto-publish tasks to complete
+        target_sat.wait_for_tasks(
+            search_query=(
+                f'label = Actions::Katello::ContentView::Publish and organization_id = {module_org.id}'
+            ),
+            search_rate=10,
+            max_tries=18,
+        )
+        cv = cv.read()
+        cv_version_after = sorted([v.read().version for v in cv.version])
+        assert '2.0' in cv_version_after
+
+        # Step 8: CCV auto-published to 2.0
+        ccv = ccv.read()
+        ccv_versions_after = sorted([v.read().version for v in ccv.version])
+        assert '2.0' in ccv_versions_after, (
+            f'Auto-publish should create CCV 2.0 when CV 2.0 is published. Got {ccv_versions_after}'
+        )
+
 
 class TestContentViewUpdate:
     """Tests for updating content views."""

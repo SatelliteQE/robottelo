@@ -693,14 +693,14 @@ class TestVirtwhoConfigforEsx:
         )
 
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
-        org_session.cloudinventory.generate_report(module_sca_manifest_org.name)
+        org_session.cloudinventory.generate_and_upload_report(module_sca_manifest_org.name)
         # wait_for_tasks report generation task to finish
         wait_for(
             lambda: (
                 module_target_sat.api.ForemanTask()
                 .search(
                     query={
-                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        'search': f'label = ForemanInventoryUpload::Async::HostInventoryReportJob '
                         f'and started_at >= "{timestamp}"'
                     }
                 )[0]
@@ -713,7 +713,7 @@ class TestVirtwhoConfigforEsx:
             handle_exception=True,
         )
         # download report
-        report_path = org_session.cloudinventory.download_report(module_sca_manifest_org.name)
+        report_path = org_session.cloudinventory.download_report_only(module_sca_manifest_org.name)
         json_data = get_report_data(report_path)
         host_data = [item for item in json_data['hosts']]
         # Verify that guest hostname is NOT in report

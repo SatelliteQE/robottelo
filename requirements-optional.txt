@@ -1,8 +1,8 @@
 # For running tests and checking code quality using these modules.
 pytest-cov==7.0.0
-redis==7.2.0
+redis==7.2.1
 pre-commit==4.5.1
-ruff==0.15.2
+ruff==0.15.4
 
 # For generating documentation.
 sphinx==9.1.0

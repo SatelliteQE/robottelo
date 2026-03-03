@@ -266,14 +266,8 @@ def test_single_sign_on_ldap_ad_server(
     assert f'{url}/new/hosts' in result.stdout
 
 
-@pytest.mark.parametrize(
-    'setting_update',
-    [f'login_delegation_logout_url={LOGIN_DELEGATION_LOGOUT_URL}'],
-    ids=["external_redirect"],
-    indirect=True,
-)
 def test_single_sign_on_using_rhsso(
-    enable_external_auth_rhsso, rhsso_setting_setup, module_target_sat, setting_update
+    enable_external_auth_rhsso, rhsso_setting_setup, module_target_sat
 ):
     """Verify the single sign-on functionality with external authentication RH-SSO
 
@@ -299,11 +293,23 @@ def test_single_sign_on_using_rhsso(
         actual_user = session.task.read_all(widget_names="current_user")['current_user']
         assert settings.rhsso.rhsso_user in actual_user
         # logout verification for SAT-40322
-        session.rhsso_login.logout()
-        assert session.browser.url == LOGIN_DELEGATION_LOGOUT_URL, "Unsuccessful logout redirect"
-        with pytest.raises(NavigationTriesExceeded) as error:
-            session.task.read_all(widget_names='current_user')['current_user']
-        assert error.typename == 'NavigationTriesExceeded'
+        setting_object = module_target_sat.api.Setting().search(
+            query={'search': 'name=login_delegation_logout_url'}
+        )[0]
+        default_setting_value = '' if setting_object.value is None else setting_object.value
+        setting_object.value = LOGIN_DELEGATION_LOGOUT_URL
+        setting_object.update({'value'})
+        try:
+            session.rhsso_login.logout()
+            assert session.browser.url == LOGIN_DELEGATION_LOGOUT_URL, (
+                "Unsuccessful logout redirect"
+            )
+            with pytest.raises(NavigationTriesExceeded) as error:
+                session.task.read_all(widget_names='current_user')['current_user']
+            assert error.typename == 'NavigationTriesExceeded'
+        finally:
+            setting_object.value = default_setting_value
+            setting_object.update({'value'})
 
 
 def test_external_logout_rhsso(rhsso_setting_setup, enable_external_auth_rhsso, module_target_sat):

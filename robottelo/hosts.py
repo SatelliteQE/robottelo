@@ -1621,7 +1621,7 @@ class ContentHost(Host, ContentHostMixins):
 
     def podman_login(self, username=None, password=None, registry=None):
         """Login to a podman registry."""
-        iop_settings = settings.rh_cloud.iop_advisor_engine
+        iop_settings = settings.rh_cloud.iop
         username = username or iop_settings.username
         password = password or iop_settings.token
         registry = registry or iop_settings.registry
@@ -1652,7 +1652,7 @@ class ContentHost(Host, ContentHostMixins):
 
     def is_podman_logged_in(self, registry=None):
         """Check if podman is logged into a registry."""
-        registry = registry or settings.rh_cloud.iop_advisor_engine.registry
+        registry = registry or settings.rh_cloud.iop.registry
         return (
             self.execute(
                 f'podman login --get-login --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
@@ -1663,7 +1663,7 @@ class ContentHost(Host, ContentHostMixins):
 
     def podman_logout(self, registry=None):
         """Logout of a podman registry."""
-        registry = registry or settings.rh_cloud.iop_advisor_engine.registry
+        registry = registry or settings.rh_cloud.iop.registry
         if self.is_podman_logged_in(registry):
             cmd_result = self.execute(
                 f'podman logout --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'

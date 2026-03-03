@@ -61,7 +61,7 @@ def sat_maintain(request):
     yield infra_host
 
     if host_type == 'satellite_iop':
-        iop_settings = settings.rh_cloud.iop_advisor_engine
+        iop_settings = settings.rh_cloud.iop
         if not infra_host.is_podman_logged_in(iop_settings.stage_registry):
             infra_host.podman_login(
                 iop_settings.stage_username,
