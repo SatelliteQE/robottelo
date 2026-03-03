@@ -413,7 +413,9 @@ class TestPersonalAccessToken:
         command_output = target_sat.execute(curl_command)
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
-    def test_positive_personal_access_token_user_with_role(self, target_sat):
+    def test_positive_personal_access_token_user_with_role(
+        self, module_target_sat, module_org, module_location
+    ):
         """Personal access token for user with a role
 
         :id: b9fe7ddd-d1e4-4d76-9966-d223b02768ec
@@ -432,24 +434,26 @@ class TestPersonalAccessToken:
 
         :CaseImportance: High
         """
-        user = target_sat.cli_factory.user()
-        target_sat.cli.User.add_role({'login': user['login'], 'role': 'Viewer'})
+        user = module_target_sat.cli_factory.user(
+            {'organization-id': module_org.id, 'location-id': module_location.id}
+        )
+        module_target_sat.cli.User.add_role({'login': user['login'], 'role': 'Viewer'})
         token_name = gen_alphanumeric()
-        result = target_sat.cli.User.access_token(
+        result = module_target_sat.cli.User.access_token(
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split(':')[-1]
-        command_output = target_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
+        command_output = module_target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {module_target_sat.url}/api/v2/users'
         )
         assert user['login'] in command_output.stdout
         assert user['email'] in command_output.stdout
-        command_output = target_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/dashboard'
+        command_output = module_target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {module_target_sat.url}/api/dashboard'
         )
         assert 'Access denied' in command_output.stdout
 
-    def test_expired_personal_access_token(self, target_sat):
+    def test_expired_personal_access_token(self, module_target_sat, module_org, module_location):
         """Personal access token expired for the user.
 
         :id: cb07b096-aba4-4a95-9a15-5413f32b597b
@@ -463,29 +467,33 @@ class TestPersonalAccessToken:
 
         :CaseImportance: Medium
         """
-        user = target_sat.cli_factory.user()
-        target_sat.cli.User.add_role({'login': user['login'], 'role': 'Viewer'})
+        user = module_target_sat.cli_factory.user(
+            {'organization-id': module_org.id, 'location-id': module_location.id}
+        )
+        module_target_sat.cli.User.add_role({'login': user['login'], 'role': 'Viewer'})
         token_name = gen_alphanumeric()
         datetime_now = datetime.datetime.now(datetime.UTC)
         datetime_expire = datetime_now + datetime.timedelta(seconds=20)
         datetime_expire = datetime_expire.strftime("%Y-%m-%d %H:%M:%S")
-        result = target_sat.cli.User.access_token(
+        result = module_target_sat.cli.User.access_token(
             action="create",
             options={'name': token_name, 'user-id': user['id'], 'expires-at': datetime_expire},
         )
         token_value = result[0]['message'].split(':')[-1]
-        command_output = target_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
+        command_output = module_target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {module_target_sat.url}/api/v2/users'
         )
         assert user['login'] in command_output.stdout
         assert user['email'] in command_output.stdout
         sleep(20)
-        command_output = target_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/hosts'
+        command_output = module_target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {module_target_sat.url}/api/v2/hosts'
         )
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
-    def test_custom_personal_access_token_role(self, target_sat):
+    def test_custom_personal_access_token_role(
+        self, module_target_sat, module_org, module_location
+    ):
         """Personal access token for non admin user with custom role
 
         :id: dcbd22df-2641-4d3e-a1ad-76f36642e31b
@@ -502,33 +510,41 @@ class TestPersonalAccessToken:
 
         :BZ: 1974685, 1996048
         """
-        role = target_sat.cli_factory.make_role()
+        role = module_target_sat.cli_factory.make_role(
+            {'organization-id': module_org.id, 'location-id': module_location.id}
+        )
         permissions = [
             permission['name']
-            for permission in target_sat.cli.Filter.available_permissions(
+            for permission in module_target_sat.cli.Filter.available_permissions(
                 {'search': 'resource_type=PersonalAccessToken'}
             )
         ]
         permissions = ','.join(permissions)
-        target_sat.cli_factory.make_filter({'role-id': role['id'], 'permissions': permissions})
-        target_sat.cli_factory.make_filter({'role-id': role['id'], 'permissions': 'view_users'})
-        user = target_sat.cli_factory.user()
-        target_sat.cli.User.add_role({'login': user['login'], 'role': role['name']})
+        module_target_sat.cli_factory.make_filter(
+            {'role-id': role['id'], 'permissions': permissions}
+        )
+        module_target_sat.cli_factory.make_filter(
+            {'role-id': role['id'], 'permissions': 'view_users'}
+        )
+        user = module_target_sat.cli_factory.user(
+            {'organization-id': module_org.id, 'location-id': module_location.id}
+        )
+        module_target_sat.cli.User.add_role({'login': user['login'], 'role': role['name']})
         token_name = gen_alphanumeric()
-        result = target_sat.cli.User.access_token(
+        result = module_target_sat.cli.User.access_token(
             action="create", options={'name': token_name, 'user-id': user['id']}
         )
         token_value = result[0]['message'].split(':')[-1]
-        command_output = target_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
+        command_output = module_target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {module_target_sat.url}/api/v2/users'
         )
         assert user['login'] in command_output.stdout
         assert user['email'] in command_output.stdout
-        target_sat.cli.User.access_token(
+        module_target_sat.cli.User.access_token(
             action="revoke", options={'name': token_name, 'user-id': user['id']}
         )
-        command_output = target_sat.execute(
-            f'curl -k -u {user["login"]}:{token_value} {target_sat.url}/api/v2/users'
+        command_output = module_target_sat.execute(
+            f'curl -k -u {user["login"]}:{token_value} {module_target_sat.url}/api/v2/users'
         )
         assert f'Unable to authenticate user {user["login"]}' in command_output.stdout
 
