@@ -25,7 +25,7 @@ def allow_repo_discovery(target_sat):
 def relax_bfa(request, session_target_sat):
     """Relax BFA protection against failed login attempts"""
     if session_target_sat and 'sanity' not in request.config.option.markexpr:
-        session_target_sat.cli.Settings.set({'name': 'failed_login_attempts_limit', 'value': '0'})
+        session_target_sat.update_setting('failed_login_attempts_limit', '0')
 
 
 @pytest.fixture(autouse=True, scope='session')
