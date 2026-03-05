@@ -14,10 +14,13 @@
 
 from box import Box
 from fauxfactory import gen_alpha
+from manifester import Manifester
 import pytest
 
+from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION
 from robottelo.utils.shared_resource import SharedResource
+from pytest_fixtures.component.rh_cloud import enable_insights
 from tests.foreman.ui.test_rhcloud_insights import (
     create_insights_vulnerability as create_insights_recommendation,
 )
@@ -49,8 +52,18 @@ def iop_recommendations_upgrade_setup(
         test_name = f'iop_upgrade_{gen_alpha()}'
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
 
-        # Verify insights-client package is installed
-        assert rhel_contenthost.execute('insights-client --version').status == 0
+        # Upload manifest and create activation key
+        manifest = Manifester(manifest_category=settings.manifest.golden_ticket)
+        target_sat.upload_manifest(org.id, manifest.get_manifest().content)
+
+        activation_key = target_sat.api.ActivationKey(
+            content_view=org.default_content_view,
+            organization=org,
+            environment=target_sat.api.LifecycleEnvironment(id=org.library.id),
+        ).create()
+
+        # Configure REX, insights-client, and register host to Satellite
+        enable_insights(rhel_contenthost, target_sat, org, activation_key)
 
         # Prepare misconfigured machine and upload data to Insights
         create_insights_recommendation(rhel_contenthost)
