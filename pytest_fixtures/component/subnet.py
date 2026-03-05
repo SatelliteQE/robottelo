@@ -1,6 +1,6 @@
 # Subnet Fixtures
-import pytest
 from fauxfactory import gen_ipaddr
+import pytest
 
 
 @pytest.fixture(scope='module')
