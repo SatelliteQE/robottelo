@@ -140,7 +140,8 @@ def host(
     module_rhel_contenthost.register(
         module_sca_manifest_org, None, module_ak.name, module_target_sat
     )
-    module_rhel_contenthost.enable_repo(REPOS['rhsclient9']['id'])
+    rhel_ver = module_rhel_contenthost.os_version.major
+    module_rhel_contenthost.enable_repo(REPOS[f'rhsclient{rhel_ver}']['id'])
     # make a note of time for later wait_for_tasks, and include 4 mins margin of safety.
     timestamp = (datetime.now(UTC) - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
     # AK added custom repo for errata package, just install it.
