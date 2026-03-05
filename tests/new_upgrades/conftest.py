@@ -194,7 +194,7 @@ def errata_upgrade_shared_satellite():
 @pytest.fixture
 def iop_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.iop_upgrades."""
-    sat_instance = shared_checkout("iop_upgrade")
+    sat_instance = shared_checkout("iop_upgrade", iop=True)
     with SharedResource(
         "iop_upgrade_tests", shared_checkin, sat_instance=sat_instance
     ) as test_duration:
