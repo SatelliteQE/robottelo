@@ -20,7 +20,7 @@ from robottelo.constants import (
     AZURERM_FILE_URI,
     AZURERM_PLATFORM_DEFAULT,
     AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
-    AZURERM_RHEL7_UD_IMG_URN,
+    AZURERM_RHEL9_UD_IMG_URN,
     AZURERM_VM_SIZE_DEFAULT,
     AZURERM_PREMIUM_OS_Disk,
 )
@@ -117,7 +117,7 @@ class TestAzureRMComputeResourceTestCase:
     @pytest.mark.parametrize(
         "image",
         [
-            AZURERM_RHEL7_UD_IMG_URN,
+            AZURERM_RHEL9_UD_IMG_URN,
             AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
         ],
     )
@@ -434,7 +434,7 @@ class TestAzureRMUserDataProvisioning:
         Sets Constants for all the Tests, fixtures which will be later used for assertions
         """
         request.cls.region = settings.azurerm.azure_region
-        request.cls.rhel7_ft_img = AZURERM_RHEL7_UD_IMG_URN
+        request.cls.rhel9_ft_img = AZURERM_RHEL9_UD_IMG_URN
         request.cls.rg_default = settings.azurerm.resource_group
         request.cls.premium_os_disk = AZURERM_PREMIUM_OS_Disk
         request.cls.platform = AZURERM_PLATFORM_DEFAULT

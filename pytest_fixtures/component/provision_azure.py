@@ -9,7 +9,7 @@ from robottelo.constants import (
     AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
     AZURERM_RHEL7_FT_GALLERY_IMG_URN,
     AZURERM_RHEL7_FT_IMG_URN,
-    AZURERM_RHEL7_UD_IMG_URN,
+    AZURERM_RHEL9_UD_IMG_URN,
     DEFAULT_ARCHITECTURE,
     DEFAULT_OS_SEARCH_QUERY,
 )
@@ -149,7 +149,7 @@ def module_azurerm_cloudimg(
         name=gen_string('alpha'),
         operatingsystem=sat_azure_default_os,
         username=settings.azurerm.username,
-        uuid=AZURERM_RHEL7_UD_IMG_URN,
+        uuid=AZURERM_RHEL9_UD_IMG_URN,
         user_data=True,
     ).create()
 
