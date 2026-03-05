@@ -176,3 +176,38 @@ async def test_positive_mcp_user_view_permissions(
             in result.data['message']
         )
         assert result.data['response']['error']['message'] == 'Access denied'
+
+
+@pytest.mark.asyncio
+@pytest.mark.e2e
+async def test_host_incremental_update(
+    module_target_sat_foreman_mcp,
+    function_org,
+    function_promoted_cv,
+    incupd_host,
+):
+    """Scenario to test host incremental updates through MCP"""
+    async with Client(
+        transport=StreamableHttpTransport(
+            f'http://{module_target_sat_foreman_mcp.hostname}:{settings.foreman_mcp.port}/mcp',
+            headers={
+                'FOREMAN_USERNAME': settings.foreman_mcp.username,
+                'FOREMAN_TOKEN': settings.foreman_mcp.password,
+            },
+        ),
+    ) as client:
+        result = await client.call_tool(
+            'call_foreman_api_get', {'resource': 'hosts', 'action': 'index', 'params': {}}
+        )
+        sat = module_target_sat_foreman_mcp
+        cv = function_promoted_cv
+        repo = sat.api.Repository(
+            product=sat.api.Product(organization=function_org).create(),
+            url=settings.repos.yum_9.url,
+        ).create()
+        repo.sync()
+        # breakpoint()
+        repo = repo.read()
+        cv.repository = [repo]
+        cv.update(['repository'])
+        print(result)
