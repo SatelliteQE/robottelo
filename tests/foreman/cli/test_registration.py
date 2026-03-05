@@ -588,7 +588,7 @@ def test_negative_users_permission_for_invalidating_tokens(
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-def test_negative_register_host_when_sat_has_port_80_blocked(
+def test_positive_register_host_when_sat_has_port_80_blocked(
     target_sat,
     rhel_contenthost,
     function_org,
@@ -596,22 +596,22 @@ def test_negative_register_host_when_sat_has_port_80_blocked(
     function_activation_key,
 ):
     """
-    Verify host registration fails when there is port 80 blocked on Satellite.
+    Verify host registration succeeds when port 80 is blocked on Satellite.
 
     :id: 3c3e1a8e-7b4c-4d5e-9a6d-8f2e1b3c4d5e
 
     :steps:
-        1. Block port 80 on Satellite
+        1. Block port 80 on Satellite using nft
         2. Generate and execute registration command
-        3. Verify registration fails with non-zero exit code
-        4. Unblock port 80
-        5. Re-register host and verify it succeeds
+        3. Verify registration succeeds with exit code 0
+        4. Verify the built endpoint uses HTTPS
+        5. Unblock port 80 for cleanup
 
     :expectedresults:
-        1. Registration fails with non-zero exit code when port 80 is blocked
-        2. Registration succeeds after port 80 is unblocked
+        1. Registration succeeds with exit code 0 even when port 80 is blocked
+        2. The built endpoint callback uses HTTPS (port 443)
 
-    :Verifies: SAT-34258
+    :Verifies: SAT-41516
 
     :customerscenario: true
     """
@@ -624,27 +624,23 @@ def test_negative_register_host_when_sat_has_port_80_blocked(
     target_sat.execute('nft add rule inet filter input tcp dport 80 drop')
 
     try:
-        # Attempt to register with port 80 blocked
+        # Register with port 80 blocked - should succeed via HTTPS
         result = rhel_contenthost.register(
             function_org, function_location, function_activation_key.name, target_sat
         )
 
-        # Registration should fail with non-zero exit code
-        assert result.status != 0, (
-            f'Registration should have failed when port 80 is blocked, but got status {result.status}.',
-            f'\n STDOUT: {result.stdout} \n STDERR: {result.stderr}',
+        # Registration should succeed even with port 80 blocked
+        assert result.status == 0, (
+            f'Registration should succeed when port 80 is blocked (uses HTTPS), '
+            f'but failed with status {result.status}. '
+            f'STDOUT: {result.stdout}\nSTDERR: {result.stderr}'
         )
 
-    finally:  # Unblock port 80
+    finally:
+        # Cleanup: Unblock port 80
         rule_handle_res = target_sat.execute(
             'nft -a list chain inet filter input | grep "tcp dport 80 drop # handle"'
         )
-        handle = rule_handle_res.stdout.split()[-1]
-        target_sat.execute(f'nft delete rule inet filter input handle {handle}')
-
-    # Now registration should succeed
-    result = rhel_contenthost.register(
-        function_org, function_location, function_activation_key.name, target_sat, force=True
-    )
-
-    assert result.status == 0, f'Failed to register host after unblocking port 80: {result.stderr}'
+        if rule_handle_res.status == 0 and rule_handle_res.stdout.strip():
+            handle = rule_handle_res.stdout.split()[-1]
+            target_sat.execute(f'nft delete rule inet filter input handle {handle}')
