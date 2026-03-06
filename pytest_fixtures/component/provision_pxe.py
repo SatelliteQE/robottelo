@@ -211,6 +211,10 @@ def module_provisioning_sat(
         remote_execution_proxy=[module_provisioning_capsule.id],
         domain=[domain.id],
     ).create()
+    if provisioning_type == 'discovery':
+        for host in sat.api.DiscoveredHost().search():
+            host.delete()
+
     if sat.network_type == NetworkType.IPV4:
         assert sat.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
         assert sat.execute('systemctl restart dhcpd').status == 0
@@ -249,9 +253,11 @@ def provisioning_host(module_ssh_key_file, pxe_loader, module_provisioning_sat):
         auth=module_ssh_key_file,
     ) as prov_host:
         yield prov_host
+        sat = module_provisioning_sat.sat
+        if sat.network_type == NetworkType.IPV4:
+            assert sat.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
+            assert sat.execute('systemctl restart dhcpd').status == 0
         # Set host as non-blank to run teardown of the host
-        if settings.server.network_type == NetworkType.IPV4:
-            assert module_provisioning_sat.sat.execute('systemctl restart dhcpd').status == 0
         prov_host.blank = getattr(prov_host, 'blank', False)
 
 
