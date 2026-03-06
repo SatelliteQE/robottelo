@@ -527,6 +527,16 @@ def test_rhel_pxe_provisioning_fips_enabled(
 
     :Verifies: SAT-26071
     """
+    # Skip RHEL7 UEFI test due to known issue SAT-41340
+    if (
+        is_open('SAT-41340')
+        and pxe_loader.vm_firmware in ['uefi']
+        and module_provisioning_rhel_content.os.major == '7'
+    ):
+        pytest.skip(
+            f"Test not supported for rhel{module_provisioning_rhel_content.os.major} {pxe_loader.vm_firmware} firmware"
+        )
+
     sat = module_provisioning_sat.sat
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     # Verify password hashing algorithm SHA512 is set in OS used for provisioning
@@ -602,7 +612,7 @@ def test_rhel_pxe_provisioning_fips_enabled(
 
     # Verify FIPS is enabled on host after provisioning is completed successfully
     result = provisioning_host.execute('cat /proc/sys/crypto/fips_enabled')
-    assert (0 if is_open('SAT-20386') else 1) == int(result.stdout)
+    assert int(result.stdout) == 1
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
     # Add workaround for SAT-32007 and SAT-32006
