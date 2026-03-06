@@ -621,12 +621,9 @@ def test_positive_register_host_when_sat_has_port_80_blocked(
     # file changes aren't automatically synced to the database in CI environments.
     # This forces template synchronization from filesystem to database.
     # TODO: Remove this after Foreman changes are merged and seeds are properly updated.
-    target_sat.cli.TemplateSync.imports({
-        'repo': '/usr/share/foreman',
-        'filter': '^Built$',
-        'force': 'true',
-        'associate': 'always'
-    })
+    target_sat.cli.TemplateSync.imports(
+        {'repo': '/usr/share/foreman', 'filter': '^Built$', 'force': 'true', 'associate': 'always'}
+    )
 
     # Block port 80 on Satellite
     target_sat.execute('nft add table inet filter')
