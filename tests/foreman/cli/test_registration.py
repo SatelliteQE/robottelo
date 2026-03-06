@@ -618,15 +618,15 @@ def test_positive_register_host_when_sat_has_port_80_blocked(
 
     # TEMPORARY WORKAROUND for SAT-41516 CI testing
     # The Foreman PR changes the built.erb template to support HTTPS, but template
-    # file changes don't trigger automatic seed re-runs in CI (seeds are hash-checked).
-    # Without running seeds, the template changes aren't synchronized to the database.
-    # This installer run forces template synchronization.
+    # file changes aren't automatically synced to the database in CI environments.
+    # This forces template synchronization from filesystem to database.
     # TODO: Remove this after Foreman changes are merged and seeds are properly updated.
-    result = target_sat.execute('satellite-installer', timeout='20m')
-    assert 'Success!' in result.stdout, (
-        f'Installer run failed - template sync may be incomplete. '
-        f'Exit status: {result.status}. Output: {result.stdout}'
-    )
+    target_sat.cli.TemplateSync.imports({
+        'repo': '/usr/share/foreman',
+        'filter': '^Built$',
+        'force': 'true',
+        'associate': 'always'
+    })
 
     # Block port 80 on Satellite
     target_sat.execute('nft add table inet filter')
