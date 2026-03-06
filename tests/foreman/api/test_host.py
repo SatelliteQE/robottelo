@@ -396,9 +396,19 @@ def test_positive_create_and_update_with_subnet(
         location=module_location, organization=module_org, subnet=module_default_subnet
     ).create()
     assert host.subnet.read().name == module_default_subnet.name
-    new_subnet = module_target_sat.api.Subnet(
-        location=[module_location], organization=[module_org]
-    ).create()
+    # Create subnet with appropriate network type based on satellite configuration
+    subnet_kwargs = {
+        'location': [module_location],
+        'organization': [module_org],
+    }
+    if module_target_sat.network_type.has_ipv6:
+        subnet_kwargs['network_type'] = 'IPv6'
+        subnet_kwargs['network'] = gen_ipaddr(ip3=True, ipv6=True)
+        subnet_kwargs['mask'] = 'ffff:ffff:ffff:ffff::'
+        subnet_kwargs['ipam'] = 'EUI-64'
+    else:
+        subnet_kwargs['network_type'] = 'IPv4'
+    new_subnet = module_target_sat.api.Subnet(**subnet_kwargs).create()
     host.subnet = new_subnet
     host = host.update(['subnet'])
     assert host.subnet.read().name == new_subnet.name
