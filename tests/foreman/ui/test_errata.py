@@ -1135,6 +1135,7 @@ def test_positive_check_errata(session, registered_contenthost):
     vm = registered_contenthost
     hostname = vm.hostname
     assert vm.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert vm.execute('subscription-manager repos').status == 0
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
         read_errata = session.host_new.get_details(hostname, 'Content.Errata')
@@ -1204,7 +1205,9 @@ def test_positive_host_content_library(
     [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-def test_positive_errata_search_type(session, module_sca_manifest_org, registered_contenthost):
+def test_positive_errata_search_type(
+    session, module_target_sat, module_sca_manifest_org, registered_contenthost
+):
     """Search for errata on a host's page content-errata tab by type.
 
     :id: f278f0e8-3b64-4dbf-a0c8-b9b289474a76
@@ -1219,8 +1222,25 @@ def test_positive_errata_search_type(session, module_sca_manifest_org, registere
     :BZ: 1653293
     """
     vm = registered_contenthost
+    hostname = vm.hostname
     pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
+    install_timestamp = (datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)).strftime(
+        TIMESTAMP_FMT
+    )
     assert vm.execute(f'yum install -y {pkgs}').status == 0
+    assert vm.execute('subscription-manager repos').status == 0
+    applicability_tasks = module_target_sat.wait_for_tasks(
+        search_query=(
+            f'Bulk generate applicability for host {hostname}'
+            f' and started_at >= "{install_timestamp}"'
+        ),
+        search_rate=2,
+        max_tries=60,
+    )
+    assert len(applicability_tasks) > 0, (
+        'No Errata applicability task(s) found after successful yum install.'
+        f' Expected at least one task for registered host: {hostname}'
+    )
 
     with session:
         session.location.select(loc_name=DEFAULT_LOC)
@@ -1389,8 +1409,11 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
         assert int(len(read_errata['Content']['Errata']['pagination'])) == 0
 
         pkgs = ' '.join(FAKE_9_YUM_OUTDATED_PACKAGES)
-        install_timestamp = datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
+        install_timestamp = (
+            datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
+        ).strftime(TIMESTAMP_FMT)
         assert vm.execute(f'yum install -y {pkgs}').status == 0
+        assert vm.execute('subscription-manager repos').status == 0
 
         # applicability task(s) found and succeed
         applicability_tasks = module_target_sat.wait_for_tasks(
@@ -1508,7 +1531,23 @@ def test_positive_filtered_errata_status_installable_param(
             assert expected_values[key] in actual_values[key], 'Expected text not found'
         property_value = 'Yes'
         session.settings.update(f'name = {setting_update.name}', property_value)
+        install_timestamp = (
+            datetime.now(UTC).replace(microsecond=0) - timedelta(seconds=1)
+        ).strftime(TIMESTAMP_FMT)
         assert client.execute(f'yum install -y {FAKE_9_YUM_OUTDATED_PACKAGES[1]}').status == 0
+        assert client.execute('subscription-manager repos').status == 0
+        applicability_tasks = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'Bulk generate applicability for host {client.hostname}'
+                f' and started_at >= "{install_timestamp}"'
+            ),
+            search_rate=2,
+            max_tries=60,
+        )
+        assert len(applicability_tasks) > 0, (
+            'No Errata applicability task(s) found after successful yum install.'
+            f' Expected at least one task for registered host: {client.hostname}'
+        )
         expected_values = {
             'Status': 'Error',
             'Errata': 'Security errata installable',
