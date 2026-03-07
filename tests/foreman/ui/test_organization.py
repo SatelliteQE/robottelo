@@ -14,6 +14,7 @@
 
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT, DEFAULT_ORG, INSTALL_MEDIUM_URL
@@ -260,7 +261,13 @@ def test_positive_delete_with_manifest_lces(session, target_sat, function_sca_ma
         # So switching to Default Org and then deleting.
         session.organization.select(DEFAULT_ORG)
         session.organization.delete(org.name)
-        assert not session.organization.search(org.name)
+        out, _ = wait_for(
+            lambda: session.organization.search(org.name),
+            fail_condition=lambda out: bool(out),
+            silent_failure=True,
+            timeout=15,
+        )
+        assert out == [], 'Search for deleted organization should be empty'
 
 
 @pytest.mark.upgrade
