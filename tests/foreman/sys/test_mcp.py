@@ -176,3 +176,10 @@ async def test_positive_mcp_user_view_permissions(
             in result.data['message']
         )
         assert result.data['response']['error']['message'] == 'Access denied'
+
+
+@pytest.mark.e2e
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_host_incremental_update(module_target_sat_foreman_mcp, incupd_host):
+    """Scenario to test host incremental updates through MCP"""
+    print(incupd_host)
