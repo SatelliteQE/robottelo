@@ -232,13 +232,21 @@ def get_iop_deploy_args():
 
 @pytest.fixture(scope='module')
 def module_satellite_iop(module_target_sat):
-    """Configure Red Hat Lightspeed in Satellite"""
+    """Provide a Satellite with Red Hat Lightspeed (IoP) enabled.
+
+    If IoP is already enabled on the Satellite, use it as-is without modification.
+    If IoP is not enabled, configure it and uninstall during teardown.
+    """
     satellite = module_target_sat
-    satellite.configure_iop()
+    was_already_enabled = satellite.iop_enabled
+
+    if not was_already_enabled:
+        satellite.configure_iop()
 
     yield satellite
 
-    satellite.uninstall_iop()
+    if not was_already_enabled:
+        satellite.uninstall_iop()
 
 
 @pytest.fixture(scope='module')
