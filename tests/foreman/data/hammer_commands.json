@@ -2007,7 +2007,7 @@
               "subcommands": []
             },
             {
-              "description": "DEPRECATED: Import Ansible roles",
+              "description": "DEPRECATED: Import Ansible roles. Use sync instead",
               "name": "import",
               "options": [
                 {
@@ -2214,7 +2214,7 @@
               "subcommands": []
             },
             {
-              "description": "DEPRECATED: Obsolete Ansible roles",
+              "description": "DEPRECATED: Obsolete Ansible roles. Use sync instead",
               "name": "obsolete",
               "options": [
                 {
@@ -22510,11 +22510,11 @@
               "name": "apply",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_errata_install`.",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             },
@@ -23683,7 +23683,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
+              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | checkin                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.aws_account_id reported.aws_instance_id reported.aws_region reported.azure_instance_id reported.azure_subscription_id reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cloud_provider reported.cores reported.disks_total reported.gcp_instance_id reported.gcp_project_id reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -23708,19 +23708,19 @@
               "name": "containerfile-install-command",
               "options": [
                 {
-                  "help": "Show specified fields or predefined field sets only. (See below)",
+                  "help": "Whether or not to show all results",
                   "name": "full-result",
                   "shortname": null,
                   "value": "BOOLEAN"
                 },
                 {
-                  "help": "VALUE/NUMBER            Name/id of the host",
+                  "help": "VALUE/NUMBER              Name/id of the host",
                   "name": "host",
                   "shortname": null,
                   "value": null
                 },
                 {
-                  "help": "VALUE/NUMBER            Name/id of the host",
+                  "help": "VALUE/NUMBER              Name/id of the host",
                   "name": "host-id",
                   "shortname": null,
                   "value": null
@@ -23768,12 +23768,12 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Print help",
+                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
                   "name": "help",
                   "shortname": "h",
-                  "value": "VALUE"
+                  "value": null
                 }
-                ],
+              ],
               "subcommands": []
             },
             {
@@ -23781,11 +23781,11 @@
               "name": "install",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_errata_install`.",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             },
@@ -23845,7 +23845,7 @@
                   "help": "Return only packages of a particular persistence (transient, persistent, or nil)",
                   "name": "persistence",
                   "shortname": null,
-                  "value": "BOOLEAN"
+                  "value": "VALUE"
                 },
                 {
                   "help": "Search string",
@@ -23860,7 +23860,7 @@
                   "value": "VALUE"
                 },
                 {
-                  "help": "Print help -------|-----|-------- | ALL | DEFAULT -------|-----|-------- | x   | x -------|-----|-------- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string integer string string string string string string",
+                  "help": "Print help ------------|-----|-------- | ALL | DEFAULT ------------|-----|-------- | x   | x | x   | ------------|-----|-------- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string integer string string string Values: transient, persistent string string string",
                   "name": "help",
                   "shortname": "h",
                   "value": null
@@ -23873,11 +23873,11 @@
               "name": "remove",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_errata_remove`.",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             },
@@ -23886,11 +23886,11 @@
               "name": "upgrade",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_package_update`.",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             },
@@ -23899,11 +23899,11 @@
               "name": "upgrade-all",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_package_update`.",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             }
@@ -23926,11 +23926,11 @@
               "name": "install",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_group_install`.",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             },
@@ -23939,11 +23939,11 @@
               "name": "remove",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_group_remove`.",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             }
@@ -25757,11 +25757,11 @@
               "name": "install",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_errata_install`. Specify the ho      st collection with the --search-query parameter, e.g. `--search-query \"host_collection = MyCollection\"` or `--search-query \"host_collection_id=6\"`",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             }
@@ -25886,7 +25886,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   |         | | x   |         | | x   |         | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
+              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   |         | | x   |         | | x   |         | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.aws_account_id reported.aws_instance_id reported.aws_region reported.azure_instance_id reported.azure_subscription_id reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cloud_provider reported.cores reported.disks_total reported.gcp_instance_id reported.gcp_project_id reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -26075,11 +26075,11 @@
               "name": "install",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_package_install`. Specify the h      ost collection with the --search-query parameter, e.g. `--search-query \"host_collection = MyCollection\"` or `--search-query \"host_collection_id=6\"`",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             },
@@ -26088,11 +26088,11 @@
               "name": "remove",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_package_remove`. Specify the ho      st collection with the --search-query parameter, e.g. `--search-query \"host_collection = MyCollection\"` or `--search-query \"host_collection_id=6\"`",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             },
@@ -26101,11 +26101,11 @@
               "name": "update",
               "options": [
                 {
-                  "help": "Print help",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             }
@@ -26126,13 +26126,12 @@
             {
               "description": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_group_install`. Specify the host collection with the --search-query parameter, e.g. `--search-query \"host_collection = MyCollection\"` or `--search-query \"host_collection_id=6\"`",
               "name": "install",
-              "options": [
-                {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_group_install`. Specify the hos      t collection with the --search-query parameter, e.g. `--search-query \"host_collection = MyCollection\"` or `--search-query \"host_collection_id=6\"`",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "options": [{
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             },
@@ -26141,11 +26140,11 @@
               "name": "remove",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_group_install`. Specify the hos      t collection with the --search-query parameter, e.g. `--search-query \"host_collection = MyCollection\"` or `--search-query \"host_collection_id=6\"`",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             },
@@ -26154,11 +26153,11 @@
               "name": "update",
               "options": [
                 {
-                  "help": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_group_install`. Specify the hos      t collection with the --search-query parameter, e.g. `--search-query \"host_collection = MyCollection\"` or `--search-query \"host_collection_id=6\"`",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
               ],
               "subcommands": []
             }
@@ -29401,6 +29400,73 @@
       ],
       "subcommands": [
         {
+          "description": "Clone a job template",
+          "name": "clone",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER     Set the current location context for the request",
+              "name": "location-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Name for the cloned template",
+              "name": "new-name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "name": "organization-title",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
           "description": "Create a job template",
           "name": "create",
           "options": [
@@ -29908,7 +29974,7 @@
               "value": null
             },
             {
-              "help": "Print help ---------------------------|-----|---------|----- | ALL | DEFAULT | THIN ---------------------------|-----|---------|----- | x   | x       | x | x   | x       | x category               | x   | x       | | x   | x       | | x   | x       | callback enabled   | x   | x       | check mode enabled | x   | x       | | x   | x       | from id             | x   | x       | | x   | x       | Locations/                 | x   | x       | Organizations/             | x   | x       | ---------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "help": "Print help ---------------------------|-----|---------|----- | ALL | DEFAULT | THIN ---------------------------|-----|---------|----- | x   | x       | x | x   | x       | x category               | x   | x       | | x   | x       | | x   | x       | callback enabled   | x   | x       | check mode enabled | x   | x       | | x   | x       | from id             | x   | x       | | x   | x       | | x   | x       | Locations/                 | x   | x       | Organizations/             | x   | x       | ---------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -31100,24 +31166,6 @@
               "value": "LIST"
             },
             {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Medium names/ids",
               "name": "media",
               "shortname": null,
@@ -31136,38 +31184,8 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Associated organization names/titles/ids",
-              "name": "organizations",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "Associated organization names/titles/ids",
+              "help": "Associated organization ids",
               "name": "organization-ids",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "Associated organization names/titles/ids",
-              "name": "organization-titles",
               "shortname": null,
               "value": "LIST"
             },
@@ -31269,46 +31287,10 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Set the current organization context for the request",
               "name": "name",
               "shortname": null,
               "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "Set the current organization context for the request",
@@ -31379,46 +31361,10 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Set the current organization context for the request",
               "name": "name",
               "shortname": null,
               "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "Display hidden parameter values",
@@ -31452,46 +31398,10 @@
               "value": "LIST"
             },
             {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "Page number, starting at 1",
@@ -32063,24 +31973,6 @@
               "value": "LIST"
             },
             {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Medium names/ids",
               "name": "media",
               "shortname": null,
@@ -32105,38 +31997,8 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Associated organization names/titles/ids",
-              "name": "organizations",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "Associated organization names/titles/ids",
+              "help": "Associated organization ids",
               "name": "organization-ids",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "Associated organization names/titles/ids",
-              "name": "organization-titles",
               "shortname": null,
               "value": "LIST"
             },
@@ -34176,40 +34038,40 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
+              "help": "Environment ids",
+              "name": "lifecycle-environment-ids",
+              "shortname": null,
+              "value": "LIST"
+            },
+            {
+              "help": "VALUE/LIST   Associated location name/title/names/titles/ids",
               "name": "location",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location-id",
+              "help": "VALUE/LIST   Associated location name/title/names/titles/ids",
+              "name": "locations",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
+              "help": "VALUE/LIST   Associated location name/title/names/titles/ids",
+              "name": "location-ids",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/LIST   Associated location name/title/names/titles/ids",
               "name": "location-title",
               "shortname": null,
               "value": null
             },
             {
-              "help": "Associated location names/titles/ids",
-              "name": "locations",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "Associated location names/titles/ids",
-              "name": "location-ids",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "Associated location names/titles/ids",
+              "help": "VALUE/LIST   Associated location name/title/names/titles/ids",
               "name": "location-titles",
               "shortname": null,
-              "value": "LIST"
+              "value": null
             },
             {
               "help": "Medium names/ids",
@@ -34230,25 +34092,25 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
               "name": "organization",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
               "name": "organization-id",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
               "name": "organization-title",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
               "name": "organization-label",
               "shortname": null,
               "value": null
@@ -34357,52 +34219,10 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Set the current organization context for the request",
               "name": "name",
               "shortname": null,
               "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-label",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "Set the current organization context for the request",
@@ -34479,52 +34299,10 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Set the current organization context for the request",
               "name": "name",
               "shortname": null,
               "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-label",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "Set the current organization context for the request",
@@ -34558,52 +34336,10 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Sort field and order, eg. 'id DESC'",
               "name": "order",
               "shortname": null,
               "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-label",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "Page number, starting at 1",
@@ -35193,40 +34929,40 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
+              "help": "Environment ids",
+              "name": "lifecycle-environment-ids",
+              "shortname": null,
+              "value": "LIST"
+            },
+            {
+              "help": "VALUE/LIST   Associated location name/title/names/titles/ids",
               "name": "location",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
-              "name": "location-id",
+              "help": "VALUE/LIST   Associated location name/title/names/titles/ids",
+              "name": "locations",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER            Set the current location context for the request",
+              "help": "VALUE/LIST   Associated location name/title/names/titles/ids",
+              "name": "location-ids",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/LIST   Associated location name/title/names/titles/ids",
               "name": "location-title",
               "shortname": null,
               "value": null
             },
             {
-              "help": "Associated location names/titles/ids",
-              "name": "locations",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "Associated location names/titles/ids",
-              "name": "location-ids",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "Associated location names/titles/ids",
+              "help": "VALUE/LIST   Associated location name/title/names/titles/ids",
               "name": "location-titles",
               "shortname": null,
-              "value": "LIST"
+              "value": null
             },
             {
               "help": "Medium names/ids",
@@ -35259,25 +34995,25 @@
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
               "name": "organization",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
               "name": "organization-id",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
               "name": "organization-title",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
+              "help": "VALUE/NUMBER Name/Title/Label/Id of associated organization",
               "name": "organization-label",
               "shortname": null,
               "value": null
@@ -38179,7 +37915,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cores reported.disks_total reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
+              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | checkin                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.aws_account_id reported.aws_instance_id reported.aws_region reported.azure_instance_id reported.azure_subscription_id reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cloud_provider reported.cores reported.disks_total reported.gcp_instance_id reported.gcp_project_id reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -44778,7 +44514,7 @@
               "value": null
             },
             {
-              "help": "Get all content available, not just that provided by subscriptions.",
+              "help": "Get all content available, not just that provided by subscriptions",
               "name": "content-access-mode-all",
               "shortname": null,
               "value": "BOOLEAN"
@@ -47448,6 +47184,12 @@
           "name": "list",
           "options": [
             {
+              "help": "Show specified fields or predefined field sets only. (See below)",
+              "name": "fields",
+              "shortname": null,
+              "value": "LIST"
+            },
+            {
               "help": "Activation key name/id",
               "name": "activation-key",
               "shortname": null,
@@ -47464,12 +47206,6 @@
               "name": "available-for",
               "shortname": null,
               "value": "VALUE"
-            },
-            {
-              "help": "Show specified fields or predefined field sets only. (See below)",
-              "name": "fields",
-              "shortname": null,
-              "value": "LIST"
             },
             {
               "help": "Whether or not to show all results",
@@ -50227,7 +49963,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "For values of type search, this is the resource the value searches in Possible value(s): 'AnsibleRole', 'AnsibleVariable', 'Architecture', 'Audit', 'AuthSource', 'Bookmark', 'ComputeProfile', 'ComputeResource', 'ConfigReport', 'DiscoveryRule', 'Domain', 'ExternalUsergroup', 'FactValue', 'Filter', 'ForemanOpenscap::ArfReport', 'ForemanOpenscap::Policy', 'ForemanOpenscap::ScapContent', 'ForemanOpenscap::TailoringFile', 'ForemanTasks::RecurringLogic', 'ForemanTasks::Task', 'ForemanVirtWhoConfigure::Config', 'Host', 'Hostgroup', 'HttpProxy', 'Image', 'InsightsHit', 'JobInvocation', 'JobTemplate', 'Katello::ActivationKey', 'Katello::AlternateContentSource', 'Katello::ContentCredential', 'Katello::ContentView', 'Katello::FlatpakRemote', 'Katello::HostCollection', 'Katello::KTEnvironment', 'Katello::Product', 'Katello::Subscription', 'Katello::SyncPlan', 'KeyPair', 'Location', 'LookupValue', 'MailNotification', 'Medium', 'Model', 'Operatingsystem', 'Organization', 'Parameter', 'PersonalAccessToken', 'ProvisioningTemplate', 'Ptable', 'Realm', 'RemoteExecutionFeature', 'ReportTemplate', 'Role', 'Setting', 'SmartProxy', 'SshKey', 'Subnet', 'Template', 'TemplateInvocation', 'User', 'Usergroup', 'Webhook', 'WebhookTemplate'",
+              "help": "For values of type search, this is the resource the value searches in Possible value(s): 'AnsibleRole', 'AnsibleVariable', 'Architecture', 'Audit', 'AuthSource', 'Bookmark', 'ComputeProfile', 'ComputeResource', 'ConfigReport', 'DiscoveryRule', 'Domain', 'ExternalUsergroup', 'FactValue', 'Filter', 'ForemanOpenscap::ArfReport', 'ForemanOpenscap::Policy', 'ForemanOpenscap::ScapContent', 'ForemanOpenscap::TailoringFile', 'ForemanRhCloud', 'ForemanTasks::RecurringLogic', 'ForemanTasks::Task', 'ForemanVirtWhoConfigure::Config', 'Host', 'Hostgroup', 'HttpProxy', 'Image', 'InsightsHit', 'JobInvocation', 'JobTemplate', 'Katello::ActivationKey', 'Katello::AlternateContentSource', 'Katello::ContentCredential', 'Katello::ContentView', 'Katello::FlatpakRemote', 'Katello::HostCollection', 'Katello::KTEnvironment', 'Katello::Product', 'Katello::Subscription', 'Katello::SyncPlan', 'KeyPair', 'Location', 'LookupValue', 'MailNotification', 'Medium', 'Model', 'Operatingsystem', 'Organization', 'Parameter', 'PersonalAccessToken', 'ProvisioningTemplate', 'Ptable', 'Realm', 'RemoteExecutionFeature', 'ReportTemplate', 'Role', 'Setting', 'SmartProxy', 'SshKey', 'Subnet', 'Template', 'TemplateInvocation', 'User', 'Usergroup', 'Webhook', 'WebhookTemplate'",
               "name": "resource-type",
               "shortname": null,
               "value": "ENUM"
@@ -50591,7 +50327,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "For values of type search, this is the resource the value searches in Possible value(s): 'AnsibleRole', 'AnsibleVariable', 'Architecture', 'Audit', 'AuthSource', 'Bookmark', 'ComputeProfile', 'ComputeResource', 'ConfigReport', 'DiscoveryRule', 'Domain', 'ExternalUsergroup', 'FactValue', 'Filter', 'ForemanOpenscap::ArfReport', 'ForemanOpenscap::Policy', 'ForemanOpenscap::ScapContent', 'ForemanOpenscap::TailoringFile', 'ForemanTasks::RecurringLogic', 'ForemanTasks::Task', 'ForemanVirtWhoConfigure::Config', 'Host', 'Hostgroup', 'HttpProxy', 'Image', 'InsightsHit', 'JobInvocation', 'JobTemplate', 'Katello::ActivationKey', 'Katello::AlternateContentSource', 'Katello::ContentCredential', 'Katello::ContentView', 'Katello::FlatpakRemote', 'Katello::HostCollection', 'Katello::KTEnvironment', 'Katello::Product', 'Katello::Subscription', 'Katello::SyncPlan', 'KeyPair', 'Location', 'LookupValue', 'MailNotification', 'Medium', 'Model', 'Operatingsystem', 'Organization', 'Parameter', 'PersonalAccessToken', 'ProvisioningTemplate', 'Ptable', 'Realm', 'RemoteExecutionFeature', 'ReportTemplate', 'Role', 'Setting', 'SmartProxy', 'SshKey', 'Subnet', 'Template', 'TemplateInvocation', 'User', 'Usergroup', 'Webhook', 'WebhookTemplate'",
+              "help": "For values of type search, this is the resource the value searches in Possible value(s): 'AnsibleRole', 'AnsibleVariable', 'Architecture', 'Audit', 'AuthSource', 'Bookmark', 'ComputeProfile', 'ComputeResource', 'ConfigReport', 'DiscoveryRule', 'Domain', 'ExternalUsergroup', 'FactValue', 'Filter', 'ForemanOpenscap::ArfReport', 'ForemanOpenscap::Policy', 'ForemanOpenscap::ScapContent', 'ForemanOpenscap::TailoringFile', 'ForemanRhCloud', 'ForemanTasks::RecurringLogic', 'ForemanTasks::Task', 'ForemanVirtWhoConfigure::Config', 'Host', 'Hostgroup', 'HttpProxy', 'Image', 'InsightsHit', 'JobInvocation', 'JobTemplate', 'Katello::ActivationKey', 'Katello::AlternateContentSource', 'Katello::ContentCredential', 'Katello::ContentView', 'Katello::FlatpakRemote', 'Katello::HostCollection', 'Katello::KTEnvironment', 'Katello::Product', 'Katello::Subscription', 'Katello::SyncPlan', 'KeyPair', 'Location', 'LookupValue', 'MailNotification', 'Medium', 'Model', 'Operatingsystem', 'Organization', 'Parameter', 'PersonalAccessToken', 'ProvisioningTemplate', 'Ptable', 'Realm', 'RemoteExecutionFeature', 'ReportTemplate', 'Role', 'Setting', 'SmartProxy', 'SshKey', 'Subnet', 'Template', 'TemplateInvocation', 'User', 'Usergroup', 'Webhook', 'WebhookTemplate'",
               "name": "resource-type",
               "shortname": null,
               "value": "ENUM"
@@ -53731,7 +53467,7 @@
               "value": "ENUM"
             },
             {
-              "help": "Hypervisor password, required for all hypervisor types except for libvirt/kubevirt.",
+              "help": "Hypervisor password, required for all hypervisor types except for libvirt/OpenShift Virtualization.",
               "name": "hypervisor-password",
               "shortname": null,
               "value": "VALUE"
@@ -54235,7 +53971,7 @@
               "value": "ENUM"
             },
             {
-              "help": "Hypervisor password, required for all hypervisor types except for libvirt/kubevirt.",
+              "help": "Hypervisor password, required for all hypervisor types except for libvirt/OpenShift Virtualization.",
               "name": "hypervisor-password",
               "shortname": null,
               "value": "VALUE"
@@ -54382,7 +54118,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Possible value(s): 'actions.katello.capsule_content.sync_failed', 'actions.katello.capsule_content.sync_succeeded', 'actions.katello.content_view.promote_failed', 'actions.katello.content_view.promote_succeeded', 'actions.katello.content_view.publish_failed', 'actions.katello.content_view.publish_succeeded', 'actions.katello.repository.sync_failed', 'actions.katello.repository.sync_succeeded', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_failed', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_host_job_ansible_enable_web_console_failed', 'actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_update_failed', 'actions.remote_execution.run_host_job_ansible_run_capsule_update_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_failed', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_host_job_ansible_run_host_failed', 'actions.remote_execution.run_host_job_ansible_run_host_succeeded', 'actions.remote_execution.run_host_job_ansible_run_openscap_remediation_failed', 'actions.remote_execution.run_host_job_ansible_run_openscap_remediation_succeeded', 'actions.remote_execution.run_host_job_ansible_run_playbook_failed', 'actions.remote_execution.run_host_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_host_job_failed', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_failed', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_action_failed', 'actions.remote_execution.run_host_job_katello_bootc_action_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_rollback_failed', 'actions.remote_execution.run_host_job_katello_bootc_rollback_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_status_failed', 'actions.remote_execution.run_host_job_katello_bootc_status_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_switch_failed', 'actions.remote_execution.run_host_job_katello_bootc_switch_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_upgrade_failed', 'actions.remote_execution.run_host_job_katello_bootc_upgrade_succeeded', 'actions.remote_execution.run_host_job_katello_change_content_source_failed', 'actions.remote_execution.run_host_job_katello_change_content_source_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_by_search_failed', 'actions.remote_execution.run_host_job_katello_errata_install_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_failed', 'actions.remote_execution.run_host_job_katello_errata_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_install_failed', 'actions.remote_execution.run_host_job_katello_group_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_remove_failed', 'actions.remote_execution.run_host_job_katello_group_remove_succeeded', 'actions.remote_execution.run_host_job_katello_group_update_failed', 'actions.remote_execution.run_host_job_katello_group_update_succeeded', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_failed', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_host_job_katello_module_stream_action_failed', 'actions.remote_execution.run_host_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_by_search_failed', 'actions.remote_execution.run_host_job_katello_package_install_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_failed', 'actions.remote_execution.run_host_job_katello_package_install_succeeded', 'actions.remote_execution.run_host_job_katello_package_remove_failed', 'actions.remote_execution.run_host_job_katello_package_remove_succeeded', 'actions.remote_execution.run_host_job_katello_package_update_failed', 'actions.remote_execution.run_host_job_katello_package_update_succeeded', 'actions.remote_execution.run_host_job_katello_packages_remove_by_search_failed', 'actions.remote_execution.run_host_job_katello_packages_remove_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_packages_update_by_search_failed', 'actions.remote_execution.run_host_job_katello_packages_update_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_service_restart_failed', 'actions.remote_execution.run_host_job_katello_service_restart_succeeded', 'actions.remote_execution.run_host_job_katello_upload_profile_failed', 'actions.remote_execution.run_host_job_katello_upload_profile_succeeded', 'actions.remote_execution.run_host_job_leapp_preupgrade_failed', 'actions.remote_execution.run_host_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_host_job_leapp_remediation_plan_failed', 'actions.remote_execution.run_host_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_host_job_leapp_upgrade_failed', 'actions.remote_execution.run_host_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_host_job_puppet_run_host_failed', 'actions.remote_execution.run_host_job_puppet_run_host_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_connector_run_playbook_failed', 'actions.remote_execution.run_host_job_rh_cloud_connector_run_playbook_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_failed', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_host_job_run_script_failed', 'actions.remote_execution.run_host_job_run_script_succeeded', 'actions.remote_execution.run_host_job_script_run_openscap_remediation_failed', 'actions.remote_execution.run_host_job_script_run_openscap_remediation_succeeded', 'actions.remote_execution.run_host_job_succeeded', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_failed', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_running', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_failed', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_running', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_failed', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_running', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_failed', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_running', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_host_failed', 'actions.remote_execution.run_hosts_job_ansible_run_host_running', 'actions.remote_execution.run_hosts_job_ansible_run_host_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_failed', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_running', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_failed', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_running', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_hosts_job_failed', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_failed', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_running', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_action_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_action_running', 'actions.remote_execution.run_hosts_job_katello_bootc_action_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_running', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_status_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_status_running', 'actions.remote_execution.run_hosts_job_katello_bootc_status_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_running', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_running', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_katello_change_content_source_failed', 'actions.remote_execution.run_hosts_job_katello_change_content_source_running', 'actions.remote_execution.run_hosts_job_katello_change_content_source_succeeded', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_running', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_errata_install_failed', 'actions.remote_execution.run_hosts_job_katello_errata_install_running', 'actions.remote_execution.run_hosts_job_katello_errata_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_install_failed', 'actions.remote_execution.run_hosts_job_katello_group_install_running', 'actions.remote_execution.run_hosts_job_katello_group_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_remove_failed', 'actions.remote_execution.run_hosts_job_katello_group_remove_running', 'actions.remote_execution.run_hosts_job_katello_group_remove_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_update_failed', 'actions.remote_execution.run_hosts_job_katello_group_update_running', 'actions.remote_execution.run_hosts_job_katello_group_update_succeeded', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_failed', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_running', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_failed', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_running', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_running', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_install_failed', 'actions.remote_execution.run_hosts_job_katello_package_install_running', 'actions.remote_execution.run_hosts_job_katello_package_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_remove_failed', 'actions.remote_execution.run_hosts_job_katello_package_remove_running', 'actions.remote_execution.run_hosts_job_katello_package_remove_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_update_failed', 'actions.remote_execution.run_hosts_job_katello_package_update_running', 'actions.remote_execution.run_hosts_job_katello_package_update_succeeded', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_running', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_running', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_service_restart_failed', 'actions.remote_execution.run_hosts_job_katello_service_restart_running', 'actions.remote_execution.run_hosts_job_katello_service_restart_succeeded', 'actions.remote_execution.run_hosts_job_katello_upload_profile_failed', 'actions.remote_execution.run_hosts_job_katello_upload_profile_running', 'actions.remote_execution.run_hosts_job_katello_upload_profile_succeeded', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_failed', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_running', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_failed', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_running', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_hosts_job_leapp_upgrade_failed', 'actions.remote_execution.run_hosts_job_leapp_upgrade_running', 'actions.remote_execution.run_hosts_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_puppet_run_host_failed', 'actions.remote_execution.run_hosts_job_puppet_run_host_running', 'actions.remote_execution.run_hosts_job_puppet_run_host_succeeded', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_failed', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_running', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_succeeded', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_failed', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_running', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_hosts_job_run_script_failed', 'actions.remote_execution.run_hosts_job_run_script_running', 'actions.remote_execution.run_hosts_job_run_script_succeeded', 'actions.remote_execution.run_hosts_job_running', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_failed', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_running', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_succeeded', 'actions.remote_execution.run_hosts_job_succeeded', 'ansible_role_created', 'ansible_role_destroyed', 'ansible_role_updated', 'ansible_variable_created', 'ansible_variable_destroyed', 'ansible_variable_updated', 'build_entered', 'build_exited', 'content_view_created', 'content_view_destroyed', 'content_view_updated', 'create_rss_notifications_performed', 'domain_created', 'domain_destroyed', 'domain_updated', 'host_created', 'host_destroyed', 'host_facts_updated', 'host_updated', 'hostgroup_created', 'hostgroup_destroyed', 'hostgroup_updated', 'model_created', 'model_destroyed', 'model_updated', 'status_changed', 'stored_values_cleanup_performed', 'subnet_created', 'subnet_destroyed', 'subnet_updated', 'template_render_performed', 'user_created', 'user_destroyed', 'user_updated'",
+              "help": "Possible value(s): 'actions.katello.capsule_content.sync_failed', 'actions.katello.capsule_content.sync_succeeded', 'actions.katello.content_view.promote_failed', 'actions.katello.content_view.promote_succeeded', 'actions.katello.content_view.publish_failed', 'actions.katello.content_view.publish_succeeded', 'actions.katello.repository.sync_failed', 'actions.katello.repository.sync_succeeded', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_failed', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_host_job_ansible_enable_web_console_failed', 'actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_update_failed', 'actions.remote_execution.run_host_job_ansible_run_capsule_update_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_failed', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_host_job_ansible_run_host_failed', 'actions.remote_execution.run_host_job_ansible_run_host_succeeded', 'actions.remote_execution.run_host_job_ansible_run_openscap_remediation_failed', 'actions.remote_execution.run_host_job_ansible_run_openscap_remediation_succeeded', 'actions.remote_execution.run_host_job_ansible_run_playbook_failed', 'actions.remote_execution.run_host_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_host_job_failed', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_failed', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_action_failed', 'actions.remote_execution.run_host_job_katello_bootc_action_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_rollback_failed', 'actions.remote_execution.run_host_job_katello_bootc_rollback_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_status_failed', 'actions.remote_execution.run_host_job_katello_bootc_status_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_switch_failed', 'actions.remote_execution.run_host_job_katello_bootc_switch_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_upgrade_failed', 'actions.remote_execution.run_host_job_katello_bootc_upgrade_succeeded', 'actions.remote_execution.run_host_job_katello_change_content_source_failed', 'actions.remote_execution.run_host_job_katello_change_content_source_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_by_search_failed', 'actions.remote_execution.run_host_job_katello_errata_install_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_failed', 'actions.remote_execution.run_host_job_katello_errata_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_install_failed', 'actions.remote_execution.run_host_job_katello_group_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_remove_failed', 'actions.remote_execution.run_host_job_katello_group_remove_succeeded', 'actions.remote_execution.run_host_job_katello_group_update_failed', 'actions.remote_execution.run_host_job_katello_group_update_succeeded', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_failed', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_host_job_katello_module_stream_action_failed', 'actions.remote_execution.run_host_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_by_search_failed', 'actions.remote_execution.run_host_job_katello_package_install_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_failed', 'actions.remote_execution.run_host_job_katello_package_install_succeeded', 'actions.remote_execution.run_host_job_katello_package_remove_failed', 'actions.remote_execution.run_host_job_katello_package_remove_succeeded', 'actions.remote_execution.run_host_job_katello_package_update_failed', 'actions.remote_execution.run_host_job_katello_package_update_succeeded', 'actions.remote_execution.run_host_job_katello_packages_remove_by_search_failed', 'actions.remote_execution.run_host_job_katello_packages_remove_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_packages_update_by_search_failed', 'actions.remote_execution.run_host_job_katello_packages_update_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_service_restart_failed', 'actions.remote_execution.run_host_job_katello_service_restart_succeeded', 'actions.remote_execution.run_host_job_katello_upload_profile_failed', 'actions.remote_execution.run_host_job_katello_upload_profile_succeeded', 'actions.remote_execution.run_host_job_leapp_preupgrade_failed', 'actions.remote_execution.run_host_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_host_job_leapp_remediation_plan_failed', 'actions.remote_execution.run_host_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_host_job_leapp_upgrade_failed', 'actions.remote_execution.run_host_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_host_job_puppet_run_host_failed', 'actions.remote_execution.run_host_job_puppet_run_host_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_connector_run_playbook_failed', 'actions.remote_execution.run_host_job_rh_cloud_connector_run_playbook_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_failed', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_host_job_run_script_failed', 'actions.remote_execution.run_host_job_run_script_succeeded', 'actions.remote_execution.run_host_job_script_run_openscap_remediation_failed', 'actions.remote_execution.run_host_job_script_run_openscap_remediation_succeeded', 'actions.remote_execution.run_host_job_succeeded', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_failed', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_running', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_failed', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_running', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_failed', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_running', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_failed', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_running', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_host_failed', 'actions.remote_execution.run_hosts_job_ansible_run_host_running', 'actions.remote_execution.run_hosts_job_ansible_run_host_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_failed', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_running', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_failed', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_running', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_hosts_job_failed', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_failed', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_running', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_action_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_action_running', 'actions.remote_execution.run_hosts_job_katello_bootc_action_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_running', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_status_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_status_running', 'actions.remote_execution.run_hosts_job_katello_bootc_status_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_running', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_running', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_katello_change_content_source_failed', 'actions.remote_execution.run_hosts_job_katello_change_content_source_running', 'actions.remote_execution.run_hosts_job_katello_change_content_source_succeeded', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_running', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_errata_install_failed', 'actions.remote_execution.run_hosts_job_katello_errata_install_running', 'actions.remote_execution.run_hosts_job_katello_errata_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_install_failed', 'actions.remote_execution.run_hosts_job_katello_group_install_running', 'actions.remote_execution.run_hosts_job_katello_group_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_remove_failed', 'actions.remote_execution.run_hosts_job_katello_group_remove_running', 'actions.remote_execution.run_hosts_job_katello_group_remove_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_update_failed', 'actions.remote_execution.run_hosts_job_katello_group_update_running', 'actions.remote_execution.run_hosts_job_katello_group_update_succeeded', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_failed', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_running', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_failed', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_running', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_running', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_install_failed', 'actions.remote_execution.run_hosts_job_katello_package_install_running', 'actions.remote_execution.run_hosts_job_katello_package_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_remove_failed', 'actions.remote_execution.run_hosts_job_katello_package_remove_running', 'actions.remote_execution.run_hosts_job_katello_package_remove_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_update_failed', 'actions.remote_execution.run_hosts_job_katello_package_update_running', 'actions.remote_execution.run_hosts_job_katello_package_update_succeeded', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_running', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_running', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_service_restart_failed', 'actions.remote_execution.run_hosts_job_katello_service_restart_running', 'actions.remote_execution.run_hosts_job_katello_service_restart_succeeded', 'actions.remote_execution.run_hosts_job_katello_upload_profile_failed', 'actions.remote_execution.run_hosts_job_katello_upload_profile_running', 'actions.remote_execution.run_hosts_job_katello_upload_profile_succeeded', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_failed', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_running', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_failed', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_running', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_hosts_job_leapp_upgrade_failed', 'actions.remote_execution.run_hosts_job_leapp_upgrade_running', 'actions.remote_execution.run_hosts_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_puppet_run_host_failed', 'actions.remote_execution.run_hosts_job_puppet_run_host_running', 'actions.remote_execution.run_hosts_job_puppet_run_host_succeeded', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_failed', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_running', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_succeeded', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_failed', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_running', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_hosts_job_run_script_failed', 'actions.remote_execution.run_hosts_job_run_script_running', 'actions.remote_execution.run_hosts_job_run_script_succeeded', 'actions.remote_execution.run_hosts_job_running', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_failed', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_running', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_succeeded', 'actions.remote_execution.run_hosts_job_succeeded', 'ansible_role_created', 'ansible_role_destroyed', 'ansible_role_updated', 'ansible_variable_created', 'ansible_variable_destroyed', 'ansible_variable_updated', 'build_entered', 'build_exited', 'config_report_created', 'config_report_destroyed', 'config_report_updated', 'content_view_created', 'content_view_destroyed', 'content_view_updated', 'create_rss_notifications_performed', 'domain_created', 'domain_destroyed', 'domain_updated', 'host_created', 'host_destroyed', 'host_facts_updated', 'host_updated', 'hostgroup_created', 'hostgroup_destroyed', 'hostgroup_updated', 'model_created', 'model_destroyed', 'model_updated', 'status_changed', 'stored_values_cleanup_performed', 'subnet_created', 'subnet_destroyed', 'subnet_updated', 'template_render_performed', 'user_created', 'user_destroyed', 'user_updated'",
               "name": "event",
               "shortname": null,
               "value": "ENUM"
@@ -54722,7 +54458,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Possible value(s): 'actions.katello.capsule_content.sync_failed', 'actions.katello.capsule_content.sync_succeeded', 'actions.katello.content_view.promote_failed', 'actions.katello.content_view.promote_succeeded', 'actions.katello.content_view.publish_failed', 'actions.katello.content_view.publish_succeeded', 'actions.katello.repository.sync_failed', 'actions.katello.repository.sync_succeeded', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_failed', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_host_job_ansible_enable_web_console_failed', 'actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_update_failed', 'actions.remote_execution.run_host_job_ansible_run_capsule_update_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_failed', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_host_job_ansible_run_host_failed', 'actions.remote_execution.run_host_job_ansible_run_host_succeeded', 'actions.remote_execution.run_host_job_ansible_run_openscap_remediation_failed', 'actions.remote_execution.run_host_job_ansible_run_openscap_remediation_succeeded', 'actions.remote_execution.run_host_job_ansible_run_playbook_failed', 'actions.remote_execution.run_host_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_host_job_failed', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_failed', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_action_failed', 'actions.remote_execution.run_host_job_katello_bootc_action_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_rollback_failed', 'actions.remote_execution.run_host_job_katello_bootc_rollback_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_status_failed', 'actions.remote_execution.run_host_job_katello_bootc_status_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_switch_failed', 'actions.remote_execution.run_host_job_katello_bootc_switch_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_upgrade_failed', 'actions.remote_execution.run_host_job_katello_bootc_upgrade_succeeded', 'actions.remote_execution.run_host_job_katello_change_content_source_failed', 'actions.remote_execution.run_host_job_katello_change_content_source_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_by_search_failed', 'actions.remote_execution.run_host_job_katello_errata_install_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_failed', 'actions.remote_execution.run_host_job_katello_errata_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_install_failed', 'actions.remote_execution.run_host_job_katello_group_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_remove_failed', 'actions.remote_execution.run_host_job_katello_group_remove_succeeded', 'actions.remote_execution.run_host_job_katello_group_update_failed', 'actions.remote_execution.run_host_job_katello_group_update_succeeded', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_failed', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_host_job_katello_module_stream_action_failed', 'actions.remote_execution.run_host_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_by_search_failed', 'actions.remote_execution.run_host_job_katello_package_install_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_failed', 'actions.remote_execution.run_host_job_katello_package_install_succeeded', 'actions.remote_execution.run_host_job_katello_package_remove_failed', 'actions.remote_execution.run_host_job_katello_package_remove_succeeded', 'actions.remote_execution.run_host_job_katello_package_update_failed', 'actions.remote_execution.run_host_job_katello_package_update_succeeded', 'actions.remote_execution.run_host_job_katello_packages_remove_by_search_failed', 'actions.remote_execution.run_host_job_katello_packages_remove_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_packages_update_by_search_failed', 'actions.remote_execution.run_host_job_katello_packages_update_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_service_restart_failed', 'actions.remote_execution.run_host_job_katello_service_restart_succeeded', 'actions.remote_execution.run_host_job_katello_upload_profile_failed', 'actions.remote_execution.run_host_job_katello_upload_profile_succeeded', 'actions.remote_execution.run_host_job_leapp_preupgrade_failed', 'actions.remote_execution.run_host_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_host_job_leapp_remediation_plan_failed', 'actions.remote_execution.run_host_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_host_job_leapp_upgrade_failed', 'actions.remote_execution.run_host_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_host_job_puppet_run_host_failed', 'actions.remote_execution.run_host_job_puppet_run_host_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_connector_run_playbook_failed', 'actions.remote_execution.run_host_job_rh_cloud_connector_run_playbook_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_failed', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_host_job_run_script_failed', 'actions.remote_execution.run_host_job_run_script_succeeded', 'actions.remote_execution.run_host_job_script_run_openscap_remediation_failed', 'actions.remote_execution.run_host_job_script_run_openscap_remediation_succeeded', 'actions.remote_execution.run_host_job_succeeded', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_failed', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_running', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_failed', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_running', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_failed', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_running', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_failed', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_running', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_host_failed', 'actions.remote_execution.run_hosts_job_ansible_run_host_running', 'actions.remote_execution.run_hosts_job_ansible_run_host_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_failed', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_running', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_failed', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_running', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_hosts_job_failed', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_failed', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_running', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_action_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_action_running', 'actions.remote_execution.run_hosts_job_katello_bootc_action_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_running', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_status_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_status_running', 'actions.remote_execution.run_hosts_job_katello_bootc_status_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_running', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_running', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_katello_change_content_source_failed', 'actions.remote_execution.run_hosts_job_katello_change_content_source_running', 'actions.remote_execution.run_hosts_job_katello_change_content_source_succeeded', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_running', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_errata_install_failed', 'actions.remote_execution.run_hosts_job_katello_errata_install_running', 'actions.remote_execution.run_hosts_job_katello_errata_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_install_failed', 'actions.remote_execution.run_hosts_job_katello_group_install_running', 'actions.remote_execution.run_hosts_job_katello_group_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_remove_failed', 'actions.remote_execution.run_hosts_job_katello_group_remove_running', 'actions.remote_execution.run_hosts_job_katello_group_remove_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_update_failed', 'actions.remote_execution.run_hosts_job_katello_group_update_running', 'actions.remote_execution.run_hosts_job_katello_group_update_succeeded', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_failed', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_running', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_failed', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_running', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_running', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_install_failed', 'actions.remote_execution.run_hosts_job_katello_package_install_running', 'actions.remote_execution.run_hosts_job_katello_package_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_remove_failed', 'actions.remote_execution.run_hosts_job_katello_package_remove_running', 'actions.remote_execution.run_hosts_job_katello_package_remove_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_update_failed', 'actions.remote_execution.run_hosts_job_katello_package_update_running', 'actions.remote_execution.run_hosts_job_katello_package_update_succeeded', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_running', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_running', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_service_restart_failed', 'actions.remote_execution.run_hosts_job_katello_service_restart_running', 'actions.remote_execution.run_hosts_job_katello_service_restart_succeeded', 'actions.remote_execution.run_hosts_job_katello_upload_profile_failed', 'actions.remote_execution.run_hosts_job_katello_upload_profile_running', 'actions.remote_execution.run_hosts_job_katello_upload_profile_succeeded', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_failed', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_running', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_failed', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_running', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_hosts_job_leapp_upgrade_failed', 'actions.remote_execution.run_hosts_job_leapp_upgrade_running', 'actions.remote_execution.run_hosts_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_puppet_run_host_failed', 'actions.remote_execution.run_hosts_job_puppet_run_host_running', 'actions.remote_execution.run_hosts_job_puppet_run_host_succeeded', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_failed', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_running', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_succeeded', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_failed', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_running', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_hosts_job_run_script_failed', 'actions.remote_execution.run_hosts_job_run_script_running', 'actions.remote_execution.run_hosts_job_run_script_succeeded', 'actions.remote_execution.run_hosts_job_running', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_failed', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_running', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_succeeded', 'actions.remote_execution.run_hosts_job_succeeded', 'ansible_role_created', 'ansible_role_destroyed', 'ansible_role_updated', 'ansible_variable_created', 'ansible_variable_destroyed', 'ansible_variable_updated', 'build_entered', 'build_exited', 'content_view_created', 'content_view_destroyed', 'content_view_updated', 'create_rss_notifications_performed', 'domain_created', 'domain_destroyed', 'domain_updated', 'host_created', 'host_destroyed', 'host_facts_updated', 'host_updated', 'hostgroup_created', 'hostgroup_destroyed', 'hostgroup_updated', 'model_created', 'model_destroyed', 'model_updated', 'status_changed', 'stored_values_cleanup_performed', 'subnet_created', 'subnet_destroyed', 'subnet_updated', 'template_render_performed', 'user_created', 'user_destroyed', 'user_updated'",
+              "help": "Possible value(s): 'actions.katello.capsule_content.sync_failed', 'actions.katello.capsule_content.sync_succeeded', 'actions.katello.content_view.promote_failed', 'actions.katello.content_view.promote_succeeded', 'actions.katello.content_view.publish_failed', 'actions.katello.content_view.publish_succeeded', 'actions.katello.repository.sync_failed', 'actions.katello.repository.sync_succeeded', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_failed', 'actions.remote_execution.run_host_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_host_job_ansible_enable_web_console_failed', 'actions.remote_execution.run_host_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_update_failed', 'actions.remote_execution.run_host_job_ansible_run_capsule_update_succeeded', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_failed', 'actions.remote_execution.run_host_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_host_job_ansible_run_host_failed', 'actions.remote_execution.run_host_job_ansible_run_host_succeeded', 'actions.remote_execution.run_host_job_ansible_run_openscap_remediation_failed', 'actions.remote_execution.run_host_job_ansible_run_openscap_remediation_succeeded', 'actions.remote_execution.run_host_job_ansible_run_playbook_failed', 'actions.remote_execution.run_host_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_host_job_failed', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_failed', 'actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_action_failed', 'actions.remote_execution.run_host_job_katello_bootc_action_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_rollback_failed', 'actions.remote_execution.run_host_job_katello_bootc_rollback_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_status_failed', 'actions.remote_execution.run_host_job_katello_bootc_status_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_switch_failed', 'actions.remote_execution.run_host_job_katello_bootc_switch_succeeded', 'actions.remote_execution.run_host_job_katello_bootc_upgrade_failed', 'actions.remote_execution.run_host_job_katello_bootc_upgrade_succeeded', 'actions.remote_execution.run_host_job_katello_change_content_source_failed', 'actions.remote_execution.run_host_job_katello_change_content_source_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_by_search_failed', 'actions.remote_execution.run_host_job_katello_errata_install_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_errata_install_failed', 'actions.remote_execution.run_host_job_katello_errata_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_install_failed', 'actions.remote_execution.run_host_job_katello_group_install_succeeded', 'actions.remote_execution.run_host_job_katello_group_remove_failed', 'actions.remote_execution.run_host_job_katello_group_remove_succeeded', 'actions.remote_execution.run_host_job_katello_group_update_failed', 'actions.remote_execution.run_host_job_katello_group_update_succeeded', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_failed', 'actions.remote_execution.run_host_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_host_job_katello_module_stream_action_failed', 'actions.remote_execution.run_host_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_by_search_failed', 'actions.remote_execution.run_host_job_katello_package_install_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_package_install_failed', 'actions.remote_execution.run_host_job_katello_package_install_succeeded', 'actions.remote_execution.run_host_job_katello_package_remove_failed', 'actions.remote_execution.run_host_job_katello_package_remove_succeeded', 'actions.remote_execution.run_host_job_katello_package_update_failed', 'actions.remote_execution.run_host_job_katello_package_update_succeeded', 'actions.remote_execution.run_host_job_katello_packages_remove_by_search_failed', 'actions.remote_execution.run_host_job_katello_packages_remove_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_packages_update_by_search_failed', 'actions.remote_execution.run_host_job_katello_packages_update_by_search_succeeded', 'actions.remote_execution.run_host_job_katello_service_restart_failed', 'actions.remote_execution.run_host_job_katello_service_restart_succeeded', 'actions.remote_execution.run_host_job_katello_upload_profile_failed', 'actions.remote_execution.run_host_job_katello_upload_profile_succeeded', 'actions.remote_execution.run_host_job_leapp_preupgrade_failed', 'actions.remote_execution.run_host_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_host_job_leapp_remediation_plan_failed', 'actions.remote_execution.run_host_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_host_job_leapp_upgrade_failed', 'actions.remote_execution.run_host_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_host_job_puppet_run_host_failed', 'actions.remote_execution.run_host_job_puppet_run_host_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_connector_run_playbook_failed', 'actions.remote_execution.run_host_job_rh_cloud_connector_run_playbook_succeeded', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_failed', 'actions.remote_execution.run_host_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_host_job_run_script_failed', 'actions.remote_execution.run_host_job_run_script_succeeded', 'actions.remote_execution.run_host_job_script_run_openscap_remediation_failed', 'actions.remote_execution.run_host_job_script_run_openscap_remediation_succeeded', 'actions.remote_execution.run_host_job_succeeded', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_failed', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_running', 'actions.remote_execution.run_hosts_job_ansible_configure_cloud_connector_succeeded', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_failed', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_running', 'actions.remote_execution.run_hosts_job_ansible_enable_web_console_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_failed', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_running', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_update_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_failed', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_running', 'actions.remote_execution.run_hosts_job_ansible_run_capsule_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_host_failed', 'actions.remote_execution.run_hosts_job_ansible_run_host_running', 'actions.remote_execution.run_hosts_job_ansible_run_host_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_failed', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_running', 'actions.remote_execution.run_hosts_job_ansible_run_openscap_remediation_succeeded', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_failed', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_running', 'actions.remote_execution.run_hosts_job_ansible_run_playbook_succeeded', 'actions.remote_execution.run_hosts_job_failed', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_failed', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_running', 'actions.remote_execution.run_hosts_job_foreman_openscap_run_scans_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_action_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_action_running', 'actions.remote_execution.run_hosts_job_katello_bootc_action_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_running', 'actions.remote_execution.run_hosts_job_katello_bootc_rollback_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_status_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_status_running', 'actions.remote_execution.run_hosts_job_katello_bootc_status_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_running', 'actions.remote_execution.run_hosts_job_katello_bootc_switch_succeeded', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_failed', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_running', 'actions.remote_execution.run_hosts_job_katello_bootc_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_katello_change_content_source_failed', 'actions.remote_execution.run_hosts_job_katello_change_content_source_running', 'actions.remote_execution.run_hosts_job_katello_change_content_source_succeeded', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_running', 'actions.remote_execution.run_hosts_job_katello_errata_install_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_errata_install_failed', 'actions.remote_execution.run_hosts_job_katello_errata_install_running', 'actions.remote_execution.run_hosts_job_katello_errata_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_install_failed', 'actions.remote_execution.run_hosts_job_katello_group_install_running', 'actions.remote_execution.run_hosts_job_katello_group_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_remove_failed', 'actions.remote_execution.run_hosts_job_katello_group_remove_running', 'actions.remote_execution.run_hosts_job_katello_group_remove_succeeded', 'actions.remote_execution.run_hosts_job_katello_group_update_failed', 'actions.remote_execution.run_hosts_job_katello_group_update_running', 'actions.remote_execution.run_hosts_job_katello_group_update_succeeded', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_failed', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_running', 'actions.remote_execution.run_hosts_job_katello_host_tracer_resolve_succeeded', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_failed', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_running', 'actions.remote_execution.run_hosts_job_katello_module_stream_action_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_running', 'actions.remote_execution.run_hosts_job_katello_package_install_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_install_failed', 'actions.remote_execution.run_hosts_job_katello_package_install_running', 'actions.remote_execution.run_hosts_job_katello_package_install_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_remove_failed', 'actions.remote_execution.run_hosts_job_katello_package_remove_running', 'actions.remote_execution.run_hosts_job_katello_package_remove_succeeded', 'actions.remote_execution.run_hosts_job_katello_package_update_failed', 'actions.remote_execution.run_hosts_job_katello_package_update_running', 'actions.remote_execution.run_hosts_job_katello_package_update_succeeded', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_running', 'actions.remote_execution.run_hosts_job_katello_packages_remove_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_failed', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_running', 'actions.remote_execution.run_hosts_job_katello_packages_update_by_search_succeeded', 'actions.remote_execution.run_hosts_job_katello_service_restart_failed', 'actions.remote_execution.run_hosts_job_katello_service_restart_running', 'actions.remote_execution.run_hosts_job_katello_service_restart_succeeded', 'actions.remote_execution.run_hosts_job_katello_upload_profile_failed', 'actions.remote_execution.run_hosts_job_katello_upload_profile_running', 'actions.remote_execution.run_hosts_job_katello_upload_profile_succeeded', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_failed', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_running', 'actions.remote_execution.run_hosts_job_leapp_preupgrade_succeeded', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_failed', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_running', 'actions.remote_execution.run_hosts_job_leapp_remediation_plan_succeeded', 'actions.remote_execution.run_hosts_job_leapp_upgrade_failed', 'actions.remote_execution.run_hosts_job_leapp_upgrade_running', 'actions.remote_execution.run_hosts_job_leapp_upgrade_succeeded', 'actions.remote_execution.run_hosts_job_puppet_run_host_failed', 'actions.remote_execution.run_hosts_job_puppet_run_host_running', 'actions.remote_execution.run_hosts_job_puppet_run_host_succeeded', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_failed', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_running', 'actions.remote_execution.run_hosts_job_rh_cloud_connector_run_playbook_succeeded', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_failed', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_running', 'actions.remote_execution.run_hosts_job_rh_cloud_remediate_hosts_succeeded', 'actions.remote_execution.run_hosts_job_run_script_failed', 'actions.remote_execution.run_hosts_job_run_script_running', 'actions.remote_execution.run_hosts_job_run_script_succeeded', 'actions.remote_execution.run_hosts_job_running', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_failed', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_running', 'actions.remote_execution.run_hosts_job_script_run_openscap_remediation_succeeded', 'actions.remote_execution.run_hosts_job_succeeded', 'ansible_role_created', 'ansible_role_destroyed', 'ansible_role_updated', 'ansible_variable_created', 'ansible_variable_destroyed', 'ansible_variable_updated', 'build_entered', 'build_exited', 'config_report_created', 'config_report_destroyed', 'config_report_updated', 'content_view_created', 'content_view_destroyed', 'content_view_updated', 'create_rss_notifications_performed', 'domain_created', 'domain_destroyed', 'domain_updated', 'host_created', 'host_destroyed', 'host_facts_updated', 'host_updated', 'hostgroup_created', 'hostgroup_destroyed', 'hostgroup_updated', 'model_created', 'model_destroyed', 'model_updated', 'status_changed', 'stored_values_cleanup_performed', 'subnet_created', 'subnet_destroyed', 'subnet_updated', 'template_render_performed', 'user_created', 'user_destroyed', 'user_updated'",
               "name": "event",
               "shortname": null,
               "value": "ENUM"
