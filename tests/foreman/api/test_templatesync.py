@@ -159,6 +159,8 @@ class TestTemplateSyncTestCase:
             2. Assert templates matching the regex were not pulled.
 
         :CaseImportance: Medium
+
+        :BlockedBy: SAT-43284
         """
         prefix = gen_string('alpha')
         filtered_imported_templates = module_target_sat.api.Template().imports(
@@ -933,6 +935,8 @@ class TestTemplateSyncTestCase:
         :Requirement: Take Templates out of tech preview
 
         :CaseImportance: Low
+
+        :BlockedBy: SAT-43284
         """
         prefix = gen_string('alpha')
         imported_templates = target_sat.api.Template().imports(
