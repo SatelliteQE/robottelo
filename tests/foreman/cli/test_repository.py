@@ -2465,6 +2465,7 @@ class TestFileRepository:
         # Making Setup For Creating Local Directory using Pulp Manifest
         target_sat.execute(f'mkdir -p {CUSTOM_LOCAL_FOLDER}')
         target_sat.execute(
+            f'https_proxy={settings.http_proxy.http_proxy_ipv6_url} '
             f'wget -P {CUSTOM_LOCAL_FOLDER} -r -np -nH --cut-dirs=5 -R "index.html*" '
             f'{CUSTOM_FILE_REPO}'
         )
@@ -2502,6 +2503,7 @@ class TestFileRepository:
         # Downloading the pulp repository into Satellite Host
         target_sat.execute(f'mkdir -p {CUSTOM_LOCAL_FOLDER}')
         target_sat.execute(
+            f'https_proxy={settings.http_proxy.http_proxy_ipv6_url} '
             f'wget -P {CUSTOM_LOCAL_FOLDER} -r -np -nH --cut-dirs=5 -R "index.html*" '
             f'{CUSTOM_FILE_REPO}'
         )
