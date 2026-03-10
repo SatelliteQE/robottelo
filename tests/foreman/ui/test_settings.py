@@ -121,8 +121,8 @@ def test_positive_httpd_proxy_url_update(session, setting_update):
         assert result['table'][0]['Value'] == param_value
 
 
-@pytest.mark.parametrize('setting_update', ['foreman_url'], indirect=True)
-def test_negative_validate_foreman_url_error_message(session, setting_update):
+@pytest.mark.parametrize('setting_update', ['unattended_url'], indirect=True)
+def test_negative_validate_unattended_url_error_message(session, setting_update):
     """Updates some settings with invalid values
 
     :id: 7c75083d-1b4d-4744-aaa4-6fb9e93ab3c2
@@ -136,7 +136,7 @@ def test_negative_validate_foreman_url_error_message(session, setting_update):
     property_name = setting_update.name
     with session:
         invalid_value = [invalid_value for invalid_value in invalid_settings_values()][0]
-        err_msg = 'URL must be valid and schema must be one of http and https, Invalid HTTP(S) URL'
+        err_msg = "Validation errors present on page, displayed messages: ['Invalid value']"
         with pytest.raises(AssertionError) as context:
             session.settings.update(f'name = {property_name}', invalid_value)
         assert err_msg in str(context.value)
