@@ -122,7 +122,7 @@ def test_positive_httpd_proxy_url_update(session, setting_update):
 
 
 @pytest.mark.parametrize('setting_update', ['unattended_url'], indirect=True)
-def test_negative_validate_foreman_url_error_message(session, setting_update):
+def test_negative_validate_unattended_url_error_message(session, setting_update):
     """Updates some settings with invalid values
 
     :id: 7c75083d-1b4d-4744-aaa4-6fb9e93ab3c2
