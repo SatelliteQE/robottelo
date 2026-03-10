@@ -53,10 +53,16 @@ def test_positive_module_stream_details_search_in_repo(
 
     :BZ: 1948758
     """
-    ducks_count = len(module_target_sat.api.ModuleStream().search(query={'search': 'name="duck"'}))
+    ducks_count = len(
+        module_target_sat.api.ModuleStream().search(
+            query={'search': f'name~"duck" and repository="{module_yum_repo.name}"'}
+        )
+    )
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
-        duck_results = session.modulestream.search('name ~ "duck"')
+        duck_results = session.modulestream.search(
+            f'name~"duck" and repository="{module_yum_repo.name}"'
+        )
         assert len(duck_results) == ducks_count
         assert all(item['Name'].startswith('duck') for item in duck_results)
         walrus_details = session.modulestream.read('walrus', '5.21')
