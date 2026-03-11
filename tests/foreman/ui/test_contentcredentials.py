@@ -516,3 +516,295 @@ def test_positive_update_key_for_repo_from_product_with_repos(
         assert values['products']['empty_state'] == empty_message
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo1.name
+
+
+@pytest.mark.e2e
+def test_positive_react_list_table(session, target_sat, module_org, gpg_content):
+    """Verify multiple content credentials of different types are listed on the React UI.
+
+    :id: 32b37ca2-d7bf-40d0-a5e6-8d3db6ae6d39
+
+    :steps:
+        1. Create a GPG key content credential via API
+        2. Create an SSL certificate content credential via API
+        3. Create a GPG key with product and repository associations
+        4. Navigate to the new content credentials list page
+        5. Search and verify each credential
+
+    :expectedresults:
+        1. All credentials appear with their respective types
+        2. Table contains all expected columns
+        3. Product and repository counts are accurate
+        4. Search functionality works correctly
+    """
+    # Create GPG key credential
+    gpg_name = gen_string('alphanumeric')
+    target_sat.api.GPGKey(content=gpg_content, name=gpg_name, organization=module_org).create()
+
+    # Create SSL certificate credential
+    ssl_name = gen_string('alphanumeric')
+    target_sat.api.ContentCredential(
+        content=gpg_content,
+        name=ssl_name,
+        organization=module_org,
+        content_type='cert',
+    ).create()
+
+    # Create GPG key with product and repository for column validation
+    gpg_with_product_name = gen_string('alphanumeric')
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=gpg_with_product_name, organization=module_org
+    ).create()
+    product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
+    target_sat.api.Repository(product=product).create()
+
+    with session:
+        session.organization.select(module_org.name)
+
+        # Verify GPG key type
+        gpg_results = session.contentcredential.search(gpg_name)
+        assert len(gpg_results) == 1
+        assert gpg_results[0]['Type'] == CONTENT_CREDENTIALS_TYPES['gpg']
+
+        # Verify SSL certificate type
+        ssl_results = session.contentcredential.search(ssl_name)
+        assert len(ssl_results) == 1
+        assert ssl_results[0]['Type'] == CONTENT_CREDENTIALS_TYPES['ssl']
+
+        # Verify table columns and counts
+        results = session.contentcredential.search(gpg_with_product_name)
+        assert len(results) == 1
+        row = results[0]
+        expected_columns = {
+            'Name',
+            'Organization',
+            'Type',
+            'Products',
+            'Repositories',
+            'Alternate content sources',
+        }
+        assert expected_columns.issubset(set(row.keys()))
+        assert row['Name'] == gpg_with_product_name
+        assert row['Organization'] == module_org.name
+        assert row['Type'] == CONTENT_CREDENTIALS_TYPES['gpg']
+        assert row['Products'] == '1'
+        assert row['Repositories'] == '1'
+
+
+def test_positive_update_content(session, target_sat, module_org, gpg_content):
+    """Update content credential content via inline editing.
+
+    :id: 5c660e76-d5ee-4e90-875c-1419164f277e
+
+    :steps:
+        1. Create a GPG key via API
+        2. Navigate to details page
+        3. Update the content field
+        4. Verify the change
+
+    :expectedresults: Content is updated successfully
+    """
+    name = gen_string('alpha')
+    new_content = DataFile.VALID_GPG_KEY_BETA_FILE.read_text()
+
+    target_sat.api.GPGKey(content=gpg_content, name=name, organization=module_org).create()
+
+    with session:
+        session.organization.select(module_org.name)
+        session.contentcredential.update(name, {'content': new_content})
+
+        values = session.contentcredential.read(name)
+        # Content should be updated
+        assert values['details']['content'] != gpg_content
+
+
+def test_positive_read_products_tab_multiple(session, target_sat, module_org, gpg_content):
+    """Read products tab with multiple associated products.
+
+    :id: 62962c46-648e-4c28-8ffb-befc075d7153
+
+    :steps:
+        1. Create a GPG key via API
+        2. Create multiple products associated with the GPG key
+        3. Navigate to details page
+        4. Read products tab
+
+    :expectedresults: Products tab shows all associated products
+    """
+    name = gen_string('alpha')
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
+
+    product1 = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
+    product2 = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
+
+    with session:
+        session.organization.select(module_org.name)
+        values = session.contentcredential.read(name)
+
+        products_table = values.get('products', {}).get('table', [])
+        assert len(products_table) == 2
+        product_names = {row['Name'] for row in products_table}
+        assert {product1.name, product2.name} == product_names
+
+
+def test_positive_filter_products(session, target_sat, module_org, gpg_content):
+    """Filter products by name in the products tab.
+
+    :id: c96b6950-3399-46d5-9da7-b1f7bbecedcd
+
+    :steps:
+        1. Create a GPG key via API
+        2. Create multiple products with different names
+        3. Navigate to details page
+        4. Filter products by name
+
+    :expectedresults: Only matching products are returned
+    """
+    name = gen_string('alpha')
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
+
+    search_term = gen_string('alpha', 5)
+    product1 = target_sat.api.Product(
+        name=f'{search_term}-product', gpg_key=gpg_key, organization=module_org
+    ).create()
+    # Create another product without search term to test filtering
+    target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
+
+    with session:
+        session.organization.select(module_org.name)
+
+        # Filter by search term
+        filtered_products = session.contentcredential.get_product_details(name, filter=search_term)
+
+        # Should only return product1
+        assert len(filtered_products) == 1
+        assert any(p['Name'] == product1.name for p in filtered_products)
+
+
+def test_positive_filter_repositories(session, target_sat, module_org, gpg_content):
+    """Filter repositories by name in the repositories tab.
+
+    :id: 0d439d5e-d542-4763-b684-0d8b61ccb7d4
+
+    :steps:
+        1. Create a GPG key via API
+        2. Create a product with multiple repositories
+        3. Navigate to details page
+        4. Filter repositories by name
+
+    :expectedresults: Only matching repositories are returned
+    """
+    name = gen_string('alpha')
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
+
+    product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
+
+    search_term = gen_string('alpha', 5)
+    repo1 = target_sat.api.Repository(
+        name=f'{search_term}-repo', product=product, url=settings.repos.yum_1.url
+    ).create()
+    # Create another repository without search term to test filtering
+    target_sat.api.Repository(product=product, url=settings.repos.yum_2.url).create()
+
+    with session:
+        session.organization.select(module_org.name)
+
+        # Filter by search term
+        filtered_repos = session.contentcredential.get_repository_details(name, filter=search_term)
+
+        # Should only return repo1
+        assert len(filtered_repos) == 1
+        assert any(r['Name'] == repo1.name for r in filtered_repos)
+
+
+def test_positive_read_acs_tab_empty(session, target_sat, module_org, gpg_content):
+    """Read alternate content sources tab when none are associated.
+
+    :id: 68c55706-cb6e-43b1-a6fd-df2302c9410b
+
+    :steps:
+        1. Create a GPG key via API (no associated ACS)
+        2. Navigate to details page
+        3. Read ACS tab
+
+    :expectedresults: ACS tab shows empty state message
+    """
+    name = gen_string('alpha')
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
+
+    with session:
+        session.organization.select(module_org.name)
+        acs = session.contentcredential.get_acs_details(gpg_key.name)
+
+        # When no ACS are associated, empty state card is shown instead of table
+        assert len(acs) == 0
+
+
+def test_positive_counts_reflect_associations(session, target_sat, module_org, gpg_content):
+    """Verify product and repository counts in details tab.
+
+    :id: 8a31ce9b-ed9b-4653-a733-5cd5de7d1d51
+
+    :steps:
+        1. Create a GPG key via API
+        2. Create 2 products and 3 repositories
+        3. Navigate to details page
+        4. Check counts in details tab
+
+    :expectedresults: Counts accurately reflect the number of associations
+    """
+    name = gen_string('alpha')
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
+
+    # Create 2 products
+    product1 = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
+    product2 = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
+
+    # Create 3 repositories
+    target_sat.api.Repository(product=product1).create()
+    target_sat.api.Repository(product=product1).create()
+    target_sat.api.Repository(product=product2).create()
+
+    with session:
+        session.organization.select(module_org.name)
+        values = session.contentcredential.read(name)
+
+        assert values['details']['products'] == '2'
+        assert values['details']['repositories'] == '3'
+
+
+def test_positive_breadcrumb_navigation(session, target_sat, module_org, gpg_content):
+    """Verify breadcrumb is displayed on details page.
+
+    :id: bc1293dc-24e7-4321-bb7b-f74940e6b622
+
+    :steps:
+        1. Create a GPG key via API
+        2. Navigate to details page
+        3. Check breadcrumb presence
+
+    :expectedresults: Breadcrumb is displayed correctly
+    """
+    name = gen_string('alpha')
+    gpg_key = target_sat.api.GPGKey(
+        content=gpg_content, name=name, organization=module_org
+    ).create()
+
+    with session:
+        session.organization.select(module_org.name)
+        view = session.contentcredential.navigate_to(
+            session.contentcredential, 'Edit', entity_name=gpg_key.name
+        )
+
+        assert view.page_breadcrumb.is_displayed
+        assert view.is_displayed

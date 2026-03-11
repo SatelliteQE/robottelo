@@ -66,7 +66,7 @@ FOREMAN_PROVIDERS_MODEL = {
 
 EC2_REGION_CA_CENTRAL_1 = 'ca-central-1'
 
-CONTENT_CREDENTIALS_TYPES = {'gpg': 'GPG Key', 'ssl': 'SSL Certificate'}
+CONTENT_CREDENTIALS_TYPES = {'gpg': 'GPG Key', 'ssl': 'Certificate'}
 
 VIRT_WHO_HYPERVISOR_TYPES = {
     'esx': 'esx',
