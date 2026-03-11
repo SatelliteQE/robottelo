@@ -25,7 +25,7 @@ from robottelo.config import settings
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
-@pytest.mark.rhel_ver_match('[8]')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_provision_end_to_end(
     request,
     setting_update,

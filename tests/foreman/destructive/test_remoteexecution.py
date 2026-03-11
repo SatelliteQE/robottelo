@@ -17,7 +17,7 @@ from nailgun import client
 from nailgun.entity_mixins import TaskFailedError
 import pytest
 
-from robottelo.config import get_credentials
+from robottelo.config import get_credentials, settings
 from robottelo.hosts import get_sat_version
 
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
@@ -75,7 +75,7 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([8])
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_use_alternate_directory(
     target_sat, rhel_contenthost, default_org, default_location
 ):

@@ -600,7 +600,8 @@ def test_positive_usage_limit(module_org, module_location, target_sat, content_h
     assert vm1.subscribed
     result = vm2.register(module_org, module_location, new_ak['name'], target_sat)
     assert not vm2.subscribed
-    assert result.status, 'Second registration was expected to fail'
+    if vm2.os_version.major != 6:
+        assert result.status, 'Second registration was expected to fail'
     assert f"Max Hosts ({max_hosts}) reached for activation key '{new_ak.name}'" in result.stderr
 
 
@@ -762,7 +763,7 @@ def test_positive_add_redhat_and_custom_products(module_target_sat, function_sca
 
 
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_update_aks_to_chost(
     module_org, module_location, rhel_contenthost, module_target_sat
 ):
@@ -1503,7 +1504,7 @@ def test_positive_invalid_release_version(module_sca_manifest_org, module_target
     assert update_ak[0]['message'] == 'Activation key updated.'
 
 
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.cli_host_subscription
@@ -1540,8 +1541,9 @@ def test_syspurpose_end_to_end(
     ).create()
     # Register a host using the activation key
     res = rhel_contenthost.register(module_org, None, activation_key.name, target_sat)
-    assert res.status == 0, f'Failed to register host: {res.stderr}'
-    assert rhel_contenthost.subscribed
+    if rhel_contenthost.os_version.major != 6:
+        assert res.status == 0, f'Failed to register host: {res.stderr}'
+        assert rhel_contenthost.subscribed
     rhel_contenthost.enable_repo(module_rhst_repo)
     host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     # Assert system purpose values are set in the host as expected

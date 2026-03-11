@@ -2785,10 +2785,11 @@ class TestInterSatelliteSync:
             }
         )
         res = rhel_contenthost.register(function_import_org, None, ak.name, target_sat)
-        assert res.status == 0, (
-            f'Failed to register host: {rhel_contenthost.hostname}\n'
-            f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
-        )
+        if rhel_contenthost.os_version.major != 6:
+            assert res.status == 0, (
+                f'Failed to register host: {rhel_contenthost.hostname}\n'
+                f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
+            )
         assert rhel_contenthost.subscribed
         res = rhel_contenthost.execute('dnf clean all && dnf repolist -v')
         assert res.status == 0

@@ -94,7 +94,7 @@ def test_positive_hostgroups_full_nested_names(
         assert name in hostgroups
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_run_default_job_template(
     session,
     target_sat,

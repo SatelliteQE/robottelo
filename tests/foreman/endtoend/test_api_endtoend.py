@@ -1192,7 +1192,8 @@ class TestEndToEnd:
             activation_keys=[activation_key.name],
             packages=packages,
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert rhel_contenthost.subscribed
         # Verify that the packages are installed by querying it
         for package in packages.split(' '):

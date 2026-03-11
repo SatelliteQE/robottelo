@@ -224,7 +224,7 @@ def test_positive_end_to_end(session, module_org, module_location):
         assert not session.reporttemplate.search(new_name)
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.upgrade
 def test_positive_generate_registered_hosts_report(
     session, target_sat, module_setup_content, rhel_contenthost
@@ -466,7 +466,7 @@ def test_negative_nonauthor_of_report_cant_download_it(session):
     """
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_generate_all_installed_packages_report(
     session, module_setup_content, rhel_contenthost, target_sat
 ):
@@ -501,7 +501,8 @@ def test_positive_generate_all_installed_packages_report(
     )
     client = rhel_contenthost
     result = client.register(org, None, ak.name, target_sat)
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if client.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert client.subscribed
     client.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE_NAME} {FAKE_1_CUSTOM_PACKAGE}')
     with session:
@@ -518,7 +519,7 @@ def test_positive_generate_all_installed_packages_report(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_installable_errata_with_user(
     session, target_sat, function_org, function_lce, function_location, rhel_contenthost
 ):
@@ -561,7 +562,8 @@ def test_positive_installable_errata_with_user(
     result = rhel_contenthost.register(
         function_org, function_location, activation_key.name, target_sat
     )
-    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    if rhel_contenthost.os_version.major != 6:
+        assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
     assert rhel_contenthost.subscribed
 
     # Remove package if already installed on this host

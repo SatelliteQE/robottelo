@@ -11,6 +11,7 @@ import pytest
 
 from robottelo import constants
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 from robottelo.hosts import ContentHost
 
 
@@ -98,7 +99,7 @@ def module_provisioning_rhel_content(
         assert task_status['result'] == 'success'
     rhel_xy = Version(
         constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
-        if rhel_ver == 7
+        if rhel_ver <= 7
         else constants.REPOS['kickstart'][f'rhel{rhel_ver}_bos']['version']
     )
     o_systems = sat.api.OperatingSystem().search(
@@ -146,6 +147,7 @@ def module_provisioning_sat(
     It calls a workflow using broker to set up the network and to run satellite-installer.
     It uses the artifacts from the workflow to create all the necessary Satellite entities
     that are later used by the tests.
+    For IPv4, it clears DHCP leases and restarts dhcpd to ensure provisioning can obtain addresses.
     """
     provisioning_type = getattr(request, 'param', '')
     sat = module_target_sat
@@ -202,7 +204,9 @@ def module_provisioning_sat(
         remote_execution_proxy=[module_provisioning_capsule.id],
         domain=[domain.id],
     ).create()
-
+    if sat.network_type == NetworkType.IPV4:
+        assert sat.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
+        assert sat.execute('systemctl restart dhcpd').status == 0
     return Box(sat=sat, domain=domain, subnet=subnet, provisioning_type=provisioning_type)
 
 

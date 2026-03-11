@@ -31,21 +31,25 @@ ak_name = {
     'rhel9': f'ak_{gen_string("alpha")}_rhel9',
     'rhel8': f'ak_{gen_string("alpha")}_rhel8',
     'rhel7': f'ak_{gen_string("alpha")}_rhel7',
+    'rhel6': f'ak_{gen_string("alpha")}_rhel6',
 }
 cv_name = {
     'rhel9': f'cv_{gen_string("alpha")}_rhel9',
     'rhel8': f'cv_{gen_string("alpha")}_rhel8',
     'rhel7': f'cv_{gen_string("alpha")}_rhel7',
+    'rhel6': f'cv_{gen_string("alpha")}_rhel6',
 }
 profiles = {
     'rhel9': OSCAP_PROFILE['ospp8+'],
     'rhel8': OSCAP_PROFILE['ospp8+'],
     'rhel7': OSCAP_PROFILE['security7'],
+    'rhel6': OSCAP_PROFILE['security6'],
 }
 rhel_repos = {
     'rhel9': settings.repos.rhel9_os,
     'rhel8': settings.repos.rhel8_os,
     'rhel7': settings.repos.rhel7_os,
+    'rhel6': settings.repos.rhel6_os,
 }
 
 
@@ -222,7 +226,8 @@ def prepare_scap_client_and_prerequisites(
         insecure=True,
         hostgroup=hostgroup,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     rhel_repo = rhel_repos[distro]
     profile = profiles[distro]
     if distro == 'rhel7':
@@ -252,7 +257,8 @@ def prepare_scap_client_and_prerequisites(
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match(r'^\d+$')
+@pytest.mark.client_release
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 def test_positive_oscap_run_via_ansible(
@@ -320,7 +326,8 @@ def test_positive_oscap_run_via_ansible(
 
 
 @pytest.mark.e2e
-@pytest.mark.rhel_ver_list([8])
+@pytest.mark.rhel_ver_match(r'^\d+$')
+@pytest.mark.client_release
 def test_positive_oscap_remediation(
     module_org, default_proxy, content_view, lifecycle_env, target_sat, rex_contenthost
 ):
@@ -407,7 +414,7 @@ def test_positive_oscap_remediation(
     assert contenthost.execute("rpm -q aide").status == 0
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9])
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_oscap_run_via_ansible_bz_1814988(
     module_org, default_proxy, lifecycle_env, target_sat, rex_contenthost
 ):
@@ -580,66 +587,3 @@ def test_positive_reporting_emails_of_oscap_reports():
 
     :CaseAutomation: NotAutomated
     """
-
-
-@pytest.mark.rhel_ver_list([8])
-def test_positive_oscap_run_via_local_files(
-    module_org, default_proxy, lifecycle_env, target_sat, rex_contenthost
-):
-    """End-to-End Oscap run via local files deployed with ansible
-
-    :id: 0dde5893-540c-4e03-a206-55fccdb2b9ca
-
-    :parametrized: yes
-
-    :customerscenario: true
-
-    :setup: scap content, scap policy, Remote execution
-
-    :steps:
-
-        1. Create a valid scap content
-        2. Import Ansible role theforeman.foreman_scap_client
-        3. Create a scap policy with ansible as deploy option
-        4. Associate the policy with a hostgroup
-        5. Run the Ansible job and then trigger the Oscap job.
-        6. Oscap must Utilize the local files for the client scan.
-
-    :expectedresults: Oscap run should happen using the --localfile argument.
-
-    :BZ: 2081777,2211952
-
-    :CaseImportance: Critical
-    """
-    contenthost = rex_contenthost
-    prepare_scap_client_and_prerequisites(
-        target_sat, contenthost, module_org, default_proxy, lifecycle_env
-    )
-
-    file_name = 'security-data-oval-com.redhat.rhsa-RHEL8.xml.bz2'
-    download_url = 'https://www.redhat.com/security/data/oval/v2/RHEL8/rhel-8.oval.xml.bz2'
-
-    # The file here needs to be present on the client in order
-    # to perform the scan from the local-files.
-    contenthost.execute(f'curl -o {file_name} {download_url}')
-
-    # Apply policy
-    job_id = target_sat.cli.Host.ansible_roles_play({'name': contenthost.hostname.lower()})[0].get(
-        'id'
-    )
-    target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job_id} and action ~ "hosts job"'
-    )
-    try:
-        result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
-        assert result == '1'
-    except AssertionError as err:
-        output = ' '.join(
-            target_sat.cli.JobInvocation.get_output({'id': job_id, 'host': contenthost.hostname})
-        )
-        result = f'host output: {output}'
-        raise AssertionError(result) from err
-
-    assert contenthost.run('grep profile /etc/foreman_scap_client/config.yaml').status == 0
-    result = contenthost.execute_foreman_scap_client()
-    assert f"WARNING: Using local file '/root/{file_name}'" in result

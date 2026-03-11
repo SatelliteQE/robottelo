@@ -22,7 +22,6 @@ from robottelo.config import (
     settings,
 )
 from robottelo.exceptions import CLIFactoryError
-from robottelo.utils.issue_handlers import is_open
 
 
 def assert_job_invocation_result(
@@ -680,7 +679,7 @@ class TestAnsibleREX:
         vars = f'{robottelo_tmp_dir}/vars.yml'
         target_sat.execute(f'ansible-galaxy init --init-path /etc/ansible/roles/ {SELECTED_ROLE}')
         tasks_file = f'/etc/ansible/roles/{SELECTED_ROLE}/tasks/main.yml'
-        vars_file = f'/etc/ansible/roles/{SELECTED_ROLE}/{"defaults" if is_open("SAT-28198") else "vars"}/main.yml'
+        vars_file = f'/etc/ansible/roles/{SELECTED_ROLE}/defaults/main.yml'
         tasks_main = [
             {
                 'name': 'Copy SSH keys',

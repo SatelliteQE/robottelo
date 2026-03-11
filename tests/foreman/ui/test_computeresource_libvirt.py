@@ -118,7 +118,7 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_end_to_end(
     request,

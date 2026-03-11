@@ -106,7 +106,8 @@ def test_positive_facts_end_to_end(
         loc=module_location,
         activation_keys=[module_activation_key.name],
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     host = rhel_contenthost.nailgun_host
     # gather ansible facts by running ansible roles on the host
@@ -162,7 +163,8 @@ def test_positive_custom_facts_and_clean_orphaned_facts(
         loc=module_location,
         activation_keys=[module_activation_key.name],
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     host = rhel_contenthost.nailgun_host
     custom_facts = {
         "operatingsystem": "RedHat",

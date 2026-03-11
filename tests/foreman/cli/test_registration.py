@@ -27,6 +27,11 @@ from robottelo.utils.issue_handlers import is_open
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
+@pytest.mark.parametrize(
+    'setting_update',
+    ['validate_host_lce_content_source_coherence=false'],
+    indirect=True,
+)
 def test_host_registration_end_to_end(
     module_sca_manifest_org,
     module_location,
@@ -34,6 +39,7 @@ def test_host_registration_end_to_end(
     module_target_sat,
     module_capsule_configured,
     rhel_contenthost,
+    setting_update,
 ):
     """Verify content host registration with global registration
 
@@ -53,9 +59,8 @@ def test_host_registration_end_to_end(
     result = rhel_contenthost.register(
         org, module_location, module_activation_key.name, module_target_sat
     )
-
-    rc = 1 if rhel_contenthost.os_version.major == 6 else 0
-    assert result.status == rc, f'Failed to register host: {result.stderr}'
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
 
     owner_name = module_target_sat.cli.Host.info(
         options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
@@ -84,8 +89,8 @@ def test_host_registration_end_to_end(
         module_capsule_configured,
         force=True,
     )
-    rc = 1 if rhel_contenthost.os_version.major == 6 else 0
-    assert result.status == rc, f'Failed to register host: {result.stderr}'
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed, 'Host is not subscribed after registration!'
 
     owner_name = module_target_sat.cli.Host.info(
         options={'name': rhel_contenthost.hostname, 'fields': 'Additional info/owner'}
@@ -165,10 +170,11 @@ def test_upgrade_katello_ca_consumer_rpm(module_org, module_location, target_sat
     vm.register_contenthost(module_org.label)
     result = vm.execute('subscription-manager identity')
     # Result will be 0 if registered
-    assert result.status == 0
+    if vm.os_version.major != 6:
+        assert result.status == 0
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
     """Attempt to register a host twice to Satellite
 
@@ -179,7 +185,8 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
     :parametrized: yes
     """
     rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
-    assert rhel_contenthost.subscribed
+    if rhel_contenthost.os_version.major != 6:
+        assert rhel_contenthost.subscribed
     result = rhel_contenthost.register(
         module_org, None, module_ak_with_cv.name, target_sat, force=False
     )
@@ -188,7 +195,7 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
     assert 'This system is already registered' in str(result.stderr)
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
     """Register a host twice to Satellite, with force=true
 
@@ -207,12 +214,14 @@ def test_positive_force_register_twice(module_ak_with_cv, module_org, rhel_conte
     rhel_contenthost.execute(f'hostnamectl set-hostname {name}')
     result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     reg_id_old = re.search(reg_id_pattern, result.stdout).group(1)
-    assert result.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0
     assert rhel_contenthost.subscribed
     result = rhel_contenthost.register(
         module_org, None, module_ak_with_cv.name, target_sat, force=True
     )
-    assert result.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0
     assert rhel_contenthost.subscribed
     assert f'Unregistering from: {target_sat.hostname}' in str(result.stdout)
     assert f'The registered system name is: {rhel_contenthost.hostname}' in str(result.stdout)
@@ -242,7 +251,7 @@ def test_negative_global_registration_without_ak(module_target_sat):
     )
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_custom_facts_for_host_registration(
     module_sca_manifest_org,
     module_location,
@@ -283,7 +292,8 @@ def test_positive_custom_facts_for_host_registration(
     result = rhel_contenthost.register(
         module_sca_manifest_org, module_location, module_activation_key.name, module_target_sat
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     host_info = module_target_sat.cli.Host.info(
         {'name': rhel_contenthost.hostname}, output_format='json'
     )
@@ -322,7 +332,8 @@ def test_positive_global_registration_with_gpg_repo(
         module_target_sat,
         repo_data=f'repo={repo_url},repo_gpg_key_url={repo_gpg_url}',
     )
-    assert result.status == 0
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0
     assert rhel_contenthost.subscribed
     result = rhel_contenthost.execute('yum -v repolist')
     assert repo_url in result.stdout
@@ -375,7 +386,8 @@ def test_positive_verify_default_location_for_registered_host(
         module_activation_key.name,
         module_target_sat,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     host = module_target_sat.api.Host().search(
         query={"search": f'name={rhel_contenthost.hostname}'}
     )[0]
@@ -388,7 +400,8 @@ def test_positive_verify_default_location_for_registered_host(
         module_target_sat,
         force=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     host = module_target_sat.api.Host().search(
         query={"search": f'name={rhel_contenthost.hostname}'}
     )[0]

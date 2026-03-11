@@ -13,6 +13,7 @@
 import pytest
 from wait_for import wait_for
 
+from robottelo.config import settings
 from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.run_in_one_thread]
@@ -22,7 +23,7 @@ pytestmark = [pytest.mark.run_in_one_thread]
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_rhel_pxe_discovery_provisioning(
     module_provisioning_rhel_content,
     module_discovery_sat,
@@ -120,7 +121,7 @@ def test_rhel_pxe_discovery_provisioning(
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_rhel_pxeless_discovery_provisioning(
     module_discovery_sat,
     pxeless_discovery_host,

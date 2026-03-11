@@ -144,7 +144,7 @@ def test_positive_end_to_end(
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.run_in_one_thread
 @pytest.mark.parametrize(
     'setup_http_proxy',
@@ -179,7 +179,8 @@ def test_positive_install_content_with_http_proxy(
 
     :parametrized: yes
     """
-    repo_to_use = 'rhsclient9'
+    rhelver = rhel_contenthost.os_version.major
+    repo_to_use = f'rhsclient{rhelver}'
     pkg_name = 'katello-host-tools'
     org = function_sca_manifest_org
     lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
@@ -215,7 +216,8 @@ def test_positive_install_content_with_http_proxy(
         target=module_target_sat,
         loc=None,
     )
-    assert result.status == 0, f'Failed to register the host: {rhel_contenthost.hostname}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register the host: {rhel_contenthost.hostname}'
     assert rhel_contenthost.subscribed
 
     result = rhel_contenthost.execute(f'yum install -y {pkg_name}')

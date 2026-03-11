@@ -257,7 +257,7 @@ def test_sca_end_to_end(
         'lifecycle_environment_id': module_ak.environment.id,
     }
     host.update(['content_facet_attributes'])
-    rhel_contenthost.run('subscription-manager repos --enable *')
+    rhel_contenthost.run(r'subscription-manager repos --enable \*')
     repos = rhel_contenthost.run('subscription-manager refresh && yum repolist')
     assert content_view.repository[1].name in repos.stdout
     # install package and verify it succeeds or is already installed
@@ -265,7 +265,7 @@ def test_sca_end_to_end(
     assert 'Complete!' in package.stdout or 'already installed' in package.stdout
 
 
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_candlepin_events_processed_by_stomp(
     function_org, target_sat, function_sca_manifest
 ):

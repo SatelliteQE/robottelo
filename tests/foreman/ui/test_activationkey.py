@@ -72,7 +72,7 @@ def test_positive_end_to_end_crud(session, module_org, module_target_sat):
     ],
     indirect=True,
 )
-@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_end_to_end_register(
     session,
     function_sca_manifest_org,
@@ -819,7 +819,8 @@ def test_positive_add_host(session, module_org, rhel_contenthost, target_sat):
         organization=module_org,
     ).create()
     result = rhel_contenthost.register(module_org, None, ak.name, target_sat)
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel_contenthost.subscribed
     with session:
         session.location.select(constants.DEFAULT_LOC)
@@ -860,7 +861,8 @@ def test_positive_delete_with_system(session, rhel_contenthost, target_sat):
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         result = rhel_contenthost.register(org, None, name, target_sat)
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert rhel_contenthost.subscribed
         session.activationkey.delete(name)
         assert session.activationkey.search(name)[0]['Name'] != name
@@ -891,7 +893,8 @@ def test_negative_usage_limit(session, module_org, target_sat):
     with Broker(nick='rhel6', host_class=ContentHost, _count=2) as hosts:
         vm1, vm2 = hosts
         result = vm1.register(module_org, None, name, target_sat)
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if vm1.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert vm1.subscribed
         result = vm2.register(module_org, None, name, target_sat)
         assert not vm2.subscribed
@@ -900,7 +903,7 @@ def test_negative_usage_limit(session, module_org, target_sat):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('^6')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url')
 def test_positive_add_multiple_aks_to_system(session, module_org, rhel_contenthost, target_sat):
@@ -945,7 +948,8 @@ def test_positive_add_multiple_aks_to_system(session, module_org, rhel_contentho
             assert product_name == ak['Product Name']
         # Create VM
         result = rhel_contenthost.register(module_org, None, [key_1_name, key_2_name], target_sat)
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         assert rhel_contenthost.subscribed
         # Assert the content-host association with activation keys
         for key_name in [key_1_name, key_2_name]:

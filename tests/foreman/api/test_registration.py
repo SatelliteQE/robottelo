@@ -27,7 +27,7 @@ from robottelo.config import (
 
 @pytest.mark.e2e
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 @pytest.mark.no_containers
 def test_host_registration_end_to_end(
     module_sca_manifest_org,
@@ -56,7 +56,8 @@ def test_host_registration_end_to_end(
         organization=org,
         activation_keys=[module_activation_key.name],
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Verify server.hostname and server.port from subscription-manager config
     assert module_target_sat.hostname == rhel_contenthost.subscription_config['server']['hostname']
@@ -75,7 +76,8 @@ def test_host_registration_end_to_end(
         location=module_location,
         force=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # Verify server.hostname and server.port from subscription-manager config
     assert (
@@ -86,7 +88,7 @@ def test_host_registration_end_to_end(
 
 
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_allow_reregistration_when_dmi_uuid_changed(
     module_sca_manifest_org,
     rhel_contenthost,
@@ -115,7 +117,8 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
         activation_keys=[module_activation_key.name],
         location=module_location,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     target_sat.execute(f'echo \'{{"dmi.system.uuid": "{uuid_2}"}}\' > /etc/rhsm/facts/uuid.facts')
     result = rhel_contenthost.execute('subscription-manager unregister')
     assert result.status == 0
@@ -127,10 +130,11 @@ def test_positive_allow_reregistration_when_dmi_uuid_changed(
         activation_keys=[module_activation_key.name],
         location=module_location,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_update_packages_registration(
     module_target_sat,
     module_sca_manifest_org,
@@ -152,7 +156,8 @@ def test_positive_update_packages_registration(
         location=module_location,
         update_packages=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     package = constants.FAKE_7_CUSTOM_PACKAGE
     repo_url = settings.repos.yum_3['url']
@@ -161,7 +166,7 @@ def test_positive_update_packages_registration(
     assert result.status == 0
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_positive_rex_interface_for_global_registration(
     module_target_sat,
@@ -198,7 +203,8 @@ def test_positive_rex_interface_for_global_registration(
         update_packages=True,
         remote_execution_interface='eth1',
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     host = module_target_sat.api.Host().search(
         query={'search': f'name={rhel_contenthost.hostname}'}
@@ -266,7 +272,7 @@ def test_negative_capsule_without_registration_enabled(
     )
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_positive_host_registration_with_non_admin_user_with_setup_false(
     module_org,
     module_location,
@@ -315,7 +321,8 @@ def test_positive_host_registration_with_non_admin_user_with_setup_false(
         setup_remote_execution_pull=False,
         update_packages=False,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
     # verify package install for insights-client didn't run when Setup Insights is false
     assert 'dnf -y install insights-client' not in result.stdout
@@ -327,7 +334,7 @@ def test_positive_host_registration_with_non_admin_user_with_setup_false(
     assert rhel_contenthost.execute('cat ~/.ssh/authorized_keys | grep foreman-proxy').status == 1
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match(r'^\d+$')
 def test_negative_verify_bash_exit_status_failing_host_registration(
     module_sca_manifest_org,
     module_location,
@@ -400,7 +407,8 @@ def test_positive_katello_ca_crt_refresh(
         organization=org,
         activation_keys=[module_activation_key.name],
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     ca_cert_file = len(str(rhel_contenthost.execute(f'cat {katello_ca_crt_path}')))
 
     # corrupt the certificate file

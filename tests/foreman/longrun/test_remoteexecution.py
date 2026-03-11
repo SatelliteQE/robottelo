@@ -14,8 +14,10 @@
 
 import pytest
 
+from robottelo.config import settings
 
-@pytest.mark.rhel_ver_list([9])
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_run_long_job(module_org, rex_contenthost, module_target_sat):
     """Run a long running job
 
