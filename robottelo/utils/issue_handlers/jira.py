@@ -1,11 +1,11 @@
 from collections import defaultdict
 import json
 from pathlib import Path
-import re
 import time
 
+from jira import JIRA
+from jira.exceptions import JIRAError
 import pytest
-import requests
 from wait_for import TimedOutError, wait_for
 
 from robottelo.config import settings
@@ -17,22 +17,25 @@ from robottelo.constants import (
 )
 from robottelo.logging import logger
 
-# match any version as in `sat-6.14.x` or `sat-6.13.0` or `6.13.9`
-# The .version group being a `d.d` string that can be casted to Version()
-VERSION_RE = re.compile(r'(?:sat-)*?(?P<version>\d\.\d)\.\w*')
+common_jira_fields = ['key', 'status', 'labels', 'resolution']
 
-common_jira_fields = ['key', 'summary', 'status', 'labels', 'resolution', 'fixVersions']
-
-mapped_response_fields = {
-    'key': "{obj_name}['key']",
-    'summary': "{obj_name}['fields']['summary']",
-    'status': "{obj_name}['fields']['status']['name']",
-    'labels': "{obj_name}['fields']['labels']",
-    'resolution': "{obj_name}['fields']['resolution']['name'] if {obj_name}['fields']['resolution'] else ''",
-    'fixVersions': "[ver['name'] for ver in {obj_name}['fields']['fixVersions']] if {obj_name}['fields']['fixVersions'] else []",
-    # Custom Field - SFDC Cases Counter
-    'customfield_12313440': "{obj_name}['fields']['customfield_12313440']",
+FIELD_EXTRACTORS = {
+    "key": lambda issue: issue.key,
+    "status": lambda issue: issue.fields.status.name if issue.fields.status else "",
+    "labels": lambda issue: list(issue.fields.labels or []),
+    "resolution": lambda issue: issue.fields.resolution.name if issue.fields.resolution else "",
 }
+
+
+def _issue_to_flat_dict(issue, out_fields):
+    """Build a flat dict from a jira Issue object using attribute access."""
+    result = {}
+    for field in out_fields:
+        if field in FIELD_EXTRACTORS:
+            result[field] = FIELD_EXTRACTORS[field](issue)
+        else:
+            result[field] = getattr(issue.fields, field, None)
+    return result
 
 
 class JiraStatusCache:
@@ -69,11 +72,7 @@ class JiraStatusCache:
         return results
 
     def update(self, issue_id, data):
-        self.cache[issue_id] = {"data": data, "timestamp": time.time()}
-
-    def update_many(self, issues_data):
-        for issue_id, data in issues_data.items():
-            self.update(issue_id, data)
+        self.cache[issue_id] = data | {"timestamp": time.time()}
 
     def save(self):
         logger.debug(f"Saving {len(self.cache)} entries to Jira cache file")
@@ -95,29 +94,14 @@ class JiraStatusCache:
 jira_cache = JiraStatusCache()
 
 
-def sanitized_issue_data(issue, out_fields):
-    """fetches the value for all the given fields from a given jira issue
-
-    :param issue: The json data for a jira issue
-    :type issue: dict
-    :param out_fields: The fields to return from the jira issue
-    :type out_fields: list
-    """
-    return {
-        field: eval(mapped_response_fields[field].format(obj_name=issue)) for field in out_fields
-    }
-
-
-def is_open_jira(issue_id, data=None):
-    """Check if specific Jira is open consulting a cached `data` dict or calling Jira REST API.
+def is_open_jira(issue_id):
+    """Check if specific Jira is open (uses pytest.issue_data, jira_cache, or API).
 
     :param issue_id: The Jira reference e.g: SAT-20548
     :type issue_id: str
-    :param data: Issue data indexed by issue id or None
-    :type data: dict
     """
     issue_id = issue_id.strip()
-    jira = try_from_cache(issue_id, data)
+    jira = try_from_cache(issue_id)
     if jira.get("is_open") is not None:  # issue has been already processed
         return jira["is_open"]
 
@@ -133,40 +117,20 @@ def is_open_jira(issue_id, data=None):
     return status not in JIRA_CLOSED_STATUSES and status != JIRA_ONQA_STATUS
 
 
-def are_all_jira_open(issue_ids, data=None):
-    """Check if all Jira is open consulting a cached `data` dict or
-    calling Jira REST API.
-
-    :param issue_ids: The Jira reference e.g: ['SAT-20548', 'SAT-20548']
-    :type issue_ids: list
-    :param data: Issue data indexed by issue id or None
-    :type data: dict
-    """
-    return all(is_open_jira(issue_id, data) for issue_id in issue_ids)
+def are_all_jira_open(issue_ids):
+    """Check if all given Jira issues are open."""
+    return all(is_open_jira(issue_id) for issue_id in issue_ids)
 
 
-def are_any_jira_open(issue_ids, data=None):
-    """Check if any of the Jira is open consulting a cached `data` dict or
-    calling Jira REST API.
-
-    :param issue_ids: The Jira reference e.g: ['SAT-20548', 'SAT-20548']
-    :type issue_ids: list
-    :param data: Issue data indexed by issue id or None
-    :type data: dict
-    """
-    return any(is_open_jira(issue_id, data) for issue_id in issue_ids)
+def are_any_jira_open(issue_ids):
+    """Check if any of the given Jira issues is open."""
+    return any(is_open_jira(issue_id) for issue_id in issue_ids)
 
 
-def should_deselect_jira(issue_id, data=None):
-    """Check if test should be deselected based on marked issue_id.
-
-    :param issue_id: The Jira reference e.g: SAT-12345
-    :type issue_id: str
-    :param data: Issue data indexed by issue id or None
-    :type data: dict
-    """
+def should_deselect_jira(issue_id):
+    """Check if test should be deselected based on marked issue_id."""
     issue_id = issue_id.strip()
-    jira = try_from_cache(issue_id, data)
+    jira = try_from_cache(issue_id)
     if jira.get("is_deselected") is not None:  # issue has been already processed
         return jira["is_deselected"]
 
@@ -188,31 +152,21 @@ def follow_duplicates(jira):
     return jira
 
 
-def try_from_cache(issue_id, data=None):
-    """Try to fetch issue from given data cache or previous loaded on pytest.
-
-    :param issue_id: The Jira reference e.g: SAT-12345
-    :type issue_id: str
-    :param data: Issue data indexed by issue id or None
-    :type data: dict
-    """
+def try_from_cache(issue_id):
+    """Fetch issue from pytest.issue_data, jira_cache, or API."""
     try:
-        # First try using data parameter
-        if data:
-            return data
-
-        # Then try from pytest cached data - with safe attribute check
-        if (
-            hasattr(pytest, 'issue_data')
-            and issue_id in getattr(pytest, 'issue_data', {})
-            and pytest.issue_data.get(issue_id, {}).get('data')
-        ):
-            return pytest.issue_data[issue_id]['data']
+        issue = (
+            getattr(pytest, 'issue_data', {}).get(issue_id)
+            if hasattr(pytest, 'issue_data')
+            else None
+        )
+        if issue and (issue.get('key') or issue.get('status') is not None):
+            return issue
 
         # Finally try from JiraStatusCache
         cached_data = jira_cache.get(issue_id)
         if cached_data:
-            return cached_data.get('data')
+            return cached_data
 
         raise ValueError
     except (KeyError, AttributeError, ValueError):  # pragma: no cover
@@ -220,64 +174,18 @@ def try_from_cache(issue_id, data=None):
         return get_single_jira(issue_id)
 
 
-def collect_data_jira(collected_data, cached_data):  # pragma: no cover
-    """Collect data from Jira API and aggregate in a dictionary.
-
-    :param collected_data: dict with Jira issues collected by pytest
-    :type collected_data: dict
-    :param cached_data: Cached data previously loaded from API
-    :type cached_data: dict
-    """
-    # Load persistent cache if available
-    if not cached_data:
-        issue_ids = [item for item in collected_data if item.startswith('SAT-')]
-        cached_data = {
-            issue_id: {'data': data['data']}
-            for issue_id, data in jira_cache.get_many(issue_ids).items()
-            if data is not None
-        }
-
-    jira_data = (
-        get_data_jira(
-            [item for item in collected_data if item.startswith('SAT-')], cached_data=cached_data
-        )
-        or []
-    )
-    for data in jira_data:
-        # If Jira is CLOSED/DUPLICATE collect the duplicate
-        collect_dupes(data, collected_data, cached_data=cached_data)
-
-        jira_key = data['key']
-        data["is_open"] = is_open_jira(jira_key, data)
-        collected_data[jira_key]['data'] = data
-
-
-def collect_dupes(jira, collected_data, cached_data=None):  # pragma: no cover
-    """Recursively find for duplicates
-
-    :param jira: Jira response from Jira REST API
-    :type jira: dict
-    :param collected_data: dict with Jira issues collected by pytest
-    :type collected_data: dict
-    :param cached_data: Cached data previously loaded from API
-    :type cached_data: dict
-    """
-    cached_data = cached_data or {}
-    if jira.get('resolution') == 'Duplicate':
-        # Collect duplicates
-        jira['dupe_data'] = get_single_jira(jira.get('dupe_of'), cached_data=cached_data)
-        dupe_key = jira['dupe_of']
-        # Store Duplicate also in the main collection for caching
-        if dupe_key not in collected_data:
-            collected_data[dupe_key]['data'] = jira['dupe_data']
-            collected_data[dupe_key]['is_dupe'] = True
-            collect_dupes(jira['dupe_data'], collected_data, cached_data)
-
-
 # --- API Calls ---
 
 # cannot use lru_cache in functions that has unhashable args
 CACHED_RESPONSES = defaultdict(dict)
+
+
+def _jira_client():
+    """Create a JIRA client with token auth (api_key)."""
+    return JIRA(
+        server=settings.jira.url,
+        token_auth=settings.jira.api_key,
+    )
 
 
 def get_jira(jql, fields=None):
@@ -287,24 +195,18 @@ def get_jira(jql, fields=None):
     :type jql: str
     :param fields: The custom fields in query to retrieve the data for
     :type fields: list
-    :returns: Jira object of response after status check
-    :rtype: dict
+    :returns: List of Issue objects from the jira library
+    :rtype: list
     """
-    params = {"jql": jql}
-    if fields:
-        params.update({"fields": ",".join(fields)})
+    fields_str = ','.join(fields) if fields else None
 
     def _make_request():
         try:
-            response = requests.get(
-                f"{settings.jira.url}/rest/api/latest/search/",
-                params=params,
-                headers={"Authorization": f"Bearer {settings.jira.api_key}"},
-            )
-            response.raise_for_status()
-            return response
-        except requests.exceptions.HTTPError as err:
-            if err.response.status_code == 429:
+            jira = _jira_client()
+            issues = jira.search_issues(jql_str=jql, fields=fields_str)
+            return list(issues)
+        except JIRAError as err:
+            if getattr(err, 'status_code', None) == 429:
                 logger.warning("Hit Jira API rate limit (429). Will retry after wait period.")
             raise
 
@@ -347,7 +249,7 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
         logger.debug(f"Using cached data for {set(issue_ids)}")
         if not all([f'{number}' in cached_data for number in issue_ids]):
             logger.debug("There are Jira's out of cache.")
-        return [item['data'] for _, item in cached_data.items() if 'data' in item]
+        return [item for _, item in cached_data.items()]
 
     # Check JiraStatusCache for all issues
     cached_issues = jira_cache.get_many(issue_ids)
@@ -358,7 +260,7 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
     # If all issues were in cache, return them
     if not remaining_issues:
         logger.debug(f"Using JiraStatusCache for {set(issue_ids)}")
-        return [cached_issues[issue_id]['data'] for issue_id in issue_ids]
+        return [cached_issues[issue_id] for issue_id in issue_ids]
 
     # Ensure API key is set
     if not settings.jira.api_key:
@@ -372,7 +274,7 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
 
         # Return combination of cached and default data
         return [
-            cached_issues[issue_id]['data'] for issue_id in issue_ids if issue_id in cached_issues
+            cached_issues[issue_id] for issue_id in issue_ids if issue_id in cached_issues
         ] + default_data
 
     # No cached data so Call Jira API for remaining issues
@@ -385,10 +287,10 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
     if isinstance(remaining_issues, str):
         remaining_issues = [issue_id.strip() for issue_id in remaining_issues.split(',')]
     jql = ' OR '.join([f"id = {issue_id}" for issue_id in remaining_issues])
-    response = get_jira(jql, jira_fields)
-    data = response.json().get('issues')
-    # Clean the data, only keep the required info.
-    fetched_data = [sanitized_issue_data(issue, jira_fields) for issue in data if issue is not None]
+    issues = get_jira(jql, jira_fields)
+    fetched_data = [
+        _issue_to_flat_dict(issue, jira_fields) for issue in issues if issue is not None
+    ]
 
     # Update cache with new data
     for issue in fetched_data:
@@ -397,7 +299,7 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
 
     # Combine cached and fetched data
     result_data = [
-        cached_issues[issue_id]['data'] for issue_id in issue_ids if issue_id in cached_issues
+        cached_issues[issue_id] for issue_id in issue_ids if issue_id in cached_issues
     ] + fetched_data
     CACHED_RESPONSES['get_data'][str(sorted(issue_ids))] = result_data
     return result_data
@@ -418,12 +320,12 @@ def get_single_jira(issue_id, cached_data=None):  # pragma: no cover
         try:
             # First try from provided cache
             if issue_id in cached_data:
-                jira_data = cached_data[issue_id]['data']
+                jira_data = cached_data[issue_id]
             else:
                 # Then try from JiraStatusCache
                 cached = jira_cache.get(issue_id)
                 if cached:
-                    jira_data = cached.get('data')
+                    jira_data = cached
                 else:
                     # Finally call API
                     try:
@@ -478,37 +380,35 @@ def add_comment_on_jira(
     :type comment_visibility: str
     :param labels: Add/Remove Jira labels, ex. [{'add':'tests_passed'},{'remove':'tests_failed'}]
     :type labels: list
-    :returns: Response from Jira API
-    :rtype: list of dicts
+    :returns: Comment response from Jira API
+    :rtype: dict
     """
     issue_id = issue_id.strip()
-    # Raise a warning if any of the following option is not set. Note: It's a xor condition.
-    if settings.jira.enable_comment != bool(pytest.jira_comments):
+    if settings.jira.enable_comment != bool(getattr(pytest, 'jira_comments', False)):
         logger.warning(
             'Jira comments are currently disabled for this run. '
             'To enable it, please set "enable_comment" to "true" in "config/jira.yaml '
-            'and provide --jira-comment pytest option."'
+            'and provide --jira-comments pytest option."'
         )
         return None
+
+    jira = _jira_client()
+
     if labels:
         logger.debug(f"Updating labels for {issue_id} issue. \n labels: \n {labels}")
-        response = requests.put(
-            f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/",
-            json={"update": {"labels": labels}},
-            headers={"Authorization": f"Bearer {settings.jira.api_key}"},
-        )
+        issue_url = f"{settings.jira.url}/rest/api/latest/issue/{issue_id}"
+        response = jira._session.put(issue_url, json={"update": {"labels": labels}})
         response.raise_for_status()
+
     logger.debug(f"Adding a new comment on {issue_id} Jira issue. \n comment: \n {comment}")
-    response = requests.post(
-        f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/comment",
-        json={
-            "body": comment,
-            "visibility": {
-                "type": comment_type,
-                "value": comment_visibility,
-            },
+    url = f"{settings.jira.url}/rest/api/latest/issue/{issue_id}/comment"
+    payload = {
+        "body": comment,
+        "visibility": {
+            "type": comment_type,
+            "value": comment_visibility,
         },
-        headers={"Authorization": f"Bearer {settings.jira.api_key}"},
-    )
+    }
+    response = jira._session.post(url, json=payload)
     response.raise_for_status()
     return response.json()
