@@ -908,7 +908,7 @@ def test_negative_transient_packages_containerfile_command_no_packages(target_sa
     # Call the containerfile_install_command endpoint
     res = host.transient_packages_containerfile_install_command()
 
-    # Verify it's a 200 error with proper response structure
+    # Verify it's a 200 OK with proper response structure and packageCount is 0
     assert res['command'] is None
     assert res['packageCount'] == 0
 
@@ -937,6 +937,6 @@ def test_negative_transient_packages_containerfile_command_search_no_match(targe
     # Call the containerfile_install_command endpoint with search
     res = host.transient_packages_containerfile_install_command(data={'search': 'name=nonexistent-package'})
 
-    # Verify it's a 200 error with proper response structure
+    # Verify it's a 200 OK with proper response structure and packageCount is 0
     assert res['command'] is None
     assert res['packageCount'] == 0
