@@ -558,11 +558,11 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
         if 'partition_capacity' in virt_card:
             assert virt_card['partition_capacity'] != ''
         if 'partition_path' in virt_card:
-            assert virt_card['partition_path'] == '/boot'
+            assert virt_card['partition_path'] == '/boot/efi'
         if 'partition_allocation' in virt_card:
             assert virt_card['partition_allocation'] != ''
         assert virt_card['cores_per_socket'] == '1'
-        assert virt_card['firmware'] == 'bios'
+        assert virt_card['firmware'] == 'efi'
         assert virt_card['hypervisor'] != ''
         assert virt_card['connection_state'] == 'connected'
         assert virt_card['overall_status'] == 'green'

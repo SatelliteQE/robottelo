@@ -181,8 +181,8 @@ def test_positive_provision_end_to_end(
         )
         name = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
         request.addfinalizer(lambda: sat.provisioning_cleanup(name))
-        assert session.host.search(name)[0]['Name'] == name
-
+        result = session.host_new.search(name)[0]
+        assert result['Name'] == name
         # Check on Libvirt, if VM exists
         result = sat.execute(
             f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
@@ -203,7 +203,7 @@ def test_positive_provision_end_to_end(
 
         # Verify SecureBoot is enabled on host after provisioning is completed successfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
-            host = sat.api.Host().search(query={'host': hostname})[0].read()
+            host = sat.api.Host().search(query={"search": f'name={name}'})[0].read()
             provisioning_host = ContentHost(host.ip)
             # Wait for the host to be rebooted and SSH daemon to be started.
             provisioning_host.wait_for_connection()

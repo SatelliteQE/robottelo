@@ -10,6 +10,8 @@
 
 """
 
+import re
+
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
@@ -92,16 +94,18 @@ class TestDockerClient:
             )
             assert result.status == 0
             try:
-                result = module_container_contenthost.execute(f'docker run {repo["published-at"]}')
+                result = module_container_contenthost.execute(
+                    f'docker run -d {repo["published-at"]}'
+                )
                 assert result.status == 0
+                match = re.match(r'^[0-9a-f]+$', result.stdout)
+                if match:
+                    container_id = match.group(0)
             finally:
                 # Stop and remove the container
-                result = module_container_contenthost.execute(
-                    f'docker ps -a | grep {repo["published-at"]}'
-                )
-                container_id = result.stdout[0].split()[0]
-                module_container_contenthost.execute(f'docker stop {container_id}')
-                module_container_contenthost.execute(f'docker rm {container_id}')
+                if container_id:
+                    module_container_contenthost.execute(f'docker stop {container_id}')
+                    module_container_contenthost.execute(f'docker rm {container_id}')
         finally:
             # Remove docker image
             module_container_contenthost.execute(f'docker rmi {repo["published-at"]}')

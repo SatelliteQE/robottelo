@@ -242,6 +242,7 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
         'NO_COLOR=1',
         'PYTEST_DISABLE_PLUGIN_AUTOLOAD=1',
         'ANSIBLE_HOST_PATTERN_MISMATCH=ignore',
+        'FAM_TEST_ANSIBLE_VERBOSITY=1',
     ]
 
     if not module_target_sat.network_type.has_ipv4:
@@ -267,8 +268,14 @@ def test_positive_run_inventory(module_target_sat, setup_fam, ansible_module):
 
     :expectedresults: All inventories run successfully
     """
+    env = [
+        'NO_COLOR=1',
+        'PYTEST_DISABLE_PLUGIN_AUTOLOAD=1',
+        'ANSIBLE_HOST_PATTERN_MISMATCH=ignore',
+        'FAM_TEST_ANSIBLE_VERBOSITY=1',
+    ]
     # Execute test_playbook
     result = module_target_sat.execute(
-        f'cd {FAM_ROOT_DIR} && NO_COLOR=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest-3.12 tests/test_crud.py::test_inventory[{ansible_module}]'
+        f'cd {FAM_ROOT_DIR} && {" ".join(env)} pytest-3.12 tests/test_crud.py::test_inventory[{ansible_module}]'
     )
     assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"

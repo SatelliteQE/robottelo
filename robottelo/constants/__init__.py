@@ -757,8 +757,8 @@ REPOS = {
 # RHEL versions for LEAPP testing
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.10'
-RHEL9_VER = '9.6'
-RHEL10_VER = '10.0'
+RHEL9_VER = '9.7'
+RHEL10_VER = '10.1'
 
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
@@ -2082,6 +2082,9 @@ FOREMAN_ANSIBLE_MODULES = [
     "domain_info",
     "domain",
     "external_usergroup",
+    "flatpak_remote",
+    "flatpak_remote_repository_mirror",
+    "flatpak_remote_scan",
     "global_parameter",
     "hardware_model",
     "host_collection",
@@ -2176,6 +2179,9 @@ FAM_TEST_PLAYBOOKS = [
     "domains_role",
     "domain",
     "external_usergroup",
+    "flatpak_remote",
+    "flatpak_remote_repository_mirror",
+    "flatpak_remote_scan",
     "filters",
     "global_parameter",
     "hardware_model",
