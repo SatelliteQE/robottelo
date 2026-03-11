@@ -11,11 +11,9 @@
 :CaseImportance: High
 """
 
-import http.client
 import json
 
 import pytest
-from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -935,7 +933,9 @@ def test_negative_transient_packages_containerfile_command_search_no_match(targe
     _create_transient_packages(target_sat, host, package_data)
 
     # Call the containerfile_install_command endpoint with search
-    res = host.transient_packages_containerfile_install_command(data={'search': 'name=nonexistent-package'})
+    res = host.transient_packages_containerfile_install_command(
+        data={'search': 'name=nonexistent-package'}
+    )
 
     # Verify it's a 200 OK with proper response structure and packageCount is 0
     assert res['command'] is None

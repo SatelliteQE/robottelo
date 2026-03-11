@@ -217,7 +217,7 @@ def test_bootc_transient_install_warning(target_sat, bootc_host, function_ak_wit
 
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_list([10])
-@pytest.mark.skip()
+@pytest.mark.skip
 def test_positive_oscap_remediation_bootc(module_org, default_smart_proxy, target_sat, bootc_host):
     """Run an OSCAP scan and remediate through WebUI on Bootc Host
 
