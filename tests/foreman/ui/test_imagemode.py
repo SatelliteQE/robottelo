@@ -277,8 +277,8 @@ def test_positive_oscap_remediation_bootc(module_org, default_smart_proxy, targe
     os_version = contenthost.os_version.major
     distro = f'rhel{os_version}'
 
-    target_sat.cli.Ansible.roles_import({'proxy-id': default_smart_proxy})
-    target_sat.cli.Ansible.variables_import({'proxy-id': default_smart_proxy})
+    target_sat.cli.Ansible.roles_import({'proxy-id': default_smart_proxy.id})
+    target_sat.cli.Ansible.variables_import({'proxy-id': default_smart_proxy.id})
     role_id = target_sat.cli.Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
 
     # Create a hostgroup
@@ -286,13 +286,13 @@ def test_positive_oscap_remediation_bootc(module_org, default_smart_proxy, targe
     policy_name = gen_string('alpha')
     hostgroup = target_sat.cli_factory.hostgroup(
         {
-            'content-source-id': default_smart_proxy,
+            'content-source-id': default_smart_proxy.id,
             'name': hgrp_name,
             'organization': module_org.name,
             'lifecycle-environment': lifecycle_env.name,
             'content-view': cv_name,
             'ansible-role-ids': role_id,
-            'openscap-proxy-id': default_smart_proxy,
+            'openscap-proxy-id': default_smart_proxy.id,
         }
     )
 
