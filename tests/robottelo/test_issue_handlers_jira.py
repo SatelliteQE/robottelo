@@ -91,7 +91,7 @@ class TestJiraIssueHandler:
         assert out['key'] == 'SAT-999'
         assert out['is_open'] is True
         assert out['is_deselected'] is False
-        assert 'missing jira api_key' in out['error']
+        assert 'missing jira email/api_key' in out['error']
 
     def test_jira_status_cache_update_and_get(self, tmp_path):
         """JiraStatusCache stores and returns issue data by id."""
@@ -129,9 +129,12 @@ class TestJiraIssueHandler:
         assert jira.get_data_jira([]) == []
 
     def test_get_data_jira_missing_credentials_returns_default(self):
-        """get_data_jira without api_key returns default issue data."""
+        """get_data_jira without email/api_key returns default issue data."""
         jira.CACHED_RESPONSES['get_data'].clear()
-        with mock.patch('robottelo.utils.issue_handlers.jira.settings.jira.api_key', None):
+        with (
+            mock.patch('robottelo.utils.issue_handlers.jira.settings.jira.email', None),
+            mock.patch('robottelo.utils.issue_handlers.jira.settings.jira.api_key', None),
+        ):
             result = jira.get_data_jira(['SAT-999'])
         assert len(result) == 1
         assert result[0]['key'] == 'SAT-999'

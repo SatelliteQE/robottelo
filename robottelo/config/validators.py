@@ -253,6 +253,7 @@ VALIDATORS = dict(
     ],
     jira=[
         Validator('jira.url', default='https://issues.redhat.com'),
+        Validator('jira.email', must_exist=True),
         Validator('jira.api_key', must_exist=True),
         Validator('jira.comment_type', default="group"),
         Validator('jira.comment_visibility', default="Red Hat Employee"),
