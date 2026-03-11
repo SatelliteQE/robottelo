@@ -83,6 +83,7 @@ jobs:
         id: cscheck
         env:
           ROBOTTELO_JIRA__API_KEY: ${{ secrets.JIRA_KEY }}
+          ROBOTTELO_JIRA__EMAIL: ${{ secrets.JIRA_EMAIL }}
 
       - name: Customer scenario status
         run: |
