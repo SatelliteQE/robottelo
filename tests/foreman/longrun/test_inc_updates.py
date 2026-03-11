@@ -126,7 +126,7 @@ def module_ak(
 
 @pytest.fixture(scope='module')
 def host(
-    rhel7_contenthost_module,
+    module_rhel_contenthost,
     module_sca_manifest_org,
     dev_lce,
     qe_lce,
@@ -135,17 +135,18 @@ def host(
     module_cv,
     module_target_sat,
 ):
-    # Create client machine and register it to satellite with rhel_7_partial_ak
+    # Create client machine and register it to satellite
     # Register, enable tools repo and install katello-host-tools.
-    rhel7_contenthost_module.register(
+    module_rhel_contenthost.register(
         module_sca_manifest_org, None, module_ak.name, module_target_sat
     )
-    rhel7_contenthost_module.enable_repo(REPOS['rhsclient7']['id'])
+    rhel_ver = module_rhel_contenthost.os_version.major
+    module_rhel_contenthost.enable_repo(REPOS[f'rhsclient{rhel_ver}']['id'])
     # make a note of time for later wait_for_tasks, and include 4 mins margin of safety.
     timestamp = (datetime.now(UTC) - timedelta(minutes=4)).strftime('%Y-%m-%d %H:%M')
     # AK added custom repo for errata package, just install it.
-    rhel7_contenthost_module.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}')
-    rhel7_contenthost_module.execute('subscription-manager repos')
+    module_rhel_contenthost.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE}')
+    module_rhel_contenthost.execute('subscription-manager repos')
     # Wait for applicability update event (in case Satellite system slow)
     module_target_sat.wait_for_tasks(
         search_query='label = Actions::Katello::Applicability::Hosts::BulkGenerate'
@@ -162,9 +163,10 @@ def host(
     ).create()
     module_cv.publish()
     module_cv = module_cv.read()
-    return rhel7_contenthost_module
+    return module_rhel_contenthost
 
 
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.upgrade
 def test_positive_noapply_api(
     module_sca_manifest_org, module_cv, custom_repo, host, dev_lce, module_target_sat

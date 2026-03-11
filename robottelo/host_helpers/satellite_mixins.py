@@ -215,7 +215,7 @@ class ContentInfo:
         Runs satellite-maintain report generate and extracts the value for a given key
         """
         result = self.execute(f'satellite-maintain report generate | grep -i "{report_key}"')
-        assert result.status == 0, 'report failed or key not found'
+        assert result.status == 0, f'report failed or key not found: {result.stderr}'
         return "".join(result.stdout.split(":", 1)[1].split())
 
     def get_reported_condensed_value(self, report_key):

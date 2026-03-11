@@ -37,9 +37,9 @@
 - Location: `tests/foreman/api/`
 - Example: `tests/foreman/api/test_activationkey.py`
 
-**Upgrade Tests**: Uses`SharedResource` for single-test upgrade scenarios:
-- Location: 'tests/new_upgrades'
-- Example: 'tests'new_upgrades/test_activation_key.py'
+**Upgrade Tests**: Uses `SharedResource` for single-test upgrade scenarios:
+- Location: `tests/new_upgrades`
+- Example: `tests/new_upgrades/test_activation_key.py`
 
 ---
 
@@ -78,7 +78,7 @@ The bottom layer containing helper classes, utilities, and base implementations.
 - **Location**: `robottelo/`
 - **Components**:
   - **API helpers**: `robottelo/api/` (Nailgun entities)
-  - **Host classes**:  `robottelo.hosts.py` (Base functionality for ContentHost, Capsule, Satellite interaction s)
+  - **Host classes**:  `robottelo.hosts.py` (Base functionality for ContentHost, Capsule, Satellite interactions)
   - **CLI helpers**: `robottelo/cli/` (Hammer command wrappers)
   - **Host helpers**: `robottelo/host_helpers/` (Satellite/ContentHost mixins)
   - **Utilities**: `robottelo/utils/` (decorators, data factories, etc.)
@@ -110,9 +110,9 @@ Pytest fixtures provide test dependencies and setup/teardown logic.
 
 **Fixture Scopes**:
 - `function`: Per test function (default)
+- `class`: Per test class
 - `module`: Per test module
 - `session`: Per test session
-- `class`: Per test class
 
 Example:
 
@@ -175,7 +175,7 @@ ak = target_sat.api.ActivationKey(organization=org).create()
 # Using UI session
 with target_sat.ui_session() as session:
     session.organization.select('ORG_NAME')
-	session.location.select('LOC_NAME')
+    session.location.select('LOC_NAME')
     session.activationkey.create({'name': 'my-ak'})
 
 # Using ContentHost methods
@@ -214,7 +214,6 @@ email = gen_email()  # Random email
 
 ```python
 # Standard library
-from robottelo.logging import logger
 from datetime import datetime
 
 # Third-party
@@ -225,6 +224,7 @@ from nailgun.entities import ActivationKey
 # Robottelo
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV
+from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
 ```
 
@@ -245,7 +245,7 @@ Test names follow a specific pattern to indicate expected behavior:
 
 - `test_positive_*`: Test should succeed (happy path)
 - `test_negative_*`: Test should fail with expected error (error handling)
-- `test_upgrade_*`: Upgrade scenario test
+- `test_post_*`: Post-upgrade scenario test
 
 Examples:
 - `test_positive_create_activation_key_with_cv()`
@@ -260,7 +260,7 @@ Use **reStructuredText** format with required fields, Reference `testimony.yaml`
 def test_positive_create_activation_key(module_org, module_target_sat):
     """Create activation key with valid name
 
-    :id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d <uuid generated with 'uuidgen | tr "[:upper:]" "[:lower:]"'>
+    :id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d <generated uuid>
 
     :steps:
         1. Create organization
@@ -278,11 +278,11 @@ def test_positive_create_activation_key(module_org, module_target_sat):
 ```
 
 **Required Fields**:
-- `:id:` - Unique test UUID
+- `:id:` - Unique test UUID. Use `python -c 'import uuid; print(uuid.uuid4())'` to generate it
 - `:steps:` - Test execution steps
 - `:expectedresults:` - Expected outcome
 
-**Optional fields**
+**Optional fields**:
 - `:Verifies:` - When the test verifies a Bug (Use as :Verifies: SAT-12345) (Formerly there was :BZ: tag, don't use that anymore)
 ---
 
@@ -309,7 +309,7 @@ def test_positive_create_ak_via_ui(module_org, module_target_sat):
         assert ak_values['details']['name'] == ak_name
 ```
 
-### Pattern 3: CLI Test
+### Pattern 2: CLI Test
 
 ```python
 def test_positive_create_ak_via_cli(module_org, module_target_sat):
@@ -333,7 +333,7 @@ def test_positive_create_ak_via_cli(module_org, module_target_sat):
     assert ak_info['name'] == ak_name
 ```
 
-### Pattern 4: Parametrized Test
+### Pattern 3: Parametrized Test
 
 ```python
 @pytest.mark.parametrize('name', [
@@ -362,7 +362,7 @@ def test_positive_create_with_different_names(name, module_org, module_target_sa
         indirect=True,
     )
 ```
-### Pattern 5: End-to-End Test
+### Pattern 4: End-to-End Test
 
 ```python
 @pytest.mark.e2e
@@ -431,13 +431,18 @@ def module_satellite_iop(request, satellite_factory):
 **ContentHost Fixtures** (`pytest_fixtures/core/contenthosts.py`):
 
 ```python
-# RHEL ContentHost
+# RHEL ContentHost - parametrized for all supported RHEL versions defined in conf/supportability.yaml
 @pytest.fixture
 def rhel_contenthost(request):
     """Provides a RHEL content host"""
     ...
 
-# If there is no need for multiple RHEL versions to be tested, but RHEL host is still needed for the sake of the test.
+# Parametrized for N latest RHEL versions only (N-0 = latest, N-1 = latest two, etc.)
+@pytest.mark.rhel_ver_match('N-1')
+def test_latest_two_rhels(rhel_contenthost):
+    ...
+
+# If there is no need for multiple RHEL versions to be tested, use only RHEL host of the default version specified in settings.
 from robottelo.config import settings
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_with_default_rhel(rhel_contenthost):
@@ -511,18 +516,19 @@ def function_sca_manifest():
 ```python
 @pytest.mark.e2e              # End-to-end tests
 @pytest.mark.stubbed          # Not yet implemented
-@pytest.mark.destructive      # Modifies Satellite config and needs satellite teardown
+@pytest.mark.destructive      # Forces deployment of a new Satellite instance for a particular test case (more expensive)
 @pytest.mark.skip_if_open()   # Skip if BZ/issue open
 ```
 
 **Infrastructure Markers**:
+Content hosts are deployed in containers by default. If the host needs to run as a VM, use the `no_containers` marker.
 ```python
 @pytest.mark.no_containers    # Cannot run in containers
 ```
 
 ### RHEL Version Markers
 
-**`@pytest.mark.rhel_ver_match()`**: Match RHEL versions by regex
+**`@pytest.mark.rhel_ver_match()`**: Match RHEL versions based on versions defined in conf/supportability.yaml using regex, or by the N-x convention.
 
 ```python
 # Match RHEL 9 and 10 (exclude 7 and 8)
@@ -533,6 +539,9 @@ def function_sca_manifest():
 
 # Match RHEL 9 including FIPS
 @pytest.mark.rhel_ver_match(r'^9')  # Matches 9, 9_fips
+
+# Using N-x convention
+@pytest.mark.rhel_ver_match('N-2')  # Matches 3 latest RHEL versions
 ```
 
 **`@pytest.mark.rhel_ver_list()`**: Specify exact RHEL versions
@@ -838,7 +847,7 @@ repo_url = settings.repos.yum_3.url
     - Action: `create`, `update`, `delete`, `list`
 
 *   **Test Documentation:** Every test must have:
-    - Unique `:id:` UUID generated with 'uuidgen | tr "[:upper:]" "[:lower:]"'
+    - Unique `:id:` UUID (use `python -c 'import uuid; print(uuid.uuid4())'`)
     - Clear `:steps:`
     - Expected `:expectedresults:`
 
