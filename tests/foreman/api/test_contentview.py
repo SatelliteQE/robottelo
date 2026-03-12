@@ -2257,7 +2257,7 @@ class TestContentViewPublishPromote:
                 f'and action = "Auto Publish content view \'{ccv.name}\'; '
                 f'organization \'{module_sca_manifest_org.name}\'"'
             ),
-            search_rate=2,
+            search_rate=10,
             max_tries=30,
             poll_timeout=600,
         )[0]
