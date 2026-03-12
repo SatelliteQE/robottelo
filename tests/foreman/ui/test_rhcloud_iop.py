@@ -404,6 +404,7 @@ def test_iop_recommendations_remediation_type_and_status(
         )
         assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
 
+
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
@@ -550,7 +551,9 @@ def test_iop_insights_rbac_edit_permissions(
         # Verify that the disabled recommendation is filtered
         result = session.recommendationstab.apply_filter("Status", "Disabled")
         assert 'No recommendations' not in result[0]['Name']
-        assert 'Decreased security: OpenSSH config permissions' in [recommendation['Name'] for recommendation in result]
+        assert 'Decreased security: OpenSSH config permissions' in [
+            recommendation['Name'] for recommendation in result
+        ]
 
         # Test Vulnerability with edit permissions
         session.cloudvulnerability.edit_vulnerabilities(CVE_ID)
