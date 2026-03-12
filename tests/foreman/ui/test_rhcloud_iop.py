@@ -621,3 +621,5 @@ def test_iop_insights_rbac_no_permissions(
         assert permission == "You do not have access to Advisor"
         permission = session.cloudvulnerability.read_no_authorized_message()
         assert permission == "You do not have access to Vulnerability"
+        result = session.recommendationstab.apply_filter("Status", "Disabled")
+        assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
