@@ -129,7 +129,7 @@ def test_negative_validate_unattended_url_error_message(session, setting_update)
     property_name = setting_update.name
     with session:
         invalid_value = [invalid_value for invalid_value in invalid_settings_values()][0]
-        err_msg = "Validation errors present on page, displayed messages: ['Invalid value']"
+        err_msg = "Validation errors present on page, displayed messages: ['URL must be valid and schema must be one of http and https']"
         with pytest.raises(AssertionError) as context:
             session.settings.update(f'name = {property_name}', invalid_value)
         assert err_msg in str(context.value)
