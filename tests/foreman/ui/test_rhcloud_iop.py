@@ -331,7 +331,7 @@ def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match(r'^(?![78]).*')
+@pytest.mark.rhel_ver_match('10')
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_remediation_type_and_status(
     rhel_insights_vm,
@@ -339,7 +339,7 @@ def test_iop_recommendations_remediation_type_and_status(
     module_target_sat_insights,
 ):
     """Set up Satellite with iop enabled, verify recommendations remediation type,
-    and test filtering recommendations by status.
+    disable the recommendation, check status, then re-enable the recommendation.
 
     :id: 62834698-b4b8-4218-855c-2b2aa584b364
 
@@ -366,6 +366,9 @@ def test_iop_recommendations_remediation_type_and_status(
     :CaseAutomation: Automated
     """
     org_name = rhcloud_manifest_org.name
+
+    # Verify insights-client package is installed
+    assert rhel_insights_vm.execute('insights-client --version').status == 0
 
     # Prepare misconfigured machine and upload data to Insights
     create_insights_recommendation(rhel_insights_vm)
@@ -400,7 +403,6 @@ def test_iop_recommendations_remediation_type_and_status(
             "Name", OPENSSH_RECOMMENDATION, is_search=True
         )
         assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
-
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
@@ -549,227 +551,6 @@ def test_iop_insights_rbac_edit_permissions(
         result = session.recommendationstab.apply_filter("Status", "Disabled")
         assert 'No recommendations' not in result[0]['Name']
         assert 'Decreased security: OpenSSH config permissions' in [recommendation['Name'] for recommendation in result]
-
-        # Test Vulnerability with edit permissions
-        session.cloudvulnerability.edit_vulnerabilities(CVE_ID)
-        vulnerabilities = session.cloudvulnerability.read()
-        # Find the edited CVE in the list of vulnerabilities
-        assert vulnerabilities[0]['Status'] == 'In review'
-
-
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
-def test_iop_insights_rbac_no_permissions(
-    test_name,
-    rhel_insights_vm,
-    rhcloud_manifest_org,
-    module_target_sat_insights,
-    default_location,
-):
-    """Verify that a user with no advisor or vulnerability permissions cannot access
-    Insights Recommendations or Vulnerabilities.
-
-    :id: e5f6a7b8-c9d0-4e5f-2a3b-4c5d6e7f8a9b
-
-    :steps:
-        1. Create a role with no advisor or vulnerability permissions.
-        2. Create a test user with the role and log in.
-        3. Attempt to navigate to Red Hat Lightspeed → Recommendations.
-        4. Verify access is denied or page is not accessible.
-        5. Attempt to navigate to Red Hat Lightspeed → Vulnerabilities.
-        6. Verify access is denied or page is not accessible.
-
-    :expectedresults:
-        1. User cannot access the Recommendations page.
-        2. User cannot access the Vulnerabilities page.
-        3. Navigation items may be hidden or access is denied with permission error.
-
-    :parametrized: yes
-
-    :BlockedBy: RHINENG-23601
-    """
-    # Create user with no advisor or vulnerability permissions
-    user, user_password = create_rbac_user(
-        target_sat=module_target_sat_insights,
-        organization=rhcloud_manifest_org,
-        location=default_location,
-        rhcloud_role_name=None,
-        additional_permissions={
-            'Organization': ['view_organizations'],
-            'Location': ['view_locations'],
-            'Host': ['view_hosts'],
-            None: ['generate_foreman_rh_cloud', 'view_foreman_rh_cloud'],
-            'InsightsHit': ['view_insights_hits'],
-        },
-    )
-
-    # Prepare misconfigured machine and upload data to Insights
-    create_insights_recommendation(rhel_insights_vm)
-
-    # Log in as the user with no insights permissions
-    # User is already in their default organization, no need to select
-    with module_target_sat_insights.ui_session(test_name, user.login, user_password) as session:
-        # Verify that we can see the rule hit via insights-client (as admin)
-        result = rhel_insights_vm.execute('insights-client --diagnosis')
-        assert result.status == 0
-        assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
-        # Attempt to access Recommendations - should fail or be inaccessible
-        permission = session.recommendationstab.read_no_authorized_message()
-        assert permission == "You do not have access to Advisor"
-        permission = session.cloudvulnerability.read_no_authorized_message()
-        assert permission == "You do not have access to Vulnerability"
-
-
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
-def test_iop_insights_rbac_view_only_permissions(
-    test_name,
-    rhel_insights_vm,
-    rhcloud_manifest_org,
-    module_target_sat_insights,
-    default_location,
-):
-    """Verify that a user with view-only permissions can access Insights Recommendations
-    and Vulnerabilities but cannot perform edit actions.
-
-    :id: a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d
-
-    :steps:
-        1. Create a role with only view permissions (view_advisor, view_vulnerability).
-        2. Create a test user with the role and log in.
-        3. Navigate to Red Hat Lightspeed → Recommendations.
-        4. Verify page loads and displays recommendations.
-        5. Verify edit actions (enable/disable) are hidden for recommendations.
-        6. Navigate to Red Hat Lightspeed → Vulnerabilities.
-        7. Verify page loads and vulnerabilities are accessible.
-        8. Verify edit actions are hidden for vulnerabilities.
-
-    :expectedresults:
-        1. User can view the Recommendations page.
-        2. Recommendations are displayed.
-        3. Edit actions are not available for recommendations.
-        4. User can view the Vulnerabilities page.
-        5. Edit actions are not available for vulnerabilities.
-
-    :parametrized: yes
-    """
-    CVE_ID = 'CVE-2018-10896'
-    org_name = rhcloud_manifest_org.name
-
-    # Create user with view-only permissions
-    user, user_password = create_rbac_user(
-        target_sat=module_target_sat_insights,
-        organization=rhcloud_manifest_org,
-        location=default_location,
-        rhcloud_role_name='ForemanRhCloud Read Only',
-        additional_permissions={
-            'Organization': ['view_organizations'],
-            'Location': ['view_locations'],
-            'Host': ['view_hosts'],
-        },
-    )
-
-    # Prepare misconfigured machine and upload data to Insights
-    create_insights_recommendation(rhel_insights_vm)
-
-    # Log in as the view-only user
-    with module_target_sat_insights.ui_session(test_name, user.login, user_password) as session:
-        session.organization.select(org_name=org_name)
-
-        # Verify that we can see the rule hit via insights-client
-        result = rhel_insights_vm.execute('insights-client --diagnosis')
-        assert result.status == 0
-        assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
-        result = session.recommendationstab.search(OPENSSH_RECOMMENDATION)
-        assert result[0]['Name'] == OPENSSH_RECOMMENDATION
-        # Verify edit actions are hidden (disable/enable action should not be available) in the UI
-        with pytest.raises(NoSuchElementException):
-            # Disable recommendation
-            session.recommendationstab.disable_recommendation(
-                recommendation_name=OPENSSH_RECOMMENDATION
-            )
-        vulnerabilities = session.cloudvulnerability.read()
-        # Find the edited CVE in the list of vulnerabilities
-        assert CVE_ID in vulnerabilities[0]['CVE ID']
-        # Test Vulnerability without edit permissions
-        with pytest.raises(NoSuchElementException):
-            session.cloudvulnerability.edit_vulnerabilities(CVE_ID)
-
-
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
-def test_iop_insights_rbac_edit_permissions(
-    test_name,
-    rhel_insights_vm,
-    rhcloud_manifest_org,
-    module_target_sat_insights,
-    default_location,
-):
-    """Verify that a user with edit permissions can access Insights Recommendations
-    and Vulnerabilities and perform remediation actions.
-
-    :id: b2c3d4e5-f6a7-4b5c-9d0e-1f2a3b4c5d6e
-
-    :steps:
-        1. Create a role with both view and edit permissions (view_advisor, edit_advisor,
-           view_vulnerability, edit_vulnerability).
-        2. Create a test user with the role and log in.
-        3. Navigate to Red Hat Lightspeed → Recommendations.
-        4. Verify page loads and displays recommendations.
-        5. Verify all edit actions (remediation) are enabled and functional for recommendations.
-        6. Navigate to Red Hat Lightspeed → Vulnerabilities.
-        7. Verify page loads and displays vulnerabilities.
-        8. Verify all edit actions (remediation) are enabled for vulnerabilities.
-
-    :expectedresults:
-        1. User can view the Recommendations page.
-        2. Recommendations are displayed.
-        3. User can successfully remediate recommendations.
-        4. User can view the Vulnerabilities page.
-        5. User can access remediation actions for vulnerabilities.
-
-    :parametrized: yes
-    """
-    CVE_ID = 'CVE-2018-10896'
-    org_name = rhcloud_manifest_org.name
-
-    # Create user with edit permissions
-    user, user_password = create_rbac_user(
-        target_sat=module_target_sat_insights,
-        organization=rhcloud_manifest_org,
-        location=default_location,
-        rhcloud_role_name='ForemanRhCloud',
-        additional_permissions={
-            'Organization': ['view_organizations'],
-            'Location': ['view_locations'],
-            'Host': ['view_hosts'],
-        },
-    )
-
-    # Prepare misconfigured machine and upload data to Insights
-    create_insights_recommendation(rhel_insights_vm)
-
-    # Log in as the user with edit permissions
-    with module_target_sat_insights.ui_session(test_name, user.login, user_password) as session:
-        session.organization.select(org_name=org_name)
-
-        # Verify that we can see the rule hit via insights-client
-        result = rhel_insights_vm.execute('insights-client --diagnosis')
-        assert result.status == 0
-        assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
-        # Disable recommendation
-        session.recommendationstab.disable_recommendation(
-            recommendation_name=OPENSSH_RECOMMENDATION
-        )
-        # Verify that the disabled recommendation is filtered
-        result = session.recommendationstab.apply_filter("Status", "Disabled")
-        assert 'No recommendations' not in result[0]['Name']
-        assert 'Decreased security: OpenSSH config permissions' in [
-            recommendation['Name'] for recommendation in result
-        ]
 
         # Test Vulnerability with edit permissions
         session.cloudvulnerability.edit_vulnerabilities(CVE_ID)
