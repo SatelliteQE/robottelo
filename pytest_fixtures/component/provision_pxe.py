@@ -211,6 +211,10 @@ def module_provisioning_sat(
         remote_execution_proxy=[module_provisioning_capsule.id],
         domain=[domain.id],
     ).create()
+    if provisioning_type == 'discovery':
+        for host in sat.api.DiscoveredHost().search():
+            host.delete()
+
     if sat.network_type == NetworkType.IPV4:
         assert sat.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
         assert sat.execute('systemctl restart dhcpd').status == 0
