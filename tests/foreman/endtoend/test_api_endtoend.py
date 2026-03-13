@@ -42,6 +42,8 @@ API_PATHS = {
         '/katello/api/activation_keys/:id/host_collections/available',
         '/katello/api/activation_keys/:id/product_content',
         '/katello/api/activation_keys/:id/releases',
+        '/katello/api/activation_keys/:id/add_subscriptions',
+        '/katello/api/activation_keys/:id/remove_subscriptions',
     ),
     'advisor_engine': (
         '/api/advisor_engine/host_details',
@@ -427,6 +429,9 @@ API_PATHS = {
         '/api/hosts/:host_id/subscriptions/content_override',
         '/api/hosts/:host_id/subscriptions/product_content',
         '/api/hosts/subscriptions',
+        '/api/hosts/:host_id/subscriptions/auto_attach',
+        '/api/hosts/:host_id/subscriptions/remove_subscriptions',
+        '/api/hosts/:host_id/subscriptions/add_subscriptions',
     ),
     'host_tracer': (
         '/api/hosts/:host_id/traces',
@@ -497,6 +502,9 @@ API_PATHS = {
         '/api/hosts/bulk/resolve_traces',
         '/api/hosts/bulk/traces',
         '/api/hosts/bulk/system_purpose',
+        '/api/hosts/bulk/remove_subscriptions',
+        '/api/hosts/bulk/add_subscriptions',
+        '/api/hosts/bulk/auto_attach',
     ),
     'host_errata': (
         '/api/hosts/:host_id/errata',
