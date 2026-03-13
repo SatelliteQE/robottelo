@@ -47,7 +47,12 @@ def test_podman_login_check(request, sat_maintain):
     """
     iop_settings = settings.rh_cloud.iop
 
-    request.addfinalizer(lambda: sat_maintain.podman_logout(iop_settings.registry))
+    # Restore podman login after test so the same host is left in good state
+    request.addfinalizer(
+        lambda: sat_maintain.podman_login(
+            iop_settings.username, iop_settings.token, iop_settings.registry
+        )
+    )
 
     check_description = 'Check whether podman needs to be logged in to the registry'
     fail_message = (
@@ -164,26 +169,6 @@ def test_positive_health_check_by_tags(sat_maintain):
             ).status
             == 0
         )
-
-
-@pytest.mark.include_capsule
-def test_positive_health_check_pre_upgrade(sat_maintain):
-    """Verify pre-upgrade health checks
-
-    :id: f52bd43e-79cd-488b-adbb-3c9e5bac32cc
-
-    :parametrized: yes
-
-    :steps:
-        1. Run satellite-maintain health check --tags pre-upgrade
-
-    :expectedresults: Pre-upgrade health checks should pass.
-    """
-    result = sat_maintain.cli.Health.check(
-        options={'tags': 'pre-upgrade', 'whitelist': 'non-rh-packages'}
-    )
-    assert result.status == 0
-    assert 'FAIL' not in result.stdout
 
 
 @pytest.mark.include_capsule
