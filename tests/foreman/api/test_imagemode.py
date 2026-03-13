@@ -898,7 +898,7 @@ def test_negative_transient_packages_containerfile_command_no_packages(target_sa
 
     :expectedresults: Endpoint returns 200 with appropriate message
 
-    :Verifies: SAT-36793
+    :Verifies: SAT-36791
     """
     # Create a host without any packages
     host = target_sat.api.Host().create()
@@ -923,7 +923,7 @@ def test_negative_transient_packages_containerfile_command_search_no_match(targe
 
     :expectedresults: Endpoint returns 200 with message about no packages found
 
-    :Verifies: SAT-36793
+    :Verifies: SAT-36791
     """
     # Create a host
     host = target_sat.api.Host().create()
