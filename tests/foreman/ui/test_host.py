@@ -2111,6 +2111,72 @@ def test_all_hosts_redirect_button(target_sat):
         assert "/new/hosts" in url
 
 
+def _curl_hosts_page(target_sat, curl_write_out):
+    """Helper to make an authenticated curl request to the legacy /hosts page."""
+    admin_user = settings.server.admin_username
+    admin_pass = settings.server.admin_password
+    return target_sat.execute(
+        f"curl -s -k -o /dev/null -w '{curl_write_out}' "
+        f"-u {admin_user}:{admin_pass} {target_sat.url}/hosts"
+    )
+
+
+def test_legacy_hosts_redirects_to_new_hosts_page(target_sat):
+    """Verify that navigating to the legacy /hosts page redirects to /new/hosts
+    when the new_hosts_page setting is enabled
+
+    :id: 7b2cfa6a-ad5b-458c-86e6-f4796dd4299f
+
+    :steps:
+        1. Ensure new_hosts_page setting is enabled (default)
+        2. Make an HTTP request to the legacy /hosts page
+        3. Verify it redirects to /new/hosts
+
+    :expectedresults: Legacy /hosts page redirects to /new/hosts
+
+    :verifies: SAT-42765
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+    """
+    result = _curl_hosts_page(target_sat, '%{redirect_url}')
+    assert '/new/hosts' in result.stdout, (
+        f'Expected redirect to /new/hosts, got: {result.stdout}'
+    )
+
+
+def test_legacy_hosts_no_redirect_when_new_hosts_page_disabled(target_sat):
+    """Verify that navigating to the legacy /hosts page does not redirect
+    when the new_hosts_page setting is disabled
+
+    :id: 5fee2dc4-2e73-479e-84d4-0e886c0f6bc8
+
+    :steps:
+        1. Disable the new_hosts_page setting
+        2. Make an HTTP request to the legacy /hosts page
+        3. Verify it does not redirect to /new/hosts
+
+    :expectedresults: Legacy /hosts page renders without redirect
+
+    :verifies: SAT-42765
+
+    :CaseComponent: Hosts
+
+    :Team: Proton
+    """
+    setting = target_sat.api.Setting().search(query={'search': 'name=new_hosts_page'})[0]
+    original_value = setting.value
+    try:
+        setting.update({'value': False})
+        result = _curl_hosts_page(target_sat, '%{http_code}')
+        assert result.stdout.strip() == '200', (
+            f'Expected HTTP 200 for legacy /hosts page, got: {result.stdout}'
+        )
+    finally:
+        setting.update({'value': original_value})
+
+
 def test_all_hosts_bulk_build_management(target_sat, function_org, function_location):
     """Create several hosts, and manage them via Build Management in All Host UI
 
