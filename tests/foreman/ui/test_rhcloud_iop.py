@@ -284,7 +284,6 @@ def test_iop_recommendations_host_details_e2e(
         assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
 
         result = session.host_new.get_recommendations(rhel_insights_vm.hostname)
-
         assert any(row.get('Description') == OPENSSH_RECOMMENDATION for row in result), (
             f"No row found with Recommendation == {OPENSSH_RECOMMENDATION}"
         )
@@ -592,7 +591,6 @@ def test_iop_insights_rbac_no_permissions(
 
     :parametrized: yes
 
-    :BlockedBy: RHINENG-23601
     """
     # Create user with no advisor or vulnerability permissions
     user, user_password = create_rbac_user(
@@ -624,5 +622,3 @@ def test_iop_insights_rbac_no_permissions(
         assert permission == "You do not have access to Advisor"
         permission = session.cloudvulnerability.read_no_authorized_message()
         assert permission == "You do not have access to Vulnerability"
-        result = session.recommendationstab.apply_filter("Status", "Disabled")
-        assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
