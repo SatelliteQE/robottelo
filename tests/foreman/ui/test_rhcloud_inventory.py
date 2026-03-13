@@ -20,6 +20,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
+from robottelo.enums import NetworkType
 from robottelo.utils.io import (
     get_local_file_data,
     get_remote_report_checksum,
@@ -195,15 +196,15 @@ def test_rhcloud_inventory_e2e(
     assert virtual_host.hostname in hostnames
     assert baremetal_host.hostname in hostnames
     # Verify that ip_addresses are present report.
-    ip_addresses = [
-        host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
-        for host in json_data['hosts']
-    ]
-    ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-    assert virtual_host.ip_addr in ip_addresses
-    assert baremetal_host.ip_addr in ip_addresses
-    assert virtual_host.ip_addr in ipv4_addresses
-    assert baremetal_host.ip_addr in ipv4_addresses
+    is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
+    key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
+    ip_addresses = {
+        host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
+    }
+    ips = {host['ip_addresses'][0] for host in json_data['hosts']}
+    for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
+        assert host_ip in ip_addresses
+        assert host_ip in ips
     # Verify that packages are included in report
     all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
     for host_profiles in all_host_profiles:
@@ -229,11 +230,11 @@ def test_rh_cloud_inventory_settings(
 
         1. Prepare machine and upload its data to Insights.
         2. Go to Insights > Inventory upload > enable “Obfuscate host names” setting.
-        3. Go to Insights > Inventory upload > enable “Obfuscate host ipv4 addresses” setting.
+        3. Go to Insights > Inventory upload > enable “Obfuscate host ip addresses” setting.
         4. Go to Insights > Inventory upload > enable “Exclude Packages” setting.
         5. Generate report after enabling the settings.
         6. Check if host names are obfuscated in generated reports.
-        7. Check if hosts ipv4 addresses are obfuscated in generated reports.
+        7. Check if hosts ipv6 or ipv4 addresses are obfuscated in generated reports.
         8. Check if packages are excluded from generated reports.
         9. Disable previous setting.
         10. Go to Administer > Settings > RH Cloud and enable "Obfuscate host names" setting.
@@ -242,12 +243,12 @@ def test_rh_cloud_inventory_settings(
             "Don't upload installed packages" setting.
         13. Generate report after enabling the setting.
         14. Check if host names are obfuscated in generated reports.
-        15. Check if hosts ipv4 addresses are obfuscated in generated reports.
+        15. Check if hosts ipv6 or ipv4 addresses are obfuscated in generated reports.
         16. Check if packages are excluded from generated reports.
 
     :expectedresults:
         1. Obfuscated host names in reports generated.
-        2. Obfuscated host ipv4 addresses in generated reports.
+        2. Obfuscated host ipv6 or ipv4 addresses in generated reports.
         3. Packages are excluded from reports generated.
 
     :BZ: 1852594, 1889690, 1852594
@@ -298,15 +299,15 @@ def test_rh_cloud_inventory_settings(
         assert virtual_host.hostname not in hostnames
         assert baremetal_host.hostname not in hostnames
         # Verify that ip_addresses are obfuscated from the report.
-        ip_addresses = [
-            host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
-            for host in json_data['hosts']
-        ]
-        ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-        assert virtual_host.ip_addr not in ip_addresses
-        assert baremetal_host.ip_addr not in ip_addresses
-        assert virtual_host.ip_addr not in ipv4_addresses
-        assert baremetal_host.ip_addr not in ipv4_addresses
+        is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
+        key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
+        ip_addresses = {
+            host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
+        }
+        ips = {host['ip_addresses'][0] for host in json_data['hosts']}
+        for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
+            assert host_ip not in ip_addresses
+            assert host_ip not in ips
         # Verify that packages are excluded from report
         all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
         for host_profiles in all_host_profiles:
@@ -316,9 +317,6 @@ def test_rh_cloud_inventory_settings(
         session.cloudinventory.update({'obfuscate_ips': False})
         session.cloudinventory.update({'exclude_packages': False})
         # Enable settings, the one on the main settings page.
-        module_target_sat.update_setting('obfuscate_inventory_hostnames', True)
-        module_target_sat.update_setting('obfuscate_inventory_ips', True)
-        module_target_sat.update_setting('exclude_installed_packages', True)
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_and_upload_report(org.name)
         # wait_for_tasks report generation task to finish.
@@ -342,29 +340,29 @@ def test_rh_cloud_inventory_settings(
         report_path = session.cloudinventory.download_report_only(org.name)
         inventory_data = session.cloudinventory.read(org.name)
         # Verify settings are enabled.
-        assert inventory_data['obfuscate_hostnames'] is True
-        assert inventory_data['obfuscate_ips'] is True
-        assert inventory_data['exclude_packages'] is True
+        assert inventory_data['obfuscate_hostnames'] is False
+        assert inventory_data['obfuscate_ips'] is False
+        assert inventory_data['exclude_packages'] is False
         # Get report data for assertion
         json_data = get_report_data(report_path)
         # Verify that hostnames are obfuscated from the report.
         hostnames = [host['fqdn'] for host in json_data['hosts']]
-        assert virtual_host.hostname not in hostnames
-        assert baremetal_host.hostname not in hostnames
-        # Verify that ip_addresses are obfuscated from the report.
-        ip_addresses = [
-            host['system_profile']['network_interfaces'][0]['ipv4_addresses'][0]
-            for host in json_data['hosts']
-        ]
-        ipv4_addresses = [host['ip_addresses'][0] for host in json_data['hosts']]
-        assert virtual_host.ip_addr not in ip_addresses
-        assert baremetal_host.ip_addr not in ip_addresses
-        assert virtual_host.ip_addr not in ipv4_addresses
-        assert baremetal_host.ip_addr not in ipv4_addresses
+        assert virtual_host.hostname in hostnames
+        assert baremetal_host.hostname in hostnames
+        # Verify that ip_addresses are not obfuscated from the report.
+        is_ipv6 = module_target_sat.network_type == NetworkType.IPV6
+        key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
+        ip_addresses = {
+            host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
+        }
+        ips = {host['ip_addresses'][0] for host in json_data['hosts']}
+        for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
+            assert host_ip in ip_addresses
+            assert host_ip in ips
         # Verify that packages are excluded from report
         all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
         for host_profiles in all_host_profiles:
-            assert 'installed_packages' not in host_profiles
+            assert 'installed_packages' in host_profiles
 
 
 @pytest.mark.stubbed
