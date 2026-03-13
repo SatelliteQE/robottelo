@@ -11,11 +11,9 @@
 :CaseImportance: High
 """
 
-import http.client
 import json
 
 import pytest
-from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -898,22 +896,19 @@ def test_negative_transient_packages_containerfile_command_no_packages(target_sa
         2. Call containerfile_install_command endpoint
         3. Verify appropriate error response
 
-    :expectedresults: Endpoint returns 404 with appropriate message
+    :expectedresults: Endpoint returns 200 with appropriate message
 
     :Verifies: SAT-36791
     """
     # Create a host without any packages
     host = target_sat.api.Host().create()
 
-    # Call the containerfile_install_command endpoint should raise HTTPError
-    with pytest.raises(HTTPError) as excinfo:
-        host.transient_packages_containerfile_install_command()
+    # Call the containerfile_install_command endpoint
+    res = host.transient_packages_containerfile_install_command()
 
-    # Verify it's a 404 error with proper response structure
-    assert excinfo.value.response.status_code == http.client.NOT_FOUND
-    response_data = excinfo.value.response.json()
-    assert response_data['command'] is None
-    assert response_data['message'] == 'No transient packages found'
+    # Verify it's a 200 OK with proper response structure and packageCount is 0
+    assert res['command'] is None
+    assert res['packageCount'] == 0
 
 
 def test_negative_transient_packages_containerfile_command_search_no_match(target_sat):
@@ -926,7 +921,7 @@ def test_negative_transient_packages_containerfile_command_search_no_match(targe
         2. Call containerfile_install_command with search filter that matches nothing
         3. Verify appropriate error response
 
-    :expectedresults: Endpoint returns 404 with message about no packages found
+    :expectedresults: Endpoint returns 200 with message about no packages found
 
     :Verifies: SAT-36791
     """
@@ -937,14 +932,11 @@ def test_negative_transient_packages_containerfile_command_search_no_match(targe
     package_data = [{'name': 'test-pkg', 'version': '1.0.0', 'release': '1.el9', 'arch': 'x86_64'}]
     _create_transient_packages(target_sat, host, package_data)
 
-    # Call endpoint with search that won't match - should raise HTTPError
-    with pytest.raises(HTTPError) as excinfo:
-        host.transient_packages_containerfile_install_command(
-            data={'search': 'name=nonexistent-package'}
-        )
+    # Call the containerfile_install_command endpoint with search
+    res = host.transient_packages_containerfile_install_command(
+        data={'search': 'name=nonexistent-package'}
+    )
 
-    # Verify it's a 404 error with proper response structure
-    assert excinfo.value.response.status_code == http.client.NOT_FOUND
-    response_data = excinfo.value.response.json()
-    assert response_data['command'] is None
-    assert response_data['message'] == 'No transient packages found'
+    # Verify it's a 200 OK with proper response structure and packageCount is 0
+    assert res['command'] is None
+    assert res['packageCount'] == 0
