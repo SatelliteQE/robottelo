@@ -17,6 +17,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
+from robottelo.constants import FOREMAN_PROVIDERS
 
 
 @pytest.mark.e2e
@@ -142,3 +143,69 @@ def test_positive_userdata_image_provision_end_to_end(
         off_value = session.computeresource.search_virtual_machine(module_ocpv_cr.name, host.name)
         assert off_value[0]['Power'] == 'Off'
         assert off_value[0]['Actions'] == 'Power On'
+
+
+@pytest.mark.e2e
+def test_positive_cr_end_to_end(session, module_org, module_location, module_ocpv_sat):
+    """Perform end-to-end testing for compute resource OpenShift Virtualization component.
+
+    :id: c9654acc-2244-44d4-8e93-4d13262a39de
+
+    :expectedresults: All expected CRUD actions finished successfully.
+    """
+    # Generate test data and create extra org/location for edit step
+    cr_name = gen_string('alpha')
+    new_cr_name = gen_string('alpha')
+    description = gen_string('alpha')
+    new_org = module_ocpv_sat.api.Organization().create()
+    new_loc = module_ocpv_sat.api.Location().create()
+    with session:
+        # CREATE: Add OCP-V compute resource with provider settings
+        session.computeresource.create(
+            {
+                'name': cr_name,
+                'description': description,
+                'provider': FOREMAN_PROVIDERS['ocp-v'],
+                'provider_content.hostname': settings.ocpv.hostname,
+                'provider_content.api_port': settings.ocpv.api_port,
+                'provider_content.namespace': settings.ocpv.namespace,
+                'provider_content.token': settings.ocpv.token,
+                'provider_content.ca_cert': settings.ocpv.ca_cert,
+                'organizations.resources.assigned': [module_org.name],
+                'locations.resources.assigned': [module_location.name],
+            }
+        )
+        # READ: Verify created compute resource shows correct values
+        cr_values = session.computeresource.read(cr_name)
+        assert cr_values['name'] == cr_name
+        assert cr_values['description'] == description
+        assert cr_values['provider'] == FOREMAN_PROVIDERS['ocp-v']
+        assert cr_values['provider_content']['hostname'] == settings.ocpv.hostname
+        assert cr_values['provider_content']['api_port'] == str(settings.ocpv.api_port)
+        assert cr_values['provider_content']['namespace'] == settings.ocpv.namespace
+        assert cr_values['organizations']['resources']['assigned'] == [module_org.name]
+        assert cr_values['locations']['resources']['assigned'] == [module_location.name]
+        # UPDATE: Rename CR and add another org/location
+        session.computeresource.edit(
+            cr_name,
+            {
+                'name': new_cr_name,
+                'organizations.resources.assigned': [new_org.name],
+                'locations.resources.assigned': [new_loc.name],
+            },
+        )
+        assert not session.computeresource.search(cr_name)
+        # Verify edit: new name and both original + new org/location assigned
+        cr_values = session.computeresource.read(new_cr_name)
+        assert cr_values['name'] == new_cr_name
+        assert set(cr_values['organizations']['resources']['assigned']) == {
+            module_org.name,
+            new_org.name,
+        }
+        assert set(cr_values['locations']['resources']['assigned']) == {
+            module_location.name,
+            new_loc.name,
+        }
+        # DELETE: Remove compute resource and verify it no longer appears
+        session.computeresource.delete(new_cr_name)
+        assert not session.computeresource.search(new_cr_name)
