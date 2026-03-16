@@ -57,6 +57,7 @@ def iop_recommendations_upgrade_setup(
         target_sat.upload_manifest(org.id, manifest.get_manifest().content)
 
         activation_key = target_sat.api.ActivationKey(
+            name=f'{test_name}_ak',
             content_view=org.default_content_view,
             organization=org,
             environment=target_sat.api.LifecycleEnvironment(id=org.library.id),

@@ -58,8 +58,7 @@ def shared_checkout(shared_name, iop=False):
     ) as sat_checkout:
         sat_checkout.ready()
         sat_instance = bx_inst.from_inventory(
-            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
-            '@inv._broker_args.workflow == "deploy-satellite"'
+            filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout"'
         )
     return sat_instance[0]
 
