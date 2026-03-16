@@ -181,10 +181,10 @@ CACHED_RESPONSES = defaultdict(dict)
 
 
 def _jira_client():
-    """Create a JIRA client with token auth (api_key)."""
+    """Create a JIRA client with basic auth (email and api_key)."""
     return JIRA(
         server=settings.jira.url,
-        token_auth=settings.jira.api_key,
+        basic_auth=(settings.jira.email, settings.jira.api_key),
     )
 
 
@@ -263,8 +263,10 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
         return [cached_issues[issue_id] for issue_id in issue_ids]
 
     # Ensure API key is set
-    if not settings.jira.api_key:
-        logger.warning("Config file is missing jira api_key. Provide api_key or a jira_cache.json.")
+    if not (settings.jira.email and settings.jira.api_key):
+        logger.warning(
+            "Config file is missing either jira email or api_key. Provide Jira email and api_key or a jira_cache.json."
+        )
         # Provide default data for collected Jira's.
         default_data = [get_default_jira(issue_id) for issue_id in remaining_issues]
         # Update cache with defaults
@@ -357,7 +359,7 @@ def get_default_jira(issue_id):  # pragma: no cover
         "is_deselected": False,
         "status": "",
         "resolution": "",
-        "error": "missing jira api_key",
+        "error": "missing jira email/api_key",
     }
 
 

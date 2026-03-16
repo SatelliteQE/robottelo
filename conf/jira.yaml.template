@@ -1,7 +1,8 @@
 JIRA:
-  # url default value is set to 'https://issues.redhat.com' even if not provided.
-  URL: https://issues.redhat.com
-  # Provide api_key to access Jira REST API
+  # url default value is set to 'https://redhat.atlassian.net' even if not provided.
+  URL: https://redhat.atlassian.net
+  # Provide email and api_key to access Jira REST API
+  EMAIL: your_email@redhat.com
   API_KEY: replace-with-jira-api-key
   COMMENT_TYPE: group
   COMMENT_VISIBILITY: "Red Hat Employee"
