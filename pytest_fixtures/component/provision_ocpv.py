@@ -55,7 +55,7 @@ def module_ocpv_image(
         description=gen_string('alpha'),
         minor=settings.ocpv.image_os.split()[1].split('.')[1],
         major=settings.ocpv.image_os.split()[1].split('.')[0],
-        family='Rhcos',
+        family='Redhat',
         release_name=gen_string('alpha'),
         architecture=[default_architecture],
         ptable=[default_partitiontable],
