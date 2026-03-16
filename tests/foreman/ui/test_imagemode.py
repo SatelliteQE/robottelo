@@ -177,6 +177,8 @@ def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org
         assert values
         assert values['details']['bootc']['details']['running_image'] == BOOTC_SWITCH_TARGET
         assert values['details']['bootc']['details']['rollback_image'] == BOOTC_BASE_IMAGE
+    # Avoid SSH timeout during broker cleanup
+    bootc_host.wait_for_connection()
 
 
 def test_bootc_transient_install_warning(target_sat, bootc_host, function_ak_with_cv, function_org):
