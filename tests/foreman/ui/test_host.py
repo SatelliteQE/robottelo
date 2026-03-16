@@ -2789,13 +2789,13 @@ def test_all_hosts_manage_errata(
             assert task_status['result'] == 'success'
 
 
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_manage_repository_sets(
     module_target_sat,
     module_sca_manifest_org,
     module_lce,
     module_ak,
-    rhel8_contenthost,
-    rhel9_contenthost,
+    content_hosts,
 ):
     """
     Change one or more repository status on multiple hosts through Manage content wizard
@@ -2804,13 +2804,10 @@ def test_positive_manage_repository_sets(
 
     :expectedresults: Repository status can be changed via All Hosts page > Manage content wizard.
 
-    :CaseComponent: Hosts
-
     :Team: Proton
     """
-    content_hosts = [rhel8_contenthost, rhel9_contenthost]
-    rhel_repos = ['rhel8_bos', 'rhel9_bos']
-    all_repo_ids = []
+    rhel_ver = content_hosts[0].os_version.major
+    repo_key = f'rhel{rhel_ver}_bos'
     all_repo_names = []
     host_names = []
     status_to_be_changed = {
@@ -2819,36 +2816,23 @@ def test_positive_manage_repository_sets(
         2: 'Reset to default',
     }
 
-    # Create content view
+    # Create content view and enable the BOS repo for the host RHEL version
     content_view = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
-    content_view.repository = []
-
-    # Enable rh repos and fetch repo ids
-    for name in rhel_repos:
-        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_sca_manifest_org.id,
-            product=REPOS[name]['product'],
-            repo=REPOS[name]['name'],
-            reposet=REPOS[name]['reposet'],
-            releasever=REPOS[name]['releasever'],
-        )
-        all_repo_ids.append(rh_repo_id)
-
-        # wait for repo creation/meta data generate task to complete
-        module_target_sat.wait_for_tasks(
-            search_query='Actions::Katello::Repository::MetadataGenerate',
-            max_tries=5,
-            search_rate=10,
-        )
-
-        # Read repository from repo id
-        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-
-        # content view repositories
-        content_view.repository.append(rh_repo)
-
-    # Update content view repositories,publish and then promote content view to Library
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_sca_manifest_org.id,
+        product=REPOS[repo_key]['product'],
+        repo=REPOS[repo_key]['name'],
+        reposet=REPOS[repo_key]['reposet'],
+        releasever=REPOS[repo_key]['releasever'],
+    )
+    module_target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate',
+        max_tries=5,
+        search_rate=10,
+    )
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    content_view.repository = [rh_repo]
     content_view = module_target_sat.api.ContentView(
         id=content_view.id, repository=content_view.repository
     ).update(['repository'])
@@ -2865,28 +2849,25 @@ def test_positive_manage_repository_sets(
         environment=module_lce,
     ).update()
 
-    # register host to satellite and enable repository if those are disable
-    for content_host in content_hosts:
+    # Register hosts and collect repo names
+    for host in content_hosts:
         assert (
-            content_host.register(
-                module_sca_manifest_org, None, module_ak.name, module_target_sat
-            ).status
+            host.register(module_sca_manifest_org, None, module_ak.name, module_target_sat).status
             == 0
         )
-        raw_output = content_host.execute('subscription-manager repos --list').stdout
-        # Get repo name and add into empty list (this is workaround to avoid failure in airgun)
+        raw_output = host.execute('subscription-manager repos --list').stdout
         data_list = raw_output.split('\n')
         for line in data_list:
-            if "Repo Name" in line:
+            if 'Repo Name' in line:
                 repository = (line.split(':')[1]).lstrip()
-                all_repo_names.append(repository)
-        # If rhel repo is disabled then enable it
-        if "Enabled:   0" in raw_output:
-            rep_status = content_host.execute("subscription-manager repos --enable *").stdout
-            assert "enabled for this system" in rep_status
-        host_names.append(content_host.hostname)
+                if repository not in all_repo_names:
+                    all_repo_names.append(repository)
+        if 'Enabled:   0' in raw_output:
+            rep_status = host.execute(r'subscription-manager repos --enable \*').stdout
+            assert 'enabled for this system' in rep_status
+        host_names.append(host.hostname)
 
-    # Change one or more repository status on multiple hosts through Manage content wizard
+    # Change repository status to disabled on multiple hosts
     override_to_disabled = status_to_be_changed[0]
     with module_target_sat.ui_session() as session:
         session.organization.select(module_sca_manifest_org.name)
@@ -2896,12 +2877,11 @@ def test_positive_manage_repository_sets(
             repository_names=all_repo_names,
             status_to_change=override_to_disabled,
         )
-        # Check status of repositories on each host, it should be disabled.
-        for content_host in content_hosts:
-            output = content_host.execute('subscription-manager repos --list').stdout
-            assert "Enabled:   0" in output, 'repository status not changed'
+        for host in content_hosts:
+            output = host.execute('subscription-manager repos --list').stdout
+            assert 'Enabled:   0' in output, 'repository status not changed'
 
-        # Now change one or more repository status to enable
+        # Change repository status to enabled
         override_to_enabled = status_to_be_changed[1]
         session.all_hosts.manage_repository_sets(
             host_names=host_names,
@@ -2909,11 +2889,9 @@ def test_positive_manage_repository_sets(
             repository_names=all_repo_names,
             status_to_change=override_to_enabled,
         )
-
-        # Check status of repositories on each host, it should be enabled.
-        for content_host in content_hosts:
-            output = content_host.execute('subscription-manager repos --list').stdout
-            assert "Enabled:   1" in output, 'repository status not changed'
+        for host in content_hosts:
+            output = host.execute('subscription-manager repos --list').stdout
+            assert 'Enabled:   1' in output, 'repository status not changed'
 
 
 def test_disassociate_multiple_hosts(
