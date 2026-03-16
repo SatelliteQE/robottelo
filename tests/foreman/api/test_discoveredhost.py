@@ -438,10 +438,6 @@ class TestDiscoveredHost:
         )
 
         discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
-        discovered_host.hostgroup = provisioning_hostgroup
-        discovered_host.location = provisioning_hostgroup.location[0]
-        discovered_host.organization = provisioning_hostgroup.organization[0]
-        discovered_host.build = True
         result = sat.api.DiscoveredHost(id=discovered_host.id).reboot_all()
         assert 'Unable to perform reboot' not in result
 

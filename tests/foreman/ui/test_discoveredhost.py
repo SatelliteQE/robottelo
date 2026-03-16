@@ -170,10 +170,28 @@ def test_positive_custom_provision_pxe_host(
         delay=20,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
-    discovered_host.hostgroup = provisioning_hostgroup
-    discovered_host.location = provisioning_hostgroup.location[0]
-    discovered_host.organization = provisioning_hostgroup.organization[0]
-    discovered_host.build = True
+    if is_open('SAT-33477') and (
+        sat.cli.DiscoveredHost.list(
+            {
+                'organization-id': module_org.id,
+                'location-id': module_location.id,
+            }
+        )
+        == []
+    ):
+        with sat.ui_session() as temp_session:
+            temp_session.organization.select(org_name='Any organization')
+            temp_session.location.select(loc_name='Any location')
+            temp_session.discoveredhosts.apply_action(
+                'Assign Organization',
+                discovered_host.name,
+                values=dict(organization=module_org.name),
+            )
+            temp_session.discoveredhosts.apply_action(
+                'Assign Location',
+                discovered_host.name,
+                values=dict(location=module_location.name),
+            )
 
     discovered_host_name = discovered_host.name
     domain_name = provisioning_hostgroup.domain.read().name
@@ -325,10 +343,28 @@ def test_positive_auto_provision_host_with_rule(
         delay=20,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
-    discovered_host.hostgroup = provisioning_hostgroup
-    discovered_host.location = provisioning_hostgroup.location[0]
-    discovered_host.organization = provisioning_hostgroup.organization[0]
-    discovered_host.build = True
+    if is_open('SAT-33477') and (
+        sat.cli.DiscoveredHost.list(
+            {
+                'organization-id': module_org.id,
+                'location-id': module_location.id,
+            }
+        )
+        == []
+    ):
+        with sat.ui_session() as temp_session:
+            temp_session.organization.select(org_name='Any organization')
+            temp_session.location.select(loc_name='Any location')
+            temp_session.discoveredhosts.apply_action(
+                'Assign Organization',
+                discovered_host.name,
+                values=dict(organization=module_org.name),
+            )
+            temp_session.discoveredhosts.apply_action(
+                'Assign Location',
+                discovered_host.name,
+                values=dict(location=module_location.name),
+            )
 
     discovered_host_name = discovered_host.name
     domain_name = provisioning_hostgroup.domain.read().name
