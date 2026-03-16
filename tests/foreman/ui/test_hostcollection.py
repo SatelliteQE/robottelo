@@ -224,8 +224,6 @@ def test_positive_end_to_end(module_target_sat, module_org_with_parameter, smart
     :expectedresults: All expected CRUD actions finished successfully
 
     :CaseImportance: High
-
-    :BlockedBy: SAT-41383
     """
     hc_name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -276,7 +274,6 @@ def test_negative_install_via_remote_execution(
     :expectedresults: The package is not installed, and the job invocation
         status contains some expected values: hosts information, jos status.
 
-    :BlockedBy: SAT-41383
     """
     hosts = []
     for _ in range(2):
@@ -316,7 +313,6 @@ def test_negative_install_via_custom_remote_execution(
     :expectedresults: The package is not installed, and the job invocation
         status contains some expected values: hosts information, jos status.
 
-    :BlockedBy: SAT-41383
     """
     hosts = []
     for _ in range(2):
@@ -351,7 +347,6 @@ def test_positive_add_host(session, module_target_sat):
 
     :expectedresults: Host is added to Host Collection successfully
 
-    :BlockedBy: SAT-41383
     """
     hc_name = gen_string('alpha')
     org = module_target_sat.api.Organization().create()
@@ -386,7 +381,6 @@ def test_positive_install_package(
     :expectedresults: Package was successfully installed on all the hosts
         in host collection
 
-    :BlockedBy: SAT-41383
     """
     with session:
         session.organization.select(org_name=module_org_with_parameter.name)
@@ -411,7 +405,6 @@ def test_positive_remove_package(
     :expectedresults: Package was successfully removed from all the hosts
         in host collection
 
-    :BlockedBy: SAT-41383
     """
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_0_CUSTOM_PACKAGE)
     with session:
@@ -438,7 +431,6 @@ def test_positive_upgrade_package(
     :expectedresults: Package was successfully upgraded on all the hosts in
         host collection
 
-    :BlockedBy: SAT-41383
     """
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_1_CUSTOM_PACKAGE)
     with session:
@@ -464,7 +456,6 @@ def test_positive_install_package_group(
     :expectedresults: Package group was successfully installed on all the
         hosts in host collection
 
-    :BlockedBy: SAT-41383
     """
     with session:
         session.organization.select(org_name=module_org_with_parameter.name)
@@ -490,7 +481,6 @@ def test_positive_remove_package_group(
     :expectedresults: Package group was successfully removed  on all the
         hosts in host collection
 
-    :BlockedBy: SAT-41383
     """
     for client in vm_content_hosts:
         result = client.run(f'yum groups install -y {constants.FAKE_0_CUSTOM_PACKAGE_GROUP_NAME}')
@@ -522,7 +512,6 @@ def test_positive_install_errata(
     :expectedresults: Errata was successfully installed in all the hosts in
         host collection
 
-    :BlockedBy: SAT-41383
     """
     _install_package_with_assertion(vm_content_hosts, constants.FAKE_1_CUSTOM_PACKAGE)
     with session:
@@ -587,7 +576,6 @@ def test_positive_change_assigned_content(
 
     :BZ: 1315280
 
-    :BlockedBy: SAT-41383
     """
     new_lce_name = gen_string('alpha')
     new_cv_name = gen_string('alpha')
@@ -663,7 +651,6 @@ def test_negative_hosts_limit(module_target_sat, module_org_with_parameter, smar
     :expectedresults: Second host is not added to Host Collection and
         appropriate error is shown
 
-    :BlockedBy: SAT-41383
     """
     hc_name = gen_string('alpha')
     org = module_target_sat.api.Organization().create()
@@ -732,7 +719,6 @@ def test_positive_install_module_stream(
     :expectedresults: Module-Stream should get installed on all the hosts
         in host collection
 
-    :BlockedBy: SAT-41383
     """
     _run_remote_command_on_content_hosts('dnf -y upload-profile', vm_content_hosts_module_stream)
     with session:
@@ -785,7 +771,6 @@ def test_positive_install_modular_errata(
     :expectedresults: Modular Errata should get installed on all hosts in host
         collection.
 
-    :BlockedBy: SAT-41383
     """
     stream = "0"
     version = "20180704111719"
