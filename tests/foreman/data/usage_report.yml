@@ -83,6 +83,17 @@ oidc_use: false
 pat_counts: 0
 pat_recently_used_count: 0
 revoked_pats_count: 0
+rh_cloud_connector_enabled: false
+rh_cloud_exclude_host_package_info: false
+rh_cloud_hosts_count: 0
+rh_cloud_inventory_upload_enabled: true
+rh_cloud_minimal_data_collection: false
+rh_cloud_mismatched_auto_delete: false
+rh_cloud_mismatched_hosts_count: 0
+rh_cloud_obfuscate_inventory_hostnames: false
+rh_cloud_obfuscate_inventory_ips: false
+rh_cloud_recommendations_sync_enabled: true
+rh_cloud_total_hits: 0
 smart_proxies_count: 1
 smart_proxies_creation_date|1: "2025-08-14 08:29:47.536836"
 total_users_count: 4
