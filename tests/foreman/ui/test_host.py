@@ -2863,7 +2863,7 @@ def test_positive_manage_repository_sets(
                 if repository not in all_repo_names:
                     all_repo_names.append(repository)
         if 'Enabled:   0' in raw_output:
-            rep_status = host.execute('subscription-manager repos --enable *').stdout
+            rep_status = host.execute(r'subscription-manager repos --enable \*').stdout
             assert 'enabled for this system' in rep_status
         host_names.append(host.hostname)
 
