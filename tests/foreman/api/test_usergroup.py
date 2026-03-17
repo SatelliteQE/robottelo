@@ -7,7 +7,7 @@ https://theforeman.org/api/2.0/apidoc/v2/usergroups.html
 
 :CaseAutomation: Automated
 
-:CaseComponent: UsersRoles
+:CaseComponent: UsersandRoles
 
 :Team: Endeavour
 
