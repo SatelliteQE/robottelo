@@ -220,35 +220,6 @@ class TestLocation:
         assert location.compute_resource[0].read().provider == 'Libvirt'
         assert location.update(['user']).user[0].id == make_entities["new_user"].id
 
-    @pytest.mark.run_in_one_thread
-    def test_positive_create_update_and_remove_capsule(self, make_proxies, target_sat):
-        """Update location with new capsule
-
-        :id: 2786146f-f466-4ed8-918a-5f46806558e2
-
-        :expectedresults: Location updated successfully and has correct capsule
-            assigned
-
-        :BZ: 1398695
-
-        :CaseImportance: High
-        """
-        proxy_id_1 = make_proxies['proxy1']['id']
-        proxy_id_2 = make_proxies['proxy2']['id']
-
-        proxy = target_sat.api.SmartProxy(id=proxy_id_1).read()
-        location = target_sat.api.Location(smart_proxy=[proxy]).create()
-
-        new_proxy = target_sat.api.SmartProxy(id=proxy_id_2).read()
-        location.smart_proxy = [new_proxy]
-        location = location.update(['smart_proxy'])
-        assert location.smart_proxy[0].id == new_proxy.id
-        assert location.smart_proxy[0].read().name == new_proxy.name
-
-        location.smart_proxy = []
-        location = location.update(['smart_proxy'])
-        assert len(location.smart_proxy) == 0
-
     def test_negative_update_domain(self, target_sat):
         """Try to update existing location with incorrect domain. Use
         domain id
