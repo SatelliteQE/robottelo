@@ -177,6 +177,8 @@ def test_bootc_rex_job(target_sat, bootc_host, function_ak_with_cv, function_org
         assert values
         assert values['details']['bootc']['details']['running_image'] == BOOTC_SWITCH_TARGET
         assert values['details']['bootc']['details']['rollback_image'] == BOOTC_BASE_IMAGE
+    # Avoid SSH timeout during broker cleanup
+    bootc_host.wait_for_connection()
 
 
 def test_bootc_transient_install_warning(target_sat, bootc_host, function_ak_with_cv, function_org):
@@ -216,8 +218,8 @@ def test_bootc_transient_install_warning(target_sat, bootc_host, function_ak_wit
 
 
 @pytest.mark.e2e
-@pytest.mark.rhel_ver_list([10])
-def test_positive_oscap_remediation_bootc(module_org, default_proxy, target_sat, bootc_host):
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_positive_oscap_remediation_bootc(module_org, default_smart_proxy, target_sat, bootc_host):
     """Run an OSCAP scan and remediate through WebUI on Bootc Host
 
     :id: 72ffdcca-ad7a-41ff-8c74-83969b740ab2
@@ -276,8 +278,8 @@ def test_positive_oscap_remediation_bootc(module_org, default_proxy, target_sat,
     os_version = contenthost.os_version.major
     distro = f'rhel{os_version}'
 
-    target_sat.cli.Ansible.roles_import({'proxy-id': default_proxy})
-    target_sat.cli.Ansible.variables_import({'proxy-id': default_proxy})
+    target_sat.cli.Ansible.roles_import({'proxy-id': default_smart_proxy.id})
+    target_sat.cli.Ansible.variables_import({'proxy-id': default_smart_proxy.id})
     role_id = target_sat.cli.Ansible.roles_list({'search': 'foreman_scap_client'})[0].get('id')
 
     # Create a hostgroup
@@ -285,13 +287,13 @@ def test_positive_oscap_remediation_bootc(module_org, default_proxy, target_sat,
     policy_name = gen_string('alpha')
     hostgroup = target_sat.cli_factory.hostgroup(
         {
-            'content-source-id': default_proxy,
+            'content-source-id': default_smart_proxy.id,
             'name': hgrp_name,
             'organization': module_org.name,
             'lifecycle-environment': lifecycle_env.name,
             'content-view': cv_name,
             'ansible-role-ids': role_id,
-            'openscap-proxy-id': default_proxy,
+            'openscap-proxy-id': default_smart_proxy.id,
         }
     )
 
