@@ -416,7 +416,12 @@ API_PATHS = {
         '/katello/api/host_collections/:id/copy',
         '/katello/api/host_collections/:id/remove_hosts',
     ),
-    'host_debs': ('/api/hosts/:host_id/debs',),
+    'host_debs': (
+        '/api/hosts/:host_id/debs',
+        '/api/host_debs/:id',
+        '/api/host_debs/compare',
+        '/api/host_debs/installed_debs',
+    ),
     'host_module_streams': ('/api/hosts/:host_id/module_streams',),
     'host_statuses': ('/api/host_statuses',),
     'host_subscriptions': (
@@ -431,6 +436,7 @@ API_PATHS = {
     'host_tracer': (
         '/api/hosts/:host_id/traces',
         '/api/hosts/:host_id/traces/resolve',
+        '/api/hosts/bulk/traces/auto_complete_search',
     ),
     'hostgroups': (
         '/api/hostgroups',
@@ -478,6 +484,7 @@ API_PATHS = {
     'hosts_bulk_actions': (
         '/api/hosts/bulk',
         '/api/hosts/bulk/build',
+        '/api/hosts/bulk/change_power_state',
         '/api/hosts/bulk/reassign_hostgroups',
         '/api/hosts/bulk/change_owner',
         '/api/hosts/bulk/disassociate',
@@ -497,6 +504,7 @@ API_PATHS = {
         '/api/hosts/bulk/resolve_traces',
         '/api/hosts/bulk/traces',
         '/api/hosts/bulk/system_purpose',
+        '/api/hosts/bulk/assign_content_view_environments',
     ),
     'host_errata': (
         '/api/hosts/:host_id/errata',
@@ -508,6 +516,7 @@ API_PATHS = {
         '/api/host_packages/:id',
         '/api/host_packages/compare',
         '/api/host_packages/installed_packages',
+        '/api/hosts/:host_id/transient_packages/containerfile_install_command',
     ),
     'http_proxies': (
         '/api/http_proxies',
