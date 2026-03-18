@@ -20,7 +20,6 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION
 from robottelo.utils.shared_resource import SharedResource
-from pytest_fixtures.component.rh_cloud import enable_insights
 from tests.foreman.ui.test_rhcloud_insights import (
     create_insights_vulnerability as create_insights_recommendation,
 )
@@ -52,7 +51,6 @@ def iop_recommendations_upgrade_setup(
         test_name = f'iop_upgrade_{gen_alpha()}'
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
 
-        # Upload manifest and create activation key
         manifest = Manifester(manifest_category=settings.manifest.golden_ticket)
         target_sat.upload_manifest(org.id, manifest.get_manifest().content)
 
@@ -63,10 +61,24 @@ def iop_recommendations_upgrade_setup(
             environment=target_sat.api.LifecycleEnvironment(id=org.library.id),
         ).create()
 
-        # Configure REX, insights-client, and register host to Satellite
-        enable_insights(rhel_contenthost, target_sat, org, activation_key)
+        # Enable RHEL OS repos so insights-client can be installed during registration
+        rhel_ver = rhel_contenthost.os_version.major
+        rhel_repos = getattr(settings.repos, f'rhel{rhel_ver}_os')
+        rhel_contenthost.create_custom_repos(
+            baseos=rhel_repos.baseos,
+            appstream=rhel_repos.appstream,
+        )
 
-        # Prepare misconfigured machine and upload data to Insights
+        # Register host with insights and REX enabled
+        result = rhel_contenthost.api_register(
+            target_sat,
+            organization=org,
+            activation_keys=[activation_key.name],
+            setup_insights=True,
+            setup_remote_execution=True,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+
         create_insights_recommendation(rhel_contenthost)
 
         with target_sat.ui_session() as session:
@@ -92,6 +104,7 @@ def iop_recommendations_upgrade_setup(
             }
         )
         sat_upgrade.ready()
+        target_sat._session = None
         yield test_data
 
 
