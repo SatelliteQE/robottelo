@@ -22,7 +22,6 @@ Example:
     ...     # Do post-upgrade cleanup steps if any
 """
 
-import datetime
 import json
 import os
 from pathlib import Path
@@ -33,6 +32,9 @@ from broker.helpers import FileLock
 from wait_for import wait_for
 
 from robottelo.config import settings
+from robottelo.logging import logger as _root_logger
+
+logger = _root_logger.getChild('shared_resource')
 
 
 class SharedResourceError(Exception):
@@ -72,6 +74,7 @@ class SharedResource:
             action_validator (function): The function to validate the action results.
             action_kwargs (dict): The keyword arguments to be passed to the action function.
         """
+        self.resource_name = resource_name
         self.resource_file = Path(f"/tmp/{resource_name}.shared")
         self.lock_file = FileLock(self.resource_file)
         self.id = str(uuid4().fields[-1])
@@ -84,18 +87,6 @@ class SharedResource:
         self.retries = retries
         self.delay = delay
 
-    def log(message, level="DEBUG"):
-        """Pytest has a limitation to use logging.logger from conftest.py
-        so we need to emulate the logger by std-out the output
-        """
-        now = datetime.datetime.now()
-        full_message = "{date} - SHARED_RESOURCE - {level} - {message}\n".format(
-            date=now.strftime("%Y-%m-%d %H:%M:%S"), level=level, message=message
-        )
-        print(full_message)  # noqa
-        with open(f'logs/robottelo_{os.environ.get("PYTEST_XDIST_WORKER")}.log', 'a') as log_file:
-            log_file.write(full_message)
-
     def _update_status(self, status):
         """Updates the status of the shared resource.
 
@@ -105,7 +96,7 @@ class SharedResource:
         with self.lock_file:
             curr_data = json.loads(self.resource_file.read_text())
             curr_data["statuses"][self.id] = status
-            self.log(f"Updating watcher status to {status}")
+            logger.debug("Updating watcher status to %s", status)
             self.resource_file.write_text(json.dumps(curr_data, indent=4))
 
     def _update_main_status(self, status):
@@ -143,7 +134,7 @@ class SharedResource:
         """
         while not self._check_all_status(status):
             if status == "done":
-                self.log("Main worker still waiting for all workers to report status 'done'.")
+                logger.debug("Main worker still waiting for all workers to report status 'done'.")
             time.sleep(1)
 
     def _wait_for_main_watcher(self):
@@ -157,7 +148,7 @@ class SharedResource:
             elif curr_data["main_status"] != "done":
                 time.sleep(settings.robottelo.shared_resource_wait)
             else:
-                self.log("Main status now done, breaking wait loop")
+                logger.debug("Main status now done, breaking wait loop")
                 break
 
     def _try_take_over(self):
@@ -192,13 +183,13 @@ class SharedResource:
 
     def unregister(self):
         """Unregisters the current process as a watcher."""
-        self.log(f"Unregistering {os.environ.get('PYTEST_XDIST_WORKER')}")
+        logger.debug("Unregistering %s", os.environ.get('PYTEST_XDIST_WORKER'))
         with self.lock_file:
             curr_data = json.loads(self.resource_file.read_text())
-            self.log("Removing watcher ID from resource file")
+            logger.debug("Removing watcher ID from resource file")
             curr_data["watchers"].remove(self.id)
             del curr_data["statuses"][self.id]
-            self.log("Writing new resource file")
+            logger.debug("Writing new resource file")
             self.resource_file.write_text(json.dumps(curr_data, indent=4))
 
     def ready(self):
@@ -254,32 +245,34 @@ class SharedResource:
         try:
             self.unregister()
         except Exception as e:
-            self.log(
-                f'WARNING: Failed to unregister watcher '
-                f'(resource: {getattr(self, "resource_name", "unknown")}, '
-                f'watcher ID: {getattr(self, "watcher_id", "unknown")}): {e}'
+            logger.warning(
+                'Failed to unregister watcher (resource: %s, watcher ID: %s): %s',
+                self.resource_name,
+                self.id,
+                e,
             )
 
         if exc_type is FileNotFoundError:
-            self.log(
-                f'{os.environ.get("PYTEST_XDIST_WORKER")} did not find resource file. has it already been deleted?'
+            logger.warning(
+                '%s did not find resource file. has it already been deleted?',
+                os.environ.get('PYTEST_XDIST_WORKER'),
             )
             raise exc_value
         if exc_type is None:
-            self.log('Setting status to done')
+            logger.debug('Setting status to done')
             self.done()
             if self.is_main:
                 self._wait_for_status("done")
-                self.log("All workers done, removing resource file")
+                logger.debug("All workers done, removing resource file")
                 self.resource_file.unlink()
         else:
             self._update_status("error")
             if self.is_main:
                 if self._check_all_status("error"):
                     # All have failed, delete the file
-                    self.log("All workers FAILED, removing resource file")
+                    logger.warning("All workers FAILED, removing resource file")
                     self.resource_file.unlink()
                 else:
-                    self.log("Setting main status to ERROR")
+                    logger.warning("Setting main status to ERROR")
                     self._update_main_status("error")
             raise exc_value
