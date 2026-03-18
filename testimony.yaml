@@ -97,7 +97,7 @@ CaseComponent:
     - TemplatesPlugin
     - TestEnvironment
     - Upgrades
-    - UsersRoles
+    - UsersandRoles
     - Virt-whoConfigurePlugin
     - HooksandWebhooks
     required: true

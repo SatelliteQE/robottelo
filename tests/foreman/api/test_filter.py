@@ -8,7 +8,7 @@ http://theforeman.org/api/apidoc/v2/filters.html
 
 :CaseAutomation: Automated
 
-:CaseComponent: UsersRoles
+:CaseComponent: UsersandRoles
 
 :Team: Endeavour
 
