@@ -8,7 +8,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 :CaseAutomation: Automated
 
-:CaseComponent: UsersRoles
+:CaseComponent: UsersandRoles
 
 :Team: Endeavour
 
