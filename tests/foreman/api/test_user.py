@@ -8,7 +8,7 @@ http://<satellite-host>/apidoc/v2/users.html
 
 :CaseAutomation: Automated
 
-:CaseComponent: UsersRoles
+:CaseComponent: UsersandRoles
 
 :Team: Endeavour
 
