@@ -85,7 +85,7 @@ Out [5]:
    {'key': 'importance', 'value': 'High'},
    {'key': 'team', 'value': 'rocket'},
    {'key': 'BaseOS', 'value': '7.9'},
-   {'key': 'component', 'value': 'UsersRoles'}],
+   {'key': 'component', 'value': 'UsersandRoles'}],
    ......
 ----
 

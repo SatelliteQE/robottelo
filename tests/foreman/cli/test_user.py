@@ -10,7 +10,7 @@ When testing email validation [1] and [2] should be taken into consideration.
 
 :CaseAutomation: Automated
 
-:CaseComponent: UsersRoles
+:CaseComponent: UsersandRoles
 
 :Team: Endeavour
 
