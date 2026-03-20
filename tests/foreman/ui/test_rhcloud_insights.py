@@ -397,7 +397,8 @@ def test_host_details_page(
 @pytest.mark.e2e
 @pytest.mark.pit_client
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_list(r'^[\d]+$')
+# last 2 rhel versions with fips
+@pytest.mark.rhel_ver_list(settings.supportability.content_hosts.rhel.versions[-4:])
 def test_insights_registration_with_capsule(
     rhcloud_capsule,
     rhcloud_activation_key,
@@ -415,9 +416,9 @@ def test_insights_registration_with_capsule(
 
     :steps:
         1. Integrate a capsule with satellite.
-        2. open the global registration form and select the same capsule.
+        2. Open the global registration form and select the same capsule.
         3. Override Insights and Rex parameters.
-        4. check host is registered successfully with selected capsule.
+        4. Check host is registered successfully with selected capsule.
         5. Test insights client connection & reporting status.
         6. Run rh_cloud_insights:clean_statuses rake command
         7. Verify that host properties doesn't contain insights status.
@@ -435,6 +436,7 @@ def test_insights_registration_with_capsule(
     ak = rhcloud_activation_key
     # Enable rhel repos and install insights-client
     rhelver = rhel_contenthost.os_version.major
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     if rhelver > 7:
         rhel_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
     else:
