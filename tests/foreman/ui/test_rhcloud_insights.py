@@ -397,7 +397,7 @@ def test_host_details_page(
 @pytest.mark.e2e
 @pytest.mark.pit_client
 @pytest.mark.no_containers
-# last 3 rhel versions with fips
+# last 2 rhel versions with fips
 @pytest.mark.rhel_ver_list(settings.supportability.content_hosts.rhel.versions[-4:])
 def test_insights_registration_with_capsule(
     rhcloud_capsule,
