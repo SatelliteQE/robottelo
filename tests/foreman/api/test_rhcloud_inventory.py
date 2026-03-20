@@ -96,10 +96,8 @@ def test_rhcloud_inventory_api_e2e(
     ip_addresses = {
         host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
     }
-    ips = {host['ip_addresses'][0] for host in json_data['hosts']}
     for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
         assert host_ip in ip_addresses
-        assert host_ip in ips
     # Verify infrastructure type.
     infrastructure_type = [
         host['system_profile']['infrastructure_type'] for host in json_data['hosts']

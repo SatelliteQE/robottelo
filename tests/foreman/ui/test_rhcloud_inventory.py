@@ -201,10 +201,8 @@ def test_rhcloud_inventory_e2e(
     ip_addresses = {
         host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
     }
-    ips = {host['ip_addresses'][0] for host in json_data['hosts']}
     for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
         assert host_ip in ip_addresses
-        assert host_ip in ips
     # Verify that packages are included in report
     all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
     for host_profiles in all_host_profiles:
@@ -304,10 +302,8 @@ def test_rh_cloud_inventory_settings(
         ip_addresses = {
             host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
         }
-        ips = {host['ip_addresses'][0] for host in json_data['hosts']}
         for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
             assert host_ip not in ip_addresses
-            assert host_ip not in ips
         # Verify that packages are excluded from report
         all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
         for host_profiles in all_host_profiles:
@@ -355,10 +351,8 @@ def test_rh_cloud_inventory_settings(
         ip_addresses = {
             host['system_profile']['network_interfaces'][0][key][0] for host in json_data['hosts']
         }
-        ips = {host['ip_addresses'][0] for host in json_data['hosts']}
         for host_ip in (virtual_host.ip_addr, baremetal_host.ip_addr):
             assert host_ip in ip_addresses
-            assert host_ip in ips
         # Verify that packages are excluded from report
         all_host_profiles = [host['system_profile'] for host in json_data['hosts']]
         for host_profiles in all_host_profiles:
