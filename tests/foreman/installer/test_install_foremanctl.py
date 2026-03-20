@@ -19,7 +19,7 @@ from robottelo.config import settings
 from robottelo.hosts import Satellite
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.foremanctl, pytest.mark.build_sanity, pytest.mark.upgrade]
+pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
 
 SATELLITE_SERVICES = [
     'candlepin',
