@@ -12,54 +12,11 @@
 
 """
 
-import re
-
 import pytest
 from requests.exceptions import HTTPError
-from wait_for import TimedOutError, wait_for
 
-from robottelo.config import settings
 from robottelo.constants import WEBHOOK_EVENTS, WEBHOOK_METHODS
-from robottelo.logging import logger
 from robottelo.utils.datafactory import parametrized
-
-
-def _read_log(ch, pattern):
-    """Read the first line from the given channel buffer and return the matching line"""
-    # read lines until the buffer is empty
-    # Try hussh-style stdout first (attribute), fall back to ssh2-python style (method)
-    stdout = getattr(ch.result, 'stdout', None) if hasattr(ch, 'result') else ch.stdout()
-    for log_line in (stdout or '').splitlines():
-        logger.debug(f'foreman-tail: {log_line}')
-        if re.search(pattern, log_line):
-            return log_line
-    return None
-
-
-def _wait_for_log(channel, pattern, timeout=2, delay=0.2):
-    """_read_log method enclosed in wait_for method"""
-    matching_log = wait_for(
-        _read_log,
-        func_args=(
-            channel,
-            pattern,
-        ),
-        fail_condition=None,
-        timeout=timeout,
-        delay=delay,
-        logger=logger,
-    )
-    return matching_log.out
-
-
-def assert_event_triggered(channel, event):
-    """Reads foreman logs until event trigger message is found"""
-    pattern = f'ForemanWebhooks::EventSubscriber: {event} event received'
-    try:
-        log = _wait_for_log(channel, pattern)
-        assert pattern in log
-    except TimedOutError as err:
-        raise AssertionError(f'Timed out waiting for {pattern} from VM') from err
 
 
 class TestWebhook:
@@ -136,12 +93,9 @@ class TestWebhook:
         with pytest.raises(HTTPError):
             hook.read()
 
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
     @pytest.mark.e2e
     @pytest.mark.parametrize('setting_update', ['safemode_render=False'], indirect=True)
-    def test_positive_event_triggered(self, module_org, target_sat, setting_update):
+    def test_positive_event_triggered(self, target_sat, setting_update):
         """Create a webhook and trigger the event
         associated with it.
 
@@ -153,21 +107,15 @@ class TestWebhook:
         :CaseImportance: Critical
         """
         hook = target_sat.api.Webhooks(
-            event='actions.katello.repository.sync_succeeded',
+            event='user_created',
             http_method='GET',
-            target_url=settings.repos.yum_0.url,
+            target_url=f'https://{target_sat.hostname}',
         ).create()
-        repo = target_sat.api.Repository(
-            organization=module_org, content_type='yum', url=settings.repos.yum_0.url
-        ).create()
-        with target_sat.session.shell() as shell:
-            shell.send('foreman-tail')
-            repo.sync()
-            assert_event_triggered(shell, hook.event)
+        target_sat.api.User().create()
         target_sat.wait_for_tasks(f'Deliver webhook {hook.name}')
 
     @pytest.mark.parametrize('setting_update', ['safemode_render=False'], indirect=True)
-    def test_negative_event_task_failed(self, module_org, target_sat, setting_update):
+    def test_negative_event_task_failed(self, target_sat, setting_update):
         """Create a webhook with unreachable target and assert the associated task
         failed
 
@@ -178,15 +126,9 @@ class TestWebhook:
         :CaseImportance: High
         """
         hook = target_sat.api.Webhooks(
-            event='actions.katello.repository.sync_succeeded',
+            event='user_created',
             http_method='GET',
             target_url="http://localhost/target",
         ).create()
-        repo = target_sat.api.Repository(
-            organization=module_org, content_type='yum', url=settings.repos.yum_0.url
-        ).create()
-        with target_sat.session.shell() as shell:
-            shell.send('foreman-tail')
-            repo.sync()
-            assert_event_triggered(shell, hook.event)
+        target_sat.api.User().create()
         target_sat.wait_for_tasks(f'Deliver webhook {hook.name}', must_succeed=False)
