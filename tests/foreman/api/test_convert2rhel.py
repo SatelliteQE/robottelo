@@ -443,7 +443,7 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
     # wait for job to complete
     module_target_sat.wait_for_tasks(
         f'resource_type = JobInvocation and resource_id = {job["id"]}',
-        poll_timeout=2500,
+        poll_timeout=5500 if major <= 7 else 2500,
         search_rate=20,
     )
     result = module_target_sat.api.JobInvocation(id=job['id']).read()
