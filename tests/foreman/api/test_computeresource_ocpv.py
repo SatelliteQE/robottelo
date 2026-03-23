@@ -106,49 +106,14 @@ def test_positive_userdata_image_provision_end_to_end(
     :steps:
         1. Create OCP compute resource
         2. Create image for the compute resource
-        3. Create userdata provisioning template and associate with OS
-        4. Create hostgroup
-        5. Provision a host using image-based provisioning
-        6. Check if the host status is installed.
+        3. Create hostgroup
+        4. Provision a host using userdata image-based provisioning
+        5. Check if the host status is installed.
 
     :expectedresults: Host is provisioned successfully on OpenShift Virtualization
     """
     name = gen_string('alpha').lower()
     sat = module_ocpv_sat
-    os = module_ocpv_image.os
-
-    USERDATA_TEMPLATE = """\
-    #cloud-config
-    <%# Contact Foreman to confirm instance is built -%>
-    phone_home:
-      url: <%= foreman_url('built') %>
-      post: []
-      tries: 10
-    """
-
-    # Get the user_data template kind
-    template_kind = sat.api.TemplateKind().search(query={'search': 'name=user_data'})[0]
-
-    # Create custom userdata provisioning template to check host status.
-    userdata_template = sat.api.ProvisioningTemplate(
-        name=gen_string('alpha'),
-        organization=[module_org],
-        location=[module_location],
-        snippet=False,
-        template_kind=template_kind,
-        operatingsystem=[os],
-        template=USERDATA_TEMPLATE,
-    ).create()
-
-    # assign the userdata template to the os
-    os.provisioning_template.append(userdata_template)
-    os.update(['provisioning_template'])
-
-    sat.api.OSDefaultTemplate(
-        operatingsystem=os,
-        provisioning_template=userdata_template,
-        template_kind=template_kind,
-    ).create()
 
     host = sat.api.Host(
         hostgroup=module_ocpv_hostgroup,

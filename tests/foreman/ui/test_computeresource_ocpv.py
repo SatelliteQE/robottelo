@@ -10,8 +10,6 @@
 :CaseImportance: High
 """
 
-import textwrap
-
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
@@ -52,40 +50,10 @@ def test_positive_userdata_image_provision_end_to_end(
     """
     name = gen_string('alpha').lower()
     sat = module_ocpv_sat
-    os = module_ocpv_image.os
     domain_name = module_ocpv_hostgroup.domain.read().name
     host_fqdn = f'{name}.{domain_name}'
     memory = '6144'
     memory_in_gb = int(memory) / 1024
-
-    USERDATA_TEMPLATE = textwrap.dedent("""\
-    #cloud-config
-    <%# Contact Foreman to confirm instance is built -%>
-    phone_home:
-      url: <%= foreman_url('built') %>
-      post: []
-      tries: 10
-    """)
-
-    # Create userdata provisioning template via API
-    template_kind = sat.api.TemplateKind().search(query={'search': 'name=user_data'})[0]
-    userdata_template = sat.api.ProvisioningTemplate(
-        name=gen_string('alpha'),
-        organization=[module_org],
-        location=[module_location],
-        snippet=False,
-        template_kind=template_kind,
-        operatingsystem=[os],
-        template=USERDATA_TEMPLATE,
-    ).create()
-
-    os.provisioning_template.append(userdata_template)
-    os.update(['provisioning_template'])
-    sat.api.OSDefaultTemplate(
-        operatingsystem=os,
-        provisioning_template=userdata_template,
-        template_kind=template_kind,
-    ).create()
 
     with module_ocpv_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
