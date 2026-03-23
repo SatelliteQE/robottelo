@@ -12,7 +12,7 @@ repos:
     - id: check-yaml
     - id: debug-statements
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.2
+    rev: v0.15.7
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --target-version=py310]
@@ -32,7 +32,7 @@ repos:
     hooks:
       - id: gitleaks
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell
         args:
