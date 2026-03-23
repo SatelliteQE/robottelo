@@ -4253,3 +4253,60 @@ def test_positive_only_single_library_option_in_create_form(target_sat):
         create_form.host.lce.open_filter.click()
         # Check that 'Library' appears just once
         assert create_form.host.lce.filter_content.read().count('Library') == 1
+
+
+def test_positive_search_by_report_origin_shows_all_hosts(target_sat):
+    """Verify that filtering hosts by report origin displays all matching hosts,
+    not just the first one when it has more reports than the per-page limit.
+
+    Previously, searching for 'origin = Puppet' would cause the UI to show
+    only the first host if that host had more reports than the per-page limit,
+    because the backend query joined with reports producing duplicate rows.
+
+    :id: 487c164c-5332-4312-84c2-8df6ac850911
+
+    :steps:
+        1. Create two hosts via API
+        2. Insert 25 config reports (more than 20 per-page limit) with
+           origin 'Puppet' for the first host via direct SQL
+        3. Insert 2 config reports with origin 'Puppet' for the second host
+        4. Navigate to All Hosts and search for 'origin = Puppet'
+
+    :expectedresults: Both hosts appear in the search results
+
+    :Verifies: SAT-41188
+
+    :customerscenario: true
+    """
+    host1 = target_sat.api.Host().create()
+    host2 = target_sat.api.Host().create()
+    timestamp = '2025-05-16 16:16:16'
+    report_count = 25
+
+    target_sat.execute(
+        'su - postgres -c "psql -d foreman -c \\"'
+        f"INSERT INTO reports (host_id, origin, reported_at) "
+        f"SELECT {host1.id}, 'Puppet', '{timestamp}'::timestamp + (i || ' seconds')::interval "
+        f"FROM generate_series(1, {report_count}) AS i"
+        '\\""'
+    )
+    target_sat.execute(
+        'su - postgres -c "psql -d foreman -c \\"'
+        f"INSERT INTO reports (host_id, origin, reported_at) "
+        f"SELECT {host2.id}, 'Puppet', '{timestamp}'::timestamp + (i || ' seconds')::interval "
+        f"FROM generate_series(1, 2) AS i"
+        '\\""'
+    )
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.location.select(loc_name=ANY_CONTEXT['location'])
+        ui_hosts = session.all_hosts.search('origin = Puppet')
+        ui_host_names = {row['Name'] for row in ui_hosts}
+        assert host1.name in ui_host_names, (
+            f'Host {host1.name} with {report_count} reports not found in UI results'
+        )
+        assert host2.name in ui_host_names, (
+            f'Host {host2.name} not found in UI results; '
+            f'only {ui_host_names} displayed (pagination bug)'
+        )
