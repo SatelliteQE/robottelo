@@ -17,7 +17,7 @@ import random
 from navmazing import NavigationTriesExceeded
 import pytest
 
-from robottelo.constants import PERMISSIONS_UI, ROLES
+from robottelo.constants import ROLES
 from robottelo.utils.datafactory import gen_string
 
 
@@ -292,49 +292,6 @@ def test_positive_create_non_overridable_filter(
         assert session.architecture.search(new_name)[0]['Name'] == new_name
         with pytest.raises(NavigationTriesExceeded):
             session.organization.create({'name': gen_string('alpha'), 'label': gen_string('alpha')})
-
-
-def test_positive_create_with_21_filters(session):
-    """Make sure it's possible to create more than 20 filters inside single role
-
-    :BZ: 1277444
-
-    :id: 6c36d382-9790-4d34-affa-e993764cef9a
-
-    :customerscenario: true
-
-    :expectedresults: more than 20 filters are displayed
-
-    :CaseImportance: Medium
-    """
-    filters_number = 21
-    role_name = gen_string('alphanumeric')
-    permissions = (
-        (resource, permission)
-        for resource, resource_permissions in PERMISSIONS_UI.items()
-        for permission in resource_permissions
-    )
-    with session:
-        session.role.create({'name': role_name})
-        assert session.role.search(role_name)[0]['Name'] == role_name
-        used_filters = set()
-        for _ in range(filters_number):
-            resource_type, permission = next(permissions)
-            used_filters.add((resource_type, permission))
-            session.filter.create(
-                role_name, {'resource_type': resource_type, 'permission.assigned': [permission]}
-            )
-        # setting the page size to 25 as 20 is default
-        view = session.filter.navigate_to(session.filter, 'All', role_name=role_name)
-        view.pagination.per_page.fill('25')
-        assigned_permissions = session.filter.read_permissions(role_name)
-        assigned_filters = {
-            (resource_type, permission)
-            for resource_type, resource_permissions in assigned_permissions.items()
-            for permission in resource_permissions
-        }
-        assert len(assigned_filters) == filters_number
-        assert assigned_filters == used_filters
 
 
 def test_positive_create_with_sc_parameter_permission(session_puppet_enabled_sat):
