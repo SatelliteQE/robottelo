@@ -371,7 +371,7 @@ def test_host_details_page(
         assert int(result['Recommendations']) > 0
 
         # Read the recommendations in Insights tab on host details page.
-        insights_recommendations = session.host_new.get_insights(rhel_insights_vm.hostname)[
+        insights_recommendations = session.host_new.get_recommendations(rhel_insights_vm.hostname)[
             'recommendations_table'
         ]
 
@@ -383,7 +383,7 @@ def test_host_details_page(
                 assert len(insights_recommendations) == int(result['Recommendations'])
 
         # Test Recommendation button present on host details page
-        recommendations = session.host_new.get_insights(rhel_insights_vm.hostname)[
+        recommendations = session.host_new.get_recommendations(rhel_insights_vm.hostname)[
             'recommendations_table'
         ]
         assert len(recommendations), 'No recommendations were found'
