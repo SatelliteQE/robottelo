@@ -1962,6 +1962,9 @@ class Capsule(ContentHost, CapsuleMixins):
         assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
 
     def install_satellite_foremanctl(self, enable_fapolicyd=False, enable_fips=False):
+        # Add IPv6 proxy for IPv6 communication
+        self.enable_ipv6_dnf_and_rhsm_proxy()
+        self.enable_ipv6_system_proxy()
         # Enable RHEL and Satellite repos
         self.register_to_cdn()
         self.setup_rhel_repos()
