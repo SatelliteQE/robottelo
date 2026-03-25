@@ -427,7 +427,7 @@ def test_positive_oscap_run_via_ansible(
     prepare_scap_client_and_prerequisites(
         target_sat, contenthost, module_org, default_proxy, lifecycle_env
     )
-
+    # noop change
     # check smart_proxy_openscap setup (SAT-28826)
     cronline = (
         '*/30 * * * * foreman-proxy smart-proxy-openscap-send >> /var/log/foreman-proxy/cron.log'
