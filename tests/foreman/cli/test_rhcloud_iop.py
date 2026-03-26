@@ -48,7 +48,7 @@ IOP_SERVICES = [
 def test_positive_install_iop_custom_certs(
     certs_data,
     sat_ready_rhel,
-    module_sca_manifest,
+    function_sca_manifest,
     rhel_contenthost,
 ):
     """Install Satellite + IoP with custom SSL certs.
@@ -141,7 +141,7 @@ def test_positive_install_iop_custom_certs(
     assert result.status == 0, 'Not all services are running'
 
     org = satellite.api.Organization().create()
-    satellite.upload_manifest(org.id, module_sca_manifest.content)
+    satellite.upload_manifest(org.id, function_sca_manifest.content)
 
     activation_key = satellite.api.ActivationKey(
         content_view=org.default_content_view,
@@ -173,7 +173,7 @@ def test_positive_install_iop_custom_certs(
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-0')
-def test_disable_enable_iop(module_satellite_iop, module_sca_manifest, rhel_contenthost):
+def test_disable_enable_iop(module_satellite_iop, function_sca_manifest, rhel_contenthost):
     """Disable and re-enable IoP on Satellite.
 
     :id: abe165e1-a3a4-413d-b6aa-5cb51acfeb2e
@@ -196,7 +196,7 @@ def test_disable_enable_iop(module_satellite_iop, module_sca_manifest, rhel_cont
 
     # Register the Insights client
     org = satellite.api.Organization().create()
-    satellite.upload_manifest(org.id, module_sca_manifest.content)
+    satellite.upload_manifest(org.id, function_sca_manifest.content)
 
     activation_key = satellite.api.ActivationKey(
         content_view=org.default_content_view,
