@@ -85,7 +85,6 @@ def test_positive_end_to_end(session, function_sca_manifest, target_sat):
         assert len(subscriptions) >= 1
         assert any('Red Hat' in subscription['Name'] for subscription in subscriptions)
         assert int(subscriptions[0]['Entitlements']) > 0
-        assert int(subscriptions[0]['Consumed']) >= 0
         # manifest delete testing
         delete_message = session.subscription.read_delete_manifest_message()
         assert ' '.join(expected_message_lines) == delete_message
@@ -257,7 +256,6 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
         'End Date': False,
         'Requires Virt-Who': False,
         'Type': False,
-        'Consumed': False,
         'Entitlements': False,
         'Product Host Count': False,
     }
