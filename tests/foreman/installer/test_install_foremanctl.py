@@ -16,6 +16,7 @@ from broker import Broker
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import FOREMANCTL_PARAMETERS_FILE
 from robottelo.hosts import Satellite
 from robottelo.utils.issue_handlers import is_open
 
@@ -122,3 +123,45 @@ def test_positive_check_installer_hammer_ping(module_sat_ready_rhel):
     for line in result.stdout.split('\n'):
         if 'Status' in line:
             assert 'ok' in line
+
+
+@pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
+def test_foremanctl_deploy_reset_parameters(module_sat_ready_rhel):
+    """Check if foremanctl deploy --reset parameters works
+
+    :id: 661206f3-2eec-403c-af26-3c5caaaa5769
+
+    :steps:
+        1. Install Satellite with foremanctl deploy with parameters
+        2. Verify foreman_puma_workers and pulp_worker_count are set to 2
+        3. Reset foreman_puma_workers and pulp_worker_count
+        4. Verify foreman_puma_workers and pulp_worker_count are not set
+
+    :expectedresults:
+        1. foremanctl deploy with parameters runs successfully
+        2. foreman_puma_workers and pulp_worker_count are set to 2
+        3. foreman_puma_workers and pulp_worker_count are not set
+    """
+
+    assert (
+        module_sat_ready_rhel.execute(
+            'foremanctl deploy --pulp-worker-count 2 --foreman-puma-workers 2',
+            timeout='30m',
+        ).status
+        == 0
+    )
+
+    parameters_file = module_sat_ready_rhel.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert parameters_file.foreman_puma_workers == '2'
+    assert parameters_file.pulp_worker_count == '2'
+
+    assert (
+        module_sat_ready_rhel.execute(
+            'foremanctl deploy --reset-foreman-puma-workers --reset-pulp-worker-count'
+        ).status
+        == 0
+    )
+
+    parameters_file = module_sat_ready_rhel.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert 'foreman_puma_workers' not in parameters_file
+    assert 'pulp_worker_count' not in parameters_file

@@ -2496,6 +2496,8 @@ DUMMY_BOOTC_FACTS = """{
   "bootc.available.digest": null
 }"""
 
+FOREMANCTL_PARAMETERS_FILE = '/var/lib/foremanctl/parameters.yaml'
+
 
 # Data File Paths
 class DataFile(Box):
