@@ -28,7 +28,6 @@ from robottelo.constants import FAKE_4_CUSTOM_PACKAGE
 from robottelo.exceptions import CLIFactoryError
 from robottelo.utils import ohsnap
 from robottelo.utils.datafactory import filtered_datapoint, parametrized
-from robottelo.utils.issue_handlers import is_open
 
 
 @filtered_datapoint
@@ -242,6 +241,7 @@ class TestRemoteExecution:
         )
         assert 'Timeout for execution passed, trying to stop the job' in out
 
+    @pytest.mark.no_containers
     @pytest.mark.pit_client
     @pytest.mark.pit_server
     @pytest.mark.parametrize(
@@ -253,17 +253,28 @@ class TestRemoteExecution:
         ids=["sudo", "su"],
         indirect=True,
     )
-    @pytest.mark.rhel_ver_list([7, 8, 9])
-    def test_positive_run_job_effective_user(
-        self, rex_contenthost, module_target_sat, setting_update, module_org
+    @pytest.mark.parametrize(
+        'user_path',
+        ['ssh_to_effective', 'root_to_effective', 'ssh_to_root'],
+        ids=['ssh_to_effective_user', 'root_to_effective_user', 'ssh_to_root'],
+    )
+    @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
+    def test_run_job_effective_user(
+        self,
+        module_rhel_contenthost,
+        module_target_sat,
+        setting_update,
+        module_org,
+        module_ak_with_cv,
+        user_path,
     ):
-        """Run default job template as effective user on a host, test ssh user as well
+        """Run default job template as effective user on a host, test ssh user as well.
 
         :id: 0cd75cab-f699-47e6-94d3-4477d2a94bb7
 
         :BZ: 1451675, 1804685
 
-        :Verifies: SAT-22554, SAT-23229
+        :Verifies: SAT-22554, SAT-23229, SAT-39761
 
         :expectedresults: Verify the job was successfully run under the
             effective user identity on host, make sure the password is
@@ -273,91 +284,147 @@ class TestRemoteExecution:
 
         :customerscenario: true
         """
-        client = rex_contenthost
-        # create a user on client via remote job
+        client = module_rhel_contenthost
+        client.register(module_org, None, module_ak_with_cv.name, module_target_sat, force=True)
+
         ssh_username = f"sshuser_{gen_string('alpha')}"
         ssh_password = gen_string('alpha')
         username = f"effuser_{gen_string('alpha')}"
         password = gen_string('cjk')
         filename = gen_string('alpha')
+
+        setup_cmd = (
+            f"useradd {ssh_username} -G wheel; echo {ssh_username}:{ssh_password} | chpasswd; "
+            f"useradd {username} -G wheel; echo {username}:{password} | chpasswd"
+        )
         make_user_job = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': f"command=useradd {ssh_username} -G wheel; echo {ssh_username}:{ssh_password} | chpasswd; useradd {username} -G wheel; echo {username}:{password} | chpasswd",
+                'inputs': f"command={setup_cmd}",
                 'search-query': f"name ~ {client.hostname}",
                 'description-format': 'adding users',
             }
         )
         assert_job_invocation_result(module_target_sat, make_user_job['id'], client.hostname)
         client.execute('echo "Defaults targetpw" >> /etc/sudoers')
-        # create a file as new user
+
+        # Build invocation options and file path per user path
+        match user_path:
+            case 'ssh_to_effective':
+                file_path = f'/home/{username}/{filename}'
+                invocation_kwargs = {
+                    'ssh-user': ssh_username,
+                    'password': ssh_password,
+                    'effective-user': username,
+                    'effective-user-password': password,
+                }
+            case 'root_to_effective':
+                file_path = f'/home/{username}/{filename}'
+                invocation_kwargs = {
+                    'ssh-user': 'root',
+                    'password': settings.server.ssh_password,
+                    'effective-user': username,
+                    'effective-user-password': password,
+                }
+            case _:  # ssh_to_root
+                file_path = f'/root/{filename}'
+                invocation_kwargs = {
+                    'ssh-user': ssh_username,
+                    'password': ssh_password,
+                    'effective-user': 'root',
+                    'effective-user-password': settings.server.ssh_password,
+                }
+
+        # SAT-39761, handle the case with no setfacl and no root involved
+        setfacl = bool(client.run('which setfacl').stdout.strip())
+        if user_path in ('ssh_to_effective') and not setfacl:
+            with pytest.raises(CLIFactoryError):
+                module_target_sat.cli_factory.job_invocation(
+                    {
+                        'job-template': 'Run Command - Script Default',
+                        'inputs': f'command=touch {file_path}',
+                        'search-query': f"name ~ {client.hostname}",
+                        **invocation_kwargs,
+                    }
+                )
+            return
+
+        # Positive run: create a file as the effective user
         invocation_command = module_target_sat.cli_factory.job_invocation(
             {
                 'job-template': 'Run Command - Script Default',
-                'inputs': f"command=touch /home/{username}/{filename}",
+                'inputs': f'command=touch {file_path}',
                 'search-query': f"name ~ {client.hostname}",
-                'ssh-user': f'{ssh_username}',
-                'password': f'{ssh_password}',
-                'effective-user': f'{username}',
-                'effective-user-password': f'{password}',
+                **invocation_kwargs,
             }
         )
         assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
-        # check the file owner
-        result = client.execute(
-            f'''stat -c '%U' /home/{username}/{filename}''',
+        result = client.execute(f"stat -c '%U' {file_path}")
+        if user_path != 'ssh_to_root':
+            result = client.execute(f"stat -c '%G' {file_path}")
+        assert result.stdout.strip('\n') == invocation_kwargs['effective-user'], (
+            f"File {file_path} is not owned by {invocation_kwargs['effective-user']}"
         )
-        # assert the file is owned by the effective user
-        assert username == result.stdout.strip('\n')
-        result = client.execute(
-            f'''stat -c '%G' /home/{username}/{filename}''',
-        )
-        # assert the file is in the effective user's group
-        assert username == result.stdout.strip('\n')
-        # negative check for unspecified password
-        filename = gen_string('alpha')
-        with pytest.raises(CLIFactoryError):
-            invocation_command = module_target_sat.cli_factory.job_invocation(
+
+        # Negative check: unspecified effective-user-password
+        filename2 = gen_string('alpha')
+        match user_path:
+            case 'ssh_to_root':
+                file_path_neg = f'/root/{filename2}'
+                neg_kwargs = {
+                    'ssh-user': ssh_username,
+                    'password': ssh_password,
+                    'effective-user': 'root',
+                }
+            case 'ssh_to_effective':
+                file_path_neg = f'/home/{username}/{filename2}'
+                neg_kwargs = {
+                    'ssh-user': ssh_username,
+                    'password': ssh_password,
+                    'effective-user': username,
+                }
+        if user_path in ('ssh_to_effective', 'ssh_to_root'):
+            with pytest.raises(CLIFactoryError):
+                module_target_sat.cli_factory.job_invocation(
+                    {
+                        'job-template': 'Run Command - Script Default',
+                        'inputs': f'command=touch {file_path_neg}',
+                        'search-query': f"name ~ {client.hostname}",
+                        **neg_kwargs,
+                    }
+                )
+
+        # Negative check: effective user privilege (only when effective user is not root)
+        if user_path in ('ssh_to_effective', 'root_to_effective'):
+            command = 'touch /root/test'
+            with pytest.raises(CLIFactoryError) as error:
+                module_target_sat.cli_factory.job_invocation(
+                    {
+                        'job-template': 'Run Command - Script Default',
+                        'inputs': f'command={command}',
+                        'search-query': f"name ~ {client.hostname}",
+                        'ssh-user': ssh_username if user_path == 'ssh_to_effective' else 'root',
+                        'password': ssh_password if user_path == 'ssh_to_effective' else '',
+                        'effective-user': username,
+                        'effective-user-password': password,
+                    }
+                )
+            assert 'A sub task failed' in error.value.args[0]
+            task = module_target_sat.cli.Task.list_tasks({'search': command})[0]
+            search = module_target_sat.cli.Task.list_tasks({'search': f'id={task["id"]}'})
+            assert search[0]['action'] == task['action']
+            job_id = [
+                job['id']
+                for job in module_target_sat.cli.JobInvocation.list()
+                if job['description'] == f'Run {command}'
+            ][0]
+            out = module_target_sat.cli.JobInvocation.get_output(
                 {
-                    'job-template': 'Run Command - Script Default',
-                    'inputs': f"command=touch /home/{username}/{filename}",
-                    'search-query': f"name ~ {client.hostname}",
-                    'ssh-user': f'{ssh_username}',
-                    'password': f'{ssh_password}',
-                    'effective-user': f'{username}',
+                    'id': job_id,
+                    'host': client.hostname,
+                    'organization-id': module_org.id,
                 }
             )
-        # negative check for effective user privilege on client
-        command = 'touch /root/test'
-        with pytest.raises(CLIFactoryError) as error:
-            invocation_command = module_target_sat.cli_factory.job_invocation(
-                {
-                    'job-template': 'Run Command - Script Default',
-                    'inputs': f"command={command}",
-                    'search-query': f"name ~ {client.hostname}",
-                    'ssh-user': f'{ssh_username}',
-                    'password': f'{ssh_password}',
-                    'effective-user': f'{username}',
-                    'effective-user-password': f'{password}',
-                }
-            )
-        assert 'A sub task failed' in error.value.args[0]
-        task = module_target_sat.cli.Task.list_tasks({'search': command})[0]
-        search = module_target_sat.cli.Task.list_tasks({'search': f'id={task["id"]}'})
-        assert search[0]['action'] == task['action']
-        job_id = [
-            job['id']
-            for job in module_target_sat.cli.JobInvocation.list()
-            if job['description'] == f'Run {command}'
-        ][0]
-        out = module_target_sat.cli.JobInvocation.get_output(
-            {
-                'id': job_id,
-                'host': client.hostname,
-                'organization-id': module_org.id,
-            }
-        )
-        if rex_contenthost.os_version.major != 7 and is_open('SAT-30898'):
             assert 'Permission denied' in out
 
     @pytest.mark.parametrize(
@@ -878,6 +945,7 @@ class TestRemoteExecution:
 
         :expectedresults: Verify the job was successfully ran after the
             designated time
+
 
         :parametrized: yes
         """
