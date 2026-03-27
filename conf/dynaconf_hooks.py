@@ -155,6 +155,7 @@ def get_dogfood_satclient_repos(settings):
             product='client',
             release='client',
             os_release=ver,
+            snap=settings.repos.get('satclient_snap_version', ''),
         )
     return data
 
