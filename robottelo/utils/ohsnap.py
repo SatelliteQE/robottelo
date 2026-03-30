@@ -30,13 +30,9 @@ def ohsnap_repo_url(ohsnap, request_type, product, release, os_release, snap='')
             'Arguments "product", "release" and "os_release" must be provided and must not be'
             'None or empty string.'
         )
+    if snap:
+        snap = "/" + str(snap)
     if release.lower() != 'client':
-        if snap:
-            snap = "/" + str(snap) if snap else ""
-        else:
-            logger.warning(
-                'The snap version was not provided. Snap number will not be used in the URL.'
-            )
         if len(release.split('.')) == 2:
             logger.warning(
                 f'.z version component not provided in the release ({release}),'
