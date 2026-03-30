@@ -26,6 +26,8 @@ from requests.exceptions import HTTPError
 from robottelo.config import get_credentials, settings
 from robottelo.constants import (
     DEFAULT_CV,
+    DEFAULT_LOC,
+    DEFAULT_ORG,
     ENVIRONMENT,
 )
 from robottelo.utils import datafactory
@@ -590,8 +592,8 @@ def test_positive_bulk_manage_notifications(request, target_sat):
     user_password = gen_string('alphanumeric')
     user = target_sat.api.User(
         admin=True,
-        default_organization='Default Organization',
-        default_location='Default Location',
+        default_organization=DEFAULT_ORG,
+        default_location=DEFAULT_LOC,
         login=gen_string('alphanumeric'),
         password=user_password,
         mail='root@localhost',
