@@ -550,6 +550,113 @@ def test_positive_create_and_update_with_enabled_parameter(enabled, target_sat):
     assert host.enabled == (not enabled)
 
 
+def test_positive_bulk_manage_notifications(request, target_sat):
+    """Verify that the bulk manage_notifications API toggles the host enabled
+    flag and controls whether email notifications are sent for config errors.
+
+    :id: 427e5288-c210-4362-b526-4393f3fae571
+
+    :setup:
+        1. Start Postfix on Satellite for local mail delivery.
+        2. Create an admin user with email root@localhost subscribed
+           to config_error_state notification.
+        3. Create a host owned by the user with notifications disabled.
+
+    :steps:
+        1. Enable notifications for the host via bulk API.
+        2. Verify the host has enabled=True.
+        3. Submit a config report with errors via API.
+        4. Verify an email notification is received.
+        5. Disable notifications for the host via bulk API.
+        6. Verify the host has enabled=False.
+        7. Submit another config report with errors.
+        8. Verify no email notification is received.
+
+    :expectedresults:
+        1. Bulk API toggles the enabled flag.
+        2. Email is received when notifications are enabled.
+        3. No email is received when notifications are disabled.
+
+    :Verifies: SAT-38429
+    """
+    from tests.foreman.api.test_notifications import wait_for_mail
+    from tests.foreman.ui.test_host import submit_config_report_with_error
+
+    root_mailbox = '/var/spool/mail/root'
+    root_mailbox_backup = f'{root_mailbox}-{gen_string("alphanumeric")}.bak'
+
+    assert target_sat.execute('systemctl start postfix').status == 0
+
+    user_password = gen_string('alphanumeric')
+    user = target_sat.api.User(
+        admin=True,
+        default_organization='Default Organization',
+        default_location='Default Location',
+        login=gen_string('alphanumeric'),
+        password=user_password,
+        mail='root@localhost',
+    ).create()
+    request.addfinalizer(user.delete)
+    user.mail_enabled = True
+    user.update()
+
+    target_sat.cli.User.mail_notification_add(
+        {
+            'user-id': user.id,
+            'mail-notification': 'config_error_state',
+            'subscription': 'Subscribe to my hosts',
+        }
+    )
+
+    host = target_sat.api.Host(owner=user, owner_type='User', enabled=False).create()
+    request.addfinalizer(host.delete)
+
+    # Backup and purge root mailbox so only test-generated emails are present
+    target_sat.execute(f'cp -f {root_mailbox} {root_mailbox_backup}')
+    target_sat.execute(f'truncate -s 0 {root_mailbox}')
+    # Restore original mailbox content after test completes
+    request.addfinalizer(lambda: target_sat.execute(f'mv -f {root_mailbox_backup} {root_mailbox}'))
+
+    # Step 1: Enable notifications via bulk API
+    result = target_sat.api.Host().bulk_manage_notifications(
+        data={'included': {'ids': [host.id]}, 'enabled': True}
+    )
+    assert 'enabled' in result['message'].lower()
+
+    host_api = target_sat.api.Host(id=host.id).read()
+    assert host_api.enabled is True
+
+    # Step 2: Submit a config report with errors and verify email arrives
+    marker_1 = gen_string('alphanumeric')
+    submit_config_report_with_error(target_sat, user.login, user_password, host.name, marker_1)
+    wait_for_mail(target_sat, root_mailbox, marker_1)
+
+    # Purge mailbox so marker_1 email doesn't interfere with the negative check below
+    target_sat.execute(f'truncate -s 0 {root_mailbox}')
+
+    # Step 3: Disable notifications via bulk API
+    result = target_sat.api.Host().bulk_manage_notifications(
+        data={'included': {'ids': [host.id]}, 'enabled': False}
+    )
+    assert 'disabled' in result['message'].lower()
+
+    host_api = target_sat.api.Host(id=host.id).read()
+    assert host_api.enabled is False
+
+    # Step 4: Submit another config report and verify NO email arrives
+    marker_2 = gen_string('alphanumeric')
+    submit_config_report_with_error(target_sat, user.login, user_password, host.name, marker_2)
+    try:
+        wait_for_mail(target_sat, root_mailbox, marker_2, timeout=120)
+        raise AssertionError(
+            f'Email notification with marker {marker_2} was received '
+            f'even though notifications were disabled for host {host.name}'
+        )
+    except AssertionError as err:
+        if 'No e-mail' not in str(err):
+            raise
+
+
 @pytest.mark.parametrize('managed', [True, False], ids=['managed', 'unmanaged'])
 def test_positive_create_and_update_with_managed_parameter(managed, target_sat):
     """Create and update a host with managed parameter specified.
