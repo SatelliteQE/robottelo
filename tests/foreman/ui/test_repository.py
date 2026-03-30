@@ -30,6 +30,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
     SUPPORTED_REPO_CHECKSUMS,
+    SYNC_COMPLETE,
     VERSIONED_REPOS,
     DataFile,
 )
@@ -313,7 +314,7 @@ def test_positive_sync_yum_repo_and_verify_content_checksum(session, module_org,
         for sync_val in sync_values:
             if 'less than a minute ago' in sync_val['Finished']:
                 assert sync_val['Product'] == product.name
-                assert sync_val['Status'] == 'Syncing Complete.'
+                assert sync_val['Status'] == SYNC_COMPLETE
         result = session.product.verify_content_checksum([product.name])
         assert result['task']['result'] == 'success'
 
@@ -670,7 +671,7 @@ def test_positive_reposet_disable(session, target_sat, function_sca_manifest_org
             ]
         )
         assert results
-        assert all([result == 'Syncing Complete.' for result in results])
+        assert all([result == SYNC_COMPLETE for result in results])
         session.redhatrepository.disable(repository_name)
         assert not session.redhatrepository.search(
             f'name = "{repository_name}"', category='Enabled'
@@ -719,7 +720,7 @@ def test_positive_reposet_disable_after_manifest_deleted(
             ]
         )
         assert results
-        assert all([result == 'Syncing Complete.' for result in results])
+        assert all([result == SYNC_COMPLETE for result in results])
         # Delete manifest
         sub.delete_manifest(data={'organization_id': org.id})
         # Verify that the displayed repository name is correct
@@ -796,7 +797,7 @@ def test_positive_delete_rhel_repo(session, module_sca_manifest_org, target_sat)
             ]
         )
         assert results
-        assert all([result == 'Syncing Complete.' for result in results])
+        assert all([result == SYNC_COMPLETE for result in results])
         session.repository.delete(product_name, repository_name)
         assert not session.redhatrepository.search(
             f'name = "{repository_name}"', category='Enabled'
@@ -966,6 +967,10 @@ def test_sync_status_persists_after_task_delete(session, module_prod, module_org
 
     :BZ: 1924625
 
+    :Verifies: SAT-43781
+
+    :BlockedBy: SAT-43781
+
     :customerscenario: true
 
     :steps:
@@ -981,11 +986,11 @@ def test_sync_status_persists_after_task_delete(session, module_prod, module_org
     repo = target_sat.api.Repository(url=settings.repos.yum_1.url, product=module_prod).create()
     with session:
         result = session.sync_status.read()
-        result = result['table'][module_prod.name][repo.name]['RESULT']
-        assert result == 'Never Synced'
+        result = result['table'][module_prod.name][repo.name]
+        assert result == 'Never synced'
         result = session.sync_status.synchronize([(module_prod.name, repo.name)])
         assert len(result) == 1
-        assert result[0] == 'Syncing Complete.'
+        assert result[0] == SYNC_COMPLETE
         # Get the UUID of the sync task.
         search_result = target_sat.wait_for_tasks(
             search_query='label = Actions::Katello::Repository::Sync'
@@ -1010,8 +1015,8 @@ def test_sync_status_persists_after_task_delete(session, module_prod, module_org
         session.repository.read(module_prod.name, repo.name)
         # Read the status again and assert the status is still "Synced".
         result = session.sync_status.read()
-        result = result['table'][module_prod.name][repo.name]['RESULT']
-        assert 'Synced' in result
+        result = result['table'][module_prod.name][repo.name]
+        assert result == SYNC_COMPLETE
 
 
 @pytest.mark.stubbed

@@ -22,6 +22,7 @@ from robottelo.constants import (
     REPO_TYPE,
     REPOS,
     REPOSET,
+    SYNC_COMPLETE,
 )
 from robottelo.constants.repos import FEDORA_OSTREE_REPO
 
@@ -60,7 +61,7 @@ def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
         session.organization.select(org_name=module_sca_manifest_org.name)
         results = session.sync_status.synchronize(repo_paths)
         assert len(results) == len(repo_paths)
-        assert all([result == 'Syncing Complete.' for result in results])
+        assert all([result == SYNC_COMPLETE for result in results])
 
 
 @pytest.mark.upgrade
@@ -86,7 +87,7 @@ def test_positive_sync_custom_ostree_repo(session, module_custom_product, module
     with session:
         results = session.sync_status.synchronize([(module_custom_product.name, repo.name)])
         assert len(results) == 1
-        assert results[0] == 'Syncing Complete.'
+        assert results[0] == SYNC_COMPLETE
 
 
 @pytest.mark.run_in_one_thread
@@ -119,7 +120,7 @@ def test_positive_sync_rh_ostree_repo(session, target_sat, module_sca_manifest_o
         session.organization.select(org_name=module_sca_manifest_org.name)
         results = session.sync_status.synchronize([(PRDS['rhah'], REPOS['rhaht']['name'])])
         assert len(results) == 1
-        assert results[0] == 'Syncing Complete.'
+        assert results[0] == SYNC_COMPLETE
 
 
 @pytest.mark.upgrade
@@ -147,7 +148,7 @@ def test_positive_sync_docker_via_sync_status(session, module_org, module_target
         )
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
         result = session.sync_status.synchronize([(product.name, repo_name)])
-        assert result[0] == 'Syncing Complete.'
+        assert result[0] == SYNC_COMPLETE
 
 
 def test_sync_active_only(target_sat, function_sca_manifest_org):
@@ -192,9 +193,10 @@ def test_sync_active_only(target_sat, function_sca_manifest_org):
         session.organization.select(org_name=function_sca_manifest_org.name)
 
         # Ensure none of them is displayed when Active Only is selected, both otherwise.
-        res = session.sync_status.read(active_only=True)
+        res = session.sync_status.read(show_syncing_only=True)
         assert len(res['table']) == 0
-        res = session.sync_status.read(active_only=False)
+        res = session.sync_status.read(show_syncing_only=False)
+
         assert len(res['table'][prod][ver][arch]) == 2
         assert name in res['table'][prod][ver][arch]
 
@@ -202,7 +204,7 @@ def test_sync_active_only(target_sat, function_sca_manifest_org):
         res = session.sync_status.synchronize([(prod, ver, arch, name)], synchronous=False)
 
         # Ensure only the syncing repository is displayed when Active Only is selected.
-        res = session.sync_status.read(active_only=True)
+        res = session.sync_status.read(show_syncing_only=True)
         assert len(res['table'][prod][ver][arch]) == 1
         assert name in res['table'][prod][ver][arch]
 
@@ -218,7 +220,7 @@ def test_sync_active_only(target_sat, function_sca_manifest_org):
         session.browser.refresh()
 
         # Ensure none of the repos is displayed when Active Only is selected, both otherwise.
-        res = session.sync_status.read(active_only=True)
+        res = session.sync_status.read(show_syncing_only=True)
         assert len(res['table']) == 0
-        res = session.sync_status.read(active_only=False)
+        res = session.sync_status.read(show_syncing_only=False)
         assert len(res['table'][prod][ver][arch]) == 2

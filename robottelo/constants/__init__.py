@@ -219,6 +219,8 @@ ENVIRONMENT = "Library"
 
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
+SYNC_COMPLETE = 'Syncing complete'
+
 REPO_TYPE = {
     "deb": "deb",
     'yum': "yum",

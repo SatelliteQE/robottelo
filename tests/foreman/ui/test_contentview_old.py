@@ -45,6 +45,7 @@ from robottelo.constants import (
     REPO_TYPE,
     REPOS,
     REPOSET,
+    SYNC_COMPLETE,
 )
 from robottelo.utils.datafactory import gen_string
 
@@ -378,7 +379,7 @@ def test_positive_add_synced_docker_repo(session, module_target_sat, module_org,
     ).create()
     with session:
         result = session.sync_status.synchronize([(module_prod.name, repo.name)])
-        assert result[0] == 'Syncing Complete.'
+        assert result[0] == SYNC_COMPLETE
         session.contentview.add_docker_repo(content_view.name, repo.name)
         cv = session.contentview.read(content_view.name, 'docker_repositories')
         assert cv['docker_repositories']['resources']['assigned'][0]['Name'] == repo.name
