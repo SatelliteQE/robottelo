@@ -239,8 +239,7 @@ def test_negative_update_address_pool(request, options, module_target_sat):
         assert result[key] == subnet[key]
 
 
-@pytest.mark.stubbed
-def test_positive_set_parameter_option_presence():
+def test_positive_set_parameter_option_presence(module_target_sat):
     """Presence of set parameter option in command
 
     :id: f6ef75b2-6932-460c-80ba-2745244ec244
@@ -252,23 +251,14 @@ def test_positive_set_parameter_option_presence():
 
     :BZ: 1426612
     """
+    command_output = module_target_sat.cli.Subnet().execute('subnet --help')
+    assert 'set-parameter' in command_output
 
-
-@pytest.mark.stubbed
-def test_positive_create_with_parameter():
-    """Subnet with parameters can be created
-
-    :id: cf40a3f7-5a09-41aa-8b48-874a2af7057d
-
-    :steps:
-
-        1. Attempt to 'Create Subnet' with all the details
-        2. Also with parameter with single key and single value
-
-    :expectedresults: The parameter should be created in subnet
-
-    :BZ: 1426612
-    """
+    command_output = module_target_sat.cli.Subnet().execute('subnet set-parameter --help')
+    assert all(
+        opt in command_output
+        for opt in ['--subnet', '--name', '--value', '--hidden-value', '--parameter-type']
+    )
 
 
 @pytest.mark.stubbed
