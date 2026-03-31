@@ -63,7 +63,7 @@ def common_assertion(
 
     if subscription_connection_enabled:
         # Only check upload-related assertions when connection is enabled
-        upload_success_msg = 'Uploaded file moved to done/ folder'
+        upload_success_msg = 'completed'
         assert (
             'Check the Uploading tab for report uploading status'
             in inventory_data['generating']['terminal']
@@ -76,7 +76,7 @@ def common_assertion(
     else:
         # When connection disabled, just verify report was generated
         assert (
-            f'Generated /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+            f'Report saved to /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
             in inventory_data['generating']['terminal']
         )
 
