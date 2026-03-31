@@ -121,6 +121,12 @@ def common_fam_setup(satellite):
         f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
     )
 
+    # Edit katello_smart_proxy tests to not delete the Capsule
+    # https://github.com/theforeman/foreman-ansible-modules/pull/1969
+    satellite.execute(
+        f"sed -i '94,112d' {FAM_ROOT_DIR}/tests/test_playbooks/katello_smart_proxy.yml"
+    )
+
 
 @pytest.fixture(scope='module')
 def setup_fam(
