@@ -20,6 +20,8 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
+    CAPSULE_ANSWER_FILE,
+    CONTAINER_GATEWAY_SETTINGS,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FLATPAK_RHEL_RELEASE_VER,
     PULP_EXPORT_DIR,
@@ -1154,9 +1156,7 @@ def test_positive_container_gateway_db_settings(capsule_configured):
     assert 'Success!' in result.stdout, f'satellite-installer failed:\n{result.stderr}'
 
     # Verify capsule-answers.yaml
-    answers = capsule_configured.load_remote_yaml_file(
-        '/etc/foreman-installer/scenarios.d/capsule-answers.yaml'
-    )
+    answers = capsule_configured.load_remote_yaml_file(CAPSULE_ANSWER_FILE)
     fpc = answers.foreman_proxy_content
     assert fpc.container_gateway_database_max_connections == max_connections, (
         f'Expected max_connections={max_connections} in capsule-answers.yaml, '
@@ -1168,9 +1168,7 @@ def test_positive_container_gateway_db_settings(capsule_configured):
     )
 
     # Verify container_gateway.yml
-    gw = capsule_configured.load_remote_yaml_file(
-        '/etc/foreman-proxy/settings.d/container_gateway.yml'
-    )
+    gw = capsule_configured.load_remote_yaml_file(CONTAINER_GATEWAY_SETTINGS)
     assert gw[':db_max_connections'] == max_connections, (
         f'Expected :db_max_connections={max_connections} in container_gateway.yml, '
         f"got {gw.get(':db_max_connections')}"
@@ -1191,9 +1189,7 @@ def test_positive_container_gateway_db_settings(capsule_configured):
     assert 'Success!' in result.stdout, f'satellite-installer reset failed:\n{result.stderr}'
 
     # Verify the values are cleared in capsule-answers.yaml
-    answers = capsule_configured.load_remote_yaml_file(
-        '/etc/foreman-installer/scenarios.d/capsule-answers.yaml'
-    )
+    answers = capsule_configured.load_remote_yaml_file(CAPSULE_ANSWER_FILE)
     fpc = answers.foreman_proxy_content
     assert fpc.get('container_gateway_database_max_connections') is None, (
         f'Expected max_connections to be unset in capsule-answers.yaml, '
@@ -1205,9 +1201,7 @@ def test_positive_container_gateway_db_settings(capsule_configured):
     )
 
     # Verify the values are cleared in container_gateway.yml
-    gw = capsule_configured.load_remote_yaml_file(
-        '/etc/foreman-proxy/settings.d/container_gateway.yml'
-    )
+    gw = capsule_configured.load_remote_yaml_file(CONTAINER_GATEWAY_SETTINGS)
     assert gw.get(':db_max_connections') is None, (
         f'Expected :db_max_connections to be unset in container_gateway.yml, '
         f"got {gw.get(':db_max_connections')}"
