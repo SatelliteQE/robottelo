@@ -12,11 +12,15 @@
 
 """
 
+from datetime import UTC, datetime
+from urllib.parse import quote
+
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import FAKE_9_YUM_UPDATED_PACKAGES
 from robottelo.enums import NetworkType
 
 
@@ -176,3 +180,144 @@ async def test_positive_mcp_user_view_permissions(
             in result.data['message']
         )
         assert result.data['response']['error']['message'] == 'Access denied'
+
+
+@pytest.mark.asyncio
+@pytest.mark.e2e
+async def test_host_incremental_update(
+    module_target_sat_foreman_mcp,
+    function_org,
+    function_lce,
+    function_promoted_cv,
+    incupd_host,
+):
+    """Scenario to test host incremental updates through MCP
+
+    :id: 132f2200-2830-11f1-b673-183d2dca5728
+
+    :expectedresults: A host is updated incrementally through MCP server
+    """
+    async with Client(
+        transport=StreamableHttpTransport(
+            f'http://{module_target_sat_foreman_mcp.hostname}:{settings.foreman_mcp.port}/mcp',
+            headers={
+                'FOREMAN_USERNAME': settings.foreman_mcp.username,
+                'FOREMAN_TOKEN': settings.foreman_mcp.password,
+            },
+        ),
+    ) as client:
+        sat = module_target_sat_foreman_mcp
+        cv = function_promoted_cv
+        repo = sat.api.Repository(
+            product=sat.api.Product(organization=function_org).create(),
+            url=settings.repos.yum_9.url,
+        ).create()
+        repo.sync()
+        repo = repo.read()
+        cv.repository = [repo]
+        cv.update(['repository'])
+        # filter out erratum containing update for 'bear' package
+        cvf = sat.api.ErratumContentViewFilter(content_view=cv, inclusion=False).create()
+        sat.api.ContentViewFilterRule(
+            content_view_filter=cvf,
+            errata=quote(settings.repos.yum_9.errata[2]),
+        ).create()
+        # publish CV using MCP
+        result = await client.call_tool(
+            'publish_content_view',
+            {'content_view_id': cv.id},
+        )
+        assert result.data['message'] == f'Content view {cv.id} publish triggered successfully.'
+        cv = cv.read()
+        cvv = cv.version[0]
+        assert result.data['response']['input']['content_view_version_id'] == cvv.id
+        # wait for publish task to complete
+        sat.wait_for_tasks(
+            f'id = {result.data["response"]["id"]}',
+            search_rate=5,
+        )
+        # promote CV using MCP
+        result = await client.call_tool(
+            'promote_content_view_version',
+            {
+                'content_view_version_id': cvv.id,
+                'environment_ids': [function_lce.id],
+                'force': True,
+            },
+        )
+        assert (
+            result.data['message']
+            == f'Content view version {cvv.id} promotion triggered successfully.'
+        )
+        cvv = cvv.read()
+        assert function_lce.name in result.data['response']['input']['environments']
+        # wait for promote task to complete
+        sat.wait_for_tasks(
+            f'id = {result.data["response"]["id"]}',
+            search_rate=5,
+        )
+        # create CV incremental update using MCP
+        result = await client.call_tool(
+            'incremental_content_view_update',
+            {
+                'content_view_version_environments': [
+                    {'content_view_version_id': cvv.id, 'environment_ids': [function_lce.id]}
+                ],
+                'errata_ids': [settings.repos.yum_9.errata[2]],
+            },
+        )
+        assert result.data['message'] == 'Incremental content view update triggered successfully.'
+        cv = cv.read()
+        cvv_inc = cv.version[0]
+        assert result.data['response']['input']['errata_ids'] == [settings.repos.yum_9.errata[2]]
+        assert result.data['response']['input']['version_outputs'][0]['version_id'] == cvv_inc.id
+        # wait for incremental update task to complete
+        sat.wait_for_tasks(
+            f'id = {result.data["response"]["id"]}',
+            search_rate=5,
+        )
+        # enable repository on the host to have the new erratum applicable
+        repo_label = f'{function_org.label}_{repo.product.read().label}_{repo.label}'
+        repo_enable_time = (
+            datetime.now(UTC).replace(microsecond=0).strftime('%Y-%m-%d %H:%M:%S UTC')
+        )
+        cmd = incupd_host.execute(f'subscription-manager repos --enable {repo_label}')
+        assert cmd.status == 0, f'Failed to enable repository {repo_label} on host: {cmd.stderr}'
+        # wait for applicability generation for the host to complete
+        sat.wait_for_tasks(
+            f'action = "Bulk generate applicability for host {incupd_host.hostname}" '
+            f'and started_at > "{repo_enable_time}"'
+        )
+        # find applicable hosts for the erratum using MCP
+        result = await client.call_tool(
+            'call_foreman_api_get',
+            {
+                'resource': 'hosts',
+                'action': 'index',
+                'params': {'search': f'installable_errata = {settings.repos.yum_9.errata[2]}'},
+            },
+        )
+        assert result.data['message'] == "Action 'index' on resource 'hosts' executed successfully."
+        assert incupd_host.hostname in [h['name'] for h in result.data['response']['results']], (
+            'The erratum is not applicable to the host after incremental update'
+        )
+        # apply erratum by REX using MCP
+        result = await client.call_tool(
+            'trigger_remote_execution_job',
+            {
+                'feature': 'katello_errata_install',
+                'search_query': f'installable_errata = {settings.repos.yum_9.errata[2]}',
+                'inputs': {'errata': settings.repos.yum_9.errata[2]},
+            },
+        )
+        assert result.data['message'] == "Remote execution job triggered successfully."
+        # wait for remote execution task to complete
+        sat.wait_for_tasks(
+            f'id = {result.data["task_id"]}',
+            search_rate=5,
+        )
+        # verify that the erratum has been installed on the host
+        cmd = incupd_host.execute(f'rpm -q {FAKE_9_YUM_UPDATED_PACKAGES[0].split("-")[0]}')
+        assert f'{FAKE_9_YUM_UPDATED_PACKAGES[0]}' in cmd.stdout, (
+            'Failed to install the erratum on the host'
+        )

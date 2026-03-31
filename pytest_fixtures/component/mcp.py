@@ -1,12 +1,14 @@
 from datetime import datetime
 
+from broker import Broker
 from fauxfactory import gen_string
 from packaging.version import Version
 import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import PODMAN_AUTHFILE_PATH
+from robottelo.constants import FAKE_9_YUM_OUTDATED_PACKAGES, PODMAN_AUTHFILE_PATH
+from robottelo.hosts import ContentHost
 
 
 def _create_viewer_user(target_sat, org, location, permission_name):
@@ -92,8 +94,10 @@ def _setup_mcp_server(target_sat, settings_obj, container_suffix=''):
         f'podman run {network_arg} {authfile_arg} '
         f'-v /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:{ca_mountpoint}:ro,Z '
         f'--name {container_name} -d --pull=never -it -p {settings_obj.port}:8080 '
-        f'{image_name}:{tag} --foreman-url https://{target_sat.hostname} --host 0.0.0.0'
-    ).strip()
+        f'{image_name}:{tag} --foreman-url https://{target_sat.hostname} --host 0.0.0.0 '
+        f'--allowed-rex-features "katello_errata_install,katello_package_install" '
+        f'--allowed-cv-actions "publish,promote,incremental_update"'
+    )
     target_sat.execute(run_cmd)
     wait_for(
         lambda: target_sat.execute(f'curl localhost:{settings_obj.port}/mcp/').status == 0,
@@ -170,3 +174,31 @@ def domain_viewer_user(module_target_sat_foreman_mcp, module_org, module_locatio
     return _create_viewer_user(
         module_target_sat_foreman_mcp, module_org, module_location, 'view_domains'
     )
+
+
+@pytest.fixture
+def incupd_host(
+    request,
+    module_target_sat_foreman_mcp,
+    function_org,
+    function_promoted_cv,
+    function_ak_with_cv,
+):
+    with Broker(
+        host_class=ContentHost,
+        workflow='deploy-rhel',
+        deploy_network_type=settings.content_host.network_type,
+        deploy_rhel_version=settings.content_host.default_rhel_version,
+    ) as host:
+        result = host.register(
+            function_org,
+            None,
+            function_ak_with_cv.name,
+            module_target_sat_foreman_mcp,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        # install outdated 'bear' package to have something to update
+        client_pkg = f'{settings.repos.yum_9.url}/{FAKE_9_YUM_OUTDATED_PACKAGES[0]}.rpm'
+        result = host.execute(f'dnf -y install {client_pkg}')
+        assert result.status == 0, f'Failed to install package: {result.stderr}'
+        yield host
