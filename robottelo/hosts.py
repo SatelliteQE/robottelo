@@ -2044,6 +2044,11 @@ class Capsule(ContentHost, CapsuleMixins):
         cmd = f'{base_cmd} -c "{query}"'
         return _execute_db_query(cmd).stdout
 
+    def load_remote_yaml_file(self, file_path):
+        """Load a remote yaml file and return a Box object"""
+        data = self.session.sftp_read(file_path, return_data=True)
+        return Box(yaml.load(data, yaml.FullLoader))
+
 
 class Satellite(Capsule, SatelliteMixins):
     product_rpm_name = 'satellite'
@@ -2335,11 +2340,6 @@ class Satellite(Capsule, SatelliteMixins):
         )
         install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
         return cert_file_path, result, install_cmd
-
-    def load_remote_yaml_file(self, file_path):
-        """Load a remote yaml file and return a Box object"""
-        data = self.session.sftp_read(file_path, return_data=True)
-        return Box(yaml.load(data, yaml.FullLoader))
 
     def __enter__(self):
         """Satellite objects can be used as a context manager to temporarily force everything

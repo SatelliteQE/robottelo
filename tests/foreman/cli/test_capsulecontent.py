@@ -28,6 +28,7 @@ from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.content_info import get_repo_files_urls_by_url
 from robottelo.exceptions import CLIFactoryError
 from robottelo.utils.datafactory import gen_string
+from robottelo.utils.installer import InstallerCommand
 
 
 @pytest.fixture(scope='module')
@@ -1112,3 +1113,106 @@ def test_sync_consume_flatpak_repo_via_cv(
         assert 'A sub task failed' in error.value.args[0]
         res = host.execute('flatpak list')
         assert cv2_app not in res.stdout
+
+
+def test_positive_container_gateway_db_settings(capsule_configured):
+    """Verify container gateway database settings are configurable via satellite-installer
+    and reflected in both capsule-answers.yaml and container_gateway.yml.
+
+    :id: 5cf7bfaa-a144-4d30-9505-94303487631d
+
+    :steps:
+        1. Run satellite-installer on the capsule with custom values for
+           --foreman-proxy-content-container-gateway-database-max-connections and
+           --foreman-proxy-content-container-gateway-database-pool-timeout.
+        2. Read /etc/foreman-installer/scenarios.d/capsule-answers.yaml on the capsule.
+        3. Read /etc/foreman-proxy/settings.d/container_gateway.yml on the capsule.
+        4. Run satellite-installer with the corresponding --reset-* flags to clear the values.
+        5. Read both files again.
+
+    :expectedresults:
+        1. satellite-installer completes successfully.
+        2. capsule-answers.yaml reflects the configured max_connections and pool_timeout
+           under foreman_proxy_content.
+        3. container_gateway.yml reflects the configured values as :db_max_connections
+           and :db_pool_timeout.
+        4. satellite-installer reset completes successfully.
+        5. Both keys are absent (UNDEF) in capsule-answers.yaml and container_gateway.yml.
+
+    :Verifies: SAT-39480
+
+    :customerscenario: True
+    """
+    max_connections = random.randint(5, 100)
+    pool_timeout = random.randint(10, 500)
+
+    installer_cmd = InstallerCommand(
+        foreman_proxy_content_container_gateway_database_max_connections=max_connections,
+        foreman_proxy_content_container_gateway_database_pool_timeout=pool_timeout,
+    )
+    result = capsule_configured.execute(installer_cmd.get_command(), timeout='20m')
+    assert 'Success!' in result.stdout, f'satellite-installer failed:\n{result.stderr}'
+
+    # Verify capsule-answers.yaml
+    answers = capsule_configured.load_remote_yaml_file(
+        '/etc/foreman-installer/scenarios.d/capsule-answers.yaml'
+    )
+    fpc = answers.foreman_proxy_content
+    assert fpc.container_gateway_database_max_connections == max_connections, (
+        f'Expected max_connections={max_connections} in capsule-answers.yaml, '
+        f'got {fpc.container_gateway_database_max_connections}'
+    )
+    assert fpc.container_gateway_database_pool_timeout == pool_timeout, (
+        f'Expected pool_timeout={pool_timeout} in capsule-answers.yaml, '
+        f'got {fpc.container_gateway_database_pool_timeout}'
+    )
+
+    # Verify container_gateway.yml
+    gw = capsule_configured.load_remote_yaml_file(
+        '/etc/foreman-proxy/settings.d/container_gateway.yml'
+    )
+    assert gw[':db_max_connections'] == max_connections, (
+        f'Expected :db_max_connections={max_connections} in container_gateway.yml, '
+        f"got {gw.get(':db_max_connections')}"
+    )
+    assert gw[':db_pool_timeout'] == pool_timeout, (
+        f'Expected :db_pool_timeout={pool_timeout} in container_gateway.yml, '
+        f"got {gw.get(':db_pool_timeout')}"
+    )
+
+    # Reset both settings to their defaults
+    reset_cmd = InstallerCommand(
+        installer_args=[
+            'reset-foreman-proxy-content-container-gateway-database-max-connections',
+            'reset-foreman-proxy-content-container-gateway-database-pool-timeout',
+        ]
+    )
+    result = capsule_configured.execute(reset_cmd.get_command(), timeout='20m')
+    assert 'Success!' in result.stdout, f'satellite-installer reset failed:\n{result.stderr}'
+
+    # Verify the values are cleared in capsule-answers.yaml
+    answers = capsule_configured.load_remote_yaml_file(
+        '/etc/foreman-installer/scenarios.d/capsule-answers.yaml'
+    )
+    fpc = answers.foreman_proxy_content
+    assert fpc.get('container_gateway_database_max_connections') is None, (
+        f'Expected max_connections to be unset in capsule-answers.yaml, '
+        f"got {fpc.get('container_gateway_database_max_connections')}"
+    )
+    assert fpc.get('container_gateway_database_pool_timeout') is None, (
+        f'Expected pool_timeout to be unset in capsule-answers.yaml, '
+        f"got {fpc.get('container_gateway_database_pool_timeout')}"
+    )
+
+    # Verify the values are cleared in container_gateway.yml
+    gw = capsule_configured.load_remote_yaml_file(
+        '/etc/foreman-proxy/settings.d/container_gateway.yml'
+    )
+    assert gw.get(':db_max_connections') is None, (
+        f'Expected :db_max_connections to be unset in container_gateway.yml, '
+        f"got {gw.get(':db_max_connections')}"
+    )
+    assert gw.get(':db_pool_timeout') is None, (
+        f'Expected :db_pool_timeout to be unset in container_gateway.yml, '
+        f"got {gw.get(':db_pool_timeout')}"
+    )
