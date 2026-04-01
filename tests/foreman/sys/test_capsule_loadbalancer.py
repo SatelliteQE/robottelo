@@ -248,6 +248,7 @@ def test_loadbalancer_install_package(
 
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.parametrize('cert_login', [False, True], ids=['podman_login', 'cert_login'])
 def test_loadbalancer_container(
     setup_haproxy,
     setup_capsules,
@@ -256,18 +257,21 @@ def test_loadbalancer_container(
     module_location,
     rhel_contenthost,
     request,
+    cert_login,
 ):
     """Search and pull container images on a content host regardless the capsule availability
 
     :id: 99539bc0-3dd2-49ab-9a43-9cb5cfd9fdce
 
+    :parametrized: yes
+
     :steps:
         1. Register a host via setup AK and install podman.
-        2. Podman login to the load balancer.
+        2. Authenticate to the load balancer (podman login or cert-based).
         3. Try to search and pull container image when only one of the Capsules is running.
 
     :expectedresults:
-        1. Content host can podman login to the load balancer.
+        1. Content host can authenticate to the load balancer.
         2. Content host can search and pull a container image from any available Capsule.
 
     """
@@ -278,25 +282,35 @@ def test_loadbalancer_container(
         activation_keys=content_for_client['client_ak'].name,
         target=setup_capsules[0],
         force=True,
+        setup_container_certs=cert_login,
     )
     assert result.status == 0, f'Failed to register host: {result.stderr}'
     result = rhel_contenthost.execute('yum install -y podman')
     assert result.status == 0
 
-    # Podman login to the load balancer.
-    assert (
-        rhel_contenthost.execute(
-            f'podman login -u {settings.server.admin_username} '
-            f'-p {settings.server.admin_password} {setup_haproxy.hostname}'
-        ).status
-        == 0
-    )
+    # Authenticate to the load balancer (podman login or cert-based).
+    if cert_login:
+        # Certs are already copied during registration with setup_container_certs=True
+        @request.addfinalizer
+        def _finalize():
+            rhel_contenthost.reset_podman_cert_auth(setup_capsules[0])
+            for capsule in setup_capsules:
+                capsule.power_control(state=VmState.RUNNING, ensure=True)
 
-    @request.addfinalizer
-    def _finalize():
-        rhel_contenthost.execute(f'podman logout {setup_haproxy.hostname}')
-        for capsule in setup_capsules:
-            capsule.power_control(state=VmState.RUNNING, ensure=True)
+    else:
+        assert (
+            rhel_contenthost.execute(
+                f'podman login -u {settings.server.admin_username} '
+                f'-p {settings.server.admin_password} {setup_haproxy.hostname}'
+            ).status
+            == 0
+        )
+
+        @request.addfinalizer
+        def _finalize():
+            rhel_contenthost.execute(f'podman logout {setup_haproxy.hostname}')
+            for capsule in setup_capsules:
+                capsule.power_control(state=VmState.RUNNING, ensure=True)
 
     # Try to search and pull container image when only one of the Capsules is running.
     container_path = content_for_client['container_path']
