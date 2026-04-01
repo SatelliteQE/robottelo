@@ -343,6 +343,8 @@ RECOMMENDED_REPOS = [
     'rhel-10-for-x86_64-appstream-rpms',
     'rhel-10-for-x86_64-baseos-eus-rpms',
     'rhel-10-for-x86_64-appstream-eus-rpms',
+    'rhel-10-for-x86_64-extensions-rpms',
+    'rhel-10-for-aarch64-extensions-rpms',
     'rhel-9-for-x86_64-baseos-rpms',
     'rhel-9-for-x86_64-appstream-rpms',
     'rhel-9-for-x86_64-baseos-eus-rpms',
@@ -354,6 +356,9 @@ RECOMMENDED_REPOS = [
     'satellite-client-6-for-rhel-10-x86_64-rpms',
     'satellite-client-6-for-rhel-9-x86_64-rpms',
     'satellite-client-6-for-rhel-8-x86_64-rpms',
+    'rhel-7-server-els-rpms',
+    'rhel-7-server-els-optional-rpms',
+    'rhel-7-server-els-satellite-client-6-rpms',
 ]
 RECOMMENDED_KICKSTART_REPOS = [
     'rhel-10-for-x86_64-appstream-kickstart',
