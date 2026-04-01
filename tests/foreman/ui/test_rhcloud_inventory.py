@@ -19,6 +19,7 @@ import tempfile
 import pytest
 from wait_for import wait_for
 
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.io import (
     get_local_file_data,
@@ -701,3 +702,177 @@ def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, m
         )
         assert task_output[0].output['host_statuses']['sync'] == 2
         assert task_output[0].output['host_statuses']['disconnect'] == 0
+
+
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+def test_positive_inventory_sync_check_host_status_categories(
+    request,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+    rhcloud_activation_key,
+    rhel_contenthost,
+    module_target_sat,
+):
+    """Verify that syncing inventory status via the UI correctly classifies
+    hosts into synced, disconnected, and user_omitted categories.
+
+    :id: 9c3d3737-0a79-4665-83b2-d12b5a566054
+
+    :setup:
+        1. Register 2 hosts to Satellite with insights enabled (synced with HBI).
+        2. Register a 3rd host to the org without uploading it to HBI.
+
+    :steps:
+        1. Set "host_registration_insights_inventory" to false on host1.
+        2. Set "host_registration_insights" to false on host1.
+        3. Force a subscription-manager facts update on host1 to refresh
+           InsightsClientReportStatus.
+        4. Click 'Sync all inventory status' from Inventory upload page.
+        5. Wait for the InventoryFullSync task to complete.
+        6. Verify the toast notification contains correct status counts.
+        7. Verify the task output host_statuses counts.
+        8. Search hosts by "insights_inventory_sync_status" scoped search
+           and verify correct host appears for each status.
+        9. Search hosts by "insights_client_report_status = user_omitted"
+           and verify host1 appears.
+
+    :expectedresults:
+        1. Toast notification shows 3 registered, 1 synced, 1 disconnected,
+           1 user_omitted.
+        2. host_statuses contains sync=1, disconnect=1, user_omitted=1.
+        3. Scoped search "insights_inventory_sync_status = user_omitted"
+           returns only host1.
+        4. Scoped search "insights_inventory_sync_status = sync"
+           returns only host2.
+        5. Scoped search "insights_inventory_sync_status = disconnect"
+           returns only the 3rd host (not in HBI).
+        6. Scoped search "insights_client_report_status = user_omitted"
+           returns host1.
+
+    :Verifies: SAT-35240
+    """
+    org = rhcloud_manifest_org
+    host1, host2 = rhcloud_registered_hosts
+    inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
+
+    # Register a 3rd host without uploading to HBI (will be "disconnected")
+    rhel_contenthost.register(org, None, rhcloud_activation_key.name, module_target_sat)
+    assert rhel_contenthost.subscribed
+
+    # Set "host_registration_insights_inventory" to false on host1
+    omitted_host = module_target_sat.api.Host().search(query={'search': host1.hostname})[0]
+    inventory_param = module_target_sat.api.Parameter(
+        host=omitted_host.id,
+        name='host_registration_insights_inventory',
+        value='false',
+        parameter_type='boolean',
+    ).create()
+
+    # Set "host_registration_insights" to false on host1
+    host_detail = omitted_host.read()
+    insights_param = next(
+        p for p in host_detail.all_parameters if p['name'] == 'host_registration_insights'
+    )
+    original_insights_value = insights_param['value']
+    insights_param_entity = module_target_sat.api.Parameter(
+        host=omitted_host.id, id=insights_param['id']
+    )
+    insights_param_entity.value = 'false'
+    insights_param_entity.update(['value'])
+
+    @request.addfinalizer
+    def _cleanup():
+        inventory_param.delete()
+        insights_param_entity.value = original_insights_value
+        insights_param_entity.update(['value'])
+
+    # Force subscription-manager facts update to refresh InsightsClientReportStatus
+    result = host1.execute('subscription-manager facts --update')
+    assert result.status == 0, f'Failed to update facts on {host1.hostname}: {result.stderr}'
+
+    # Trigger "Sync all inventory status" from the Inventory upload page
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.cloudinventory.sync_inventory_status()
+        wait_for(
+            lambda: (
+                module_target_sat.api.ForemanTask()
+                .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[
+                    0
+                ]
+                .result
+                == 'success'
+            ),
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        view = session.cloudinventory.navigate_to(session.cloudinventory, 'All')
+
+        def _get_results_toast():
+            try:
+                if not view.flash.is_displayed:
+                    return None
+                for msg in view.flash.read():
+                    if 'Registered hosts in organization' in msg:
+                        return msg
+            except Exception:
+                pass
+            return None
+
+        # Verify the toast notification contains correct status counts
+        toast_text, _ = wait_for(_get_results_toast, timeout=60, delay=5, fail_condition=None)
+        assert 'Registered hosts in organization' in toast_text
+        assert 'Uploaded and present on console.redhat.com Inventory service: 1' in toast_text
+        assert 'Not present on console.redhat.com Inventory service: 1' in toast_text
+        assert 'host_registration_insights_inventory parameter value is false: 1' in toast_text
+        view.flash.dismiss()
+
+        # Verify scoped search: user_omitted returns only host1
+        omitted_results = session.all_hosts.search('insights_inventory_sync_status = user_omitted')
+        omitted_names = [row['Name'] for row in omitted_results]
+        assert host1.hostname in omitted_names, (
+            f'{host1.hostname} not in user_omitted search results: {omitted_names}'
+        )
+        assert len(omitted_results) == 1
+
+        # Verify scoped search: sync returns only host2
+        synced_results = session.all_hosts.search('insights_inventory_sync_status = sync')
+        synced_names = [row['Name'] for row in synced_results]
+        assert host2.hostname in synced_names, (
+            f'{host2.hostname} not in synced search results: {synced_names}'
+        )
+        assert len(synced_results) == 1
+
+        # Verify scoped search: disconnect returns only the 3rd host (not in HBI)
+        disconnected_results = session.all_hosts.search(
+            'insights_inventory_sync_status = disconnect'
+        )
+        disconnected_names = [row['Name'] for row in disconnected_results]
+        assert rhel_contenthost.hostname in disconnected_names, (
+            f'{rhel_contenthost.hostname} not in disconnected results: {disconnected_names}'
+        )
+        assert len(disconnected_results) == 1
+
+        # Verify scoped search: insights_client_report_status = user_omitted returns host1
+        insights_omitted = session.all_hosts.search('insights_client_report_status = user_omitted')
+        insights_omitted_names = [row['Name'] for row in insights_omitted]
+        assert host1.hostname in insights_omitted_names, (
+            f'{host1.hostname} not in insights user_omitted results: {insights_omitted_names}'
+        )
+
+    # Verify the task output host_statuses counts
+    task_output = module_target_sat.api.ForemanTask().search(
+        query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
+    )
+    host_statuses = task_output[0].output['host_statuses']
+    assert host_statuses['sync'] == 1, f'Expected 1 synced host, got {host_statuses["sync"]}'
+    assert host_statuses['user_omitted'] == 1, (
+        f'Expected 1 user_omitted host, got {host_statuses["user_omitted"]}'
+    )
+    assert host_statuses['disconnect'] == 1, (
+        f'Expected 1 disconnected host, got {host_statuses["disconnect"]}'
+    )
