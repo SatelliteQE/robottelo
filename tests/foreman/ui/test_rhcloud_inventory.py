@@ -810,26 +810,11 @@ def test_positive_inventory_sync_check_host_status_categories(
             silent_failure=True,
             handle_exception=True,
         )
-        view = session.cloudinventory.navigate_to(session.cloudinventory, 'All')
-
-        def _get_results_toast():
-            try:
-                if not view.flash.is_displayed:
-                    return None
-                for msg in view.flash.read():
-                    if 'Registered hosts in organization' in msg:
-                        return msg
-            except Exception:
-                pass
-            return None
-
         # Verify the toast notification contains correct status counts
-        toast_text, _ = wait_for(_get_results_toast, timeout=60, delay=5, fail_condition=None)
-        assert 'Registered hosts in organization' in toast_text
+        toast_text = session.cloudinventory.read_sync_status_toast()
         assert 'Uploaded and present on console.redhat.com Inventory service: 1' in toast_text
         assert 'Not present on console.redhat.com Inventory service: 1' in toast_text
         assert 'host_registration_insights_inventory parameter value is false: 1' in toast_text
-        view.flash.dismiss()
 
         # Verify scoped search: user_omitted returns only host1
         omitted_results = session.all_hosts.search('insights_inventory_sync_status = user_omitted')
