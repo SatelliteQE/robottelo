@@ -18,7 +18,19 @@ from robottelo.config import settings
 from robottelo.constants import CONTENT_CREDENTIALS_TYPES, DataFile
 from robottelo.utils.datafactory import gen_string
 
-empty_message = "You currently don't have any Products associated with this Content Credential."
+empty_message = 'This content credential is not currently being used by any products.'
+
+
+@pytest.fixture(scope='module', autouse=True)
+def enable_lab_features(module_target_sat):
+    """Enable lab features setting for the duration of the module.
+
+    The Content Credentials React page lives under /labs until fully promoted.
+    TODO: Remove this fixture once the page is moved out of /labs.
+    """
+    original = module_target_sat.update_setting('lab_features', True)
+    yield
+    module_target_sat.update_setting('lab_features', original)
 
 
 @pytest.fixture(scope='module')
@@ -33,12 +45,17 @@ def gpg_path():
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
+@pytest.mark.stubbed
 def test_positive_end_to_end(session, target_sat, module_org, gpg_content):
     """Perform end to end testing for gpg key component
 
     :id: d1a8cc1b-a072-465b-887d-5bca0acd21c3
 
     :expectedresults: All expected CRUD actions finished successfully
+
+    :CaseAutomation: NotAutomated
+
+    Note: create() is not yet implemented in the React UI.
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -80,6 +97,7 @@ def test_positive_end_to_end(session, target_sat, module_org, gpg_content):
         assert session.contentcredential.search(new_name)[0]['Name'] != new_name
 
 
+@pytest.mark.stubbed
 def test_positive_search_scoped(session, target_sat, gpg_content, module_org):
     """Search for gpgkey by organization id parameter
 
@@ -90,6 +108,10 @@ def test_positive_search_scoped(session, target_sat, gpg_content, module_org):
     :expectedresults: correct gpg key is found
 
     :BZ: 1259374
+
+    :CaseAutomation: NotAutomated
+
+    Note: create() is not yet implemented in the React UI.
     """
     name = gen_string('alpha')
     with session:
@@ -145,7 +167,7 @@ def test_positive_add_product_with_repo(session, target_sat, module_org, gpg_con
     repo = target_sat.api.Repository(url=settings.repos.yum_1.url, product=product).create()
     with session:
         values = session.contentcredential.read(name)
-        assert values['products']['table'][0]['Name'] == empty_message
+        assert values['products']['empty_state'] == empty_message
         # Associate gpg key with a product
         session.product.update(product.name, {'details.gpg_key': gpg_key.name})
         values = session.contentcredential.read(name)
@@ -204,11 +226,11 @@ def test_positive_add_repo_from_product_with_repo(session, target_sat, module_or
     repo = target_sat.api.Repository(url=settings.repos.yum_1.url, product=product).create()
     with session:
         values = session.contentcredential.read(name)
-        assert values['products']['table'][0]['Name'] == empty_message
+        assert values['products']['empty_state'] == empty_message
         # Associate gpg key with repository
         session.repository.update(product.name, repo.name, {'repo_content.gpg_key': gpg_key.name})
         values = session.contentcredential.read(name)
-        assert values['products']['table'][0]['Name'] == empty_message
+        assert values['products']['empty_state'] == empty_message
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo.name
         assert values['repositories']['table'][0]['Product'] == product.name
@@ -238,7 +260,7 @@ def test_positive_add_repo_from_product_with_repos(session, target_sat, module_o
     target_sat.api.Repository(url=settings.repos.yum_2.url, product=product).create()
     with session:
         values = session.contentcredential.read(name)
-        assert values['products']['table'][0]['Name'] == empty_message
+        assert values['products']['empty_state'] == empty_message
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo1.name
 
@@ -281,6 +303,7 @@ def test_positive_add_product_and_search(session, target_sat, module_org, gpg_co
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
+@pytest.mark.stubbed
 def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path):
     """Create gpg key with valid name and valid content then associate it with custom product
     using Repo discovery method then update the key
@@ -291,6 +314,10 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
         repository before/after update
 
     :BZ: 1210180, 1461804
+
+    :CaseAutomation: NotAutomated
+
+    Note: create() is not yet implemented in the React UI.
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
@@ -449,7 +476,7 @@ def test_positive_update_key_for_repo_from_product_with_repo(
         session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
         # Assert that after update GPGKey is not associated with product
-        assert values['products']['table'][0]['Name'] == empty_message
+        assert values['products']['empty_state'] == empty_message
         # Assert that after update GPGKey is still associated
         # with repository
         assert len(values['repositories']['table']) == 1
@@ -486,6 +513,6 @@ def test_positive_update_key_for_repo_from_product_with_repos(
     with session:
         session.contentcredential.update(name, {'details.name': new_name})
         values = session.contentcredential.read(new_name)
-        assert values['products']['table'][0]['Name'] == empty_message
+        assert values['products']['empty_state'] == empty_message
         assert len(values['repositories']['table']) == 1
         assert values['repositories']['table'][0]['Name'] == repo1.name
