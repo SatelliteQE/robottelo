@@ -399,16 +399,34 @@ def test_positive_generate_reports_job_cli(
     :steps:
         1. Execute hammer insights inventory generate-report.
 
-    :expectedresults: Reports generation works as expected.
+    :expectedresults: Report generation succeeds and report is uploaded to done/ folder.
 
-    :BlockedBy: SAT-38836
+    :Verifies: SAT-38836
     """
     org = rhcloud_manifest_org
+
+    # Clean up any existing reports for this organization to ensure clean state
+    module_target_sat.execute(
+        f'rm -f /var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
+    )
+    module_target_sat.execute(
+        f'rm -f /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+    )
+
     generate_report(org, module_target_sat, disconnected=False)
 
-    result = module_target_sat.api.Organization(id=org.id).rh_cloud_fetch_last_upload_log()
-    expected = 'Connected to cert.cloud.redhat.com'
-    assert expected in result['output']
+    # Verify report was uploaded by checking it exists in the done/ folder
+    remote_report_path = (
+        f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
+    )
+    result = module_target_sat.execute(f'test -f {remote_report_path} && echo "exists"')
+    assert result.status == 0, (
+        f"Report check command failed with status {result.status}: {result.stderr}"
+    )
+    assert 'exists' in result.stdout, (
+        f"Report file does not exist at {remote_report_path}. "
+        f"This indicates the report was not uploaded successfully."
+    )
 
 
 def test_positive_generate_reports_job_cli_disconnected(
@@ -416,23 +434,52 @@ def test_positive_generate_reports_job_cli_disconnected(
     module_target_sat,
     rhcloud_registered_hosts,
 ):
-    """Generate reports job via cli:
+    """Generate reports job via cli with --no-upload flag:
 
     :id: 7540edce-1d4e-4a67-adb6-116729e9bfeb
 
     :steps:
-        1. Execute hammer insights inventory generate-report.
+        1. Execute hammer insights inventory generate-report with --no-upload flag.
 
-    :expectedresults: Reports generation works as expected.
+    :expectedresults: Report is generated but not uploaded (stays in generated_reports/).
 
-    :BlockedBy: SAT-38836
+    :Verifies: SAT-38836
     """
     org = rhcloud_manifest_org
+
+    # Clean up any existing reports for this organization to ensure clean state
+    module_target_sat.execute(
+        f'rm -f /var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
+    )
+    module_target_sat.execute(
+        f'rm -f /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+    )
+
     generate_report(org, module_target_sat, disconnected=True)
 
-    result = module_target_sat.api.Organization(id=org.id).rh_cloud_fetch_last_upload_log()
-    expected = 'Upload canceled because connection to Insights is not enabled or the --no-upload option was passed.'
-    assert expected == result['output']
+    # Verify report was NOT uploaded by checking it's in generated_reports/, not done/
+    generated_reports_dir = '/var/lib/foreman/red_hat_inventory/generated_reports'
+    done_dir = '/var/lib/foreman/red_hat_inventory/uploads/done'
+
+    # Check report exists in generated_reports/
+    result = module_target_sat.execute(
+        f'find {generated_reports_dir} -name "report_for_{org.id}.tar.xz" -type f'
+    )
+    assert result.status == 0, (
+        f"Failed to search for report in {generated_reports_dir}: {result.stderr}"
+    )
+    assert f'report_for_{org.id}.tar.xz' in result.stdout, (
+        f"Report not found in {generated_reports_dir}. "
+        f"This indicates the report was not generated with --no-upload."
+    )
+
+    # Verify report does NOT exist in done/ folder
+    result = module_target_sat.execute(
+        f'test -f {done_dir}/report_for_{org.id}.tar.xz && echo "exists" || echo "not found"'
+    )
+    assert 'not found' in result.stdout, (
+        f"Report should not be in {done_dir} when using --no-upload flag"
+    )
 
 
 @pytest.mark.rhel_ver_match('N-2')
