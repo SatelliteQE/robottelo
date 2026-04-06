@@ -552,7 +552,7 @@ def test_positive_sync_custom_repo_username_only_no_password(target_sat, module_
     Pulp/Satellite must allow synchronizing a custom repository whose upstream uses HTTP basic auth
     with a non-empty username and an empty password.
 
-    :id: c3equt2a-8bnf-0e2t-9ofa-5fue1d8blagc
+    :id: 96005f4f-82f7-4a78-8ec7-a25d92831297
 
     :customerscenario: true
 
