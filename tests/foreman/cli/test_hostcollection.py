@@ -283,6 +283,7 @@ def test_positive_copy_by_id(module_org, module_target_sat):
 
 
 @pytest.mark.upgrade
+@pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_register_host_ak_with_host_collection(
     module_org, module_ak_with_cv, target_sat, rhel_contenthost
