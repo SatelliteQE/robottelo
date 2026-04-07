@@ -25,7 +25,7 @@ from robottelo.utils.datafactory import filtered_datapoint, gen_string
 @filtered_datapoint
 def invalid_settings_values():
     """Returns a list of invalid settings values"""
-    return [' ', '-1', 'text', '0']
+    return ['', '-1', 'text', '0']
 
 
 def add_content_views_to_composite(composite_cv, org, repo, module_target_sat):
@@ -135,11 +135,11 @@ def test_negative_validate_unattended_url_error_message(session, setting_update)
     """
     property_name = setting_update.name
     with session:
-        invalid_value = [invalid_value for invalid_value in invalid_settings_values()][0]
-        err_msg = "Validation errors present on page, displayed messages: ['Invalid value']"
-        with pytest.raises(AssertionError) as context:
-            session.settings.update(f'name = {property_name}', invalid_value)
-        assert err_msg in str(context.value)
+        err_msg = 'URL must be valid and schema must be one of http and https'
+        for invalid_value in invalid_settings_values():
+            with pytest.raises(AssertionError) as context:
+                session.settings.update(f'name = {property_name}', invalid_value)
+            assert err_msg in str(context.value)
 
 
 @pytest.mark.parametrize('setting_update', ['host_dmi_uuid_duplicates'], indirect=True)
