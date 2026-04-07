@@ -310,6 +310,8 @@ class TestProvisioningTemplate:
 
         :customerscenario: true
 
+        :Verifies: SAT-28296
+
         :parametrized: yes
         """
         macaddress = gen_mac(multicast=False)
@@ -354,6 +356,9 @@ class TestProvisioningTemplate:
 
         provision_template = host.read_template(data={'template_kind': 'provision'})['template']
         assert f'interfacename=vlan{tag}' in provision_template
+        assert 'noipv4' in provision_template
+        assert 'noipv6' in provision_template
+        assert 'onboot=false' in provision_template
         ipxe_template = host.read_template(data={'template_kind': 'iPXE'})['template']
         assert f'vlan={identifier}.{tag}:{identifier}' in ipxe_template
 
