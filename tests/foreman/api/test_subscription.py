@@ -314,7 +314,8 @@ def test_positive_candlepin_events_processed_by_stomp(
     assert parse(post_candlepin_events)['Failed'] == 0
 
 
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.no_containers
 def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel_contenthost, target_sat):
     """Verify that a content host with an expired SCA cert can
         re-register successfully
