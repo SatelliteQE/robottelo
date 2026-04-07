@@ -16,6 +16,7 @@ import random
 
 from navmazing import NavigationTriesExceeded
 import pytest
+from wait_for import wait_for
 
 from robottelo.constants import PERMISSIONS_UI, ROLES
 from robottelo.utils.datafactory import gen_string
@@ -359,8 +360,12 @@ def test_positive_create_with_sc_parameter_permission(session_puppet_enabled_sat
         session.filter.create(
             role_name, {'resource_type': resource_type, 'permission.assigned': permissions}
         )
-        values = session.filter.search(role_name, 'ForemanPuppet::PuppetclassLookupKey')
-        assert values
+        values, _ = wait_for(
+            lambda: session.filter.search(role_name, 'ForemanPuppet::PuppetclassLookupKey'),
+            timeout=10,
+            delay=1,
+            handle_exception=True,
+        )
         assert values[0]['Resource'] == resource_type
         assigned_permissions = values[0]['Permissions'].split(', ')
         assert set(assigned_permissions) == set(permissions)
