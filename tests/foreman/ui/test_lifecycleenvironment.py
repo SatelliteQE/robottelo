@@ -14,6 +14,7 @@
 
 from navmazing import NavigationTriesExceeded
 import pytest
+from widgetastic_patternfly4.navigation import NavSelectionNotFound
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -295,7 +296,7 @@ def test_positive_custom_user_view_lce(session, test_name, target_sat):
     with target_sat.ui_session(test_name, user_login, user_password) as non_admin_session:
         # to ensure that the created user has only the assigned
         # permissions, check that hosts menu tab does not exist
-        with pytest.raises(NavigationTriesExceeded):
+        with pytest.raises((NavigationTriesExceeded, NavSelectionNotFound)):
             assert not non_admin_session.host.read_all()
         # assert that the user can view the lvce created by admin user
         lce_values = non_admin_session.lifecycleenvironment.read_all()
