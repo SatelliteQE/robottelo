@@ -624,6 +624,8 @@ class TestPodman:
             'dnf install -y --disableplugin=foreman-protector podman'
         )
         assert result.status == 0
+        # Enable IPv6 HTTP proxy for podman so external registries are reachable in IPv6-only setups
+        module_target_sat.enable_ipv6_podman_proxy()
 
     def test_podman_push(self, module_target_sat, module_product, module_org, enable_podman):
         """Push a small and large container image to Pulp, and verify the results
@@ -759,7 +761,9 @@ class TestPodman:
         assert cvv.docker_tag_count == 0
         assert cvv.docker_repository_count == 0
 
-    def test_podman_push_existing_tag(self, module_target_sat, module_product, module_org):
+    def test_podman_push_existing_tag(
+        self, module_target_sat, module_product, module_org, enable_podman
+    ):
         """Push two different container images to the same product with the same tag.
 
         :id: 85be56e4-c6ad-414d-be0c-19c5ccf94bca
