@@ -16,13 +16,10 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 """
 
-import re
-
 from fauxfactory import gen_string
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import TaskFailedError
 import pytest
-from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -242,78 +239,6 @@ def test_sca_end_to_end(
     # install package and verify it succeeds or is already installed
     package = rhel_contenthost.run(f'yum install -y {FAKE_0_CUSTOM_PACKAGE_NAME}')
     assert 'Complete!' in package.stdout or 'already installed' in package.stdout
-
-
-@pytest.mark.rhel_ver_match('7')
-def test_positive_candlepin_events_processed_by_stomp(
-    function_org, target_sat, function_sca_manifest
-):
-    """Verify that Candlepin events are being read and processed by
-        checking candlepin events, uploading a manifest,
-        and viewing processed and failed Candlepin events
-
-    :id: efd20ffd-8f98-4536-abb6-d080f9d23169
-
-    :steps:
-
-        1. Create a manifest
-        2. Check the number of candlepin events
-            /api/v2/ping
-        3. Import a Manifest
-        4. Check the number of new candlepin events
-            /api/v2/ping
-        5. Verify that the new candlepin events value is greater than the old value
-        6. Verify that there are no failed candlepin events
-            /api/v2/ping
-
-    :expectedresults: Candlepin events are being read and processed
-                        correctly without any failures
-    :BZ: 1826515
-
-    :parametrized: yes
-
-    :CaseImportance: High
-    """
-
-    # Function to parse candlepin events
-    def parse(events):
-        return {key: int(value) for value, key in re.findall(r'(\d+)\s(\w+)', events)}
-
-    pre_candlepin_events = target_sat.api.Ping().search_json()['results']['katello']['services'][
-        'candlepin_events'
-    ]['message']
-    pre_processed_count = parse(pre_candlepin_events)['Processed']
-
-    target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
-
-    # Wait for candlepin to process the manifest upload events
-    # Use polling instead of fixed sleep to avoid flakiness
-    wait_for(
-        lambda: (
-            parse(
-                target_sat.api.Ping().search_json()['results']['katello']['services'][
-                    'candlepin_events'
-                ]['message']
-            )['Processed']
-            > pre_processed_count
-        ),
-        timeout=60,
-        delay=5,
-        handle_exception=True,
-    )
-
-    assert (
-        target_sat.api.Ping().search_json()['results']['katello']['services']['candlepin_events'][
-            'status'
-        ]
-        == 'ok'
-    )
-    post_candlepin_events = target_sat.api.Ping().search_json()['results']['katello']['services'][
-        'candlepin_events'
-    ]['message']
-    assert parse(post_candlepin_events)['Processed'] > pre_processed_count
-    assert parse(pre_candlepin_events)['Failed'] == 0
-    assert parse(post_candlepin_events)['Failed'] == 0
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])

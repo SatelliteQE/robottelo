@@ -38,7 +38,6 @@ def test_positive_ping(target_sat):
     #     'katello': {'services': {
     #         'candlepin': {'duration_ms': '16', 'status': 'ok'},
     #         'candlepin_auth': {'duration_ms': '15', 'status': 'ok'},
-    #         'candlepin_events': {'duration_ms': '0', 'message': '9 Processed, 0 Failed', 'status': 'ok'},
     #         'foreman_tasks': {'duration_ms': '2', 'status': 'ok'},
     #         'katello_events': {'duration_ms': '1', 'message': '3 Processed, 0 Failed', 'status': 'ok'},
     #         'pulp3': {'duration_ms': '97', 'status': 'ok'},
