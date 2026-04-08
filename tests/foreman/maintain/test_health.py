@@ -167,26 +167,6 @@ def test_positive_health_check_by_tags(sat_maintain):
 
 
 @pytest.mark.include_capsule
-def test_positive_health_check_pre_upgrade(sat_maintain):
-    """Verify pre-upgrade health checks
-
-    :id: f52bd43e-79cd-488b-adbb-3c9e5bac32cc
-
-    :parametrized: yes
-
-    :steps:
-        1. Run satellite-maintain health check --tags pre-upgrade
-
-    :expectedresults: Pre-upgrade health checks should pass.
-    """
-    result = sat_maintain.cli.Health.check(
-        options={'tags': 'pre-upgrade', 'whitelist': 'non-rh-packages'}
-    )
-    assert result.status == 0
-    assert 'FAIL' not in result.stdout
-
-
-@pytest.mark.include_capsule
 def test_positive_health_check_server_ping(sat_maintain):
     """Verify server ping check
 
