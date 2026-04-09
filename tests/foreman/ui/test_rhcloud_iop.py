@@ -311,16 +311,21 @@ def test_iop_negative_rhcloud_inventory_upload_not_displayed(module_target_sat_i
     :id: 84023ae9-7bc4-4332-9aaf-749d6c48c2d2
 
     :steps:
-        1. Configure Satellite with IOP
-        2. Check that 'Inventory Upload' is not visible under 'Red Hat Lightspeed'.
+        1. Configure Satellite to use local Insights advisor engine.
+        2. Navigate to the Insights Recommendations page.
+        3. Try to navigate to Red Hat Lightspeed > Inventory Upload from the navigation menu.
 
     :expectedresults:
         1. "Inventory Upload" is not visible under "Red Hat Lightspeed".
+
+    :CaseImportance: Medium
+
+    :CaseAutomation: Automated
     """
     with module_target_sat_insights.ui_session() as session:
-        view = session.dashboard.navigate_to(session.dashboard, 'All')
+        session.recommendationstab.navigate_to(session.recommendationstab, 'All Recommendations')
         with pytest.raises(Exception, match='not found in navigation tree'):
-            view.menu.select('Red Hat Lightspeed', 'Inventory Upload')
+            session.cloudinventory.navigate_to(session.cloudinventory, 'All')
 
 
 @pytest.mark.e2e
