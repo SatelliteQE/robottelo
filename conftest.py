@@ -19,7 +19,6 @@ pytest_plugins = [
     'pytest_plugins.rerun_rp.rerun_rp',
     'pytest_plugins.fspath_plugins',
     'pytest_plugins.factory_collection',
-    'pytest_plugins.requirements.update_requirements',
     'pytest_plugins.sanity_plugin',
     'pytest_plugins.video_cleanup',
     'pytest_plugins.jira_comments',
