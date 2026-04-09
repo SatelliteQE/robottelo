@@ -138,21 +138,24 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                     session.host_new.delete(fqdn)
                 wait_for(
-                    lambda: session.host_new.search(fqdn)[0].get('Name') == 'No Results',
+                    lambda: (
+                        session.host_new.search(fqdn)[0].get('Name') == 'No Results'
+                        and not azurermclient.find_vms(name=hostname.lower())
+                    ),
                     timeout=300,
                     delay=10,
                 )
-
-                # AzureRm Cloud assertion
-                assert not azurecloud_vm.exists
 
         except Exception as error:
             azure_vm = sat_azure.api.Host().search(query={'search': f'name={fqdn}'})
             if azure_vm:
                 azure_vm[0].delete(synchronous=False)
-            azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
-            if azurecloud_vm.exists:
-                azurecloud_vm.delete()
+            try:
+                matching_vms = azurermclient.find_vms(name=hostname.lower())
+                if matching_vms:
+                    matching_vms[0].delete()
+            except Exception:
+                pass
             raise error
 
 
