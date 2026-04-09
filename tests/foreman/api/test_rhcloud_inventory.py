@@ -325,7 +325,7 @@ def test_rhcloud_scheduled_insights_sync(
     # Assert that both hosts are synced successfully
     assert task_output[0].output['host_statuses']['sync'] == 2
     result = module_target_sat.execute(
-        "foreman-rake console SATELLITE_RH_CLOUD_REQUESTS_DELAY=0 <<< 'ForemanTasks.sync_task(InsightsCloud::Async::InsightsScheduledSync)'"
+        'foreman-rake console <<< "ForemanRhCloud.instance_variable_set(:@requests_delay, \'0\'); ForemanTasks.sync_task(InsightsCloud::Async::InsightsScheduledSync)"'
     )
     assert 'success' in result.stdout
     assert result.status == 0
