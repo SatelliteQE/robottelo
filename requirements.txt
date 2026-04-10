@@ -5,7 +5,7 @@ broker[satlab,docker,ssh2_python]==0.8.5
 cryptography==46.0.7
 deepdiff==9.0.0
 dynaconf[vault]==3.2.13
-fastmcp==3.2.2
+fastmcp==3.2.3
 fauxfactory==4.2.1
 jira==3.10.5
 jinja2==3.1.6
