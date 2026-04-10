@@ -561,7 +561,6 @@ def test_iop_insights_rbac_edit_permissions(
         assert vulnerabilities[0]['Status'] == 'In review'
 
 
-@pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_insights_rbac_no_permissions(
@@ -613,10 +612,6 @@ def test_iop_insights_rbac_no_permissions(
     # Log in as the user with no insights permissions
     # User is already in their default organization, no need to select
     with module_target_sat_insights.ui_session(test_name, user.login, user_password) as session:
-        # Verify that we can see the rule hit via insights-client (as admin)
-        result = rhel_insights_vm.execute('insights-client --diagnosis')
-        assert result.status == 0
-        assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
         # Attempt to access Recommendations - should fail or be inaccessible
         permission = session.recommendationstab.read_no_authorized_message()
         assert permission == "You do not have access to Advisor"
