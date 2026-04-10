@@ -31,8 +31,6 @@ from robottelo.constants import (
     REPOSET,
     SUPPORTED_REPO_CHECKSUMS,
     SYNC_COMPLETE,
-    USERNAME_ONLY_UPSTREAM_URL,
-    USERNAME_ONLY_UPSTREAM_USERNAME,
     VERSIONED_REPOS,
     DataFile,
 )
@@ -577,13 +575,15 @@ def test_positive_sync_custom_repo_username_only_no_password(target_sat, module_
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['yum'],
-                'repo_content.upstream_url': USERNAME_ONLY_UPSTREAM_URL,
-                'repo_content.upstream_username': USERNAME_ONLY_UPSTREAM_USERNAME,
+                'repo_content.upstream_url': settings.repos.username_only_upstream_url,
+                'repo_content.upstream_username': settings.repos.username_only_upstream_username,
             },
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
         repo_values = session.repository.read(module_prod.name, repo_name)
-        assert repo_values['repo_content']['upstream_url'] == USERNAME_ONLY_UPSTREAM_URL
+        assert (
+            repo_values['repo_content']['upstream_url'] == settings.repos.username_only_upstream_url
+        )
         result = session.repository.synchronize(module_prod.name, repo_name)
         assert result['result'] == 'success'
 
