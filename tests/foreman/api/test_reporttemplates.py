@@ -263,6 +263,7 @@ def test_positive_lock_clone_nodelete_unlock_report(target_sat):
     )
     assert template_clone_name == cloned_rt.name
     assert template1 == cloned_rt.template
+    assert cloned_rt.locked is False
     # 4. Try to delete template
     with pytest.raises(HTTPError):
         rt.delete()
