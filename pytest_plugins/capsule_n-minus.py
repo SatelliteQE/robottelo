@@ -30,6 +30,7 @@ def pytest_collection_modifyitems(items, config):
         if not (
             item.get_closest_marker('destructive')
             or 'session_puppet_enabled_sat' in item.fixturenames
+            or 'setup_fam' in item.fixturenames
         ) and (
             'capsule_factory' in item.fixturenames
             or 'sat_maintain' in item.fixturenames
