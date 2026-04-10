@@ -388,8 +388,10 @@ def test_positive_clone_locked_report(module_target_sat):
     result_list = module_target_sat.cli.ReportTemplate.list()
     assert new_name in [rt['name'] for rt in result_list]
     result_info = module_target_sat.cli.ReportTemplate.info({'id': report_template['id']})
-    assert result_info['locked'] == 'no'
+    assert result_info['locked'] == 'yes'
     assert result_info['default'] == 'yes'
+    result_info = module_target_sat.cli.ReportTemplate.info({'name': new_name})
+    assert result_info['locked'] == 'no'
 
 
 def test_positive_generate_report_sanitized(module_target_sat):
@@ -408,6 +410,8 @@ def test_positive_generate_report_sanitized(module_target_sat):
     :expectedresults: Report is generated in proper CSV format (value with comma is quoted)
 
     :CaseImportance: Medium
+
+    :Verifies: SAT-42163
     """
     # create a name that has a comma in it, some randomized text, and no spaces.
     os_name = gen_alpha(start='test', separator=',').replace(' ', '')
