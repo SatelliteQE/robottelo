@@ -3369,6 +3369,59 @@ class TestContentView:
         ]
         assert lce_prod['id'] == promoted_lce['id']
 
+    def test_positive_remove_cv_with_corrupted_cvenv(self, target_sat, function_org):
+        """Verify that a CV with a corrupted content view environment (CVEnv) can be removed
+        after running the cleanup rake task.
+
+        :id: 10376c6f-354c-47bf-b0e7-90875a25cdd5
+
+        :steps:
+            1. Create a Content View and publish it (promoted to Library automatically).
+            2. Corrupt the CVEnv by setting content_view_version_id to nil via rake console.
+            3. Attempt to remove the CV and verify it fails with the expected PG error.
+            4. Run foreman-rake task to clean the corrupted CVEnvs.
+            5. Attempt to remove the CV again and verify it succeeds.
+
+        :expectedresults:
+            1. The initial remove fails with a PG::NotNullViolation error.
+            2. After running the rake cleanup task, the CV is removed successfully.
+
+        :Verifies: SAT-35940
+
+        :customerscenario: true
+        """
+        # Create a Content View and publish it (promoted to Library automatically).
+        cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+
+        # Corrupt the CVEnv by setting content_view_version_id to nil via rake console.
+        rake_snippet = (
+            f'cv = Katello::ContentView.find_by(name: "{cv["name"]}");'
+            'env = cv.content_view_versions.last.content_view_environments.last;'
+            'env.content_view_version_id = nil;'
+            'env.save(validate: false)'
+        )
+        result = target_sat.execute(f"foreman-rake console <<< '{rake_snippet}'")
+        assert result.status == 0
+        assert 'NameError' not in result.stdout
+        assert 'RuntimeError' not in result.stdout
+
+        # Attempt to remove the CV and verify it fails with the expected PG error.
+        with pytest.raises(CLIReturnCodeError) as error:
+            target_sat.cli.ContentView.remove({'id': cv['id'], 'destroy-content-view': 'yes'})
+        assert 'PG::NotNullViolation' in error.value.stderr, (
+            f'Expected PG::NotNullViolation in stderr, got: {error.value.stderr}'
+        )
+
+        # Run foreman-rake task to clean the corrupted CVEnvs.
+        result = target_sat.execute('foreman-rake katello:upgrades:4.20:clean_cve_with_no_cvv')
+        assert result.status == 0, f'Rake cleanup task failed: {result.stderr}'
+
+        # Attempt to remove the CV again and verify it succeeds.
+        target_sat.cli.ContentView.remove({'id': cv['id'], 'destroy-content-view': 'yes'})
+        with pytest.raises(CLIReturnCodeError):
+            target_sat.cli.ContentView.info({'id': cv['id']})
+
 
 class TestRollingContentView:
     """Hammer testing for Rolling Content Views."""
