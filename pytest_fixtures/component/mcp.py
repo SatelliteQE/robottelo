@@ -53,7 +53,9 @@ def _setup_mcp_server(target_sat, settings_obj, container_suffix=''):
     container_name = f'mcp_server{container_suffix}-{datetime.timestamp(datetime.now())}'
     image_name = settings_obj.image_path.split('/')[-1]
     assert (
-        target_sat.execute(f'firewall-cmd --permanent --add-port="{settings_obj.port}/tcp"').status
+        target_sat.execute(
+            f'firewall-cmd --permanent --add-port="{settings.foreman_mcp.port}/tcp"'
+        ).status
         == 0
     )
     assert target_sat.execute('firewall-cmd --reload').status == 0
@@ -93,14 +95,14 @@ def _setup_mcp_server(target_sat, settings_obj, container_suffix=''):
     run_cmd = (
         f'podman run {network_arg} {authfile_arg} '
         f'-v /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:{ca_mountpoint}:ro,Z '
-        f'--name {container_name} -d --pull=never -it -p {settings_obj.port}:8080 '
+        f'--name {container_name} -d --pull=never -it -p {settings.foreman_mcp.port}:8080 '
         f'{image_name}:{tag} --foreman-url https://{target_sat.hostname} --host 0.0.0.0 '
         f'--allowed-rex-features "katello_errata_install,katello_package_install" '
         f'--allowed-cv-actions "publish,promote,incremental_update"'
     )
     target_sat.execute(run_cmd)
     wait_for(
-        lambda: target_sat.execute(f'curl localhost:{settings_obj.port}/mcp/').status == 0,
+        lambda: target_sat.execute(f'curl localhost:{settings.foreman_mcp.port}/mcp/').status == 0,
         timeout=60,
         delay=2,
     )
@@ -138,26 +140,6 @@ def module_target_sat_foreman_mcp(module_target_sat):
     container_name, tag = _setup_mcp_server(module_target_sat, settings.foreman_mcp)
     yield module_target_sat
     _cleanup_mcp_server(module_target_sat, container_name, settings.foreman_mcp, tag)
-
-
-@pytest.fixture(scope='module')
-def module_target_sat_foreman_mcp_downstream(module_target_sat):
-    """A module-level fixture to provide a downstream distribution of MCP server configured on Satellite"""
-    container_name, tag = _setup_mcp_server(
-        module_target_sat, settings.foreman_mcp_downstream, container_suffix='_downstream'
-    )
-    yield module_target_sat
-    _cleanup_mcp_server(module_target_sat, container_name, settings.foreman_mcp_downstream, tag)
-
-
-@pytest.fixture(scope='module')
-def module_target_sat_foreman_mcp_stage(module_target_sat):
-    """A module-level fixture to provide a stage distribution of MCP server configured on Satellite"""
-    container_name, tag = _setup_mcp_server(
-        module_target_sat, settings.foreman_mcp_stage, container_suffix='_stage'
-    )
-    yield module_target_sat
-    _cleanup_mcp_server(module_target_sat, container_name, settings.foreman_mcp_stage, tag)
 
 
 @pytest.fixture
