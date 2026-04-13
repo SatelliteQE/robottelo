@@ -21,32 +21,24 @@ from robottelo.enums import NetworkType
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    'mcp_server',
-    [
-        'module_target_sat_foreman_mcp',
-    ],
-    ids=['upstream'],
-)
 @pytest.mark.skipif(
     settings.server.network_type == NetworkType.IPV6,
     reason='IPV6 scenario is not essential for this case',
 )
-async def test_positive_call_mcp_server(request, mcp_server):
+async def test_positive_list_hosts(module_target_sat_foreman_mcp):
     """Test that the MCP response matches with what is available on Satellite
 
     :id: 6f3c31c2-2f50-43ba-ac52-b3ebc6af4e45
 
-    :expectedresults: MCP server is running and returns up to date data
+    :expectedresults: MCP server is running and returns up to date hosts data
     """
-    target_sat = request.getfixturevalue(mcp_server)
-    mcp_settings = settings.get(mcp_server.removeprefix('module_target_sat_'))
+    target_sat = module_target_sat_foreman_mcp
     async with Client(
         transport=StreamableHttpTransport(
-            f'http://{target_sat.hostname}:{mcp_settings.port}/mcp',
+            f'http://{target_sat.hostname}:{settings.foreman_mcp.port}/mcp',
             headers={
-                'FOREMAN_USERNAME': mcp_settings.username,
-                'FOREMAN_TOKEN': mcp_settings.password,
+                'FOREMAN_USERNAME': settings.foreman_mcp.username,
+                'FOREMAN_TOKEN': settings.foreman_mcp.password,
             },
         ),
     ) as client:
@@ -73,7 +65,7 @@ async def test_positive_call_mcp_server(request, mcp_server):
     settings.server.network_type == NetworkType.IPV6,
     reason='IPV6 scenario is not essential for this case',
 )
-async def test_negative_call_mcp_server(module_target_sat_foreman_mcp):
+async def test_negative_alter_data(module_target_sat_foreman_mcp):
     """Test that MCP server cannot alter Satellite
 
     :id: 7b643847-4aa0-42ec-92cd-873de853f1ba
