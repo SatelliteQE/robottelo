@@ -15,6 +15,7 @@
 from broker import Broker
 import pytest
 
+from robottelo.cli import hammer
 from robottelo.config import settings
 from robottelo.constants import FOREMANCTL_PARAMETERS_FILE
 from robottelo.hosts import Satellite
@@ -52,6 +53,13 @@ def common_sat_install_assertions(satellite):
     assert not result.stdout
     httpd_log = satellite.execute('journalctl --unit=httpd')
     assert 'WARNING' not in httpd_log.stdout
+
+
+def assert_hammer_ping_ok(result):
+    assert result.status == 0, 'hammer ping failed'
+    services = hammer.parse_ping(result.stdout)
+    for status in services.values():
+        assert status == 'ok'
 
 
 @pytest.fixture(scope='module')
@@ -119,10 +127,56 @@ def test_positive_check_installer_hammer_ping(module_sat_ready_rhel):
     """
     # check status reported by hammer ping command
     result = module_sat_ready_rhel.execute('hammer ping')
-    assert result.status == 0
-    for line in result.stdout.split('\n'):
-        if 'Status' in line:
-            assert 'ok' in line
+    assert_hammer_ping_ok(result)
+
+
+@pytest.fixture(scope='module')
+def module_sat_foremanctl_custom_certs():
+    with Broker(
+        workflow=settings.server.deploy_workflows.os,
+        deploy_rhel_version=settings.server.version.rhel_version,
+        deploy_flavor=settings.flavors.default,
+        deploy_network_type=settings.server.network_type,
+        host_class=Satellite,
+    ) as sat:
+        sat.custom_cert_generate(sat.hostname)
+        sat.install_satellite_foremanctl(
+            parameters=[
+                f'--certificate-server-certificate /root/{sat.hostname}/{sat.hostname}.crt',
+                f'--certificate-server-key /root/{sat.hostname}/{sat.hostname}.key',
+                '--certificate-server-ca-certificate /root/cacert.crt',
+            ]
+        )
+        yield sat
+
+
+@pytest.mark.e2e
+def test_positive_install_foremanctl_with_custom_certs(module_sat_foremanctl_custom_certs):
+    """Install Satellite via foremanctl deploy with custom certificates.
+
+    :id: aca40725-8884-454e-8a67-428ce3292660
+
+    :steps:
+        1. Generate custom CA and server certificates
+        2. Install Satellite using foremanctl deploy with custom cert flags
+        3. Assert all services are running
+        4. Assert custom ca certificate works and there are no errors
+
+    :expectedresults: Satellite is installed with custom certs and all services are healthy.
+
+    :CaseAutomation: Automated
+    """
+    sat = module_sat_foremanctl_custom_certs
+    common_sat_install_assertions(sat)
+    # check the services are up and healthy
+    result = sat.execute('hammer ping')
+    assert_hammer_ping_ok(result)
+    # Verify the custom certificate works and there are no errors
+    result = sat.execute(
+        f'curl -s -o /dev/null -w "%{{http_code}}" '
+        f'--cacert /root/cacert.crt https://{sat.hostname}/api/v2/ping'
+    )
+    assert result.stdout == '200'
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)

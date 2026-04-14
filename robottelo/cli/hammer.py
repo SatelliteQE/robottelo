@@ -12,6 +12,11 @@ def _normalize(header):
     return header.replace(' ', '-').lower()
 
 
+def parse_ping(output):
+    """Parse hammer ping stdout into a dict of {service_name: status}."""
+    return dict(re.findall(r'^(\S.*?):\s*\n\s+Status:\s+(\S+)', output, re.MULTILINE))
+
+
 def parse_json(stdout):
     """Parse JSON output from Hammer CLI and convert it to python dictionary
     while normalizing keys.
