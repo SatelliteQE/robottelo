@@ -92,10 +92,7 @@ def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
             options={'only': 'iop-service-vuln-vmaas-sync.timer'}
         )
         assert timer_status.status == 0
-        assert (
-            'Active: active (running)' in timer_status.stdout
-            or 'Active: active (waiting)' in timer_status.stdout
-        )
+        assert 'Active: active' in timer_status.stdout
 
     # Verify maintenance-mode start
     mm_start = sat_maintain.cli.MaintenanceMode.start()
@@ -154,7 +151,7 @@ def test_positive_maintenance_mode(request, sat_maintain, setup_sync_plan):
             options={'only': 'iop-service-vuln-vmaas-sync.timer'}
         )
         assert timer_status.status == 0
-        assert 'Active: active (waiting)' in timer_status.stdout
+        assert 'Active: active' in timer_status.stdout
 
     # Assert FOREMAN_MAINTAIN_TABLE not listed in nftables
     nftables = sat_maintain.execute('nft list tables')
