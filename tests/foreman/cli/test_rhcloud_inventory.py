@@ -470,6 +470,7 @@ def test_positive_generate_reports_job_cli_disconnected(
         f"Report should not be in {done_dir} when using --no-upload flag"
     )
 
+
 def test_positive_download_reports_job_cli_disconnected(
     rhcloud_manifest_org, module_target_sat, rhcloud_registered_hosts
 ):
