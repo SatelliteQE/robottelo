@@ -165,3 +165,39 @@ def test_foremanctl_deploy_reset_parameters(module_sat_ready_rhel):
     parameters_file = module_sat_ready_rhel.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
     assert 'foreman_puma_workers' not in parameters_file
     assert 'pulp_worker_count' not in parameters_file
+
+
+@pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
+def test_foremanctl_deploy_certificate_cname(module_sat_ready_rhel):
+    """Verify foremanctl deploy --certificate-cname adds CNAME to server certificate SANs
+
+    :id: a5390e11-0e48-4a13-951f-749df8716e0c
+
+    :steps:
+        1. Run foremanctl deploy --certificate-cname with an additional DNS name
+        2. Verify HTTPS connectivity using the CNAME with the self-signed CA
+
+    :expectedresults:
+        1. foremanctl deploy completes successfully
+        2. HTTPS request via the CNAME returns HTTP 200 without certificate errors
+    """
+    satellite = module_sat_ready_rhel
+    cname = f'cname.{satellite.hostname}'
+
+    result = satellite.execute(
+        f'foremanctl deploy --certificate-cname {cname}',
+        timeout='10m',
+    )
+    assert result.status == 0, (
+        f'foremanctl deploy with --certificate-cname failed:\n{result.stderr}'
+    )
+
+    result = satellite.execute(
+        'curl --silent --output /dev/null --write-out "%{http_code}" '
+        f'--resolve "{cname}:443:127.0.0.1" '
+        '--cacert /root/certificates/certs/ca.crt '
+        f'https://{cname}/users/login'
+    )
+    assert result.stdout.strip() == '200', (
+        f'HTTPS request to {cname} failed with status {result.stdout.strip()}'
+    )
