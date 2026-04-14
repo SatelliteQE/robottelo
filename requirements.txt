@@ -1,6 +1,6 @@
 # Version updates managed by dependabot
 
-apypie==0.7.1
+apypie==0.8.0
 broker[satlab,docker,ssh2_python]==0.8.5
 cryptography==46.0.7
 deepdiff==9.0.0
