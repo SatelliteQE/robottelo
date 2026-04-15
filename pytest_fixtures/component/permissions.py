@@ -63,6 +63,16 @@ def expected_permissions(session_target_sat):
     if 'rubygem-foreman_statistics' not in rpm_packages:
         permissions.pop('ForemanStatistics::Trend')
         permissions[None].remove('view_statistics')
+    if 'rubygem-foreman_ansible_director' not in rpm_packages:
+        permissions.pop('ForemanAnsibleDirector::AnsibleContentAssignment')
+        permissions.pop('ForemanAnsibleDirector::ContentUnit')
+        permissions.pop('ForemanAnsibleDirector::ExecutionEnvironment')
+        permissions.pop('ForemanAnsibleDirector::LifecycleEnvironment')
+        permissions.pop('ForemanAnsibleDirector::LifecycleEnvironmentPath')
+        permissions['LookupValue'].remove('destroy_ansible_variable_overrides')
+        permissions['LookupValue'].remove('edit_ansible_variable_overrides')
+        permissions['LookupValue'].remove('create_ansible_variable_overrides')
+        permissions['LookupValue'].remove('view_ansible_variable_overrides')
     if 'rubygem-foreman_monitoring' not in rpm_packages:
         permissions[None].remove('upload_monitoring_results')
         permissions['Host'].remove('view_monitoring_results')
