@@ -543,6 +543,50 @@ def test_positive_upstream_with_credentials(session, module_prod):
         assert not repo_values['repo_content']['upstream_authorization']
 
 
+def test_positive_sync_custom_repo_username_only_no_password(target_sat, module_prod, module_org):
+    """Custom yum repository sync succeeds when upstream requires only a username (no password).
+
+    Pulp/Satellite must allow synchronizing a custom repository whose upstream uses HTTP basic auth
+    with a non-empty username and an empty password.
+
+    :id: 96005f4f-82f7-4a78-8ec7-a25d92831297
+
+    :customerscenario: true
+
+    :steps:
+        1. Create a product with a custom yum repository: set upstream URL and upstream username;
+           do not set an upstream password.
+        2. Synchronize the repository.
+
+    :expectedresults:
+        1. Repository is created without validation errors.
+        2. Repository sync completes successfully.
+
+    :CaseImportance: High
+
+    :Verifies: SAT-41022
+    """
+    repo_name = gen_string('alpha')
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.repository.create(
+            module_prod.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': settings.repos.username_only_upstream_url,
+                'repo_content.upstream_username': settings.repos.username_only_upstream_username,
+            },
+        )
+        assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert (
+            repo_values['repo_content']['upstream_url'] == settings.repos.username_only_upstream_url
+        )
+        result = session.repository.synchronize(module_prod.name, repo_name)
+        assert result['result'] == 'success'
+
+
 # TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
 # @pytest.mark.upgrade
 # @pytest.mark.skipif(
