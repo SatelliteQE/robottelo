@@ -24,7 +24,6 @@ pytest-reportportal==5.6.6
 pytest-reportlog==1.0.0
 pytest-xdist==3.6.1
 pytest-fixturecollection==0.1.2
-pytest-ibutsu==3.1.6
 PyYAML==6.0.3
 requests==2.33.1
 tenacity==9.1.4

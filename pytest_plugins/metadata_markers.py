@@ -139,7 +139,7 @@ def pytest_collection_modifyitems(items, config):
 
     user_properties is used by the junit plugin, and thus by many test report systems
     Handle test function/class/module/session scope metadata coming from test docblocks
-    Apply user_properties, ibutsu metadata, and pytest markers
+    Apply user_properties and pytest markers
 
     Markers for metadata use the testimony token name as the mark name
     The value of the token for the mark is the first mark arg
@@ -204,7 +204,6 @@ def pytest_collection_modifyitems(items, config):
             item.add_marker(pytest.mark.verifies_issues(verifies_marks_to_add))
 
         # add markers as user_properties so they are recorded in XML properties of the report
-        # pytest-ibutsu will include user_properties dict in testresult metadata
         markers_prop_data = []
         exclude_markers = ['parametrize', 'skipif', 'usefixtures', 'skip_if_not_set']
         for marker in item.iter_markers():
