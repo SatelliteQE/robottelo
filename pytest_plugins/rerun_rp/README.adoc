@@ -46,7 +46,7 @@ $ pytest tests/foreman/api/test_computeresource_azurerm.py --collect-only --rp-r
 platform darwin -- Python 3.9.12, pytest-7.1.2, pluggy-1.0.0
 shared_function enabled - OFF - scope:  - storage: file
 rootdir: /Users/jitendrayejare/JWorkspace/GitRepos/robottelo, configfile: pyproject.toml
-plugins: xdist-2.5.0, forked-1.4.0, reportportal-5.1.1, mock-3.7.0, services-2.2.1, ibutsu-2.0.2, cov-3.0.0
+plugins: xdist-2.5.0, forked-1.4.0, reportportal-5.1.1, mock-3.7.0, services-2.2.1, cov-3.0.0
 collected 11 items / 10 deselected / 1 selected
 
 <Package api>
