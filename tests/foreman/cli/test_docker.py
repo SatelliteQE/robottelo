@@ -416,6 +416,43 @@ class TestDockerRepository:
             in error.value.stderr
         )
 
+    def test_docker_tag_upload(self, repo, module_org, module_target_sat):
+        """Create and sync a Docker-type repository, and upload a new tag
+
+        :id: f2d8a766-59f5-46d7-acc4-741ca653e5c6
+
+        :Verifies: SAT-37856
+
+        :customerscenario: true
+
+        :expectedresults: You can successfully upload a new tag to a docker repo through the CLI.
+
+        :CaseImportance: Medium
+        """
+        assert int(repo['content-counts']['container-manifests']) == 0
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        repo = module_target_sat.cli.Repository.info({'id': repo['id']})
+        assert int(repo['content-counts']['container-manifests']) > 0
+        docker_tags = module_target_sat.api.DockerTag().search(
+            query={'repository_id': repo['id'], 'per_page': '999'}
+        )
+        assert len(docker_tags) > 0, 'Repository should have at least one Docker tag'
+        tag_manifest = docker_tags[0].manifest['digest']
+        module_target_sat.cli.Repository.update(
+            {
+                'id': repo['id'],
+                'organization-id': module_org.id,
+                'docker-tag': 'test-tag',
+                'docker-digest': tag_manifest,
+                'product-id': repo['product']['id'],
+            }
+        )
+        docker_tags = module_target_sat.api.DockerTag().search(
+            query={'repository_id': repo['id'], 'per_page': '999'}
+        )
+        api_tag_names = [tag.name for tag in docker_tags]
+        assert 'test-tag' in api_tag_names
+
 
 class TestDockerContentView:
     """Tests specific to using ``Docker`` repositories with Content Views.
