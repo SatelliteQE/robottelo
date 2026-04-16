@@ -19,6 +19,7 @@ import tempfile
 import pytest
 from wait_for import wait_for
 
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.io import (
     get_local_file_data,
