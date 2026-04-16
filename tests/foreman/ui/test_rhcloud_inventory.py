@@ -19,6 +19,7 @@ import tempfile
 import pytest
 from wait_for import wait_for
 
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.io import (
     get_local_file_data,
@@ -96,6 +97,8 @@ def common_assertion(
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 @pytest.mark.usefixtures('setting_update')
 @pytest.mark.parametrize(
     'setting_update',
