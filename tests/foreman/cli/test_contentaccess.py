@@ -35,7 +35,7 @@ pytestmark = [
 
 @pytest.fixture(scope='module')
 def rh_repo_setup_ak(module_sca_manifest_org, module_rhel_contenthost, module_target_sat):
-    """Use module sca manifest org, creates rhsclient9 repo & syncs it,
+    """Use module sca manifest org, creates rhsclient repo for the content host major version & syncs it,
     also create CV, LCE & AK and return AK"""
     repo_key = f'rhsclient{module_rhel_contenthost.os_version.major}'
     repo_config = REPOS[repo_key]
