@@ -17,12 +17,12 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    PRDS,
     REAL_RHEL9_ERRATA_ID,
     REAL_RHEL9_OUTDATED_PACKAGE_FILENAME,
     REAL_RHEL9_PACKAGE,
+    REAL_RHEL10_OUTDATED_PACKAGE_FILENAME,
+    REAL_RHEL10_PACKAGE,
     REPOS,
-    REPOSET,
 )
 
 pytestmark = [
@@ -34,16 +34,18 @@ pytestmark = [
 
 
 @pytest.fixture(scope='module')
-def rh_repo_setup_ak(module_sca_manifest_org, module_target_sat):
-    """Use module sca manifest org, creates rhsclient9 repo & syncs it,
+def rh_repo_setup_ak(module_sca_manifest_org, module_rhel_contenthost, module_target_sat):
+    """Use module sca manifest org, creates rhsclient repo for the content host major version & syncs it,
     also create CV, LCE & AK and return AK"""
+    repo_key = f'rhsclient{module_rhel_contenthost.os_version.major}'
+    repo_config = REPOS[repo_key]
     rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
         basearch=DEFAULT_ARCHITECTURE,
         org_id=module_sca_manifest_org.id,
-        product=PRDS['rhel9'],
-        repo=REPOS['rhsclient9']['name'],
-        reposet=REPOSET['rhsclient9'],
-        releasever=None,
+        product=repo_config['product'],
+        repo=repo_config['name'],
+        reposet=repo_config['reposet'],
+        releasever=repo_config.get('releasever'),
     )
     # Sync step because repo is not synced by default
     rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
@@ -67,7 +69,7 @@ def rh_repo_setup_ak(module_sca_manifest_org, module_target_sat):
     ).create()
     # Ensure tools repo is enabled in the activation key
     ak.content_override(
-        data={'content_overrides': [{'content_label': REPOS['rhsclient9']['id'], 'value': '1'}]}
+        data={'content_overrides': [{'content_label': repo_config['id'], 'value': '1'}]}
     )
     return ak
 
@@ -82,14 +84,23 @@ def vm(
     module_rhel_contenthost.register(
         module_sca_manifest_org, None, rh_repo_setup_ak.name, module_target_sat
     )
-    # Install older 'python3-gofer' for errata test
-    module_rhel_contenthost.run(f'yum install -y {REAL_RHEL9_OUTDATED_PACKAGE_FILENAME}')
+    major = module_rhel_contenthost.os_version.major
+    package_to_install = (
+        REAL_RHEL10_OUTDATED_PACKAGE_FILENAME
+        if major == 10
+        else REAL_RHEL9_OUTDATED_PACKAGE_FILENAME
+    )
+    install = module_rhel_contenthost.run(f'yum install -y {package_to_install}')
+    assert install.status == 0, f'Failed to install {package_to_install}: {install.stderr}'
     host = module_target_sat.api.Host().search(
         query={'search': f'name={module_rhel_contenthost.hostname}'}
     )
     host_id = host[0].id
     host_content = module_target_sat.api.Host(id=host_id).read_json()
     assert host_content['subscription_facet_attributes']['uuid']
+    # Force package profile upload and applicability recalculation
+    module_rhel_contenthost.run('subscription-manager repos')
+    module_target_sat.cli.Host.errata_recalculate({'host-id': host_id})
     module_rhel_contenthost.install_katello_host_tools()
     return module_rhel_contenthost
 
@@ -97,7 +108,7 @@ def vm(
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.client_release
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_match('^(9|10)$')
 def test_positive_list_installable_updates(vm, module_target_sat):
     """Ensure packages applicability is functioning properly.
 
@@ -121,19 +132,25 @@ def test_positive_list_installable_updates(vm, module_target_sat):
 
     :CaseImportance: Critical
     """
+    pkg_name = REAL_RHEL10_PACKAGE if vm.os_version.major == 10 else REAL_RHEL9_PACKAGE
+    host_id = module_target_sat.cli.Host.info({'name': vm.hostname})['id']
+    module_target_sat.cli.Host.errata_recalculate({'host-id': host_id})
+    applicable_packages = []
     for _ in range(30):
         applicable_packages = module_target_sat.cli.Package.list(
             {
                 'host': vm.hostname,
                 'packages-restrict-applicable': 'true',
-                'search': f'name={REAL_RHEL9_PACKAGE}',
+                'search': f'name={pkg_name}',
             }
         )
         if applicable_packages:
             break
         time.sleep(10)
-    assert len(applicable_packages) > 0
-    assert REAL_RHEL9_PACKAGE in applicable_packages[0]['filename']
+    assert len(applicable_packages) > 0, (
+        f'No applicable packages found for {pkg_name} on host {vm.hostname} after retries'
+    )
+    assert pkg_name in applicable_packages[0]['filename']
 
 
 @pytest.mark.upgrade
