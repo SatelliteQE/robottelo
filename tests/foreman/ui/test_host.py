@@ -2126,7 +2126,6 @@ def test_all_hosts_bulk_cve_reassign(
             pre_table = session.all_hosts.read_table()
             for row in pre_table:
                 assert row['Lifecycle environment'] == module_lce.name
-            import ipdb;ipdb.set_trace()
             session.all_hosts.manage_cve(lce_name=lce2.name, cv_name=module_cv.name)
             wait_for(lambda: session.browser.refresh(), timeout=5)
             post_table = session.all_hosts.read_table()
