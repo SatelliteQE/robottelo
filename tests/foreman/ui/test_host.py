@@ -2126,6 +2126,7 @@ def test_all_hosts_bulk_cve_reassign(
             pre_table = session.all_hosts.read_table()
             for row in pre_table:
                 assert row['Lifecycle environment'] == module_lce.name
+            import ipdb;ipdb.set_trace()
             session.all_hosts.manage_cve(lce_name=lce2.name, cv_name=module_cv.name)
             wait_for(lambda: session.browser.refresh(), timeout=5)
             post_table = session.all_hosts.read_table()
@@ -2273,7 +2274,6 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
 
     :Team: Proton
 
-    :BlockedBy: SAT-41505
     """
 
     module_target_sat, org, lce, capsule, content_view, loc, ak = change_content_source_prep
@@ -2314,14 +2314,15 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
                 rhel_contenthost.hostname,
             ],
             content_source=rhel_contenthost_pre_values['content_source']['name'],
-            lce=rhel_contenthost_pre_values['lifecycle_environment']['name'],
-            content_view=rhel_contenthost_pre_values['content_view']['name'],
+            cv_env_assignments=[
+                {'content_view': rhel_contenthost_pre_values['content_view']['name'],
+                 'lce': rhel_contenthost_pre_values['lifecycle_environment']['name']},
+            ],
             run_job_invocation=True,
         )
         # Getting the data from the prefilled job invocation form
         selected_category_and_template = session.jobinvocation.get_job_category_and_template()
         selected_targeted_hosts = session.jobinvocation.get_targeted_hosts()
-
         assert selected_category_and_template['job_category'] == 'Katello'
         assert (
             selected_category_and_template['job_template']
@@ -2343,6 +2344,115 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
             rhel_contenthost_post_values['lifecycle_environment']['name']
             == rhel_contenthost_post_values['lifecycle_environment']['name']
         )
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match(f'{settings.content_host.default_rhel_version}')
+def test_change_content_source_with_multi_cv(
+    module_target_sat,
+    module_org,
+    module_lce,
+    module_cv,
+    rhel_contenthost,
+):
+    """Test changing host's content source while assigning multiple content view environments
+
+    :id: a7b9c3d2-e4f5-4a6b-8c9d-1e2f3a4b5c6d
+
+    :steps:
+        1. Create two lifecycle environments (LCE1, LCE2)
+        2. Create two content views (CV1, CV2) and promote to both LCEs
+        3. Create an activation key with CV1 and Library LCE
+        4. Register a host using the activation key to the main smart proxy
+        5. Use All Hosts bulk action "Content > Content source" to change the host's
+           content source to the secondary proxy
+        6. In the change content source form, select multiple CVEnvs:
+           - CV1 with LCE1
+           - CV2 with LCE2
+        7. Submit the form
+
+    :expectedresults:
+        1. Host is assigned to multiple content view environments
+        2. Host has both CV1/LCE1 and CV2/LCE2 assignments
+        3. The assignments are properly ordered
+
+    :verifies: SAT-30912
+    """
+    # Step 1: Create second lifecycle environment
+    lce2 = module_target_sat.api.LifecycleEnvironment(
+        organization=module_org,
+        name='LCE2',
+        prior=module_lce.id,
+    ).create()
+
+    # Step 2: Create second content view with a repository
+    repo = module_target_sat.api.Repository(
+        product=module_target_sat.api.Product(organization=module_org).create(),
+        url=settings.repos.yum_0.url,
+    ).create()
+    repo.sync()
+
+    cv2 = module_target_sat.api.ContentView(
+        organization=module_org,
+        name='CV2_MultiAssignment',
+    ).create()
+    cv2.repository = [repo]
+    cv2.update(['repository'])
+
+    # Promote both CVs to both LCEs
+    module_cv.publish()
+    cv_version1 = module_cv.read().version[0]
+    cv_version1.promote(data={'environment_ids': module_lce.id})
+    cv_version1.promote(data={'environment_ids': lce2.id})
+
+    cv2.publish()
+    cv_version2 = cv2.read().version[0]
+    cv_version2.promote(data={'environment_ids': module_lce.id})
+    cv_version2.promote(data={'environment_ids': lce2.id})
+
+    # Step 3 & 4: Create activation key and register host
+    ak = module_target_sat.api.ActivationKey(
+        organization=module_org.id,
+        content_view=module_cv.id,
+        environment=module_org.library.id,
+    ).create()
+    result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Step 5 & 6: Use UI to change content source with multiple CVEnv assignments
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+
+        # Navigate to All Hosts and select the registered host
+        session.all_hosts.search(rhel_contenthost.hostname)
+
+        # Use bulk action to change content source with multiple CVEnv assignments
+        # This tests the new multi-CVEnv selection functionality from PR #11704
+        session.host.change_content_source(
+            entities_list=[
+                rhel_contenthost.hostname,
+            ],
+            content_source=module_target_sat.hostname,
+            cv_env_assignments=[
+                {'content_view': module_cv.name, 'lce': module_lce.name},
+                {'content_view': cv2.name, 'lce': lce2.name},
+            ],
+            run_job_invocation=True,
+        )
+        session.jobinvocation.submit_prefilled_view()
+    # Step 7: Verify results using API (more reliable after job invocation navigation)
+    host = module_target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[0]
+    host_content_facet = host.read_json()
+    # Verify content source was changed
+    assert host_content_facet['content_facet_attributes']['content_source']['name'] == module_target_sat.hostname
+
+    # Verify multiple CVEnv assignments
+    cv_envs = host_content_facet['content_facet_attributes']['content_view_environments']
+    assert len(cv_envs) == 2, f'Expected 2 CVEnv assignments, got {len(cv_envs)}'
+
+    # Verify assignments contain the correct CV/LCE pairs
+    cv_env_names = {(cve['content_view']['name'], cve['lifecycle_environment']['name']) for cve in cv_envs}
+    expected_pairs = {(module_cv.name, module_lce.name), (cv2.name, lce2.name)}
+    assert cv_env_names == expected_pairs, f'Expected {expected_pairs}, got {cv_env_names}'
 
 
 @pytest.mark.rhel_ver_match('8')
@@ -4205,7 +4315,6 @@ def test_assign_multi_cv_from_host_page(
             rhel_contenthost.hostname, module_cv_repo.name, module_lce.name
         )
         cv_envs = session.host_new.get_content_view_envs(rhel_contenthost.hostname)
-
     assert len(cv_envs) == 2
 
     library_cv_env = [env for env in cv_envs if env['lce'] == 'Library'][0]
