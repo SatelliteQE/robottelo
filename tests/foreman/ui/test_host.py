@@ -2126,7 +2126,9 @@ def test_all_hosts_bulk_cve_reassign(
             pre_table = session.all_hosts.read_table()
             for row in pre_table:
                 assert row['Lifecycle environment'] == module_lce.name
-            import ipdb;ipdb.set_trace()
+            import ipdb
+
+            ipdb.set_trace()
             session.all_hosts.manage_cve(lce_name=lce2.name, cv_name=module_cv.name)
             wait_for(lambda: session.browser.refresh(), timeout=5)
             post_table = session.all_hosts.read_table()
@@ -2315,8 +2317,10 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
             ],
             content_source=rhel_contenthost_pre_values['content_source']['name'],
             cv_env_assignments=[
-                {'content_view': rhel_contenthost_pre_values['content_view']['name'],
-                 'lce': rhel_contenthost_pre_values['lifecycle_environment']['name']},
+                {
+                    'content_view': rhel_contenthost_pre_values['content_view']['name'],
+                    'lce': rhel_contenthost_pre_values['lifecycle_environment']['name'],
+                },
             ],
             run_job_invocation=True,
         )
@@ -2344,6 +2348,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
             rhel_contenthost_post_values['lifecycle_environment']['name']
             == rhel_contenthost_post_values['lifecycle_environment']['name']
         )
+
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'{settings.content_host.default_rhel_version}')
@@ -2440,17 +2445,24 @@ def test_change_content_source_with_multi_cv(
         )
         session.jobinvocation.submit_prefilled_view()
     # Step 7: Verify results using API (more reliable after job invocation navigation)
-    host = module_target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[0]
+    host = module_target_sat.api.Host().search(
+        query={'search': f'name={rhel_contenthost.hostname}'}
+    )[0]
     host_content_facet = host.read_json()
     # Verify content source was changed
-    assert host_content_facet['content_facet_attributes']['content_source']['name'] == module_target_sat.hostname
+    assert (
+        host_content_facet['content_facet_attributes']['content_source']['name']
+        == module_target_sat.hostname
+    )
 
     # Verify multiple CVEnv assignments
     cv_envs = host_content_facet['content_facet_attributes']['content_view_environments']
     assert len(cv_envs) == 2, f'Expected 2 CVEnv assignments, got {len(cv_envs)}'
 
     # Verify assignments contain the correct CV/LCE pairs
-    cv_env_names = {(cve['content_view']['name'], cve['lifecycle_environment']['name']) for cve in cv_envs}
+    cv_env_names = {
+        (cve['content_view']['name'], cve['lifecycle_environment']['name']) for cve in cv_envs
+    }
     expected_pairs = {(module_cv.name, module_lce.name), (cv2.name, lce2.name)}
     assert cv_env_names == expected_pairs, f'Expected {expected_pairs}, got {cv_env_names}'
 
