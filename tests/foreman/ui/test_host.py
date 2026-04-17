@@ -2425,7 +2425,7 @@ def test_change_content_source_with_multi_cv(
         session.all_hosts.search(rhel_contenthost.hostname)
 
         # Use bulk action to change content source with multiple CVEnv assignments
-        # This tests the new multi-CVEnv selection functionality from PR #11704
+        # This tests the new multi-CVEnv selection functionality.
         session.host.change_content_source(
             entities_list=[
                 rhel_contenthost.hostname,
