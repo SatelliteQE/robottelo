@@ -20,6 +20,7 @@ from robottelo.constants import (
     REAL_RHEL9_ERRATA_ID,
     REAL_RHEL9_OUTDATED_PACKAGE_FILENAME,
     REAL_RHEL9_PACKAGE,
+    REAL_RHEL10_ERRATA_ID,
     REAL_RHEL10_OUTDATED_PACKAGE_FILENAME,
     REAL_RHEL10_PACKAGE,
     REPOS,
@@ -101,7 +102,8 @@ def vm(
     # Force package profile upload and applicability recalculation
     module_rhel_contenthost.run('subscription-manager repos')
     module_target_sat.cli.Host.errata_recalculate({'host-id': host_id})
-    module_rhel_contenthost.install_katello_host_tools()
+    if major == 10:
+        module_rhel_contenthost.install_katello_host_tools()
     return module_rhel_contenthost
 
 
@@ -157,7 +159,7 @@ def test_positive_list_installable_updates(vm, module_target_sat):
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.client_release
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_match('^(9|10)$')
 def test_positive_erratum_installable(vm, module_target_sat):
     """Ensure erratum applicability is showing properly, without attaching
     any subscription.
@@ -178,10 +180,11 @@ def test_positive_erratum_installable(vm, module_target_sat):
 
     :CaseImportance: Critical
     """
+    errata_id = REAL_RHEL10_ERRATA_ID if vm.os_version.major == 10 else REAL_RHEL9_ERRATA_ID
     # check that package errata is applicable
     for _ in range(30):
         erratum = module_target_sat.cli.Host.errata_list(
-            {'host': vm.hostname, 'search': f'id = {REAL_RHEL9_ERRATA_ID}'}
+            {'host': vm.hostname, 'search': f'id = {errata_id}'}
         )
         if erratum:
             break
