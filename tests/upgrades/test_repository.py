@@ -12,6 +12,7 @@
 
 """
 
+from broker import Broker
 import pytest
 
 from robottelo.config import settings
@@ -168,7 +169,7 @@ class TestScenarioCustomRepoCheck:
         )
 
     @pytest.mark.post_upgrade(depend_on=test_pre_scenario_custom_repo_check)
-    def test_post_scenario_custom_repo_check(self, target_sat, pre_upgrade_data):
+    def test_post_scenario_custom_repo_check(self, request, target_sat, pre_upgrade_data):
         """This is post-upgrade scenario test to verify if we can alter the
         created custom repository and satellite will be able to sync back
         the repo.
@@ -185,6 +186,12 @@ class TestScenarioCustomRepoCheck:
 
         """
         client_hostname = pre_upgrade_data.get('rhel_client')
+        rhel_client = ContentHost.get_host_by_hostname(client_hostname)
+
+        @request.addfinalizer
+        def _cleanup():
+            Broker(hosts=[rhel_client]).checkin()
+
         content_view_name = pre_upgrade_data.get('content_view_name')
         lce_id = pre_upgrade_data.get('lce_id')
         repo_name = pre_upgrade_data.get('repo_name')
@@ -201,7 +208,6 @@ class TestScenarioCustomRepoCheck:
             data={'environment_ids': lce_id}
         )
 
-        rhel_client = ContentHost.get_host_by_hostname(client_hostname)
         result = rhel_client.execute(f'yum install -y {FAKE_4_CUSTOM_PACKAGE_NAME}')
         assert result.status == 0
 
