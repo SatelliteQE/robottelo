@@ -2537,6 +2537,18 @@ DUMMY_BOOTC_FACTS = """{
 }"""
 
 FOREMANCTL_PARAMETERS_FILE = '/var/lib/foremanctl/parameters.yaml'
+FOREMANCTL_POSTGRESQL_TUNING_PROFILES = {
+    'medium': {
+        'max_connections': '1000',
+        'shared_buffers': '4GB',
+        'effective_cache_size': '8GB',
+    },
+    'default': {
+        'max_connections': '500',
+        'shared_buffers': '512MB',
+        'effective_cache_size': '1GB',
+    },
+}
 
 
 # Data File Paths

@@ -18,7 +18,7 @@ import pytest
 
 from robottelo.cli import hammer
 from robottelo.config import settings
-from robottelo.constants import FOREMANCTL_PARAMETERS_FILE
+from robottelo.constants import FOREMANCTL_PARAMETERS_FILE, FOREMANCTL_POSTGRESQL_TUNING_PROFILES
 from robottelo.hosts import Satellite
 from robottelo.utils.issue_handlers import is_open
 
@@ -65,6 +65,18 @@ def assert_hammer_ping_ok(result):
         assert status == 'ok'
 
 
+def assert_postgresql_tuning(sat, tuning):
+    expected_pg = FOREMANCTL_POSTGRESQL_TUNING_PROFILES[tuning]
+    for pg_setting, expected_value in expected_pg.items():
+        result = sat.execute(
+            f'podman exec postgresql psql -U postgres -t -A -c "show {pg_setting};"'
+        )
+        actual_value = result.stdout.strip()
+        assert actual_value == expected_value, (
+            f'Expected {pg_setting}={expected_value}, got {actual_value}'
+        )
+
+
 @pytest.fixture(scope='module')
 def module_sat_ready_rhel(request):
     param = request.param
@@ -80,6 +92,24 @@ def module_sat_ready_rhel(request):
             enable_fapolicyd=(param == 'fapolicyd'),
             enable_fips=(param == 'fips'),
             parameters=deploy_args,
+        )
+        yield sat
+
+
+@pytest.fixture(scope='module')
+def module_sat_foremanctl_tuning(request):
+    # Deploy rhel to install foremanctl with different tuning profiles
+    with Broker(
+        workflow=settings.server.deploy_workflows.os,
+        deploy_rhel_version=settings.server.version.rhel_version,
+        deploy_flavor=settings.flavors.large,
+        deploy_network_type=settings.server.network_type,
+        host_class=Satellite,
+    ) as sat:
+        sat.install_satellite_foremanctl(
+            parameters=[
+                f'--tuning {request.param}',
+            ]
         )
         yield sat
 
@@ -483,3 +513,47 @@ def test_foremanctl_deploy_add_remove_feature(module_sat_ready_rhel):
     assert FEATURE_NAME not in sat.list_foremanctl_features(enabled=True), (
         f'{FEATURE_NAME} is still enabled'
     )
+
+
+@pytest.mark.parametrize('module_sat_foremanctl_tuning', ['medium'], indirect=True)
+def test_positive_foremanctl_tuning_profile(module_sat_foremanctl_tuning):
+    """Verify foremanctl deploy with a tuning profile applies successfully
+
+    :id: f55e8a14-eb93-4416-82ee-f389b3bbd768
+
+    :steps:
+        1. Install Satellite with foremanctl deploy with the 'medium' tuning profile
+        2. Verify the tuning parameter is recorded in the parameters file
+        3. Verify PostgreSQL settings match the medium profile
+        4. Reset tuning back to 'default'
+        5. Verify the default profile is recorded
+        6. Verify PostgreSQL settings match the default profile
+
+    :expectedresults:
+        1. foremanctl deploy --tuning medium succeeds
+        2. The parameters file records tuning as 'medium'
+        3. PostgreSQL max_connections, shared_buffers, effective_cache_size match medium profile
+        4. foremanctl deploy --tuning default succeeds
+        5. The parameters file records tuning as 'default'
+        6. PostgreSQL settings revert to default values
+
+    :CaseAutomation: Automated
+    """
+    sat = module_sat_foremanctl_tuning
+    # verify foremanctl is deployed with medium tuning profile
+    parameters_file = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert parameters_file.tuning == 'medium'
+    assert_postgresql_tuning(sat, 'medium')
+
+    # reset tuning back to default
+    assert (
+        sat.execute(
+            'foremanctl deploy --reset-tuning',
+            timeout='30m',
+        ).status
+        == 0
+    )
+
+    parameters_file = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert 'tuning' not in parameters_file
+    assert_postgresql_tuning(sat, 'default')
