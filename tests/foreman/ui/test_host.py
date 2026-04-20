@@ -2349,14 +2349,14 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'{settings.content_host.default_rhel_version}')
-def test_change_content_source_with_multi_cv(
+def test_manage_content_source_with_multi_cv(
     module_target_sat,
     module_org,
     module_lce,
     module_cv,
     rhel_contenthost,
 ):
-    """Test changing host's content source while assigning multiple content view environments
+    """Test managing host's content source while assigning multiple content view environments
 
     :id: a7b9c3d2-e4f5-4a6b-8c9d-1e2f3a4b5c6d
 
@@ -2420,7 +2420,7 @@ def test_change_content_source_with_multi_cv(
     result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
-    # Step 5 & 6: Use UI to change content source with multiple CVEnv assignments
+    # Step 5 & 6: Use UI to manage content source with multiple CVEnv assignments
     with module_target_sat.ui_session() as session:
         session.organization.select(module_org.name)
 
