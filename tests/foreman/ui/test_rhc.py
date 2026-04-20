@@ -41,9 +41,6 @@ def fixture_enable_rhc_repos(module_target_sat):
         module_target_sat.enable_repo(
             f'satellite-{sat_version}-for-rhel-{major}-x86_64-rpms', force=True
         )
-        module_target_sat.enable_repo(
-            f'satellite-maintenance-{sat_version}-for-rhel-{major}-x86_64-rpms', force=True
-        )
 
 
 @pytest.fixture(scope='module')
