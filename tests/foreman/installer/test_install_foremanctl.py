@@ -198,3 +198,5 @@ def test_foremanctl_deploy_certificate_cname(module_sat_ready_rhel):
         f'https://{cname}/users/login'
     )
     assert result.status == 0, f'HTTPS request to {cname} failed with output:\n{result.stderr}'
+
+
