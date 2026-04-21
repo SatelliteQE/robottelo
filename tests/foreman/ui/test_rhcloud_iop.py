@@ -304,7 +304,7 @@ def test_iop_recommendations_host_details_e2e(
 
 
 @pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
-def test_iop_rhcloud_inventory_upload_not_displayed(module_target_sat_insights):
+def test_iop_negative_rhcloud_inventory_upload_not_displayed(module_target_sat_insights):
     """Verify that the 'Red Hat Lightspeed > Inventory Upload' navigation item is not available
     when the Satellite is configured to use IoP.
 
