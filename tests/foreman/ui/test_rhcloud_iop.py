@@ -312,7 +312,7 @@ def test_iop_negative_rhcloud_inventory_upload_not_displayed(module_target_sat_i
 
     :steps:
         1. Configure Satellite to use local Insights advisor engine.
-        2. Navigate to the Insights Recommendations page.
+        2. Navigate to the Red Hat Lightspeed Recommendations page.
         3. Try to navigate to Red Hat Lightspeed > Inventory Upload from the navigation menu.
 
     :expectedresults:
