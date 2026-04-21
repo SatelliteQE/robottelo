@@ -3711,8 +3711,8 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
         )
         assert 'Added' in result
         hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
-        assert hosts_in_host_col[host_col_names[0]] == host_names
-        assert hosts_in_host_col[host_col_names[1]] == host_names
+        assert sorted(hosts_in_host_col[host_col_names[0]]) == sorted(host_names)
+        assert sorted(hosts_in_host_col[host_col_names[1]]) == sorted(host_names)
 
         # Remove 1 host from 1 host collection
         # at this state there are 2 hosts in both 'TestHostCol_1' and 'TestHostCol_2'
@@ -3744,8 +3744,8 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
             option='Add',
         )
         hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
-        assert hosts_in_host_col[host_col_names[0]] == host_names
-        assert hosts_in_host_col[host_col_names[1]] == host_names
+        assert sorted(hosts_in_host_col[host_col_names[0]]) == sorted(host_names)
+        assert sorted(hosts_in_host_col[host_col_names[1]]) == sorted(host_names)
 
         # Remove 2 hosts from 2 host collections
         result = session.all_hosts.change_associations_host_collections(
