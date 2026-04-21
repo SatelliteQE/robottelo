@@ -3913,42 +3913,42 @@ def test_positive_all_hosts_manage_traces(target_sat, module_org, tracer_hosts, 
             f'got type={mock_trace[0]["type"]}'
         )
 
+    timestamp = (datetime.now(UTC) - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M')
+
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
 
         # Use bulk action to manage traces on both hosts
-        timestamp = (datetime.now(UTC) - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M')
-
         alert_message = session.all_hosts.manage_traces(
             host_names=host_names, traces_to_select=[mock_service]
         )
         assert 'Danger alert' not in alert_message, 'Manage traces action failed'
 
-        # Wait for REX job to complete
-        search_query = f'action = "Run hosts job: Restart Services" and started_at >= "{timestamp}"'
-        target_sat.wait_for_tasks(
-            search_query=search_query,
-            search_rate=15,
-            max_tries=10,
-        )
+    # Wait for REX job to complete
+    search_query = f'action = "Run hosts job: Restart Services" and started_at >= "{timestamp}"'
+    target_sat.wait_for_tasks(
+        search_query=search_query,
+        search_rate=15,
+        max_tries=10,
+    )
 
-        if require_reboot:
-            # Reboot hosts to clear static traces
-            for host in tracer_hosts:
-                host.power_control(state='reboot')
-
-            for host in tracer_hosts:
-                host.wait_for_connection()
-
-        # Verify all traces are resolved on both hosts after restart/reboot
+    if require_reboot:
+        # Reboot hosts to clear static traces
         for host in tracer_hosts:
-            host_info = target_sat.cli.Host.info({'name': host.hostname})
-            traces = target_sat.cli.HostTraces.list({'host-id': host_info['id']})
-            remaining_apps = {t['application'] for t in traces}
-            assert mock_service not in remaining_apps, (
-                f'Trace {mock_service} still present on {host.hostname} after {"reboot" if require_reboot else "restart"}. '
-                f'Remaining traces: {remaining_apps}'
-            )
+            host.power_control(state='reboot')
+
+        for host in tracer_hosts:
+            host.wait_for_connection()
+
+    # Verify all traces are resolved on both hosts after restart/reboot
+    for host in tracer_hosts:
+        host_info = target_sat.cli.Host.info({'name': host.hostname})
+        traces = target_sat.cli.HostTraces.list({'host-id': host_info['id']})
+        remaining_apps = {t['application'] for t in traces}
+        assert mock_service not in remaining_apps, (
+            f'Trace {mock_service} still present on {host.hostname} after {"reboot" if require_reboot else "restart"}. '
+            f'Remaining traces: {remaining_apps}'
+        )
 
 
 def verify_system_purpose_via_api(
