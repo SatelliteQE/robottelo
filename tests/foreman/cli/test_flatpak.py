@@ -311,6 +311,10 @@ def test_sync_consume_flatpak_repo_via_library(
         1. Entire workflow works and allows user to install a flatpak app at the registered
            contenthost.
 
+    :BlockedBy: SAT-44554
+
+    :Verifies: SAT-44554
+
     """
     sat, host = module_target_sat, module_flatpak_contenthost
 
@@ -449,6 +453,8 @@ def test_sync_consume_flatpak_repo_via_cv(
     :expectedresults:
         1. Flatpak repos published in a CV are installable on a host via the CV.
         2. Other flatpak repos published in a different CV are isolated from the first CV.
+
+    :BlockedBy: SAT-44554
 
     """
     sat, host = module_target_sat, module_flatpak_contenthost
