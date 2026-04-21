@@ -1495,6 +1495,8 @@ class TestContentViewSync:
 
         :customerscenario: true
 
+        :BlockedBy: SAT-44554
+
         """
         # Create CV, add all setup repos and publish.
         content_view = target_sat.cli_factory.make_content_view(
