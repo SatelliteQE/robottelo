@@ -475,17 +475,17 @@ def test_positive_health_check_tftp_storage(sat_maintain, request):
     # Create files for testing check-tftp-storage check.
     for file in files_to_delete:
         assert sat_maintain.execute(f'touch /var/lib/tftpboot/boot/{file}').status == 0
-    # The check removes TFTP artifacts older than the `token_duration` setting.
-    # Wait until files are "old enough" instead of sleeping a fixed amount.
-    token_duration = int(sat_maintain.cli.Settings.list({'search': 'name=token_duration'})[0]['value'])
-    token_duration_seconds = token_duration * 60
+    # Wait until the created files are older than token_duration (set to 2 minutes above).
+    token_duration_seconds = 2 * 60
     mtime_path = f'/var/lib/tftpboot/boot/{files_to_delete[0]}'
-
-    def _is_old_enough():
-        mtime = int(sat_maintain.execute(f'stat -c %Y {mtime_path}').stdout.strip())
-        return (time.time() - mtime) >= (token_duration_seconds + 5)
-
-    wait_for(_is_old_enough, timeout=(token_duration_seconds + 60), delay=5)
+    wait_for(
+        lambda: (
+            time.time() - int(sat_maintain.execute(f'stat -c %Y {mtime_path}').stdout.strip())
+            >= token_duration_seconds + 5
+        ),
+        timeout=token_duration_seconds + 60,
+        delay=5,
+    )
     assert sat_maintain.execute(f'touch /var/lib/tftpboot/boot/{files_to_keep[0]}').status == 0
     # Run check-tftp-storage check.
     result = sat_maintain.cli.Health.check(
