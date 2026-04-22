@@ -16,11 +16,11 @@ import time
 
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.enums import NetworkType
 from robottelo.utils.installer import InstallerCommand
-from wait_for import wait_for
 
 upstream_url = {
     'foreman_repo': 'https://yum.theforeman.org/releases/nightly/el9/x86_64/',
