@@ -54,13 +54,14 @@ def sat_maintain(request):
         infra_host = request.getfixturevalue('module_capsule_maintain')
     elif host_type == 'satellite_iop':
         infra_host = request.getfixturevalue('module_satellite_iop')
+        infra_host.register_to_cdn()
     else:
         infra_host = _get_satellite_host(request)
 
     yield infra_host
 
     if host_type == 'satellite_iop':
-        iop_settings = settings.rh_cloud.iop_advisor_engine
+        iop_settings = settings.rh_cloud.iop
         if not infra_host.is_podman_logged_in(iop_settings.stage_registry):
             infra_host.podman_login(
                 iop_settings.stage_username,

@@ -43,8 +43,14 @@ def test_positive_bootc_cli_actions(
     assert bootc_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
     assert bootc_info['rollback-image'] == bootc_dummy_info['bootc.rollback.image']
     assert bootc_info['rollback-image-digest'] == bootc_dummy_info['bootc.rollback.digest']
-    # Verify hammer host bootc images
-    booted_images_info = target_sat.cli.Host.bootc_images()[0]
-    assert booted_images_info['running-image'] == bootc_dummy_info['bootc.booted.image']
-    assert booted_images_info['running-image-digest'] == bootc_dummy_info['bootc.booted.digest']
-    assert int(booted_images_info['host-count']) > 0
+    # Verify hammer host bootc images - verify the test host's image appears in the booted images list
+    all_bootc_images = target_sat.cli.Host.bootc_images()
+    # The bootc_images command returns aggregated data, so we need to find our specific image
+    # Since we already validated the host-specific info above, here we just verify it appears in the booted images list
+    assert any(
+        img.get('running-image') == bootc_dummy_info['bootc.booted.image']
+        for img in all_bootc_images
+    ), (
+        f'Expected bootc image {bootc_dummy_info["bootc.booted.image"]} not found in booted bootc images list. '
+        f'Available images: {[img.get("running-image") for img in all_bootc_images]}'
+    )

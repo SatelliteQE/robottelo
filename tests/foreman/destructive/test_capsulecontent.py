@@ -299,5 +299,5 @@ def test_sync_AC_without_deadlock(
     assert sync_status['result'] == 'success', f'Capsule sync task failed: {sync_status}'
     sharelock_check = capsule_configured.execute('grep -i "ShareLock" /var/log/messages')
     assert sharelock_check.status != 0, 'ShareLock detected in /var/log/messages'
-    deadlock_check = capsule_configured.execute('grep -i "deadlock" /var/log/messages')
+    deadlock_check = capsule_configured.execute('grep -i "deadlock detected" /var/log/messages')
     assert deadlock_check.status != 0, 'Deadlock detected in /var/log/messages'

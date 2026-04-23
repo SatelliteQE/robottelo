@@ -4,7 +4,7 @@
 
 :CaseAutomation: NotAutomated
 
-:CaseComponent: UsersRoles
+:CaseComponent: UsersandRoles
 
 :Team: Endeavour
 

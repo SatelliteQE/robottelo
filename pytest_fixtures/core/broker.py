@@ -12,9 +12,10 @@ from robottelo.hosts import Satellite, lru_sat_ready_rhel
 @pytest.fixture(scope='session')
 def _default_sat(align_to_satellite):
     """Returns a Satellite object for settings.server.hostname"""
-    if settings.server.hostname:
+    hostname = getattr(settings.server, 'hostname', None)
+    if hostname:
         try:
-            return Satellite.get_host_by_hostname(settings.server.hostname)
+            return Satellite.get_host_by_hostname(hostname)
         except ContentHostError:
             return Satellite()
     return None

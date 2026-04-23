@@ -23,7 +23,7 @@ from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials
+from robottelo.config import get_credentials, settings
 from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
@@ -396,9 +396,19 @@ def test_positive_create_and_update_with_subnet(
         location=module_location, organization=module_org, subnet=module_default_subnet
     ).create()
     assert host.subnet.read().name == module_default_subnet.name
-    new_subnet = module_target_sat.api.Subnet(
-        location=[module_location], organization=[module_org]
-    ).create()
+    # Create subnet with appropriate network type based on satellite configuration
+    subnet_kwargs = {
+        'location': [module_location],
+        'organization': [module_org],
+    }
+    if module_target_sat.network_type.has_ipv6:
+        subnet_kwargs['network_type'] = 'IPv6'
+        subnet_kwargs['network'] = gen_ipaddr(ip3=True, ipv6=True)
+        subnet_kwargs['mask'] = 'ffff:ffff:ffff:ffff::'
+        subnet_kwargs['ipam'] = 'EUI-64'
+    else:
+        subnet_kwargs['network_type'] = 'IPv4'
+    new_subnet = module_target_sat.api.Subnet(**subnet_kwargs).create()
     host.subnet = new_subnet
     host = host.update(['subnet'])
     assert host.subnet.read().name == new_subnet.name
@@ -662,7 +672,12 @@ def test_positive_end_to_end_with_host_parameters(module_org, module_location, m
 
 @pytest.mark.e2e
 def test_positive_end_to_end_with_image(
-    module_org, module_location, module_cr_libvirt, module_libvirt_image, module_target_sat
+    module_org,
+    module_location,
+    module_cr_libvirt,
+    default_architecture,
+    module_os,
+    module_target_sat,
 ):
     """Create a host with an image specified then remove it
     and update the host with the same image afterwards
@@ -671,9 +686,20 @@ def test_positive_end_to_end_with_image(
 
     :expectedresults: A host is created with expected image, image is removed and
         host is updated with expected image
-
-    :BlockedBy: SAT-32733
     """
+    # Configure SSH authentication for libvirt connection before creating image
+    module_target_sat.configure_libvirt_cr(server_fqdn=settings.libvirt.libvirt_hostname)
+
+    module_libvirt_image = module_target_sat.api.Image(
+        compute_resource=module_cr_libvirt,
+        name=gen_string('alpha'),
+        operatingsystem=module_os,
+        architecture=default_architecture,
+        username=settings.libvirt.image_username,
+        password=settings.libvirt.image_password,
+        uuid=settings.libvirt.libvirt_image_path,
+    ).create()
+
     host = module_target_sat.api.Host(
         organization=module_org,
         location=module_location,

@@ -811,6 +811,8 @@ def test_registering_with_title_using_global_registration_parameter(
     """
     rhel_ver = rhel_contenthost.os_version.major
     repo_url = getattr(settings.repos, f'rhel{rhel_ver}_os', None)
+    # Adding IPv6 proxy for IPv6 communication
+    rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
     rhel_contenthost.create_custom_repos(**repo_url)
     hostgroup = module_target_sat.api.HostGroup(
         organization=[module_sca_manifest_org], location=[module_location]

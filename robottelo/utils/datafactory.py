@@ -6,7 +6,7 @@ import string
 from string import punctuation
 from urllib.parse import quote_plus
 
-from fauxfactory import gen_alpha, gen_integer, gen_string, gen_url, gen_utf8
+from fauxfactory import gen_alpha, gen_cjk, gen_integer, gen_string, gen_url, gen_utf8
 
 from robottelo.config import settings
 from robottelo.constants import DOMAIN, STRING_TYPES
@@ -266,7 +266,9 @@ def valid_data_list(interface=None):
         'alphanumeric': gen_string('alphanumeric', random.randint(1, 255)),
         'latin1': gen_string('latin1', random.randint(1, 255)),
         'utf8': gen_string('utf8', random.randint(1, 85)),
-        'cjk': gen_string('cjk', random.randint(1, 85)),
+        'cjk': gen_cjk(length=random.randint(1, 85), bmp_only=True)
+        if interface == 'ui'
+        else gen_string('cjk', random.randint(1, 85)),
         'html': gen_string('html', random.randint(1, 85)),
     }
 

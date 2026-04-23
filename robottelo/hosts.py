@@ -1638,7 +1638,7 @@ class ContentHost(Host, ContentHostMixins):
 
     def podman_login(self, username=None, password=None, registry=None):
         """Login to a podman registry."""
-        iop_settings = settings.rh_cloud.iop_advisor_engine
+        iop_settings = settings.rh_cloud.iop
         username = username or iop_settings.username
         password = password or iop_settings.token
         registry = registry or iop_settings.registry
@@ -1669,7 +1669,7 @@ class ContentHost(Host, ContentHostMixins):
 
     def is_podman_logged_in(self, registry=None):
         """Check if podman is logged into a registry."""
-        registry = registry or settings.rh_cloud.iop_advisor_engine.registry
+        registry = registry or settings.rh_cloud.iop.registry
         return (
             self.execute(
                 f'podman login --get-login --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
@@ -1680,7 +1680,7 @@ class ContentHost(Host, ContentHostMixins):
 
     def podman_logout(self, registry=None):
         """Logout of a podman registry."""
-        registry = registry or settings.rh_cloud.iop_advisor_engine.registry
+        registry = registry or settings.rh_cloud.iop.registry
         if self.is_podman_logged_in(registry):
             cmd_result = self.execute(
                 f'podman logout --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
@@ -2423,6 +2423,7 @@ class Satellite(Capsule, SatelliteMixins):
             organization=module_org, name=f'rhel{rhelver}_{gen_string("alpha")}'
         ).create()
         tasks = []
+        repos = []
         for url in repo_urls:
             repo = self.api.Repository(
                 organization=module_org,
@@ -2430,6 +2431,7 @@ class Satellite(Capsule, SatelliteMixins):
                 content_type='yum',
                 url=url,
             ).create()
+            repos.append(repo)
             task = repo.sync(synchronous=False)
             tasks.append(task)
         for task in tasks:
@@ -2471,8 +2473,13 @@ class Satellite(Capsule, SatelliteMixins):
             # refresh repository metadata on the host
             rhel_contenthost.execute('subscription-manager repos --list')
 
-        # Override the repos to enabled
-        rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+        # Enable only the specific repos created for this product to avoid repo contamination
+        # when multiple products with different RHEL versions exist in the same org
+        for repo in repos:
+            repo = repo.read()
+            repo_label = f'{module_org.label}_{prod.label}_{repo.label}'
+            result = rhel_contenthost.execute(f'subscription-manager repos --enable {repo_label}')
+            assert result.status == 0, f'Failed to enable repository {repo_label}: {result.stderr}'
 
     def enroll_ad_and_configure_external_auth(self, ad_data):
         """Enroll Satellite Server to an AD Server.

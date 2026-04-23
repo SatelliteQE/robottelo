@@ -481,7 +481,7 @@ def test_positive_verify_updated_fdi_image(target_sat):
     target_sat.execute('yum -y --disableplugin=foreman-protector install foreman-discovery-image')
 
     if target_sat.os_version.major == 9:
-        version = '9.6' if is_open('SAT-40503') else str(target_sat.os_version)
+        version = '9.6'
     elif target_sat.os_version.major == 8:
         version = str(target_sat.os_version)
 

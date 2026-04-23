@@ -47,6 +47,14 @@ IMPORTANCE = re.compile(
     re.IGNORECASE,
 )
 
+# Only treat as Jira issue if it looks like PROJECT-NUM (e.g. SAT-20548, RHEL-55871)
+JIRA_ISSUE_PATTERN = re.compile(r'^[A-Za-z]+[-]\d+$')
+
+
+def _is_jira_issue_key(text):
+    """Return True if text looks like a Jira issue id (e.g. SAT-12345, RHEL-55871)."""
+    return bool(text and JIRA_ISSUE_PATTERN.match(text.strip()))
+
 
 def generate_issue_collection(items, config):  # pragma: no cover
     """Generates a dictionary with the usage of Issue blockers
@@ -89,7 +97,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
             }
     """
     valid_markers = ["skip", "deselect"]
-    collected_data = defaultdict(lambda: {"data": {}, "used_in": []})
+    collected_data = defaultdict(lambda: {"used_in": []})
 
     deselect_data = {}  # a local cache for deselected tests
 
@@ -119,6 +127,8 @@ def generate_issue_collection(items, config):  # pragma: no cover
             if marker.name in valid_markers:
                 issue = marker.kwargs.get('reason') or marker.args[0]
                 issue_key = issue.strip()
+                if not _is_jira_issue_key(issue_key):
+                    continue
                 collected_data[issue_key]['used_in'].append(
                     {
                         'filepath': filepath,
@@ -184,8 +194,8 @@ def generate_issue_collection(items, config):  # pragma: no cover
     # --- add deselect markers dynamically ---
     for item in items:
         issue = deselect_data.get(item.location)
-        if issue and should_deselect(issue, collected_data[issue]['data']):
-            collected_data[issue]['data']['is_deselected'] = True
+        if issue and should_deselect(issue):
+            collected_data[issue]['is_deselected'] = True
             item.add_marker(pytest.mark.deselect(reason=issue))
 
     return collected_data

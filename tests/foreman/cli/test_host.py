@@ -630,9 +630,10 @@ def test_positive_katello_and_openscap_loaded(target_sat):
         )
 
 
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_create
 def test_positive_list_and_unregister(
-    module_ak_with_cv, module_lce, module_org, rhel7_contenthost, target_sat
+    module_ak_with_cv, module_lce, module_org, rhel_contenthost, target_sat
 ):
     """List registered host for a given org and unregister the host
 
@@ -643,21 +644,20 @@ def test_positive_list_and_unregister(
 
     :parametrized: yes
     """
-    result = rhel7_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert result.status == 0
-    assert rhel7_contenthost.subscribed
+    assert rhel_contenthost.subscribed
     hosts = target_sat.cli.Host.list({'organization-id': module_org.id})
-    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
-    result = rhel7_contenthost.unregister()
+    assert rhel_contenthost.hostname in [host['name'] for host in hosts]
+    result = rhel_contenthost.unregister()
     assert result.status == 0
     hosts = target_sat.cli.Host.list({'organization-id': module_org.id})
-    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
+    assert rhel_contenthost.hostname in [host['name'] for host in hosts]
 
 
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_create
-def test_positive_list_by_last_checkin(
-    module_org, rhel7_contenthost, target_sat, module_ak_with_cv
-):
+def test_positive_list_by_last_checkin(module_org, rhel_contenthost, target_sat, module_ak_with_cv):
     """List all content hosts using last checkin criteria
 
     :id: e7d86b44-28c3-4525-afac-61a20e62daf8
@@ -670,19 +670,20 @@ def test_positive_list_by_last_checkin(
 
     :parametrized: yes
     """
-    result = rhel7_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
-    assert rhel7_contenthost.subscribed
+    assert rhel_contenthost.subscribed
     hosts = target_sat.cli.Host.list(
         {'search': 'last_checkin = "Today" or last_checkin = "Yesterday"'}
     )
     assert len(hosts) >= 1
-    assert rhel7_contenthost.hostname in [host['name'] for host in hosts]
+    assert rhel_contenthost.hostname in [host['name'] for host in hosts]
 
 
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_create
 def test_positive_list_infrastructure_hosts(
-    module_org, rhel7_contenthost, target_sat, module_ak_with_cv
+    module_org, rhel_contenthost, target_sat, module_ak_with_cv
 ):
     """List infrasturcture hosts (Satellite and Capsule)
 
@@ -692,21 +693,21 @@ def test_positive_list_infrastructure_hosts(
 
     :parametrized: yes
     """
-    result = rhel7_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert result.status == 0
-    assert rhel7_contenthost.subscribed
+    assert rhel_contenthost.subscribed
     target_sat.cli.Host.update({'name': target_sat.hostname, 'new-organization-id': module_org.id})
     # list satellite hosts
     hosts = target_sat.cli.Host.list({'search': 'infrastructure_facet.foreman=true'})
     assert len(hosts) == 1
     hostnames = [host['name'] for host in hosts]
-    assert rhel7_contenthost.hostname not in hostnames
+    assert rhel_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
     # list capsule hosts
     hosts = target_sat.cli.Host.list({'search': 'infrastructure_facet.smart_proxy_id=1'})
     hostnames = [host['name'] for host in hosts]
     assert len(hosts) == 1
-    assert rhel7_contenthost.hostname not in hostnames
+    assert rhel_contenthost.hostname not in hostnames
     assert target_sat.hostname in hostnames
 
 
@@ -2224,6 +2225,7 @@ def test_positive_dump_enc_yaml(target_sat):
 
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
 @pytest.mark.pit_client
+@pytest.mark.client_release
 @pytest.mark.rhel_ver_match('^[0-9]+$')
 def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
     """Install tracer on client, downgrade the service, check from the satellite
@@ -2280,6 +2282,7 @@ def test_positive_host_with_puppet(
     module_puppet_org,
     module_puppet_loc,
     module_puppet_environment,
+    module_puppet_lce_library,
 ):
     """Create update read and delete host with puppet environment
 
@@ -2289,34 +2292,21 @@ def test_positive_host_with_puppet(
 
     :CaseImportance: Critical
     """
-
-    host_template = session_puppet_enabled_sat.api.Host()
-    host_template.create_missing()
-    host = session_puppet_enabled_sat.cli_factory.make_host(
+    update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
+    host = session_puppet_enabled_sat.cli_factory.make_fake_host(
         {
-            'architecture-id': host_template.architecture.id,
-            'domain-id': host_template.domain.id,
-            'puppet-environment-id': host_template.environment.id,
-            'location-id': host_template.location.id,
-            'mac': host_template.mac,
-            'medium-id': host_template.medium.id,
-            'name': host_template.name,
-            'operatingsystem-id': host_template.operatingsystem.id,
-            'organization-id': host_template.organization.id,
-            'partition-table-id': host_template.ptable.id,
+            'puppet-environment-id': module_puppet_environment.id,
+            'organization-id': module_puppet_org.id,
+            'location-id': module_puppet_loc.id,
+            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
             'puppet-proxy-id': session_puppet_enabled_proxy.id,
-            'root-password': host_template.root_pass,
         }
     )
-    session_puppet_enabled_sat.api.Environment(
-        id=module_puppet_environment.id,
-        organization=[host_template.organization],
-        location=[host_template.location],
-    ).update(['location', 'organization'])
 
     session_puppet_enabled_sat.cli.Host.update(
         {
-            'name': host.name,
+            'name': host['name'],
             'puppet-environment': module_puppet_environment.name,
         }
     )
@@ -2702,7 +2692,7 @@ def test_positive_reregister_rhel(
     # remove local consumer certs
     rhel_contenthost.execute('rm -rf /etc/pki/consumer/*')
     status = rhel_contenthost.execute("subscription-manager status")
-    assert "Overall Status: Unknown" in status.stdout
+    assert "Overall Status: Not registered" in status.stdout
     # reregister host with force
     reregister = rhel_contenthost.register(
         function_org, None, function_ak_with_cv.name, target_sat, force=True

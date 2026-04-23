@@ -31,6 +31,7 @@ from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
     DEFAULT_LOC,
+    DEFAULT_ORG,
     ENVIRONMENT,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_7_CUSTOM_PACKAGE,
@@ -175,7 +176,7 @@ def tracer_install_host(rex_contenthost, target_sat):
 
 
 @pytest.mark.e2e
-def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_options, request):
+def test_positive_end_to_end(module_global_params, target_sat, host_ui_options, request, ui_user):
     """Create a new Host with parameters, config group. Check host presence on
         the dashboard. Update name with 'new' prefix and delete.
 
@@ -213,10 +214,14 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
     @request.addfinalizer
     def _finalize():
         # Get table to original state
-        with target_sat.ui_session() as session:
+        with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
+            session.organization.select(api_values['host.organization'])
+            session.location.select(api_values['host.location'])
             session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
-    with session:
+    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
+        session.organization.select(api_values['host.organization'])
+        session.location.select(api_values['host.location'])
         api_values.update(
             {
                 'parameters.host_params': host_parameters,
@@ -254,7 +259,7 @@ def test_positive_end_to_end(session, module_global_params, target_sat, host_ui_
         assert not target_sat.api.Host().search(query={'search': f'name="{new_host_name}"'})
 
 
-def test_positive_read_from_details_page(session, module_host_template):
+def test_positive_read_from_details_page(target_sat, module_host_template, ui_user):
     """Create new Host and read all its content through details page
 
     :id: ffba5d40-918c-440e-afbb-6b910db3a8fb
@@ -267,7 +272,7 @@ def test_positive_read_from_details_page(session, module_host_template):
     host = template.create()
     os_name = f'{template.operatingsystem.name} {template.operatingsystem.major}'
     host_name = host.name
-    with session:
+    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
         assert session.host_new.search(host_name)[0]['Name'] == host_name
         values = session.host_new.get_details(host_name)
         assert values['overview']['host_status']['status'] == 'All statuses OK'
@@ -329,7 +334,7 @@ def test_read_host_with_ics_domain(
         assert values['details']['system_properties']['sys_properties']['name'] == host_name
 
 
-def test_positive_read_from_edit_page(session, host_ui_options):
+def test_positive_read_from_edit_page(target_sat, ui_user, host_ui_options):
     """Create new Host and read all its content through edit page
 
     :id: 758fcab3-b363-4bfc-8f5d-173098a7e72d
@@ -337,7 +342,8 @@ def test_positive_read_from_edit_page(session, host_ui_options):
     :expectedresults: Host is created and has expected content
     """
     api_values, host_name = host_ui_options
-    with session:
+    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
+        session.organization.select(api_values['host.organization'])
         session.location.select(api_values['host.location'])
         session.host.create(api_values)
         assert session.host.search(host_name)[0]['Name'] == host_name
@@ -370,7 +376,13 @@ def test_positive_read_from_edit_page(session, host_ui_options):
 
 
 def test_positive_assign_taxonomies(
-    session, module_org, smart_proxy_location, target_sat, function_org, function_location_with_org
+    module_org,
+    smart_proxy_location,
+    target_sat,
+    function_org,
+    function_location_with_org,
+    ui_user,
+    host_ui_options,
 ):
     """Ensure Host organization and Location can be assigned.
 
@@ -379,8 +391,11 @@ def test_positive_assign_taxonomies(
     :expectedresults: Host Assign Organization and Location actions are
         working as expected.
     """
+
     host = target_sat.api.Host(organization=module_org, location=smart_proxy_location).create()
-    with session:
+    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
+        session.organization.select(host_ui_options[0]['host.organization'])
+        session.location.select(host_ui_options[0]['host.location'])
         assert session.all_hosts.search(host.name)[0]['Name'] == host.name
         session.all_hosts.change_associations_organization(
             host_names=[host.name],
@@ -427,72 +442,6 @@ def test_positive_assign_taxonomies(
         )
 
 
-@pytest.mark.skip_if_not_set('oscap')
-def test_positive_assign_compliance_policy(
-    session, scap_policy, second_scap_policy, target_sat, function_host
-):
-    """Ensure host compliance Policy can be assigned.
-
-    :id: 323661a4-e849-4cc2-aa39-4b4a5fe2abed
-
-    :expectedresults: Host Assign/Unassign Compliance Policy action is working as
-        expected.
-
-    :BZ: 1862135
-    :BlockedBy: SAT-38431
-    """
-    # TODO Rewrite for new all hosts page after SAT-38431 is completed
-
-    org = function_host.organization.read()
-    loc = function_host.location.read()
-    # add host organization and location to scap policy
-    content = target_sat.api.ScapContents(id=scap_policy['scap-content-id']).read()
-    content.organization.append(org)
-    content.location.append(loc)
-    target_sat.api.ScapContents(
-        id=scap_policy['scap-content-id'],
-        organization=content.organization,
-        location=content.location,
-    ).update(['organization', 'location'])
-    for sp in [scap_policy, second_scap_policy]:
-        target_sat.api.CompliancePolicies(
-            id=sp['id'],
-            organization=content.organization,
-            location=content.location,
-        ).update(['organization', 'location'])
-
-    with session:
-        session.organization.select(org_name=org.name)
-        session.location.select(loc_name=loc.name)
-        assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
-        assert session.host.search(function_host.name)[0]['Name'] == function_host.name
-        session.host.apply_action(
-            'Assign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
-        )
-        session.host.apply_action(
-            'Assign Compliance Policy', [function_host.name], {'policy': second_scap_policy['name']}
-        )
-        assert (
-            session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
-            == function_host.name
-        )
-        session.host.apply_action(
-            'Assign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
-        )
-        assert (
-            session.host.search(f'compliance_policy = {scap_policy["name"]}')[0]['Name']
-            == function_host.name
-        )
-        session.host.apply_action(
-            'Unassign Compliance Policy', [function_host.name], {'policy': scap_policy['name']}
-        )
-        assert not session.host.search(f'compliance_policy = {scap_policy["name"]}')
-        assert (
-            session.host.search(f'compliance_policy = {second_scap_policy["name"]}')[0]['Name']
-            == function_host.name
-        )
-
-
 @pytest.mark.skipif((settings.ui.webdriver != 'chrome'), reason='Only tested on Chrome')
 def test_positive_export(session, target_sat, function_org, function_location):
     """Create few hosts and export them via UI
@@ -510,7 +459,7 @@ def test_positive_export(session, target_sat, function_org, function_location):
         for _ in range(3)
     ]
     expected_fields = {(host.name, host.operatingsystem.read().title) for host in hosts}
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
         session.location.select(function_location.name)
         file_path = session.host.export()
@@ -587,7 +536,7 @@ def test_positive_export_selected_columns(target_sat, current_sat_location):
 
 
 def test_positive_create_with_inherited_params(
-    session, target_sat, function_org, function_location_with_org
+    target_sat, function_org, function_location_with_org
 ):
     """Create a new Host in organization and location with parameters
 
@@ -608,7 +557,9 @@ def test_positive_create_with_inherited_params(
     host_template.create_missing()
     host = host_template.create()
     host_name = host.name
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=function_location_with_org.name)
         session.organization.update(function_org.name, {'parameters.resources': org_param})
         session.location.update(
             function_location_with_org.name, {'parameters.resources': loc_param}
@@ -625,7 +576,7 @@ def test_positive_create_with_inherited_params(
         )
 
 
-def test_negative_delete_primary_interface(session, host_ui_options):
+def test_negative_delete_primary_interface(target_sat, host_ui_options, ui_user):
     """Attempt to delete primary interface of a host
 
     :id: bc747e2c-38d9-4920-b4ae-6010851f704e
@@ -638,7 +589,7 @@ def test_negative_delete_primary_interface(session, host_ui_options):
     """
     values, host_name = host_ui_options
     interface_id = values['interfaces.interface.device_identifier']
-    with session:
+    with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
         session.location.select(values['host.location'])
         session.host.create(values)
         with pytest.raises(DisabledWidgetError) as context:
@@ -814,8 +765,12 @@ def test_positive_check_permissions_affect_create_procedure(
         content_view = content_view.read()
         content_view.version[0].promote(data={'environment_ids': filter_lc_env.id})
     # Create two host groups
-    hg = target_sat.api.HostGroup(organization=[function_org]).create()
-    filter_hg = target_sat.api.HostGroup(organization=[function_org]).create()
+    hg = target_sat.api.HostGroup(
+        organization=[function_org], location=[smart_proxy_location]
+    ).create()
+    filter_hg = target_sat.api.HostGroup(
+        organization=[function_org], location=[smart_proxy_location]
+    ).create()
     # Create lifecycle environment permissions and select one specific
     # environment user will have access to
     target_sat.api_factory.create_role_permissions(
@@ -929,7 +884,9 @@ def test_positive_search_by_parameter(session, module_org, smart_proxy_location,
     additional_host = target_sat.api.Host(
         organization=module_org, location=smart_proxy_location
     ).create()
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=smart_proxy_location.name)
         # Check that hosts present in the system
         for host in [param_host, additional_host]:
             assert session.host_new.search(host.name)[0]['Name'] == host.name
@@ -1043,7 +1000,9 @@ def test_positive_search_by_parameter_with_different_values(
         ).create()
         for param_value in param_values
     ]
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=smart_proxy_location.name)
         # Check that hosts present in the system
         for host in hosts:
             assert session.host_new.search(host.name)[0]['Name'] == host.name
@@ -1078,8 +1037,9 @@ def test_positive_search_by_parameter_with_prefix(
     additional_host = target_sat.api.Host(
         organization=function_org, location=smart_proxy_location
     ).create()
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=smart_proxy_location.name)
         # Check that the hosts are present
         for host in [param_host, additional_host]:
             assert session.host.search(host.name)[0]['Name'] == host.name
@@ -1116,8 +1076,9 @@ def test_positive_search_by_parameter_with_operator(
     additional_host = target_sat.api.Host(
         organization=function_org, location=smart_proxy_location
     ).create()
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=smart_proxy_location.name)
         # Check that the hosts are present
         for host in [param_host, additional_host]:
             assert session.host.search(host.name)[0]['Name'] == host.name
@@ -1142,7 +1103,7 @@ def test_positive_search_with_org_and_loc_context(
     :customerscenario: true
     """
     host = target_sat.api.Host(organization=function_org, location=function_location).create()
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.update(function_org.name, {'capsules.all_capsules': True})
         session.location.update(function_location.name, {'capsules.all_capsules': True})
         session.organization.select(org_name=function_org.name)
@@ -1165,8 +1126,9 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
     """
     host = target_sat.api.Host(location=smart_proxy_location).create()
     org = host.organization.read()
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.location.select(loc_name=ANY_CONTEXT['location'])
         assert session.host.search(f'organization = "{org.name}"')[0]['Name'] == host.name
 
 
@@ -1231,7 +1193,9 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
             'partition-table-id': module_host_template.ptable.id,
         }
     )
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_host_template.organization.name)
+        session.location.select(loc_name=module_host_template.location.name)
         values = session.host_new.read(host['name'], ['host.lce', 'host.content_view'])
         assert values['host']['lce'] == lce.name
         assert values['host']['content_view'] == cv.name
@@ -1243,15 +1207,16 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
 
 
 # ------------------------------ NEW HOST UI DETAILS ----------------------------
-def test_positive_read_details_page_from_new_ui(session, host_ui_options):
+def test_positive_read_details_page_from_new_ui(target_sat, host_ui_options):
     """Create new Host and read all its content through details page
 
     :id: ef0c5942-9049-11ec-8029-98fa9b6ecd5a
 
     :expectedresults: Host is created and has expected content
     """
-    with session:
+    with target_sat.ui_session() as session:
         api_values, host_name = host_ui_options
+        session.organization.select(api_values['host.organization'])
         session.location.select(api_values['host.location'])
         session.host_new.create(api_values)
         assert session.host_new.search(host_name)[0]['Name'] == host_name
@@ -1368,7 +1333,7 @@ def test_positive_host_details_read_templates(
     """
     host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
     api_templates = [template['name'] for template in host.list_provisioning_templates()]
-    with session:
+    with target_sat.ui_session() as session:
         session.organization.select(org_name=current_sat_org.name)
         session.location.select(loc_name=current_sat_location.name)
         host_detail = session.host_new.get_details(target_sat.hostname, widget_names='details')
@@ -1392,6 +1357,7 @@ def test_positive_update_delete_package(
     target_sat,
     rhel_contenthost,
     module_repos_collection_with_setup,
+    module_org,
 ):
     """Update a package on a host using the new Content tab
 
@@ -1413,7 +1379,8 @@ def test_positive_update_delete_package(
     client = rhel_contenthost
     client.add_rex_key(target_sat)
     module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         product_name = module_repos_collection_with_setup.custom_product.name
 
@@ -1505,6 +1472,7 @@ def test_positive_apply_erratum(
     target_sat,
     rhel_contenthost,
     module_repos_collection_with_setup,
+    module_org,
 ):
     """Apply an erratum on a host using the new Errata tab
 
@@ -1530,7 +1498,8 @@ def test_positive_apply_erratum(
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
     assert result.status == 0
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         assert session.host_new.search(client.hostname)[0]['Name'] == client.hostname
         # read widget on overview page
@@ -1581,6 +1550,7 @@ def test_positive_crud_module_streams(
     target_sat,
     rhel_contenthost,
     module_repos_collection_with_setup,
+    module_org,
 ):
     """CRUD test for the Module streams new UI tab
 
@@ -1602,7 +1572,8 @@ def test_positive_crud_module_streams(
     client = rhel_contenthost
     client.add_rex_key(target_sat)
     module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
-    with session:
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         streams = session.host_new.get_module_streams(client.hostname, module_name)
         assert streams[0]['Name'] == module_name
@@ -2195,40 +2166,41 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
 
 
 @pytest.mark.rhel_ver_match('8')
-def test_positive_page_redirect_after_update(target_sat, current_sat_location):
+def test_positive_page_redirect_after_update(target_sat, rhel_contenthost, setup_content):
     """Check that page redirects correctly after editing a host without making any changes.
 
     :id: 29c3397e-0010-11ef-bca4-000c2989e153
 
     :steps:
         1. Go to All Hosts page.
-        2. Edit a host. Using the Sat. host is sufficient, no other host needs to be created or registered,
-            because we need just a host with FQDN.
+        2. Edit a host with FQDN.
         3. Submit the host edit dialog without making any changes.
 
     :expectedresults: The page should be redirected to the host details page.
 
     :BZ: 2166303
     """
-    client = target_sat
+    ak, org, _ = setup_content
+    rhel_contenthost.register(org, None, ak.name, target_sat)
     column = {'Name': True, 'Host group': True, 'OS': True, 'Owner': True, 'Last report': True}
     with target_sat.ui_session() as session:
-        session.location.select(loc_name=current_sat_location.name)
+        session.organization.select(org.name)
         headers = session.all_hosts.get_displayed_table_headers()
         columns = {**column, **{h: False for h in headers if h is not None and h not in column}}
         session.all_hosts.manage_table_columns(columns)
-        session.host_new.update(client.hostname, {})
+        session.host_new.update(rhel_contenthost.hostname, {})
         assert 'page-not-found' not in session.browser.url
-        assert client.hostname in session.browser.url
+        assert rhel_contenthost.hostname in session.browser.url
 
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_host_status_honors_taxonomies(
-    module_target_sat,
+    target_sat,
     test_name,
     rhel_contenthost,
-    setup_content,
+    function_ak_with_cv,
+    function_org,
     default_location,
     default_org,
     default_org_lce,
@@ -2244,19 +2216,17 @@ def test_host_status_honors_taxonomies(
 
     :expectedresults: First, the user can't see any host, then they can see one host
     """
-    ak, org, _ = setup_content
-
     lce = default_org_lce
     # Create content view environment for the default org
-    content_view = module_target_sat.api.ContentView(organization=default_org).create()
+    content_view = target_sat.api.ContentView(organization=default_org).create()
     content_view.publish()
     published_cv = content_view.read()
     content_view_version = published_cv.version[0]
     content_view_version.promote(data={'environment_ids': lce.id})
 
-    # default_org != org (== module_org)
+    # default_org != function_org
     default_org_ak_name = gen_string('alpha')
-    module_target_sat.cli_factory.make_activation_key(
+    target_sat.cli_factory.make_activation_key(
         {
             'name': default_org_ak_name,
             'organization-id': default_org.id,
@@ -2267,17 +2237,17 @@ def test_host_status_honors_taxonomies(
     # register the host to default_org
     assert (
         rhel_contenthost.register(
-            default_org, default_location, default_org_ak_name, module_target_sat
+            default_org, default_location, default_org_ak_name, target_sat
         ).status
         == 0
     )
-    host_id = module_target_sat.cli.Host.info({'name': rhel_contenthost.hostname})['id']
+    host_id = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})['id']
     password = gen_string('alpha')
     login = gen_string('alpha')
-    # the user is in org
-    module_target_sat.cli.User.create(
+    # the user is in function_org
+    target_sat.cli.User.create(
         {
-            'organization-id': org.id,
+            'organization-id': function_org.id,
             'location-id': default_location.id,
             'auth-source': 'Internal',
             'password': password,
@@ -2286,14 +2256,19 @@ def test_host_status_honors_taxonomies(
             'roles': ROLES,
         }
     )
-    with module_target_sat.ui_session(test_name, user=login, password=password) as session:
+    with target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert all(int(status['count'].split(': ')[1]) == 0 for status in statuses)
-    # register the host to org
+    # register the host to function_org
     assert rhel_contenthost.unregister().status == 0
-    module_target_sat.cli.Host.delete({'id': host_id})
-    assert rhel_contenthost.register(org, default_location, ak.name, module_target_sat).status == 0
-    with module_target_sat.ui_session(test_name, user=login, password=password) as session:
+    target_sat.cli.Host.delete({'id': host_id})
+    assert (
+        rhel_contenthost.register(
+            function_org, default_location, function_ak_with_cv.name, target_sat
+        ).status
+        == 0
+    )
+    with target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert len([status for status in statuses if int(status['count'].split(': ')[1]) != 0]) == 1
 
@@ -2679,13 +2654,13 @@ def test_all_hosts_manage_errata(
             assert task_status['result'] == 'success'
 
 
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_manage_repository_sets(
     module_target_sat,
     module_sca_manifest_org,
     module_lce,
     module_ak,
-    rhel8_contenthost,
-    rhel9_contenthost,
+    content_hosts,
 ):
     """
     Change one or more repository status on multiple hosts through Manage content wizard
@@ -2694,13 +2669,10 @@ def test_positive_manage_repository_sets(
 
     :expectedresults: Repository status can be changed via All Hosts page > Manage content wizard.
 
-    :CaseComponent: Hosts
-
     :Team: Proton
     """
-    content_hosts = [rhel8_contenthost, rhel9_contenthost]
-    rhel_repos = ['rhel8_bos', 'rhel9_bos']
-    all_repo_ids = []
+    rhel_ver = content_hosts[0].os_version.major
+    repo_key = f'rhel{rhel_ver}_bos'
     all_repo_names = []
     host_names = []
     status_to_be_changed = {
@@ -2709,36 +2681,23 @@ def test_positive_manage_repository_sets(
         2: 'Reset to default',
     }
 
-    # Create content view
+    # Create content view and enable the BOS repo for the host RHEL version
     content_view = module_target_sat.api.ContentView(organization=module_sca_manifest_org).create()
-    content_view.repository = []
-
-    # Enable rh repos and fetch repo ids
-    for name in rhel_repos:
-        rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
-            basearch=DEFAULT_ARCHITECTURE,
-            org_id=module_sca_manifest_org.id,
-            product=REPOS[name]['product'],
-            repo=REPOS[name]['name'],
-            reposet=REPOS[name]['reposet'],
-            releasever=REPOS[name]['releasever'],
-        )
-        all_repo_ids.append(rh_repo_id)
-
-        # wait for repo creation/meta data generate task to complete
-        module_target_sat.wait_for_tasks(
-            search_query='Actions::Katello::Repository::MetadataGenerate',
-            max_tries=5,
-            search_rate=10,
-        )
-
-        # Read repository from repo id
-        rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
-
-        # content view repositories
-        content_view.repository.append(rh_repo)
-
-    # Update content view repositories,publish and then promote content view to Library
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=module_sca_manifest_org.id,
+        product=REPOS[repo_key]['product'],
+        repo=REPOS[repo_key]['name'],
+        reposet=REPOS[repo_key]['reposet'],
+        releasever=REPOS[repo_key]['releasever'],
+    )
+    module_target_sat.wait_for_tasks(
+        search_query='Actions::Katello::Repository::MetadataGenerate',
+        max_tries=5,
+        search_rate=10,
+    )
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    content_view.repository = [rh_repo]
     content_view = module_target_sat.api.ContentView(
         id=content_view.id, repository=content_view.repository
     ).update(['repository'])
@@ -2755,28 +2714,25 @@ def test_positive_manage_repository_sets(
         environment=module_lce,
     ).update()
 
-    # register host to satellite and enable repository if those are disable
-    for content_host in content_hosts:
+    # Register hosts and collect repo names
+    for host in content_hosts:
         assert (
-            content_host.register(
-                module_sca_manifest_org, None, module_ak.name, module_target_sat
-            ).status
+            host.register(module_sca_manifest_org, None, module_ak.name, module_target_sat).status
             == 0
         )
-        raw_output = content_host.execute('subscription-manager repos --list').stdout
-        # Get repo name and add into empty list (this is workaround to avoid failure in airgun)
+        raw_output = host.execute('subscription-manager repos --list').stdout
         data_list = raw_output.split('\n')
         for line in data_list:
-            if "Repo Name" in line:
+            if 'Repo Name' in line:
                 repository = (line.split(':')[1]).lstrip()
-                all_repo_names.append(repository)
-        # If rhel repo is disabled then enable it
-        if "Enabled:   0" in raw_output:
-            rep_status = content_host.execute("subscription-manager repos --enable *").stdout
-            assert "enabled for this system" in rep_status
-        host_names.append(content_host.hostname)
+                if repository not in all_repo_names:
+                    all_repo_names.append(repository)
+        if 'Enabled:   0' in raw_output:
+            rep_status = host.execute(r'subscription-manager repos --enable \*').stdout
+            assert 'enabled for this system' in rep_status
+        host_names.append(host.hostname)
 
-    # Change one or more repository status on multiple hosts through Manage content wizard
+    # Change repository status to disabled on multiple hosts
     override_to_disabled = status_to_be_changed[0]
     with module_target_sat.ui_session() as session:
         session.organization.select(module_sca_manifest_org.name)
@@ -2786,12 +2742,11 @@ def test_positive_manage_repository_sets(
             repository_names=all_repo_names,
             status_to_change=override_to_disabled,
         )
-        # Check status of repositories on each host, it should be disabled.
-        for content_host in content_hosts:
-            output = content_host.execute('subscription-manager repos --list').stdout
-            assert "Enabled:   0" in output, 'repository status not changed'
+        for host in content_hosts:
+            output = host.execute('subscription-manager repos --list').stdout
+            assert 'Enabled:   0' in output, 'repository status not changed'
 
-        # Now change one or more repository status to enable
+        # Change repository status to enabled
         override_to_enabled = status_to_be_changed[1]
         session.all_hosts.manage_repository_sets(
             host_names=host_names,
@@ -2799,11 +2754,9 @@ def test_positive_manage_repository_sets(
             repository_names=all_repo_names,
             status_to_change=override_to_enabled,
         )
-
-        # Check status of repositories on each host, it should be enabled.
-        for content_host in content_hosts:
-            output = content_host.execute('subscription-manager repos --list').stdout
-            assert "Enabled:   1" in output, 'repository status not changed'
+        for host in content_hosts:
+            output = host.execute('subscription-manager repos --list').stdout
+            assert 'Enabled:   1' in output, 'repository status not changed'
 
 
 def test_disassociate_multiple_hosts(
@@ -3154,3 +3107,29 @@ def test_positive_change_hosts_org_loc(
             assert host_entity.location.id == new_location.id, (
                 f'Host {host_name} not moved to second location'
             )
+
+
+def test_positive_only_single_library_option_in_create_form(target_sat):
+    """Ensure that only 1 Library option is displayed in the Create Host form
+    when location is set to "Any location"
+
+    :id: 559f6324-dc17-4274-99f5-957ef0a2faf0
+
+    :steps:
+        1. Set location to "Any location"
+        2. Read LCE dropdown options in the Create host form
+
+    :expectedresults:
+        1. Only 1 Library option is displayed
+
+    :verifies: SAT-42710, SAT-32425
+
+    :customerscenario: true
+    """
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=ANY_CONTEXT['location'])
+        create_form = session.host.get_create_form()
+        create_form.host.lce.open_filter.click()
+        # Check that 'Library' appears just once
+        assert create_form.host.lce.filter_content.read().count('Library') == 1

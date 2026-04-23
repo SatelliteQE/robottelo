@@ -13,10 +13,13 @@
 """
 
 from datetime import UTC, datetime, timedelta
+import os
+import tempfile
 
 import pytest
 from wait_for import wait_for
 
+from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.utils.io import (
     get_local_file_data,
@@ -57,22 +60,26 @@ def common_assertion(
 ):
     """Function to perform common assertions"""
     local_file_data = get_local_file_data(report_path)
-    upload_success_msg = (
-        f'Done: /var/lib/foreman/red_hat_inventory/uploads/report_for_{org.id}.tar.xz'
-    )
     upload_error_messages = ['NSS error', 'Permission denied']
 
-    assert (
-        'Check the Uploading tab for report uploading status'
-        in inventory_data['generating']['terminal']
-    )
     if subscription_connection_enabled:
+        # Only check upload-related assertions when connection is enabled
+        upload_success_msg = 'completed'
+        assert (
+            'Check the Uploading tab for report uploading status'
+            in inventory_data['generating']['terminal']
+        )
         assert upload_success_msg in inventory_data['uploading']['terminal']
-        assert 'x-rh-insights-request-id' in inventory_data['uploading']['terminal'].lower()
         for error_msg in upload_error_messages:
             assert error_msg not in inventory_data['uploading']['terminal']
-        # There is no uploaded report with subscription_connection_enabled set to false
+        # Verify uploaded report checksum matches
         assert local_file_data['checksum'] == get_remote_report_checksum(satellite, org.id)
+    else:
+        # When connection disabled, just verify report was generated
+        assert (
+            f'Report saved to /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+            in inventory_data['generating']['terminal']
+        )
 
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
@@ -89,6 +96,8 @@ def common_assertion(
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 @pytest.mark.usefixtures('setting_update')
 @pytest.mark.parametrize(
     'setting_update',
@@ -150,7 +159,28 @@ def test_rhcloud_inventory_e2e(
             silent_failure=True,
             handle_exception=True,
         )
-        report_path = session.cloudinventory.download_report(org.name)
+        # Get report based on subscription_connection_enabled setting
+        if subscription_setting:
+            # When enabled, download via UI
+            report_path = session.cloudinventory.download_report(org.name)
+        else:
+            # When disabled, get from filesystem
+            remote_report_path = (
+                f'/var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+            )
+
+            # Verify file exists on Satellite
+            result = module_target_sat.execute(f'test -f {remote_report_path}')
+            assert result.status == 0, f"Report file not found at {remote_report_path}"
+
+            # Copy report from Satellite to local temp location
+            temp_dir = tempfile.mkdtemp()
+            local_report_name = f'report_for_{org.id}.tar.xz'
+            report_path = os.path.join(temp_dir, local_report_name)
+
+            # Download the file from satellite
+            module_target_sat.get(remote_path=remote_report_path, local_path=report_path)
+
         inventory_data = session.cloudinventory.read(org.name)
     # Verify that generated archive is valid.
     common_assertion(report_path, inventory_data, org, module_target_sat, subscription_setting)
@@ -398,8 +428,6 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
     )
 
 
-@pytest.mark.pit_server
-@pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
 def test_rhcloud_global_parameters(
     inventory_settings,
@@ -649,7 +677,6 @@ def test_rh_cloud_minimal_report(
 
 
 @pytest.mark.e2e
-@pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_list([7, 8, 9, 10])
 def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat):

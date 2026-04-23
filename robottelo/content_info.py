@@ -69,6 +69,27 @@ def get_repo_files_by_url(url, extension='rpm'):
     return sorted([os.path.basename(f) for f in get_repo_files_urls_by_url(url, extension)])
 
 
+def get_baseurl_by_repofile(repo_url, verify_ssl=True):
+    """
+    Returns the baseurl from a remote yum .repo file.
+
+    :param repo_url: URL to the .repo file
+    :return: baseurl string
+    :raises requests.HTTPError: if URL not accessible
+    :raises ValueError: if baseurl not found
+    """
+    response = requests.get(repo_url, verify=verify_ssl, timeout=10)
+    response.raise_for_status()
+
+    for line in response.text.splitlines():
+        line = line.strip()
+
+        if line.startswith('baseurl='):
+            return line.split('=', 1)[1].strip()
+
+    raise ValueError(f'No baseurl found in {repo_url}')
+
+
 def get_repomd(repo_url):
     """Fetches content of the repomd file of a repository
 

@@ -2155,6 +2155,92 @@ class TestCapsuleContentManagement:
         module_target_sat.run_orphan_cleanup(module_capsule_configured.nailgun_smart_proxy.id)
         module_target_sat.run_orphan_cleanup(module_target_sat.nailgun_smart_proxy.id)
 
+    @pytest.mark.parametrize(
+        'repos_collection',
+        [
+            {
+                'distro': 'rhel10',
+                'YumRepository': {'url': settings.repos.yum_0.url},
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.rhel_ver_match('N-0')
+    @pytest.mark.no_containers
+    def test_capsule_sync_nulled_subscription_facet(
+        self,
+        module_target_sat,
+        module_capsule_configured,
+        rhel_contenthost,
+        repos_collection,
+        function_org,
+        function_lce,
+        default_location,
+    ):
+        """Ensure that Capsule can sync when a host registered through it has a null
+            subscription facet.
+
+        :id: 1cacd513-e7d3-425f-9d67-a0cfe510e527
+
+        :parametrized: yes
+
+        :Verifies: SAT-39794
+
+        :customerscenario: true
+
+        :setup:
+            1. Satellite with registered external Capsule, associated with an LCE.
+
+        :steps:
+            1. Register a host through the Capsule
+            2. Unregister the host, without deleting it.
+            3. Perform a capsule sync.
+
+        :expectedresults:
+            A capsule sync can still occur with a host with a null UUID subscription_facet.
+
+        """
+        # Associate LCE with the capsule
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce.id}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert len(result['results'])
+        assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Sync a yum repo, publish and promote it to a CVE, sync the Capsule and wait for it.
+        timestamp = datetime.now(UTC)
+        repos_collection.setup_content(function_org.id, function_lce.id, override=True)
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        nc = module_capsule_configured.nailgun_smart_proxy
+        module_target_sat.api.SmartProxy(id=nc.id, organization=[function_org]).update(
+            ['organization']
+        )
+        module_target_sat.api.SmartProxy(id=nc.id, location=[default_location]).update(['location'])
+
+        result = rhel_contenthost.api_register(
+            module_target_sat,
+            smart_proxy=nc,
+            organization=function_org,
+            location=default_location,
+            activation_keys=[repos_collection.setup_content_data['activation_key']['name']],
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        host = module_target_sat.api.Host().search(
+            query={'search': f'name="{rhel_contenthost.hostname}"'}
+        )[0]
+        assert nc.id == host.content_facet_attributes['content_source_id'], (
+            'Expected to see the Capsule as the content source'
+        )
+        # Unregister the contenthost, leaving a null content facet behind.
+        assert rhel_contenthost.unregister().status == 0
+        # Perform a full capsule sync
+        timestamp = datetime.now(UTC)
+        nailgun_capsule = module_capsule_configured.nailgun_capsule
+        sync_status = nailgun_capsule.content_sync(timeout='90m')
+        assert sync_status['result'] == 'success'
+
 
 class TestPodman:
     """Tests specific to using podman push/pull on Satellite

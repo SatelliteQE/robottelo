@@ -48,7 +48,7 @@ IOP_SERVICES = [
 def test_positive_install_iop_custom_certs(
     certs_data,
     sat_ready_rhel,
-    module_sca_manifest,
+    function_sca_manifest,
     rhel_contenthost,
 ):
     """Install Satellite + IoP with custom SSL certs.
@@ -70,7 +70,7 @@ def test_positive_install_iop_custom_certs(
     """
     satellite = sat_ready_rhel
     host = rhel_contenthost
-    iop_settings = settings.rh_cloud.iop_advisor_engine
+    iop_settings = settings.rh_cloud.iop
 
     # Satellite + IoP installation
 
@@ -141,7 +141,7 @@ def test_positive_install_iop_custom_certs(
     assert result.status == 0, 'Not all services are running'
 
     org = satellite.api.Organization().create()
-    satellite.upload_manifest(org.id, module_sca_manifest.content)
+    satellite.upload_manifest(org.id, function_sca_manifest.content)
 
     activation_key = satellite.api.ActivationKey(
         content_view=org.default_content_view,
@@ -173,8 +173,8 @@ def test_positive_install_iop_custom_certs(
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-0')
-def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost):
-    """Install Satellite + IoP, disable, re-enable.
+def test_disable_enable_iop(module_satellite_iop, function_sca_manifest, rhel_contenthost):
+    """Disable and re-enable IoP on Satellite.
 
     :id: abe165e1-a3a4-413d-b6aa-5cb51acfeb2e
 
@@ -191,12 +191,12 @@ def test_disable_enable_iop(satellite_iop, module_sca_manifest, rhel_contenthost
 
     :CaseAutomation: Automated
     """
-    satellite = satellite_iop
+    satellite = module_satellite_iop
     host = rhel_contenthost
 
     # Register the Insights client
     org = satellite.api.Organization().create()
-    satellite.upload_manifest(org.id, module_sca_manifest.content)
+    satellite.upload_manifest(org.id, function_sca_manifest.content)
 
     activation_key = satellite.api.ActivationKey(
         content_view=org.default_content_view,
@@ -334,3 +334,80 @@ def test_insights_client_registration_with_http_proxy(
     assert rhel_contenthost.execute('insights-client --test-connection').status == 0
     assert rhel_contenthost.execute('insights-client --status').status == 0
     assert rhel_contenthost.execute('insights-client --unregister').status == 0
+
+
+def process_iop_log_options(installer_output):
+    """Takes satellite-installer help output as input and returns a dictionary
+    with the options as keys and the descriptions of the options as values.
+    """
+    options_dict = {}
+    for line in installer_output.split('\n'):
+        parts = line.split()
+        if parts:
+            option = parts[0]
+            description = ' '.join(parts[1:])
+            options_dict[option] = description
+    return options_dict
+
+
+def test_set_iop_log_level_via_installer(module_satellite_iop):
+    """Set IoP log level to DEBUG using satellite-installer options.
+
+    :id: 0268a6c1-56b5-4a0c-9df9-6c1b34f6cbd7
+
+    :steps:
+        1. Run `satellite-installer --full-help` to get the current IoP log levels.
+        2. Use satellite-installer to set all IoP log levels to DEBUG.
+        3. Use satellite-installer to reset all IoP log levels to defaults.
+
+    :expectedresults:
+        1. No IoP log levels are set to DEBUG by default.
+        2. All IoP log levels can be set to DEBUG using satellite-installer.
+        3. All IoP log levels can be reset to their default values using satellite-installer.
+
+    :Verifies: SAT-41750
+    """
+    NEW_LOG_LEVEL = 'DEBUG'
+
+    # Retrieve the IoP log level settings from satellite-installer help output
+    help_command = InstallerCommand('full-help').get_command()
+    log_level_settings = module_satellite_iop.execute(
+        f'{help_command} | grep iop.*log-level | grep -v reset'
+    ).stdout
+
+    # Process the log level options into a dictionary
+    settings_dict = process_iop_log_options(log_level_settings)
+
+    # Verify that no IoP log levels are set to DEBUG by default
+    assert NEW_LOG_LEVEL not in settings_dict.values()
+
+    # Use the installer to set all IoP log levels to DEBUG
+    command = InstallerCommand(
+        iop_core_engine_log_level_insights_core_dr=NEW_LOG_LEVEL,
+        iop_core_engine_log_level_insights_kafka_service=NEW_LOG_LEVEL,
+        iop_core_engine_log_level_insights_messaging=NEW_LOG_LEVEL,
+        iop_core_engine_log_level_root=NEW_LOG_LEVEL,
+    ).get_command()
+    module_satellite_iop.execute(command)
+
+    # Verify that log levels are now DEBUG
+    new_log_level_settings = module_satellite_iop.execute(
+        f'{help_command} | grep iop.*log-level | grep -v reset'
+    ).stdout
+    new_settings_dict = process_iop_log_options(new_log_level_settings)
+    for setting in new_settings_dict.values():
+        assert 'DEBUG' in setting
+
+    # Ensure log levels are reset to defaults
+    command = InstallerCommand(
+        'reset-iop-core-engine-log-level-insights-core-dr',
+        'reset-iop-core-engine-log-level-insights-kafka-service',
+        'reset-iop-core-engine-log-level-insights-messaging',
+        'reset-iop-core-engine-log-level-root',
+    ).get_command()
+    module_satellite_iop.execute(command)
+    log_level_settings = module_satellite_iop.execute(
+        f'{help_command} | grep iop.*log-level | grep -v reset'
+    ).stdout
+    settings_dict = process_iop_log_options(log_level_settings)
+    assert NEW_LOG_LEVEL not in settings_dict.values()

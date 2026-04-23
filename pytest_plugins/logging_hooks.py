@@ -7,9 +7,7 @@ from xdist import is_xdist_worker
 
 from robottelo.logging import (
     DEFAULT_DATE_FORMAT,
-    broker_log_setup,
     logger,
-    logging_yaml,
     robottelo_log_dir,
     robottelo_log_file,
 )
@@ -55,12 +53,6 @@ def configure_logging(request, worker_id):
         worker_handler.setFormatter(worker_formatter)
         worker_handler.setLevel(worker_log_level)
         logger.addHandler(worker_handler)
-        broker_log_setup(
-            level=logging_yaml.broker.level,
-            file_level=logging_yaml.broker.fileLevel,
-            formatter=worker_formatter,
-            path=robottelo_log_dir.joinpath(f'robottelo_{worker_id}.log'),
-        )
 
         if use_rp_logger:
             rp_handler = RPLogHandler(request.node.config.py_test_service)

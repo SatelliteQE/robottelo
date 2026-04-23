@@ -22,7 +22,7 @@ from robottelo.constants import (
     PUPPET_SATELLITE_INSTALLER,
 )
 from robottelo.enums import NetworkType
-from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError
+from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError, SatelliteHostError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.host_helpers.ui_factory import UIFactory
@@ -225,7 +225,7 @@ class ContentInfo:
         Runs satellite-maintain report generate and extracts the value for a given key
         """
         result = self.execute(f'satellite-maintain report generate | grep -i "{report_key}"')
-        assert result.status == 0, 'report failed or key not found'
+        assert result.status == 0, f'report failed or key not found: {result.stderr}'
         return "".join(result.stdout.split(":", 1)[1].split())
 
     def get_reported_condensed_value(self, report_key):
@@ -463,22 +463,24 @@ class IoPSetup:
     def get_iop_image_paths():
         return {
             f'iop::{service}::image': path
-            for service, path in settings.rh_cloud.iop_advisor_engine.image_paths.items()
+            for service, path in settings.rh_cloud.iop.image_paths.items()
         }
 
-    def configure_insights_on_prem(self, username=None, password=None, registry=None):
+    def configure_iop(self):
         """Configure on prem Advisor engine on Satellite"""
         logger.info('Configuring Satellite with local Red Hat Lightspeed')
-        iop_settings = settings.rh_cloud.iop_advisor_engine
-        username = username or iop_settings.username
-        password = password or iop_settings.token
-        registry = registry or iop_settings.registry
 
         self.register_to_cdn()
         self.setup_rhel_repos()
         self.setup_satellite_repos()
+
         self.ensure_podman_installed()
-        self.podman_login(username, password, registry)
+
+        iop_settings = settings.rh_cloud.iop
+        self.podman_login(iop_settings.username, iop_settings.token, iop_settings.registry)
+        self.podman_login(
+            iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
+        )
 
         # Set IPv6 podman proxy on Satellite, to pull from container registry
         self.enable_ipv6_podman_proxy()
@@ -498,10 +500,28 @@ class IoPSetup:
 
         command = InstallerCommand(
             'enable-iop',
+            iop_ensure='present',
             scenario='satellite',
             foreman_initial_admin_password=settings.server.admin_password,
         ).get_command()
 
         result = self.execute(command, timeout='30m')
-        assert result.status == 0, f'Failed to configure IoP: {result.stdout}'
-        assert self.iop_enabled
+        if result.status != 0:
+            raise SatelliteHostError(f'Failed to configure IoP: {result.stdout}')
+        if not self.iop_enabled:
+            raise SatelliteHostError('IoP is not enabled')
+
+    def uninstall_iop(self):
+        if not self.iop_enabled:
+            logger.info('IoP is already disabled. Skipping uninstallation.')
+            return
+
+        command = InstallerCommand(
+            iop_ensure='absent',
+        ).get_command()
+
+        result = self.execute(command, timeout='30m')
+        if result.status != 0:
+            raise SatelliteHostError(f'Failed to disable IoP: {result.stdout}')
+        if self.iop_enabled:
+            raise SatelliteHostError('IoP is not disabled')

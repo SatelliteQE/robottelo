@@ -56,7 +56,7 @@ def test_positive_custom_products_disabled_by_default(
         assert repos[0]['Repository type'] == 'Custom'
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_override_custom_products_using_select_all(
     session,
     default_location,
@@ -99,7 +99,7 @@ def test_positive_override_custom_products_using_select_all(
         assert repo[0]['Status'] == 'Enabled'
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_override_custom_products_not_using_select_all(
     session,
     default_location,

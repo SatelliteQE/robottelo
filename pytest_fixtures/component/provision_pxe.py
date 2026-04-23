@@ -149,6 +149,7 @@ def module_provisioning_sat(
     It calls a workflow using broker to set up the network and to run satellite-installer.
     It uses the artifacts from the workflow to create all the necessary Satellite entities
     that are later used by the tests.
+    For IPv4, it clears DHCP leases and restarts dhcpd to ensure provisioning can obtain addresses.
     """
     provisioning_type = getattr(request, 'param', '')
     sat = module_target_sat
@@ -210,6 +211,9 @@ def module_provisioning_sat(
         remote_execution_proxy=[module_provisioning_capsule.id],
         domain=[domain.id],
     ).create()
+    if sat.network_type == NetworkType.IPV4:
+        assert sat.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
+        assert sat.execute('systemctl restart dhcpd').status == 0
     return Box(sat=sat, domain=domain, subnet=subnet, provisioning_type=provisioning_type)
 
 

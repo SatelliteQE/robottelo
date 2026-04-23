@@ -553,11 +553,11 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
         if 'partition_capacity' in virt_card:
             assert virt_card['partition_capacity'] != ''
         if 'partition_path' in virt_card:
-            assert virt_card['partition_path'] == '/boot'
+            assert virt_card['partition_path'] == '/boot/efi'
         if 'partition_allocation' in virt_card:
             assert virt_card['partition_allocation'] != ''
         assert virt_card['cores_per_socket'] == '1'
-        assert virt_card['firmware'] == 'bios'
+        assert virt_card['firmware'] == 'efi'
         assert virt_card['hypervisor'] != ''
         assert virt_card['connection_state'] == 'connected'
         assert virt_card['overall_status'] == 'green'
@@ -587,7 +587,7 @@ def test_positive_provision_end_to_end(
     vmwareclient,
     target_sat,
     module_provisioning_rhel_content,
-    get_vmware_storagepod_summary_string,
+    get_vmware_datastore_summary_string,
 ):
     """Assign Ansible role to a Hostgroup and verify ansible role execution job is scheduled after a host is provisioned
 
@@ -611,7 +611,17 @@ def test_positive_provision_end_to_end(
     SELECTED_ROLE = 'theforeman.foreman_scap_client'
     host_name = gen_string('alpha').lower()
     guest_os_names = 'Red Hat Enterprise Linux 8 (64 bit)'
-    storage_data = {'storage': {'disks': [{'storage_pod': get_vmware_storagepod_summary_string}]}}
+    storage_data = {
+        'storage': {
+            'controller': VMWARE_CONSTANTS['scsicontroller'],
+            'disks': [
+                {
+                    'data_store': get_vmware_datastore_summary_string,
+                    'thin_provision': True,
+                }
+            ],
+        }
+    }
     network_data = {
         'network_interfaces': {
             'nic_type': VMWARE_CONSTANTS['network_interface_name'],
@@ -657,7 +667,8 @@ def test_positive_provision_end_to_end(
         request.addfinalizer(lambda: target_sat.provisioning_cleanup(host_fqdn))
         wait_for(
             lambda: session.host_new.get_host_statuses(host_fqdn)['Build']['Status']
-            != 'Pending installation',
+            != 'Pending installation'
+            and session.host_new.get_host_statuses(host_fqdn)['Execution']['Status'] != 'N/A',
             timeout=1800,
             delay=30,
             fail_func=session.browser.refresh,
@@ -666,18 +677,17 @@ def test_positive_provision_end_to_end(
         )
         values = session.host_new.get_host_statuses(host_fqdn)
         assert values['Build']['Status'] == 'Installed'
-        if not is_open('SAT-34088'):
-            assert values['Execution']['Status'] == 'Last execution succeeded'
+        assert values['Execution']['Status'] == 'Last execution succeeded'
+
+        host = target_sat.api.Host().search(query={'search': f'name={host_fqdn}'})[0].read()
+        provisioning_host = ContentHost(host.ip)
+
+        # Wait for the host to be rebooted and SSH daemon to be started.
+        provisioning_host.wait_for_connection()
 
         # Verify SecureBoot is enabled on host after provisioning is completed successfully
         if pxe_loader.vm_firmware == 'uefi_secure_boot':
-            host = target_sat.api.Host().search(query={'host': host_name})[0].read()
-            provisioning_host = ContentHost(host.ip)
-            # Wait for the host to be rebooted and SSH daemon to be started.
-            provisioning_host.wait_for_connection()
             assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
-        if not is_open('SAT-34088'):
-            # Verify if assigned role is executed on the host, and correct host passwd is set
-            host = ContentHost(target_sat.api.Host().search(query={'host': host_name})[0].read().ip)
-            assert host.execute('yum list installed rubygem-foreman_scap_client').status == 0
+        # Verify if assigned role is executed on the host, and correct host passwd is set
+        assert provisioning_host.execute('yum list installed foreman_scap_client_bash').status == 0

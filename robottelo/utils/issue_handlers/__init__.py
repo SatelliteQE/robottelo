@@ -11,19 +11,18 @@ def add_workaround(data, matches, usage, validation=(lambda *a, **k: True), **kw
             data[issue.strip()]['used_in'].append({'usage': usage, **kwargs})
 
 
-def should_deselect(issue, data=None):
+def should_deselect(issue):
     """Check if test should be deselected based on marked issue."""
-    return jira.should_deselect_jira(issue.strip(), data)
+    return jira.should_deselect_jira(issue.strip())
 
 
-def is_open(issue, data=None):
+def is_open(issue):
     """Check if specific Jira issue is open.
 
     Arguments:
         issue {str} -- A string containing Jira issue id e.g: SAT-12345
-        data {dict} -- Issue data indexed by issue id or None
     """
-    status = jira.is_open_jira(issue.strip(), data)
+    status = jira.is_open_jira(issue.strip())
     logger.debug(
         f"Is {issue} Jira open? - {'Nope! It is fixed!' if status else 'Yeah. It is still not fixed :('}"
     )

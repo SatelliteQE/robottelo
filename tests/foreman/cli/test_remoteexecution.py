@@ -1205,6 +1205,7 @@ class TestPullProviderRex:
 
     @pytest.mark.upgrade
     @pytest.mark.no_containers
+    @pytest.mark.client_release
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],
@@ -1415,6 +1416,7 @@ class TestPullProviderRex:
     @pytest.mark.e2e
     @pytest.mark.pit_client
     @pytest.mark.no_containers
+    @pytest.mark.client_release
     @pytest.mark.parametrize(
         'setting_update',
         ['remote_execution_global_proxy=False'],

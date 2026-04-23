@@ -75,7 +75,11 @@ class TestScenarioPositiveVirtWho:
         assert vhd.status == 'unknown'
         command = get_configure_command(vhd.id, org=module_sca_manifest_org.name)
         hypervisor_name, guest_name = deploy_configure_by_command(
-            command, form_data['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
+            command,
+            form_data['hypervisor_type'],
+            debug=True,
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         virt_who_instance = (
             target_sat.api.VirtWhoConfig(organization_id=module_sca_manifest_org.id)
@@ -156,7 +160,7 @@ class TestScenarioPositiveVirtWho:
         # Verify Report is sent to satellite.
         command = get_configure_command(vhd.id, org=org_name)
         deploy_configure_by_command(
-            command, form_data['hypervisor_type'], debug=True, org=org_label
+            command, form_data['hypervisor_type'], debug=True, org=org_label, target_sat=target_sat
         )
         virt_who_instance = (
             target_sat.api.VirtWhoConfig(organization_id=org_id)

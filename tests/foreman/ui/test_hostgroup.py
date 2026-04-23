@@ -370,3 +370,41 @@ def test_positive_clone_host_groups(
         assert target_sat.api.HostGroup().search(query={'search': f'name={clone_hg_name}'})
         session.hostgroup.delete(clone_hg_name)
         assert not target_sat.api.HostGroup().search(query={'search': f'name={clone_hg_name}'})
+
+
+def test_positive_non_admin_viewer_role_read(
+    test_name,
+    module_target_sat,
+    module_org,
+    module_location,
+    module_hostgroup_with_org_loc,
+    module_user_viewer,
+):
+    """Verify that a non-admin user with Viewer role assigned is able to see a host group created by admin user.
+
+    :ID: c4f5e236-0bfb-11f1-acba-000c29a0e355
+
+    :CaseImportance: High
+
+    :Setup:
+        1. Create new host group as admin.
+        2. Create new non-admin user with Viewer role assigned.
+
+    :Steps:
+        1. Log in as the user with Viewer role and go to the Configure->Host Groups page.
+
+    :ExpectedResults: The page is displayed correctly, i.e., no error is shown. User sees the host group in the list.
+
+    :Verifies: SAT-38451
+
+    :CustomerScenario: true
+    """
+    with module_target_sat.ui_session(
+        test_name, module_user_viewer.login, module_user_viewer.password
+    ) as session:
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        assert (
+            session.hostgroup.search(module_hostgroup_with_org_loc.name)[0]['Name']
+            == module_hostgroup_with_org_loc.name
+        )

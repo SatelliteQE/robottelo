@@ -40,6 +40,7 @@ from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import parametrized
+from robottelo.utils.issue_handlers import is_open
 
 LIBVIRT_URL = LIBVIRT_RESOURCE_URL % settings.libvirt.libvirt_hostname
 
@@ -371,7 +372,7 @@ def test_positive_update_console_password(libvirt_url, set_console_password, mod
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match('[7]')
-@pytest.mark.parametrize('pxe_loader', ['uefi', 'secureboot'], indirect=True)
+@pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 def test_positive_provision_end_to_end(
     request,
@@ -406,6 +407,10 @@ def test_positive_provision_end_to_end(
 
     :customerscenario: true
     """
+    # Skip test for UEFI and SecureBoot loaders
+    if is_open('SAT-41340') and pxe_loader.vm_firmware in ['uefi', 'uefi_secure_boot']:
+        pytest.skip(f"Test not supported for {pxe_loader.vm_firmware} firmware")
+
     sat = module_libvirt_provisioning_sat.sat
     cr_name = gen_string('alpha')
     hostname = gen_string('alpha').lower()
@@ -448,12 +453,16 @@ def test_positive_provision_end_to_end(
         f'su foreman -s /bin/bash -c "virsh -c {LIBVIRT_URL} list --state-running"'
     )
     assert hostname in result.stdout
-
     wait_for(
-        lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
-        != 'Pending installation',
+        lambda: (
+            sat.cli.Host.info({'name': hostname})
+            .get('status', {})
+            .get('build-status', 'Pending installation')
+            != 'Pending installation'
+        ),
         timeout=1800,
         delay=30,
+        handle_exception=True,
     )
     host_info = sat.cli.Host.info({'id': host['id']})
     assert host_info['status']['build-status'] == 'Installed'

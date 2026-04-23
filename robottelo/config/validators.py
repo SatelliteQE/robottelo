@@ -119,7 +119,7 @@ VALIDATORS = dict(
             'container.upstream_name',
             must_exist=True,
             is_type_of=str,
-            default='library/busybox',
+            default='jmalloc/echo-server',
         ),
         Validator(
             'container.alternative_upstream_names',
@@ -246,7 +246,8 @@ VALIDATORS = dict(
         ),
     ],
     jira=[
-        Validator('jira.url', default='https://issues.redhat.com'),
+        Validator('jira.url', default='https://redhat.atlassian.net'),
+        Validator('jira.email', must_exist=True),
         Validator('jira.api_key', must_exist=True),
         Validator('jira.comment_type', default="group"),
         Validator('jira.comment_visibility', default="Red Hat Employee"),
@@ -274,7 +275,9 @@ VALIDATORS = dict(
             'foreman_mcp.username',
             'foreman_mcp.password',
             'foreman_mcp.port',
-            'foreman_mcp.registry',
+            'foreman_mcp.upstream.registry_url',
+            'foreman_mcp.upstream.image_path',
+            'foreman_mcp.upstream.image_tag',
             must_exist=True,
         ),
     ],
@@ -332,9 +335,7 @@ VALIDATORS = dict(
     ],
     rh_cloud=[
         Validator('rh_cloud.token', required=True),
-        Validator(
-            'rh_cloud.iop_advisor_engine.image_paths', default={}, apply_default_on_none=True
-        ),
+        Validator('rh_cloud.iop.image_paths', default={}, apply_default_on_none=True),
     ],
     repos=[
         Validator(

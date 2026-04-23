@@ -23,6 +23,7 @@ from robottelo.exceptions import CLIReturnCodeError
 
 LOGEDIN_MSG = "Session exists, currently logged in as '{0}'"
 NOTCONF_MSG = "Credentials are not configured."
+ACCESS_DENIED_MSG = "Access denied"
 password = gen_string('alpha')
 
 
@@ -58,43 +59,45 @@ def non_admin_user(module_target_sat):
     return user
 
 
-def test_positive_create_session(admin_user, target_sat):
-    """Check if user stays authenticated with session enabled
+@pytest.mark.parametrize('setting_update', ['idle_timeout=1'], indirect=True)
+def test_positive_create_session(admin_user, target_sat, setting_update):
+    """Check if user stays authenticated with sessions enabled.
+    Check that user doesn't stay authenticated after the session expires.
 
     :id: fcee7f5f-1040-41a9-bf17-6d0c24a93e22
 
-    :BlockedBy: SAT-38951
+    :Verifies: SAT-38951
+
+    :setup:
+
+        1. Set short session idle timeout
 
     :steps:
 
-        1. Set use_sessions, set short expiration time
+        1. Enable sessions in hammer config file
         2. Authenticate, assert credentials are not demanded
            on next command run
-        3. Wait until session expires, assert credentials
-           are required
+        3. Wait until session expires, run the command again,
+           assert the command execution has been denied
+           and the user is no longer authenticated, i.e., the session user is empty
 
     :expectedresults: The session is successfully created and
         expires after specified time
     """
-    try:
-        idle_timeout = target_sat.cli.Settings.list({'search': 'name=idle_timeout'})[0]['value']
-        target_sat.cli.Settings.set({'name': 'idle_timeout', 'value': 1})
-        result = configure_sessions(target_sat)
-        assert result == 0, 'Failed to configure hammer sessions'
-        target_sat.cli.AuthLogin.basic({'username': admin_user['login'], 'password': password})
-        result = target_sat.cli.Auth.with_user().status()
-        assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
-        # list organizations without supplying credentials
-        assert target_sat.cli.Org.with_user().list()
-        # wait until session expires
-        sleep(70)
-        with pytest.raises(CLIReturnCodeError):
-            target_sat.cli.Org.with_user().list()
-        result = target_sat.cli.Auth.with_user().status()
-        assert NOTCONF_MSG in result[0]['message']
-    finally:
-        # reset timeout to default
-        target_sat.cli.Settings.set({'name': 'idle_timeout', 'value': f'{idle_timeout}'})
+    result = configure_sessions(target_sat)
+    assert result == 0, 'Failed to configure hammer sessions'
+    target_sat.cli.AuthLogin.basic({'username': admin_user['login'], 'password': password})
+    result = target_sat.cli.Auth.with_user().status()
+    assert LOGEDIN_MSG.format(admin_user['login']) in result[0]['message']
+    # list organizations without explicitly supplying credentials
+    assert target_sat.cli.Org.with_user().list()
+    # wait until session expires and try to list organizations again
+    sleep(70)
+    with pytest.raises(CLIReturnCodeError) as err:
+        target_sat.cli.Org.with_user().list()
+    assert ACCESS_DENIED_MSG in str(err.value)
+    result = target_sat.cli.Auth.with_user().status()
+    assert LOGEDIN_MSG.format('') in result[0]['message']
 
 
 @pytest.mark.upgrade

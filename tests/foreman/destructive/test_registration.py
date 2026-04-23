@@ -20,6 +20,7 @@ pytestmark = pytest.mark.destructive
 
 @pytest.mark.no_containers
 @pytest.mark.pit_client
+@pytest.mark.client_release
 @pytest.mark.rhel_ver_match('[^6]')
 def test_host_registration_rex_pull_mode(
     module_org,

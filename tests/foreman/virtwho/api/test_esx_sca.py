@@ -69,7 +69,10 @@ class TestVirtWhoConfigforEsx:
             virtwho_config_api.update(['debug'])
             command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+                command,
+                form_data_api['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
             assert get_configure_option('debug', ETC_VIRTWHO_CONFIG) == value
 
@@ -101,7 +104,10 @@ class TestVirtWhoConfigforEsx:
             virtwho_config_api.update(['interval'])
             command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+                command,
+                form_data_api['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
             assert get_configure_option('interval', ETC_VIRTWHO_CONFIG) == value
 
@@ -124,7 +130,10 @@ class TestVirtWhoConfigforEsx:
             config_file = get_configure_file(virtwho_config_api.id)
             command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+                command,
+                form_data_api['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
@@ -164,7 +173,10 @@ class TestVirtWhoConfigforEsx:
                 virtwho_config.update(blacklist.keys())
             command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+                command,
+                form_data_api['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
             config_file = get_configure_file(virtwho_config.id)
             result = target_sat.api.VirtWhoConfig().search(
@@ -202,7 +214,10 @@ class TestVirtWhoConfigforEsx:
             virtwho_config = target_sat.api.VirtWhoConfig(**form_data_api).create()
             command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
             deploy_configure_by_command(
-                command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+                command,
+                form_data_api['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
             )
             config_file = get_configure_file(virtwho_config.id)
             result = target_sat.api.VirtWhoConfig().search(
@@ -246,7 +261,10 @@ class TestVirtWhoConfigforEsx:
         virtwho_config = target_sat.api.VirtWhoConfig(**form_data_api).create()
         command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+            command,
+            form_data_api['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         # Check HTTTP Proxy and No_PROXY option
         http_proxy_url, http_proxy_name, http_proxy_id = create_http_proxy(
@@ -258,7 +276,10 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.update(['http_proxy_id', 'no_proxy'])
         command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+            command,
+            form_data_api['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy_url
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
@@ -273,7 +294,10 @@ class TestVirtWhoConfigforEsx:
         virtwho_config.http_proxy_id = https_proxy_id
         virtwho_config.update(['http_proxy_id'])
         deploy_configure_by_command(
-            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+            command,
+            form_data_api['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         assert get_configure_option('https_proxy', ETC_VIRTWHO_CONFIG) == https_proxy_url
         virtwho_config.delete()
@@ -287,7 +311,10 @@ class TestVirtWhoConfigforEsx:
         virtwho_config = target_sat.api.VirtWhoConfig(**form_data_api).create()
         command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+            command,
+            form_data_api['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         assert get_configure_option('http_proxy', ETC_VIRTWHO_CONFIG) == http_proxy_url
         assert get_configure_option('no_proxy', ETC_VIRTWHO_CONFIG) == no_proxy
@@ -315,7 +342,10 @@ class TestVirtWhoConfigforEsx:
         """
         command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data_api['hypervisor_type'], org=module_sca_manifest_org.label
+            command,
+            form_data_api['hypervisor_type'],
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         search_result = virtwho_config_api.get_organization_configs(data={'per_page': '1000'})
         assert [item for item in search_result['results'] if item['name'] == form_data_api['name']]
@@ -390,7 +420,11 @@ class TestVirtWhoConfigforEsx:
         """
         command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
         deploy_configure_by_command(
-            command, form_data_api['hypervisor_type'], debug=True, org=module_sca_manifest_org.label
+            command,
+            form_data_api['hypervisor_type'],
+            debug=True,
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
         )
         virt_who_instance = (
             target_sat.api.VirtWhoConfig()

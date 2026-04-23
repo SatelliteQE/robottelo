@@ -225,35 +225,20 @@ def module_unconfigured_satellite():
 def get_iop_deploy_args():
     """Get deploy arguments for IoP workflow"""
     image_args = {
-        f'iop_{service}_image': path
-        for service, path in settings.rh_cloud.iop_advisor_engine.image_paths.items()
+        f'iop_{service}_image': path for service, path in settings.rh_cloud.iop.image_paths.items()
     }
     return settings.server.deploy_arguments.to_dict() | image_args
 
 
 @pytest.fixture(scope='module')
-def module_satellite_iop():
-    """Deploy and configure Red Hat Lightspeed in Satellite
+def module_satellite_iop(module_target_sat):
+    """Configure Red Hat Lightspeed in Satellite"""
+    satellite = module_target_sat
+    satellite.configure_iop()
 
-    Use the IoP workflow which deploys Satellite + IoP
-    """
-    deploy_args = get_iop_deploy_args()
+    yield satellite
 
-    with Broker(
-        workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
-    ) as satellite:
-        yield satellite
-
-
-@pytest.fixture
-def satellite_iop():
-    """Deploy and configure Red Hat Lightspeed in Satellite"""
-    deploy_args = get_iop_deploy_args()
-
-    with Broker(
-        workflow=settings.server.deploy_workflows.iop, **deploy_args, host_class=Satellite
-    ) as satellite:
-        yield satellite
+    satellite.uninstall_iop()
 
 
 @pytest.fixture(scope='module')
@@ -276,7 +261,7 @@ def module_capsule_configured_mqtt(request, module_capsule_configured_ansible):
 
 
 @pytest.fixture(scope='module')
-def module_lb_capsule(retry_limit=3, delay=300, **broker_args):
+def module_lb_capsules(retry_limit=3, delay=300, **broker_args):
     """A fixture that spins 2 capsule for loadbalancer
     :return: List of capsules
     """

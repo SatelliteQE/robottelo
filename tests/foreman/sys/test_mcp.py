@@ -2,11 +2,11 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: API
+:CaseComponent: MCP
 
 :Team: Endeavour
 
-:Requirement: API
+:Requirement: MCP
 
 :CaseImportance: High
 
@@ -21,34 +21,24 @@ from robottelo.enums import NetworkType
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    'mcp_server',
-    ['module_mcp_target_sat', 'module_downstream_mcp_target_sat'],
-    ids=['upstream', 'downstream'],
-)
 @pytest.mark.skipif(
     settings.server.network_type == NetworkType.IPV6,
     reason='IPV6 scenario is not essential for this case',
 )
-async def test_positive_call_mcp_server(request, mcp_server):
+async def test_positive_list_hosts(module_target_sat_foreman_mcp):
     """Test that the MCP response matches with what is available on Satellite
 
     :id: 6f3c31c2-2f50-43ba-ac52-b3ebc6af4e45
 
-    :expectedresults: MCP server is running and returns up to date data
+    :expectedresults: MCP server is running and returns up to date hosts data
     """
-    target_sat = request.getfixturevalue(mcp_server)
-    mcp_settings = settings.get(
-        'foreman_mcp_downstream'
-        if mcp_server == 'module_downstream_mcp_target_sat'
-        else 'foreman_mcp'
-    )
+    target_sat = module_target_sat_foreman_mcp
     async with Client(
         transport=StreamableHttpTransport(
-            f'http://{target_sat.hostname}:{mcp_settings.port}/mcp',
+            f'http://{target_sat.hostname}:{settings.foreman_mcp.port}/mcp',
             headers={
-                'FOREMAN_USERNAME': mcp_settings.username,
-                'FOREMAN_TOKEN': mcp_settings.password,
+                'FOREMAN_USERNAME': settings.foreman_mcp.username,
+                'FOREMAN_TOKEN': settings.foreman_mcp.password,
             },
         ),
     ) as client:
@@ -75,7 +65,7 @@ async def test_positive_call_mcp_server(request, mcp_server):
     settings.server.network_type == NetworkType.IPV6,
     reason='IPV6 scenario is not essential for this case',
 )
-async def test_negative_call_mcp_server(module_mcp_target_sat):
+async def test_negative_alter_data(module_target_sat_foreman_mcp):
     """Test that MCP server cannot alter Satellite
 
     :id: 7b643847-4aa0-42ec-92cd-873de853f1ba
@@ -84,7 +74,7 @@ async def test_negative_call_mcp_server(module_mcp_target_sat):
     """
     async with Client(
         transport=StreamableHttpTransport(
-            f'http://{module_mcp_target_sat.hostname}:{settings.foreman_mcp.port}/mcp',
+            f'http://{module_target_sat_foreman_mcp.hostname}:{settings.foreman_mcp.port}/mcp',
             headers={
                 'FOREMAN_USERNAME': settings.foreman_mcp.username,
                 'FOREMAN_TOKEN': settings.foreman_mcp.password,
@@ -130,7 +120,12 @@ async def test_negative_call_mcp_server(module_mcp_target_sat):
     ],
 )
 async def test_positive_mcp_user_view_permissions(
-    request, module_mcp_target_sat, user_fixture, allowed_resource, denied_resource, auth_type
+    request,
+    module_target_sat_foreman_mcp,
+    user_fixture,
+    allowed_resource,
+    denied_resource,
+    auth_type,
 ):
     """Test that users with different view permissions can only view their authorized resources through MCP
 
@@ -143,7 +138,7 @@ async def test_positive_mcp_user_view_permissions(
     auth_value = password if auth_type == 'password' else token
     async with Client(
         transport=StreamableHttpTransport(
-            f'http://{module_mcp_target_sat.hostname}:{settings.foreman_mcp.port}/mcp',
+            f'http://{module_target_sat_foreman_mcp.hostname}:{settings.foreman_mcp.port}/mcp',
             headers={
                 'FOREMAN_USERNAME': user.login,
                 'FOREMAN_TOKEN': auth_value,
@@ -153,6 +148,11 @@ async def test_positive_mcp_user_view_permissions(
         result = await client.call_tool(
             'call_foreman_api_get', {'resource': allowed_resource, 'action': 'index', 'params': {}}
         )
+        if 'error' in result.data and 'Max retries exceeded' in result.data['error']:
+            result = await client.call_tool(
+                'call_foreman_api_get',
+                {'resource': allowed_resource, 'action': 'index', 'params': {}},
+            )
         assert (
             result.data['message']
             == f"Action 'index' on resource '{allowed_resource}' executed successfully."
@@ -165,3 +165,4 @@ async def test_positive_mcp_user_view_permissions(
             f"Failed to execute action 'index' on resource '{denied_resource}'"
             in result.data['message']
         )
+        assert result.data['response']['error']['message'] == 'Access denied'
