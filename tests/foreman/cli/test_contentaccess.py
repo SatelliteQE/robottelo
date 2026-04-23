@@ -102,7 +102,7 @@ def vm(
     # Force package profile upload and applicability recalculation
     module_rhel_contenthost.run('subscription-manager repos')
     module_target_sat.cli.Host.errata_recalculate({'host-id': host_id})
-    if major == 10:
+    if major != 10:
         module_rhel_contenthost.install_katello_host_tools()
     return module_rhel_contenthost
 
