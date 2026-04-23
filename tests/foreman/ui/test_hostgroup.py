@@ -284,9 +284,9 @@ def test_positive_nested_host_groups(
         )
         child_hostgroup_values = session.hostgroup.read(f'{parent_hg_name}/{child_hg_name}')
         assert parent_hg_name in child_hostgroup_values['host_group']['parent_name']
-        cve = child_hostgroup_values['host_group']['content_view_environment']
-        assert module_lce.name in cve
-        assert module_published_cv.name in cve
+        cve_env = child_hostgroup_values['host_group']['content_view_environment']
+        assert module_lce.name in cve_env
+        assert module_published_cv.name in cve_env
 
         # Delete nested host group
         session.hostgroup.delete(f'{parent_hg_name}/{child_hg_name}')
@@ -346,9 +346,9 @@ def test_positive_clone_host_groups(
         )
         assert target_sat.api.HostGroup().search(query={'search': f'name={clone_hg_name}'})
         clone_hostgroup_values = session.hostgroup.read(clone_hg_name)
-        cve = clone_hostgroup_values['host_group']['content_view_environment']
-        assert module_lce.name in cve
-        assert module_published_cv.name in cve
+        cve_env = clone_hostgroup_values['host_group']['content_view_environment']
+        assert module_lce.name in cve_env
+        assert module_published_cv.name in cve_env
         assert (
             module_ak_cv_lce.name in clone_hostgroup_values['activation_keys']['ak_chip_group'][0]
         )
