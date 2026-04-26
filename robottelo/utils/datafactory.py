@@ -115,6 +115,16 @@ def add_uppercase_char_into_string(text=None, length=10):
     return ''.join(st_chars)
 
 
+def valid_first_and_last_name_strings(length=50):
+    r"""
+    Generate valid first/last names for API positive tests.
+    Foreman validates user first/last names using User.name_format:
+    /\A[[:alnum:]\s'_\-.()<>;=,]*\z/
+    so random utf8/latin1 values may include symbols outside the allowed charset.
+    """
+    return generate_strings_list(exclude_types=['html', 'utf8', 'latin1'], max_length=50)
+
+
 @filtered_datapoint
 def invalid_emails_list():
     """
