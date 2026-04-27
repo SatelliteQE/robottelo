@@ -13,6 +13,7 @@
 """
 
 from broker import Broker
+from fauxfactory import gen_string
 import pytest
 
 from robottelo.cli import hammer
@@ -22,6 +23,8 @@ from robottelo.hosts import Satellite
 from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
+
+FOREMANCTL_CERTS_DIR = '/var/lib/foremanctl/certs/certs'
 
 SATELLITE_SERVICES = [
     'candlepin',
@@ -64,6 +67,8 @@ def assert_hammer_ping_ok(result):
 
 @pytest.fixture(scope='module')
 def module_sat_ready_rhel(request):
+    param = request.param
+    deploy_args = param.get('deploy_args', '') if isinstance(param, dict) else ''
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
@@ -72,7 +77,9 @@ def module_sat_ready_rhel(request):
         host_class=Satellite,
     ) as sat:
         sat.install_satellite_foremanctl(
-            enable_fapolicyd=(request.param == 'fapolicyd'), enable_fips=(request.param == 'fips')
+            enable_fapolicyd=(param == 'fapolicyd'),
+            enable_fips=(param == 'fips'),
+            parameters=deploy_args,
         )
         yield sat
 
@@ -247,8 +254,190 @@ def test_foremanctl_deploy_certificate_cname(module_sat_ready_rhel):
     )
 
     result = satellite.execute(
-        'curl --fail --output /dev/null --cacert /root/certificates/certs/ca.crt '
+        f'curl --fail --output /dev/null --cacert {FOREMANCTL_CERTS_DIR}/ca.crt '
         f'--resolve "{cname}:443:127.0.0.1" '
         f'https://{cname}/users/login'
     )
     assert result.status == 0, f'HTTPS request to {cname} failed with output:\n{result.stderr}'
+
+
+def get_cert_validity_days(sat, cert_path):
+    """Get the total validity period in days for a certificate file.
+
+    Calculates the difference between Before and After dates.
+    """
+    result = sat.execute(
+        f'start=$(date -d "$(openssl x509 -in {cert_path} -noout -startdate | cut -d= -f2)" +%s)'
+        f' && end=$(date -d "$(openssl x509 -in {cert_path} -noout -enddate | cut -d= -f2)" +%s)'
+        ' && echo $(( (end - start) / 86400 ))'
+    )
+    assert result.status == 0, f'Failed to read certificate at {cert_path}: {result.stderr}'
+    return int(result.stdout.strip())
+
+
+def get_cert_fingerprint(sat, cert_path):
+    """Get the SHA256 fingerprint of a certificate, used to track certificate identity."""
+    result = sat.execute(f'openssl x509 -in {cert_path} -noout -fingerprint -sha256')
+    assert result.status == 0, f'Failed to get fingerprint for {cert_path}: {result.stderr}'
+    return result.stdout.strip()
+
+
+custom_ca_days = 3650
+custom_cert_days = 365
+
+
+@pytest.mark.parametrize(
+    'module_sat_ready_rhel',
+    [
+        {
+            'deploy_args': [
+                f'--certificate-ca-validity-days {custom_ca_days}',
+                f'--certificate-validity-days {custom_cert_days}',
+            ],
+        }
+    ],
+    indirect=True,
+)
+def test_positive_foremanctl_certificate_custom_validity_and_renewal(module_sat_ready_rhel):
+    """Verification of certificate expiry parameters introduced
+    in foremanctl PR#456: validates parameter persistence in the answers file,
+    certificate chain integrity, certificate identity through renewals via
+    fingerprint tracking, and API health.
+
+    :id: c7e3a5b1-4d2f-48e6-9a1c-5f8d2b7e0c43
+
+    :steps:
+        1. Deploy with custom CA validity (3650d) and cert validity (365d)
+        2. Verify parameters file persists certificates_ca_validity_days and
+           certificates_validity_days with the correct values
+        3. Verify CA subject contains 'Foreman Self-signed CA'
+        4. Verify server and client certs are signed by the CA (chain validation)
+        5. Capture SHA256 fingerprints of CA, server, and client certificates
+        6. Verify Katello API ping and CRUD via nailgun
+        7. Renew with --certificate-renew --certificate-validity-days 730
+        8. Verify certificates_renew is NOT persisted (one-shot flag, persist: false)
+        9. Verify certificates_validity_days IS updated to 730 in parameters file
+        10. Verify CA fingerprint is unchanged (CA was not regenerated)
+        11. Verify server/client fingerprints changed (certs were regenerated)
+        12. Verify renewed certs are still signed by the same CA
+        13. Verify renewed cert validity and API health
+
+    :expectedresults:
+        1. Parameters file persists validity values but not the renewal flag
+        2. The certificate chain integrity maintained throughout the renewal process
+        3. Only server/client certs are regenerated, CA identity preserved
+        4. API remains healthy and functional after all certificate operations
+
+    :Verifies: SAT-43479
+
+    :CaseAutomation: Automated
+    """
+    sat = module_sat_ready_rhel
+    ca_cert = f'{FOREMANCTL_CERTS_DIR}/ca.crt'
+    server_cert = f'{FOREMANCTL_CERTS_DIR}/{sat.hostname}.crt'
+    client_cert = f'{FOREMANCTL_CERTS_DIR}/{sat.hostname}-client.crt'
+
+    renewed_cert_days = 730
+
+    # Phase 1: Deploy with custom validity
+    result = sat.execute(
+        f'foremanctl deploy'
+        f' --certificate-ca-validity-days {custom_ca_days}'
+        f' --certificate-validity-days {custom_cert_days}',
+        timeout='30m',
+    )
+    assert result.status == 0, f'Deploy with custom validity failed: {result.stderr}'
+
+    # Verify parameter persistence in the answers file
+    params = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert str(params.certificates_ca_validity_days) == str(custom_ca_days), (
+        f'certificates_ca_validity_days not persisted correctly: {params.certificates_ca_validity_days}'
+    )
+    assert str(params.certificates_validity_days) == str(custom_cert_days), (
+        f'certificates_validity_days not persisted correctly: {params.certificates_validity_days}'
+    )
+
+    # Verify CA subject matches the Ansible template subject
+    ca_subject = sat.execute(f'openssl x509 -in {ca_cert} -noout -subject')
+    assert ca_subject.status == 0
+    assert 'Foreman Self-signed CA' in ca_subject.stdout, (
+        f'CA subject does not contain expected subject: {ca_subject.stdout}'
+    )
+
+    # Verify certificate chain — server and client signed by CA
+    for cert in (server_cert, client_cert):
+        verify = sat.execute(f'openssl verify -CAfile {ca_cert} {cert}')
+        assert verify.status == 0, f'Chain validation failed for {cert}: {verify.stderr}'
+
+    # Capture fingerprints to track certificate identity across renewal
+    ca_fp_before = get_cert_fingerprint(sat, ca_cert)
+    server_fp_before = get_cert_fingerprint(sat, server_cert)
+    client_fp_before = get_cert_fingerprint(sat, client_cert)
+
+    # Verify certificate validity periods
+    assert get_cert_validity_days(sat, ca_cert) == custom_ca_days
+    assert get_cert_validity_days(sat, server_cert) == custom_cert_days
+    assert get_cert_validity_days(sat, client_cert) == custom_cert_days
+
+    # API: Verify services are healthy
+    result = sat.execute('hammer ping')
+    assert_hammer_ping_ok(result)
+
+    # API: Verify operations work over TLS with custom-validity certs
+    org_name = gen_string('alpha')
+    org = sat.api.Organization(name=org_name).create()
+    assert org.name == org_name
+
+    # Phase 2: Renew server/client certs with different validity
+    result = sat.execute(
+        f'foremanctl deploy --certificate-renew --certificate-validity-days {renewed_cert_days}',
+        timeout='30m',
+    )
+    assert result.status == 0, f'Certificate renewal failed: {result.stderr}'
+
+    # Certificates_renew must NOT be persisted (persist: false in metadata)
+    params = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert 'certificates_renew' not in params, (
+        'certificates_renew was persisted but metadata defines persist: false'
+    )
+
+    # Certificates_validity_days must be updated to renewed value
+    assert str(params.certificates_validity_days) == str(renewed_cert_days), (
+        f'certificates_validity_days not updated after renewal: {params.certificates_validity_days}'
+    )
+
+    # CA certificate fingerprint must be unchanged (CA not regenerated)
+    ca_fp_after = get_cert_fingerprint(sat, ca_cert)
+    assert ca_fp_after == ca_fp_before, (
+        'CA fingerprint changed after --certificate-renew; CA should not be regenerated'
+    )
+
+    # Server/client fingerprints must differ (force: certificates_renew | bool)
+    server_fp_after = get_cert_fingerprint(sat, server_cert)
+    client_fp_after = get_cert_fingerprint(sat, client_cert)
+    assert server_fp_after != server_fp_before, (
+        'Server cert fingerprint unchanged — renewal did not regenerate it'
+    )
+    assert client_fp_after != client_fp_before, (
+        'Client cert fingerprint unchanged — renewal did not regenerate it'
+    )
+
+    # Renewed certs must still chain to the same CA
+    for cert in (server_cert, client_cert):
+        verify = sat.execute(f'openssl verify -CAfile {ca_cert} {cert}')
+        assert verify.status == 0, (
+            f'Chain validation failed after renewal for {cert}: {verify.stderr}'
+        )
+
+    # Verify renewed validity periods, CA unchanged
+    assert get_cert_validity_days(sat, server_cert) == renewed_cert_days
+    assert get_cert_validity_days(sat, client_cert) == renewed_cert_days
+    assert get_cert_validity_days(sat, ca_cert) == custom_ca_days
+
+    # API: Verify services remain healthy after renewal
+    result = sat.execute('hammer ping')
+    assert_hammer_ping_ok(result)
+
+    # API: Verify CRUD still works with renewed certificates
+    org = sat.api.Organization(id=org.id).read()
+    assert org.name == org_name
