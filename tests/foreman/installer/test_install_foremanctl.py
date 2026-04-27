@@ -193,11 +193,8 @@ def test_foremanctl_deploy_certificate_cname(module_sat_ready_rhel):
     )
 
     result = satellite.execute(
-        'curl --silent --output /dev/null --write-out "%{http_code}" '
+        'curl --fail --output /dev/null --cacert /root/certificates/certs/ca.crt '
         f'--resolve "{cname}:443:127.0.0.1" '
-        '--cacert /root/certificates/certs/ca.crt '
         f'https://{cname}/users/login'
     )
-    assert result.stdout.strip() == '200', (
-        f'HTTPS request to {cname} failed with status {result.stdout.strip()}'
-    )
+    assert result.status == 0, f'HTTPS request to {cname} failed with output:\n{result.stderr}'
