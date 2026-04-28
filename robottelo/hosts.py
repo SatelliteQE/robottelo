@@ -1576,12 +1576,6 @@ class ContentHost(Host, ContentHostMixins):
                 satellite_repo=settings.repos.satellite_repo,
                 satmaintenance_repo=settings.repos.satmaintenance_repo,
             )
-        elif settings.server.version.source == 'upstream':
-            self.create_custom_repos(
-                foreman='https://yum.theforeman.org/nightly/el9/x86_64/',
-                foreman_plugins='https://yum.theforeman.org/plugins/nightly/el9/x86_64/',
-                katello='https://yum.theforeman.org/katello/nightly/katello/el9/x86_64/',
-            )
         else:
             # get ohsnap repofile
             self.download_repofile(
@@ -1970,7 +1964,6 @@ class Capsule(ContentHost, CapsuleMixins):
         self.register_to_cdn()
         self.setup_rhel_repos()
         self.setup_satellite_repos()
-        assert self.execute('dnf copr enable -y @theforeman/foremanctl rhel-9-x86_64').status == 0
         assert self.execute('dnf install -y foremanctl').status == 0
 
         if enable_fapolicyd:
