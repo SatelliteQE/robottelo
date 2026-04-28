@@ -709,7 +709,7 @@ assert '404' in str(excinfo.value)
 ## Pull Request Guidelines
 
 ### PR Comments
-When asked to write PR comment for changes made, use this markdown pattern:
+When asked to write a PR comment for changes made, use this markdown pattern:
 
 ```markdown
 ### Problem Statement

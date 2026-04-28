@@ -35,7 +35,7 @@ Results are reported via:
 
 - **GitHub Status API**: Clear pass/fail indication on the PR page
 - **Jenkins Build Number**: Displayed for cross-referencing build details
-
+- There is a delay in reporting the results back. It can range from lower tens of minutes to hours, depending on the test setup and complexity.
 ---
 
 ## Usage Examples
@@ -119,8 +119,18 @@ env:
     ROBOTTELO_server__deploy_arguments__deploy_snap_version: 'ystream'
     BROKER_AnsibleTower__inventory: 'osp-rhos01-satellite-upgrade'
 ```
+### Example 8: Running Upgrade Scenario tests with specific from and to versions
 
-### Example 8: Running Tests Using Specific Fixtures
+```
+trigger: test-robottelo
+pytest: -n 2 tests/new_upgrades/test_rhcloud_iop.py
+env:
+    ROBOTTELO_server__xdist_behavior: 'run-on-one'
+    ROBOTTELO_upgrade__from_version: '6.19'
+    ROBOTTELO_upgrade__to_version: 'stream'
+```
+
+### Example 9: Running Tests Using Specific Fixtures
 
 Use `--uses-fixtures` to execute all tests that use a specific fixture:
 
@@ -131,7 +141,7 @@ pytest: --uses-fixtures rhel_contenthost tests/foreman/
 
 You can specify multiple fixtures: `--uses-fixtures rhel_contenthost rhel7_contenthost`
 
-### Example 9: Running Tests Against Upstream PRs
+### Example 10: Running Tests Against Upstream PRs
 
 For PRs depending on open upstream PRs in theforeman and Katello orgs:
 
@@ -145,7 +155,7 @@ Katello:
     katello: 10977
 ```
 
-### Example 10: Running Tests Against Upstream PRs with Specific RHEL Version
+### Example 11: Running Tests Against Upstream PRs with Specific RHEL Version
 
 Use `deploy_rhel_version` to specify the Satellite RHEL version:
 
@@ -160,12 +170,20 @@ Katello:
     katello: 10977
 ```
 
-### Example 11: Running Tests with IPv6 Environment
+### Example 12: Running Tests with IPv6 or Dualstack Environment
 
+
+IPV6
 ```
 trigger: test-robottelo
 pytest: tests/foreman/ui/test_repository.py::test_positive_sync_custom_repo_yum
 network_type: ipv6
+```
+DUALSTACK
+```
+trigger: test-robottelo
+pytest: tests/foreman/ui/test_repository.py::test_positive_sync_custom_repo_yum
+network_type: dualstack
 ```
 
 ---
@@ -177,7 +195,7 @@ network_type: ipv6
 - Only one PR number per repo is supported; for multiple PRs from the same repo, ask the author to create a combined PR
 - Only `theforeman` and `Katello` organizations are supported for upstream PRs
 - There is a 5-minute delay before PRT starts picking up your request
-
+- There is a delay in reporting the results back. It can range from lower tens of minutes to hours, depending on the test setup and complexity.
 ---
 
 ## Satellite RHEL Version Defaults for PRT Jobs
