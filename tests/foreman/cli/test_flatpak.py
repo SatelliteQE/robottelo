@@ -218,6 +218,8 @@ def test_flatpak_endpoint(target_sat, endpoint):
 
     :expectedresults:
         1. HTTP 200
+
+    :BlockedBy: SAT-44554
     """
     ep = FLATPAK_ENDPOINTS[endpoint].format(target_sat.hostname)
     rq = requests.get(ep, verify=settings.server.verify_ca)
