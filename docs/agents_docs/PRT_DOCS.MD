@@ -190,7 +190,7 @@ network_type: dualstack
 
 ## Important Notes
 
-- Upstream PRT can only run against the `master` branch
+- PRT with upstream PR packit builds can only run against the `master` branch.
 - You may only specify repositories that have packit builds (look for `rpm-build:rhel-8-x86_64` CI check)
 - Only one PR number per repo is supported; for multiple PRs from the same repo, ask the author to create a combined PR
 - Only `theforeman` and `Katello` organizations are supported for upstream PRs
