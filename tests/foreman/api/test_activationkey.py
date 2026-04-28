@@ -451,3 +451,55 @@ def test_positive_search_by_org(target_sat):
     keys = target_sat.api.ActivationKey(organization=org).search()
     assert len(keys) == 1
     assert act_key.id == keys[0].id
+
+
+def test_positive_search_by_environment(target_sat):
+    """Verify that the environment-scoped activation keys API endpoint
+    returns only activation keys associated with the specified lifecycle
+    environment.
+
+    :id: c66bf81f-27d8-4527-8d0b-c734f62db672
+
+    :steps:
+        1. Create an organization with two lifecycle environments (Dev, QA)
+        2. Create a content view, publish it, and promote to both environments
+        3. Create one activation key in Dev and one in QA
+        4. Query /katello/api/environments/<env_id>/activation_keys for each environment
+
+    :expectedresults:
+        1. Querying by Dev environment returns only the Dev activation key
+        2. Querying by QA environment returns only the QA activation key
+
+    :Verifies: SAT-41785
+
+    :customerscenario: true
+    """
+    org = target_sat.api.Organization().create()
+    lce_dev = target_sat.api.LifecycleEnvironment(organization=org).create()
+    lce_qa = target_sat.api.LifecycleEnvironment(organization=org).create()
+
+    cv = target_sat.api.ContentView(organization=org).create()
+    cv.publish()
+    cv = cv.read()
+    cv.version[0].promote(data={'environment_ids': lce_dev.id})
+    cv.version[0].promote(data={'environment_ids': lce_qa.id})
+
+    ak_dev = target_sat.api.ActivationKey(
+        organization=org, environment=lce_dev, content_view=cv
+    ).create()
+    ak_qa = target_sat.api.ActivationKey(
+        organization=org, environment=lce_qa, content_view=cv
+    ).create()
+
+    for lce, expected_ak in [(lce_dev, ak_dev), (lce_qa, ak_qa)]:
+        response = client.get(
+            f'{target_sat.url}/katello/api/environments/{lce.id}/activation_keys',
+            auth=get_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
+        results = response.json()['results']
+        assert len(results) == 1, (
+            f'Expected 1 activation key for environment {lce.name}, got {len(results)}'
+        )
+        assert results[0]['id'] == expected_ak.id
