@@ -169,10 +169,7 @@ def test_post_scenario_post_client_package_installation(pre_client_package_insta
     rhel_client.execute('subscription-manager unregister')
     rhel_client.execute('subscription-manager clean')
     target_sat = pre_client_package_installation_setup.satellite
-    if settings.UPGRADE.TO_VERSION == 'stream':
-        target_sat._swap_nailgun('master')
-    else:
-        target_sat._swap_nailgun(f"{settings.UPGRADE.TO_VERSION}.z")
+    target_sat._swap_nailgun(settings.UPGRADE.TO_VERSION)
     org = target_sat.api.Organization(id=pre_client_package_installation_setup.org.id).read()
     location = target_sat.api.Location(id=pre_client_package_installation_setup.location.id).read()
     lce = target_sat.api.LifecycleEnvironment(
