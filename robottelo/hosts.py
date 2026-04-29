@@ -10,6 +10,8 @@ import json
 from pathlib import Path, PurePath
 import random
 import re
+import subprocess
+import sys
 from tempfile import NamedTemporaryFile
 import time
 from urllib.parse import urljoin, urlparse, urlunsplit
@@ -17,6 +19,7 @@ from urllib.parse import urljoin, urlparse, urlunsplit
 import apypie
 from box import Box
 from broker import Broker
+from broker.helpers import FileLock
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha, gen_string
@@ -2082,15 +2085,51 @@ class Satellite(Capsule, SatelliteMixins):
 
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
-        import sys
 
-        from pip._internal import main as pip_main
+        logger.debug(f'Installing nailgun for new_version: {new_version}')
+        nailgun_ref = 'master' if new_version == 'stream' else f'{new_version}.z'
 
-        pip_main(['uninstall', '-y', 'nailgun'])
-        pip_main(['install', f'https://github.com/SatelliteQE/nailgun/archive/{new_version}.zip'])
+        # Use file locking to prevent race conditions when multiple xdist workers
+        # try to install/uninstall nailgun simultaneously
+        lock_file = Path('/tmp/nailgun-install.lock')
+        with FileLock(lock_file):
+            logger.debug('Acquired nailgun install lock, running pip commands')
+
+            expected_url = f'https://github.com/SatelliteQE/nailgun/archive/{nailgun_ref}.zip'
+            # Check if correct version already installed
+            result = subprocess.run(
+                [sys.executable, '-m', 'pip', 'freeze'], capture_output=True, text=True, check=True
+            )
+            is_installed = any(
+                line.startswith('nailgun') and expected_url in line
+                for line in result.stdout.split('\n')
+            )
+            if is_installed:
+                logger.debug(f'Nailgun {new_version} already installed, skipping pip install')
+            else:
+                logger.debug(f'Nailgun {new_version} not already installed, running pip install')
+                subprocess.run(
+                    [sys.executable, '-m', 'pip', 'uninstall', '-y', 'nailgun'], check=True
+                )
+                subprocess.run(
+                    [
+                        sys.executable,
+                        '-m',
+                        'pip',
+                        'install',
+                        expected_url,
+                    ],
+                    check=True,
+                )
+            logger.debug('Nailgun pip commands complete, releasing lock')
+
+        # Clear module cache after lock is released (each worker clears its own cache).
+        # Run this even if the worker didn't need to reinstall nailgun,
+        # to make sure it has the correct api.
         self._api = type('api', (), {'_configured': False})
         to_clear = [k for k in sys.modules if 'nailgun' in k]
-        [sys.modules.pop(k) for k in to_clear]
+        for k in to_clear:
+            sys.modules.pop(k)
 
     @property
     def api(self):
