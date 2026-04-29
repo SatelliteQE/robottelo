@@ -2,7 +2,6 @@
 This module is intended to be used for upgrade tests that have a single run stage.
 """
 
-import datetime
 import json
 import os
 from tempfile import mkstemp
@@ -20,20 +19,8 @@ from robottelo.constants import (
 )
 from robottelo.exceptions import GCECertNotFoundError, SatelliteHostError
 from robottelo.hosts import Capsule, Satellite
+from robottelo.logging import logger
 from robottelo.utils.shared_resource import SharedResource
-
-
-def log(message, level="DEBUG"):
-    """Pytest has a limitation to use logging.logger from conftest.py
-    so we need to emulate the logger by std-out the output
-    """
-    now = datetime.datetime.now()
-    full_message = "{date} - conftest - {level} - {message}\n".format(
-        date=now.strftime("%Y-%m-%d %H:%M:%S"), level=level, message=message
-    )
-    print(full_message)  # noqa
-    with open('robottelo.log', 'a') as log_file:
-        log_file.write(full_message)
 
 
 def pytest_configure(config):
@@ -53,7 +40,7 @@ def pytest_configure(config):
 
 
 def shared_checkout(shared_name):
-    Satellite(hostname="blank")._swap_nailgun(f"{settings.UPGRADE.FROM_VERSION}.z")
+    Satellite(hostname="blank")._swap_nailgun(settings.UPGRADE.FROM_VERSION)
     bx_inst = Broker(
         workflow=settings.SERVER.deploy_workflows.product,
         deploy_sat_version=settings.UPGRADE.FROM_VERSION,
@@ -96,12 +83,15 @@ def shared_cap_checkout(shared_name):
 
 
 def shared_checkin(sat_instance):
-    log(f'Running sat_instance.teardown() from worker {os.environ.get("PYTEST_XDIST_WORKER")} ')
+    logger.debug(
+        f'Running sat_instance.teardown() from worker {os.environ.get("PYTEST_XDIST_WORKER")}'
+    )
     sat_instance.teardown()
     with SharedResource(
         resource_name=sat_instance.hostname + "_checkin",
         action=Broker(hosts=[sat_instance]).checkin,
     ) as sat_checkin:
+        logger.debug(f'Running sat_checkin.ready() for {sat_instance.hostname}')
         sat_checkin.ready()
 
 

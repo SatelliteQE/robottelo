@@ -34,7 +34,7 @@ def puppet_upgrade_setup(puppet_upgrade_integrated_sat_cap, upgrade_action):
             }
         )
         sat_upgrade.ready()
-        satellite._swap_nailgun(f'{settings.UPGRADE.TO_VERSION}.z')
+        satellite._swap_nailgun(settings.UPGRADE.TO_VERSION)
         cap_upgrade.ready()
         satellite._session = None
         capsule._session = None
