@@ -565,7 +565,7 @@ def test_host_breadcrumb_switcher_updates_insights_tabs(
         )
 
         # Verify we're NOT showing host1's recommendations (the bug scenario)
-        assert len(recommendations_after_switch) != len(host1_titles), (
+        assert set(recommendations_after_switch) != set(host1_titles), (
             f"BUG: Breadcrumb switcher did not update Recommendations tab. "
             f"Still showing {len(recommendations_after_switch)} recommendations from host1 "
             f"instead of host2's recommendations list."
