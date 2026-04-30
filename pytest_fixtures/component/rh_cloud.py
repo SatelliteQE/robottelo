@@ -15,11 +15,12 @@ def enable_insights(host, satellite, org, activation_key):
         rhel_distro=f"rhel{host.os_version.major}",
     )
     result = host.execute('insights-client --status')
-    # Accept either API confirmation or local registration via .registered file
-    is_registered = (
-        result.status == 0
-        or 'System is registered locally via .registered file' in result.stdout
+    # Accept either API confirmation (hosted Insights) or local registration (IoP)
+    got_api_confirmation = (
+        result.status == 0 and 'Insights API confirms registration' in result.stdout
     )
+    local_registered = 'System is registered locally via .registered file' in result.stdout
+    is_registered = got_api_confirmation or local_registered
     assert is_registered, f'insights-client not registered on {host.hostname}: {result.stdout}'
     # Sync inventory if using hosted Insights
     if not satellite.iop_enabled:
