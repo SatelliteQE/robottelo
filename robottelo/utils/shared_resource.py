@@ -258,21 +258,27 @@ class SharedResource:
                 os.environ.get('PYTEST_XDIST_WORKER'),
             )
             raise exc_value
-        if exc_type is None:
-            logger.debug('Setting status to done')
-            self.done()
-            if self.is_main:
-                self._wait_for_status("done")
-                logger.debug("All workers done, removing resource file")
-                self.resource_file.unlink()
-        else:
-            self._update_status("error")
-            if self.is_main:
-                if self._check_all_status("error"):
-                    # All have failed, delete the file
-                    logger.warning("All workers FAILED, removing resource file")
-                    self.resource_file.unlink()
-                else:
-                    logger.warning("Setting main status to ERROR")
-                    self._update_main_status("error")
+        if exc_type:
+            # Only try to update status if the resource file still exists
+            # It may have been deleted by act() if the action was non-recoverable
+            try:
+                self._update_status("error")
+                if self.is_main:
+                    if self._check_all_status("error"):
+                        # All have failed, delete the file
+                        logger.warning("All workers FAILED, removing resource file")
+                        self.resource_file.unlink()
+                    else:
+                        logger.warning("Setting main status to ERROR")
+                        self._update_main_status("error")
+            except FileNotFoundError:
+                logger.debug(
+                    "Resource file was deleted during error handling, skipping status update"
+                )
             raise exc_value
+        logger.debug('Setting status to done')
+        self.done()
+        if self.is_main:
+            self._wait_for_status("done")
+            logger.debug("All workers done, removing resource file")
+            self.resource_file.unlink()
