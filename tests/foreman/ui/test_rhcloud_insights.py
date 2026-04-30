@@ -488,9 +488,9 @@ def test_insights_registration_with_capsule(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_host_breadcrumb_switcher_updates_insights_tabs(
-        rhel_insights_vms,
-        rhcloud_manifest_org,
-        module_target_sat_insights,
+    rhel_insights_vms,
+    rhcloud_manifest_org,
+    module_target_sat_insights,
 ):
     """Test that breadcrumb switcher properly updates Recommendations tab
     when switching between hosts on the host details page.
@@ -545,7 +545,9 @@ def test_host_breadcrumb_switcher_updates_insights_tabs(
         host2_titles = {rec['Recommendation'] for rec in recommendations_host2}
 
         # Verify that host1 has not same recommendations as host2
-        assert set(host1_titles) !=  set(host2_titles), "Host1 and Host2 should not have same recommendations"
+        assert set(host1_titles) != set(host2_titles), (
+            "Host1 and Host2 should not have same recommendations"
+        )
 
         # Navigate back to host1's details page
         session.host_new.get_insights(host1.hostname)
