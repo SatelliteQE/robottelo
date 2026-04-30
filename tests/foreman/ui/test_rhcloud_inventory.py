@@ -254,6 +254,8 @@ def test_rh_cloud_inventory_settings(
 
     :BZ: 1852594, 1889690, 1852594
 
+    :BlockedBy: SAT-35600
+
     :CaseAutomation: Automated
     """
     org = rhcloud_manifest_org
