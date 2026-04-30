@@ -706,6 +706,27 @@ assert '404' in str(excinfo.value)
 
 ---
 
+## Pull Request Guidelines
+
+### PR Comments
+When asked to write a PR comment for changes made, use this markdown pattern:
+
+```markdown
+### Problem Statement
+[Describe the problem being solved]
+
+### Solution
+[Describe how the change solves the problem]
+
+### PRT Example
+[Create Pull Request Testing instructions following the PRT documentation](docs/agents_docs/PRT_DOCS.MD) ([upstream wiki](https://github.com/SatelliteQE/robottelo/wiki/Robottelo-Pull-Request-Testing-(PRT)-Process))
+- If adding/modifying tests, provide PRT commands for these tests
+- If deleting tests, explain what tests were removed
+```
+- Always output PR comments as plain markdown (not in code blocks) so they can be directly copied to GitHub
+
+---
+
 ## Troubleshooting
 
 ### Common Issues
@@ -895,5 +916,5 @@ repo_url = settings.repos.yum_3.url
 
 ---
 
-**Last Updated**: 2025-11-11
+**Last Updated**: 2026-04-28
 **Maintainers**: Cole Higgins
