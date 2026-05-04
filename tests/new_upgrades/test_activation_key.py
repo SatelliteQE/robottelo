@@ -95,7 +95,7 @@ def test_ak_upgrade_scenario(ak_upgrade_setup):
     :BlockedBy: SAT-28048, SAT-28990
     """
     target_sat = ak_upgrade_setup.target_sat
-    target_sat._swap_nailgun(f"{settings.UPGRADE.TO_VERSION}.z")
+    target_sat._swap_nailgun(settings.UPGRADE.TO_VERSION)
     org = target_sat.api.Organization().search(
         query={'search': f'name={ak_upgrade_setup.org.name}'}
     )[0]
