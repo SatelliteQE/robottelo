@@ -55,6 +55,7 @@ def common_assertion(report_path, inventory_data, org, satellite):
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
+@pytest.mark.no_containers
 def test_rhcloud_inventory_e2e(
     inventory_settings,
     rhcloud_manifest_org,
@@ -381,6 +382,7 @@ def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
+@pytest.mark.no_containers
 def test_rhcloud_global_parameters(
     inventory_settings,
     rhcloud_manifest_org,
