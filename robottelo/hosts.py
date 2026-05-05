@@ -1010,9 +1010,7 @@ class ContentHost(Host, ContentHostMixins):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_puppet(
-        self, proxy_hostname=None, run_puppet_agent=True, install_puppet_agent7=False
-    ):
+    def configure_puppet(self, proxy_hostname=None, run_agent=True, use_openvox=True):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
         :return: None.
@@ -1021,21 +1019,21 @@ class ContentHost(Host, ContentHostMixins):
         if proxy_hostname is None:
             proxy_hostname = settings.server.hostname
 
-        if install_puppet_agent7:
+        self.create_custom_repos(
+            sat_client=settings.repos.satclient_repo[f'RHEL{self.os_version.major}']
+        )
+        if use_openvox:
             self.create_custom_repos(
-                sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
-            )
-        else:
-            self.create_custom_repos(
-                sat_client=settings.repos['SATCLIENT2_REPO'][f'RHEL{self.os_version.major}']
+                openvox_agent=settings.repos.openvox_agent_repo[f'RHEL{self.os_version.major}']
             )
 
-        result = self.execute('yum install puppet-agent -y')
-        if result.status != 0:
-            raise ContentHostError('Failed to install the puppet-agent rpm')
+        rpm_name = 'openvox-agent' if use_openvox else 'puppet-agent'
+        if self.execute(f'yum -y install {rpm_name}').status != 0:
+            raise ContentHostError('Failed to install the puppet agent rpm')
 
-        rpm_version = self.execute('rpm -q --qf "%{VERSION}" puppet-agent').stdout
-        assert '7' in rpm_version if install_puppet_agent7 else '7' not in rpm_version
+        assert self.execute(f'rpm -q {rpm_name}').status == 0, (
+            'Puppet agent package is not installed'
+        )
 
         cert_name = self.hostname
         puppet_conf = (
@@ -1062,11 +1060,9 @@ class ContentHost(Host, ContentHostMixins):
         proxy_host = Host(hostname=proxy_hostname, ipv6=self.network_type == NetworkType.IPV6)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
 
-        if run_puppet_agent:
-            # This particular puppet run would create the host entity under
-            # 'All Hosts' and let's redirect stderr to /dev/null as errors at
-            #  this stage can be ignored.
-            result = self.execute('/opt/puppetlabs/bin/puppet agent -t 2> /dev/null')
+        if run_agent:
+            # This particular puppet run would create the host entity under 'All Hosts'
+            result = self.execute('/opt/puppetlabs/bin/puppet agent -t')
             if result.status:
                 raise ContentHostError('Failed to configure puppet on the content host')
 
