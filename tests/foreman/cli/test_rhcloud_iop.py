@@ -44,7 +44,7 @@ IOP_SERVICES = [
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.rhel_ver_match('N-2')
 def test_positive_install_iop_custom_certs(
     certs_data,
     sat_ready_rhel,
@@ -171,7 +171,7 @@ def test_positive_install_iop_custom_certs(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.rhel_ver_match('N-2')
 def test_disable_enable_iop(module_satellite_iop, module_sca_manifest, rhel_contenthost):
     """Disable and re-enable IoP on Satellite.
 
