@@ -24,7 +24,7 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import settings
-from robottelo.constants import TIMESTAMP_FMT_DATE
+from robottelo.constants import REPOS, TIMESTAMP_FMT_DATE
 from robottelo.utils.datafactory import (
     parametrized,
     valid_data_list,
@@ -790,3 +790,102 @@ class TestContentViewFilterRule:
 
         # Total Module Stream Count = 7, Exclude filter rule get ignored.
         assert content_view_version_info.module_stream_count == 7
+
+    def test_positive_rpm_filter_version_without_epoch(
+        self, module_sca_manifest_org, module_target_sat
+    ):
+        """Verify RPM include/exclude filter by version without epoch handles non-zero epoch correctly.
+
+        :id: dcbfaa47-e7a4-4760-95e7-0f8289d200ae
+
+        :steps:
+            1. Sync the RHEL9 BaseOS repository to an org with a manifest.
+            2. Create a Content View with the repository.
+            3. Create an RPM include filter for 'nftables' with version equal to '1.0.9'.
+            4. Publish the Content View and query nftables packages in the published version.
+            5. Assert all returned packages have version '1.0.9' and at least one
+               has a non-zero epoch (e.g. nftables-1:1.0.9-4.el9_6.x86_64).
+            6. Create a second Content View with the same repository.
+            7. Create an RPM exclude filter for 'nftables' with version equal to '1.0.9'.
+            8. Publish the second Content View and query nftables packages in the published version.
+            9. Assert no nftables packages with version '1.0.9' are present.
+
+        :expectedresults:
+            - Include filter: only nftables packages at version 1.0.9 are present, including
+              those with non-zero epoch, confirming omitting epoch does not default it to 0.
+            - Exclude filter: no nftables packages at version 1.0.9 are present (including
+              those with non-zero epoch), while other nftables versions remain in the CV.
+
+        :customerscenario: true
+
+        :Verifies: SAT-31355
+        """
+        repo_id = module_target_sat.api_factory.enable_sync_redhat_repo(
+            REPOS['rhel9_bos'], org_id=module_sca_manifest_org.id
+        )
+        repo = module_target_sat.api.Repository(id=repo_id).read()
+
+        # Include filter: nftables 1.0.9 should be present including epoch != 0 packages
+        cv_include = module_target_sat.api.ContentView(
+            organization=module_sca_manifest_org,
+            repository=[repo],
+        ).create()
+        cv_filter = module_target_sat.api.RPMContentViewFilter(
+            content_view=cv_include,
+            inclusion=True,
+            name=gen_string('alpha'),
+        ).create()
+        module_target_sat.api.ContentViewFilterRule(
+            content_view_filter=cv_filter,
+            name='nftables',
+            version='1.0.9',
+        ).create()
+        cv_include.publish()
+        cv_include = cv_include.read()
+        cvv = cv_include.version[0].read()
+        packages = module_target_sat.api.Package().search(
+            query={
+                'content_view_version_id': cvv.id,
+                'search': 'name = nftables',
+                'per_page': '1000',
+            }
+        )
+        assert packages, 'No nftables packages found in the published CV version'
+        assert all(p.version == '1.0.9' for p in packages), (
+            f'Expected all packages to be version 1.0.9, '
+            f'got: {[(p.name, p.epoch, p.version) for p in packages]}'
+        )
+        assert any(p.epoch != '0' for p in packages), (
+            'No packages with non-zero epoch found; the epoch-agnostic fix may not be exercised'
+        )
+
+        # Exclude filter: nftables 1.0.9 should be absent including epoch != 0 packages
+        cv_exclude = module_target_sat.api.ContentView(
+            organization=module_sca_manifest_org,
+            repository=[repo],
+        ).create()
+        cv_filter = module_target_sat.api.RPMContentViewFilter(
+            content_view=cv_exclude,
+            inclusion=False,
+            name=gen_string('alpha'),
+        ).create()
+        module_target_sat.api.ContentViewFilterRule(
+            content_view_filter=cv_filter,
+            name='nftables',
+            version='1.0.9',
+        ).create()
+        cv_exclude.publish()
+        cv_exclude = cv_exclude.read()
+        cvv = cv_exclude.version[0].read()
+        packages = module_target_sat.api.Package().search(
+            query={
+                'content_view_version_id': cvv.id,
+                'search': 'name = nftables',
+                'per_page': '1000',
+            }
+        )
+        assert packages, 'Expected other nftables versions to remain after excluding version 1.0.9'
+        assert not any(p.version == '1.0.9' for p in packages), (
+            f'Expected no nftables packages at version 1.0.9 after exclude filter, '
+            f'got: {[(p.name, p.epoch, p.version) for p in packages if p.version == "1.0.9"]}'
+        )
