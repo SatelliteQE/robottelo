@@ -2087,8 +2087,8 @@ class Satellite(Capsule, SatelliteMixins):
 
         # Use file locking to prevent race conditions when multiple xdist workers
         # try to install/uninstall nailgun simultaneously
-        lock_file = Path('/tmp/nailgun-install.lock')
-        with FileLock(lock_file):
+        lock_file = Path('/tmp/nailgun-install')
+        with FileLock(lock_file, timeout=120):
             logger.debug('Acquired nailgun install lock, running pip commands')
 
             expected_url = f'https://github.com/SatelliteQE/nailgun/archive/{nailgun_ref}.zip'
