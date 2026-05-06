@@ -23,7 +23,7 @@ ACS_UPDATED = 'Alternate Content Source updated.'
 ACS_DELETED = 'Alternate Content Source deleted.'
 ACS_NOT_FOUND = 'Could not find alternate_content_source resource with id'
 
-VAL_FAILED = 'Validation failed'
+VAL_FAILED = 'Could not create'
 VAL_CANT_BLANK = 'can\'t be blank'
 VAL_MUST_BLANK = 'must be blank'
 VAL_CANNOT_BE = 'cannot be'
