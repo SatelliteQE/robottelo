@@ -833,12 +833,12 @@ def test_positive_list_with_nested_hostgroup(target_sat):
         name=parent_hg_name,
         organization=[options.organization],
         content_view=content_view,
+        lifecycle_environment=lce,
         ptable=options.ptable,
     ).create()
     nested_hg = target_sat.api.HostGroup(
         architecture=options.architecture,
         domain=options.domain,
-        lifecycle_environment=lce,
         location=[options.location],
         medium=options.medium,
         name=nested_hg_name,
