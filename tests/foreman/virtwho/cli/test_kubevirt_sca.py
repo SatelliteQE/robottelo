@@ -8,7 +8,7 @@
 
 :team: Proton
 
-:BlockedBy: SAT-36027
+:BlockedBy: SAT-36027, SAT-45010
 """
 
 import pytest
