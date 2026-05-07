@@ -40,6 +40,7 @@ class TestPartitionTable:
         """
         ptable = target_sat.cli_factory.make_partition_table({'name': name})
         assert ptable['name'] == name
+        target_sat.cli.PartitionTable.delete({'id': ptable['id']})
 
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
