@@ -2002,8 +2002,8 @@ class Capsule(ContentHost, CapsuleMixins):
         # Install Satellite and return result
 
         default_parameters = [
-            f'--foreman-initial-admin-username {settings.server.admin_username}',
-            f'--foreman-initial-admin-password {settings.server.admin_password}',
+            f'--initial-admin-username {settings.server.admin_username}',
+            f'--initial-admin-password {settings.server.admin_password}',
         ]
 
         parameters = [] if parameters is None else parameters
