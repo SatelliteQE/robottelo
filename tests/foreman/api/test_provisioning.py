@@ -43,6 +43,7 @@ def test_rhel_pxe_provisioning(
     module_lce_library,
     module_default_org_view,
     configure_kea_dhcp6_server,
+    configure_uefi_provisioning_for_older_rhels,
 ):
     """Simulate baremetal provisioning of a RHEL system via PXE on RHV provider
 
@@ -70,13 +71,7 @@ def test_rhel_pxe_provisioning(
         pxe_loader.vm_firmware == 'bios'
         and module_provisioning_sat.sat.network_type == NetworkType.IPV6
     ):
-        pytest.skip('Test cannot be run on BIOS as its not supported')
-    if (
-        is_open('SAT-41340')
-        and module_provisioning_rhel_content.os.major == '7'
-        and pxe_loader.vm_firmware == 'uefi'
-    ):
-        pytest.skip('RHEL 7 is not compatible with UEFI')
+        pytest.skip('Skipping as BIOS provisioning is not supported for IPv6')
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat
     # Configure the grubx64.efi image to setup the interface and use TFTP to load the configuration
@@ -343,6 +338,7 @@ def test_rhel_httpboot_provisioning(
     provisioning_hostgroup,
     module_lce_library,
     module_default_org_view,
+    configure_uefi_provisioning_for_older_rhels,
 ):
     """Provision a host using httpboot workflow
 
@@ -366,13 +362,6 @@ def test_rhel_httpboot_provisioning(
 
     :Verifies: SAT-20684
     """
-    # rhel7 and firmware is uefi then it is not supported
-    if (
-        is_open('SAT-41340')
-        and module_provisioning_rhel_content.os.major == '7'
-        and pxe_loader.vm_firmware == 'uefi'
-    ):
-        pytest.skip('RHEL 7 is not compatible with UEFI.')
     sat = module_provisioning_sat.sat
     # Configure the grubx64.efi image to setup the interface and use TFTP to load the configuration
     # update grub2-efi package
@@ -488,6 +477,7 @@ def test_rhel_pxe_provisioning_fips_enabled(
     provisioning_hostgroup,
     module_lce_library,
     module_default_org_view,
+    configure_uefi_provisioning_for_older_rhels,
 ):
     """Provision a host with host param fips_enabled set to true
 
@@ -511,16 +501,6 @@ def test_rhel_pxe_provisioning_fips_enabled(
 
     :Verifies: SAT-26071
     """
-    # Skip RHEL7 UEFI test due to known issue SAT-41340
-    if (
-        is_open('SAT-41340')
-        and pxe_loader.vm_firmware in ['uefi']
-        and module_provisioning_rhel_content.os.major == '7'
-    ):
-        pytest.skip(
-            f"Test not supported for rhel{module_provisioning_rhel_content.os.major} {pxe_loader.vm_firmware} firmware"
-        )
-
     sat = module_provisioning_sat.sat
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     # Verify password hashing algorithm SHA512 is set in OS used for provisioning
