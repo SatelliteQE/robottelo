@@ -93,6 +93,8 @@ def test_positive_provision_end_to_end(
     provision_method,
     vmware,
     vmwareclient,
+    configure_secureboot_provisioning,
+    configure_uefi_provisioning_for_older_rhels,
 ):
     """Provision a host on vmware compute resource with
     the help of hostgroup.
@@ -112,6 +114,9 @@ def test_positive_provision_end_to_end(
 
     :customerscenario: true
     """
+    if provision_method == 'bootdisk' and pxe_loader.vm_firmware == 'uefi_secure_boot':
+        pytest.skip('Bootdisk + Secureboot provisioning is not yet supported')
+
     sat = module_provisioning_sat.sat
     hostname = gen_string('alpha').lower()
     host = sat.cli.Host.create(
