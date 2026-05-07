@@ -16,8 +16,8 @@ from robottelo.constants import (
     GCE_RHEL_CLOUD_PROJECTS,
     GCE_TARGET_RHEL_IMAGE_NAME,
 )
-from robottelo.exceptions import GCECertNotFoundError, SatelliteHostError
-from robottelo.hosts import Capsule, Satellite
+from robottelo.exceptions import GCECertNotFoundError
+from robottelo.hosts import Capsule, Satellite, SatelliteHostError
 from robottelo.logging import logger
 from robottelo.utils.shared_resource import SharedResource
 
