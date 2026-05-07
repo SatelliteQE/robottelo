@@ -299,6 +299,8 @@ def test_global_registration_form_populate(
     :BZ: 2056469, 1994654, 1955421
 
     :customerscenario: true
+
+    :BlockedBy: SAT-44612
     """
     hg_name = gen_string('alpha')
     hg_nested_name = gen_string('alpha')
