@@ -76,7 +76,7 @@ class SharedResource:
         """
         self.resource_name = resource_name
         self.resource_file = Path(f"/tmp/{resource_name}.shared")
-        self.lock_file = FileLock(self.resource_file)
+        self.lock_file = FileLock(self.resource_file, timeout=120)
         self.id = str(uuid4().fields[-1])
         self.action = action
         self.action_validator = action_validator
@@ -183,7 +183,7 @@ class SharedResource:
 
     def unregister(self):
         """Unregisters the current process as a watcher."""
-        logger.debug("Unregistering %s", os.environ.get('PYTEST_XDIST_WORKER'))
+        logger.debug("Unregistering %s", os.environ.get('PYTEST_XDIST_WORKER', 'worker'))
         with self.lock_file:
             curr_data = json.loads(self.resource_file.read_text())
             logger.debug("Removing watcher ID from resource file")
@@ -254,8 +254,8 @@ class SharedResource:
 
         if exc_type is FileNotFoundError:
             logger.warning(
-                '%s did not find resource file. has it already been deleted?',
-                os.environ.get('PYTEST_XDIST_WORKER'),
+                '%s did not find resource file. Has it already been deleted?',
+                os.environ.get('PYTEST_XDIST_WORKER', 'Worker'),
             )
             raise exc_value
         if exc_type:

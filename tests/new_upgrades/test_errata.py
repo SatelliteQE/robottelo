@@ -195,13 +195,14 @@ def generate_errata_for_client_setup(
         errata_ids = [errata.errata_id for errata in erratum_list]
         assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
         sat_upgrade.ready()
+        target_sat._swap_nailgun(settings.upgrade.to_version)
         target_sat._session = None
         yield test_data
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.no_containers
-@pytest.mark.errata_upgrade
+@pytest.mark.errata_upgrades
 def test_post_scenario_errata_count_installation(generate_errata_for_client_setup):
     """Post-upgrade scenario that applies errata on the RHEL client that was set up
     in the pre-upgrade test and verifies that the errata was applied correctly.

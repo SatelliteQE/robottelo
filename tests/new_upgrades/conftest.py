@@ -25,15 +25,22 @@ from robottelo.utils.shared_resource import SharedResource
 def pytest_configure(config):
     """Register custom markers to avoid warnings."""
     markers = [
-        "content_upgrades: Content upgrade tests that use SharedResource.",
-        "search_upgrades: Search upgrade tests that use SharedResource.",
-        "hostgroup_upgrades: Host group upgrade tests that use SharedResource.",
-        "errata_upgrades: Errata upgrade tests that use SharedResource.",
-        "perf_tuning_upgrades: Performance tuning upgrade tests that use SharedResource.",
-        "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
         "capsule_upgrades: Capsule upgrade tests that use SharedResource.",
-        "puppet_upgrades: Puppet upgrade tests that use SharedResource.",
+        "capsule_puppet_upgrades: Capsule puppet upgrade tests that use SharedResource.",
+        "client_upgrades: Client upgrade tests that use SharedResource.",
+        "content_upgrades: Content upgrade tests that use SharedResource.",
+        "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
+        "errata_upgrades: Errata upgrade tests that use SharedResource.",
+        "hostgroup_upgrades: Host group upgrade tests that use SharedResource.",
         "iop_upgrades: IOP (Red Hat Lightspeed) upgrade tests that use SharedResource.",
+        "perf_tuning_upgrades: Performance tuning upgrade tests that use SharedResource.",
+        "pulp_upgrades: Pulp upgrade tests that use SharedResource.",
+        "puppet_upgrades: Puppet upgrade tests that use SharedResource.",
+        "search_upgrades: Search upgrade tests that use SharedResource.",
+        "subscription_upgrades: Subscription upgrade tests that use SharedResource.",
+        "sync_plan_upgrades: Sync plan upgrade tests that use SharedResource.",
+        "usergroup_upgrades: User group upgrade tests that use SharedResource.",
+        "virt_who_upgrades: Virt_who upgrade tests that use SharedResource.",
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
@@ -46,8 +53,8 @@ def shared_checkout(shared_name, iop=False):
     )
     bx_inst = Broker(
         workflow=workflow,
-        deploy_sat_version=settings.UPGRADE.FROM_VERSION,
-        deploy_network_type=settings.SERVER.network_type,
+        deploy_sat_version=settings.upgrade.from_version,
+        deploy_network_type=settings.server.network_type,
         host_class=Satellite,
         upgrade_group=f"{shared_name}_shared_checkout",
     )
@@ -61,14 +68,14 @@ def shared_checkout(shared_name, iop=False):
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
             f'@inv._broker_args.workflow == "{workflow}"'
         )
-    return sat_instance[0]
+    return sat_instance[-1]
 
 
 def shared_cap_checkout(shared_name):
     cap_inst = Broker(
-        workflow=settings.CAPSULE.deploy_workflows.product,
-        deploy_sat_version=settings.UPGRADE.FROM_VERSION,
-        deploy_network_type=settings.CAPSULE.network_type,
+        workflow=settings.capsule.deploy_workflows.product,
+        deploy_sat_version=settings.upgrade.from_version,
+        deploy_network_type=settings.capsule.network_type,
         host_class=Capsule,
         upgrade_group=f'{shared_name}_shared_checkout',
     )
@@ -82,7 +89,7 @@ def shared_cap_checkout(shared_name):
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
             '@inv._broker_args.workflow == "deploy-capsule"'
         )
-    return cap_instance[0]
+    return cap_instance[-1]
 
 
 def shared_checkin(sat_instance):
@@ -100,10 +107,10 @@ def upgrade_action():
     def _upgrade_action(target_sat):
 
         result = Broker(
-            job_template=settings.UPGRADE.SATELLITE_UPGRADE_JOB_TEMPLATE,
+            job_template=settings.upgrade.satellite_upgrade_job_template,
             target_vm=target_sat.name,
-            sat_version=settings.UPGRADE.TO_VERSION,
-            upgrade_path="ystream",
+            sat_version=settings.upgrade.to_version,
+            upgrade_path=settings.upgrade.upgrade_path,
             tower_inventory=target_sat.tower_inventory,
         ).execute()
 
@@ -305,6 +312,7 @@ def capsule_upgrade_integrated_sat_cap(
         "capsule_setup",
         action=capsule_upgrade_shared_capsule.capsule_setup,
         sat_host=capsule_upgrade_shared_satellite,
+        release=capsule_upgrade_shared_capsule.version,
     ) as cap_setup:
         cap_setup.ready()
     cap_smart_proxy = capsule_upgrade_shared_satellite.api.SmartProxy().search(
@@ -371,6 +379,7 @@ def puppet_upgrade_integrated_sat_cap(
             "capsule_setup",
             action=puppet_upgrade_shared_capsule.capsule_setup,
             sat_host=puppet_upgrade_shared_satellite,
+            release=puppet_upgrade_shared_capsule.version,
         ) as cap_setup,
         SharedResource(
             "puppet_upgrade_enable_puppet_capsule",

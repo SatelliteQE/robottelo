@@ -129,7 +129,6 @@ class TestBuiltInRolesLocked:
     :CaseAutomation: NotAutomated
     """
 
-    @pytest.mark.post_upgrade
     def test_post_builtin_roles_are_cloned(self):
         """Builtin roles in satellite gets locked post upgrade
 
@@ -166,7 +165,6 @@ class TestNewOrganizationAdminRole:
     :CaseAutomation: NotAutomated
     """
 
-    @pytest.mark.post_upgrade
     def test_post_builtin_roles_are_cloned(self):
         """New Organization Admin role creates post upgrade
 
