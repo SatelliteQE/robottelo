@@ -549,6 +549,69 @@ def test_positive_selinux_foreman_module(target_sat):
 
 
 @pytest.mark.upgrade
+def test_positive_apache_selinux_context(target_sat):
+    """Check if Apache module config files have correct SELinux context
+
+    :id: 8f7a9b2c-4d3e-4f5a-9c8b-7a6d5e4f3c2b
+
+    :steps:
+        1. Check existing Apache module config files in /etc/httpd/conf.modules.d/
+        2. Verify all config files have httpd_config_t SELinux context
+        3. Create a test file using Puppet without seltype parameter
+        4. Verify the test file automatically gets httpd_config_t context
+
+    :expectedresults:
+        1. All Apache module config files have httpd_config_t context
+        2. No files have incorrect etc_t context
+        3. Files created by Puppet automatically get httpd_config_t context
+
+    :CaseImportance: Medium
+
+    :customerscenario: true
+
+    :Verifies: SAT-30020
+    """
+    result = target_sat.execute('ls -1Z /etc/httpd/conf.modules.d/*.conf')
+    assert result.status == 0, "Failed to list Apache module config files"
+
+    config_files = result.stdout.strip().split('\n')
+    assert len(config_files) > 0, "No Apache config files found"
+
+    incorrect_files = []
+    for line in config_files:
+        if line and ':httpd_config_t:' not in line:
+            incorrect_files.append(line)
+
+    assert not incorrect_files, (
+        f"Found {len(incorrect_files)} Apache config file(s) with incorrect SELinux context:\n"
+        + '\n'.join(incorrect_files)
+    )
+
+    puppet_manifest = """
+file { '/etc/httpd/conf.modules.d/99-selinux-test.conf':
+  ensure  => file,
+  content => "# Test file for SELinux context verification\\n",
+  mode    => '0644',
+  owner   => 'root',
+  group   => 'root',
+}
+"""
+    target_sat.put(puppet_manifest, '/tmp/test_selinux.pp', temp_file=True)
+    target_sat.execute('rm -f /etc/httpd/conf.modules.d/99-selinux-test.conf')
+
+    result = target_sat.execute('puppet apply /tmp/test_selinux.pp')
+    assert result.status == 0, f"Puppet apply failed: {result.stdout}"
+
+    result = target_sat.execute('ls -1Z /etc/httpd/conf.modules.d/99-selinux-test.conf')
+    assert result.status == 0, "Failed to check test file SELinux context"
+    assert ':httpd_config_t:' in result.stdout, (
+        f"Test file has incorrect SELinux context. Expected :httpd_config_t::\n{result.stdout}"
+    )
+
+    target_sat.execute('rm -f /etc/httpd/conf.modules.d/99-selinux-test.conf')
+
+
+@pytest.mark.upgrade
 @pytest.mark.parametrize('service', SATELLITE_SERVICES)
 def test_positive_check_installer_service_running(target_sat, service):
     """Check if a service is running
