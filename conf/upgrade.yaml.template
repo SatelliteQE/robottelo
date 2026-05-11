@@ -7,6 +7,8 @@ UPGRADE:
   OS: rhel9
   # The job template Broker should use to upgrade a Satellite
   SATELLITE_UPGRADE_JOB_TEMPLATE: satellite-upgrade
+  # The upgrade path to use when upgrading Satellite (< ystream | zstream >)
+  UPGRADE_PATH: ystream
   # Capsule's activation key will only be available when we spawn the VM using upgrade template.
   CAPSULE_AK:
     RHEL8: rhel8_capsule_ak
