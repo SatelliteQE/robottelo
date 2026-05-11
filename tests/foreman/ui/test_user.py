@@ -360,6 +360,7 @@ def test_positive_invalidate_jwt(
             organization=module_org,
             location=module_location,
             activation_keys=[module_activation_key.name],
+            setup_insights=False,
             force=True,
         ).create()
         result = rhel_contenthost.execute(command.strip('\n'))
@@ -378,6 +379,7 @@ def test_positive_invalidate_jwt(
             organization=module_org,
             location=module_location,
             activation_keys=[module_activation_key.name],
+            setup_insights=False,
             force=True,
         ).create()
         result = rhel_contenthost.execute(command.strip('\n'))
