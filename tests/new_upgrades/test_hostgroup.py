@@ -95,6 +95,7 @@ def hostgroup_upgrade_setup(hostgroup_upgrade_shared_satellite, upgrade_action):
         yield test_data
 
 
+@pytest.mark.hostgroup_upgrades
 def test_post_crud_hostgroup(hostgroup_upgrade_setup, request):
     """After upgrade, Update, delete and clone should work on existing hostgroup(created before
     upgrade)
