@@ -74,6 +74,95 @@ def content_for_client(module_target_sat, module_sca_manifest_org, module_lce, m
 
 
 @pytest.fixture(scope='module')
+def flatpak_content_for_lb(module_target_sat, module_org, setup_capsules):
+    """Mirror flatpak repos, create two CVs, promote to a dedicated LCE, sync capsules.
+
+    :return: dict with activation key (cv1), cv1_app and cv2_app names.
+    """
+    sat = module_target_sat
+
+    # Create a dedicated LCE and associate it to both capsules.
+    lce = sat.api.LifecycleEnvironment(organization=module_org).create()
+    for capsule in setup_capsules:
+        capsule_id = next(c['id'] for c in sat.cli.Capsule.list() if c['name'] == capsule.hostname)
+        sat.cli.Capsule.content_add_lifecycle_environment(
+            {
+                'id': capsule_id,
+                'organization-id': module_org.id,
+                'lifecycle-environment': lce.name,
+            }
+        )
+
+    # Create a flatpak remote, scan it, and mirror the required repos.
+    remote_config = FLATPAK_REMOTES['RedHat']
+    create_opts = {
+        'organization-id': module_org.id,
+        'url': remote_config['url'],
+        'name': gen_string('alpha'),
+    }
+    if remote_config['authenticated']:
+        create_opts['username'] = settings.container_repo.registries.redhat.username
+        create_opts['token'] = settings.container_repo.registries.redhat.password
+    fr = sat.cli.FlatpakRemote().create(create_opts)
+    sat.cli.FlatpakRemote().scan({'id': fr['id']})
+    all_repos = sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
+
+    ver = FLATPAK_RHEL_RELEASE_VER
+    repo_names = [
+        f'rhel{ver}/firefox-flatpak',
+        f'rhel{ver}/flatpak-runtime',  # runtime is dependency
+        f'rhel{ver}/thunderbird-flatpak',
+    ]
+    remote_repos = [r for r in all_repos if r['name'] in repo_names]
+    assert len(repo_names) == len(remote_repos), 'Testing repos are missing from remote index.'
+
+    product = sat.api.Product(organization=module_org).create()
+    for repo in remote_repos:
+        sat.cli.FlatpakRemote().repository_mirror(
+            {
+                'flatpak-remote-id': fr['id'],
+                'id': repo['id'],
+                'product-id': product.id,
+            }
+        )
+    local_repos = sat.cli.Repository.list({'product-id': product.id})
+    assert set([r['name'] for r in local_repos]) == set(repo_names), (
+        'Required repo(s) were not scanned or mirrored'
+    )
+    for repo in local_repos:
+        sat.cli.Repository.synchronize({'id': repo['id']})
+
+    # Create two CVs with different repos, publish and promote them to LCE.
+    # cv1: thunderbird + runtime (Last 2); cv2: firefox + runtime (First 2).
+    cv1 = sat.api.ContentView(
+        organization=module_org,
+        repository=[r['id'] for r in local_repos if r['name'] in repo_names[-2:]],
+    ).create()
+    cv2 = sat.api.ContentView(
+        organization=module_org,
+        repository=[r['id'] for r in local_repos if r['name'] in repo_names[:2]],
+    ).create()
+    timestamp = datetime.now(UTC)
+    for cv in [cv1, cv2]:
+        cv.publish()
+        cv.read().version[0].promote(data={'environment_ids': lce.id})
+    for capsule in setup_capsules:
+        capsule.wait_for_sync(start_time=timestamp)
+
+    ak = sat.api.ActivationKey(
+        organization=module_org,
+        content_view=cv1,
+        environment=lce,
+    ).create()
+
+    return {
+        'ak': ak,
+        'cv1_app': 'org.mozilla.Thunderbird',
+        'cv2_app': 'org.mozilla.firefox',
+    }
+
+
+@pytest.fixture(scope='module')
 def setup_capsules(
     module_org,
     module_location,
@@ -323,95 +412,6 @@ def test_loadbalancer_container(
     )
     assert rhel_contenthost.execute(f'podman pull {registry_repo}').status == 0
     assert rhel_contenthost.execute('podman rmi -a').status == 0
-
-
-@pytest.fixture(scope='module')
-def flatpak_content_for_lb(module_target_sat, module_org, setup_capsules):
-    """Mirror flatpak repos, create two CVs, promote to a dedicated LCE, sync capsules.
-
-    :return: dict with activation key (cv1), cv1_app and cv2_app names.
-    """
-    sat = module_target_sat
-
-    # Create a dedicated LCE and associate it to both capsules.
-    lce = sat.api.LifecycleEnvironment(organization=module_org).create()
-    for capsule in setup_capsules:
-        capsule_id = next(c['id'] for c in sat.cli.Capsule.list() if c['name'] == capsule.hostname)
-        sat.cli.Capsule.content_add_lifecycle_environment(
-            {
-                'id': capsule_id,
-                'organization-id': module_org.id,
-                'lifecycle-environment': lce.name,
-            }
-        )
-
-    # Create a flatpak remote, scan it, and mirror the required repos.
-    remote_config = FLATPAK_REMOTES['RedHat']
-    create_opts = {
-        'organization-id': module_org.id,
-        'url': remote_config['url'],
-        'name': gen_string('alpha'),
-    }
-    if remote_config['authenticated']:
-        create_opts['username'] = settings.container_repo.registries.redhat.username
-        create_opts['token'] = settings.container_repo.registries.redhat.password
-    fr = sat.cli.FlatpakRemote().create(create_opts)
-    sat.cli.FlatpakRemote().scan({'id': fr['id']})
-    all_repos = sat.cli.FlatpakRemote().repository_list({'flatpak-remote-id': fr['id']})
-
-    ver = FLATPAK_RHEL_RELEASE_VER
-    repo_names = [
-        f'rhel{ver}/firefox-flatpak',
-        f'rhel{ver}/flatpak-runtime',  # runtime is dependency
-        f'rhel{ver}/thunderbird-flatpak',
-    ]
-    remote_repos = [r for r in all_repos if r['name'] in repo_names]
-    assert len(repo_names) == len(remote_repos), 'Testing repos are missing from remote index.'
-
-    product = sat.api.Product(organization=module_org).create()
-    for repo in remote_repos:
-        sat.cli.FlatpakRemote().repository_mirror(
-            {
-                'flatpak-remote-id': fr['id'],
-                'id': repo['id'],
-                'product-id': product.id,
-            }
-        )
-    local_repos = sat.cli.Repository.list({'product-id': product.id})
-    assert set([r['name'] for r in local_repos]) == set(repo_names), (
-        'Required repo(s) were not scanned or mirrored'
-    )
-    for repo in local_repos:
-        sat.cli.Repository.synchronize({'id': repo['id']})
-
-    # Create two CVs with different repos, publish and promote them to LCE.
-    # cv1: thunderbird + runtime (Last 2); cv2: firefox + runtime (First 2).
-    cv1 = sat.api.ContentView(
-        organization=module_org,
-        repository=[r['id'] for r in local_repos if r['name'] in repo_names[-2:]],
-    ).create()
-    cv2 = sat.api.ContentView(
-        organization=module_org,
-        repository=[r['id'] for r in local_repos if r['name'] in repo_names[:2]],
-    ).create()
-    timestamp = datetime.now(UTC)
-    for cv in [cv1, cv2]:
-        cv.publish()
-        cv.read().version[0].promote(data={'environment_ids': lce.id})
-    for capsule in setup_capsules:
-        capsule.wait_for_sync(start_time=timestamp)
-
-    ak = sat.api.ActivationKey(
-        organization=module_org,
-        content_view=cv1,
-        environment=lce,
-    ).create()
-
-    return {
-        'ak': ak,
-        'cv1_app': 'org.mozilla.Thunderbird',
-        'cv2_app': 'org.mozilla.firefox',
-    }
 
 
 @pytest.mark.e2e
