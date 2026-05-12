@@ -314,7 +314,7 @@ def test_positive_sync_yum_repo_and_verify_content_checksum(session, module_org,
         for sync_val in sync_values:
             if 'less than a minute ago' in sync_val['Finished']:
                 assert sync_val['Product'] == product.name
-                assert sync_val['Status'] == SYNC_COMPLETE
+                assert sync_val['Status'] == 'Syncing Complete.'
         result = session.product.verify_content_checksum([product.name])
         assert result['task']['result'] == 'success'
 
