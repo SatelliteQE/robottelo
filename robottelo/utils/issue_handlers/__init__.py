@@ -22,8 +22,8 @@ def is_open(issue):
     Arguments:
         issue {str} -- A string containing Jira issue id e.g: SAT-12345
     """
-    status = jira.is_open_jira(issue.strip())
+    is_open = jira.is_open_jira(issue.strip())
     logger.debug(
-        f"Is {issue} Jira open? - {'Nope! It is fixed!' if status else 'Yeah. It is still not fixed :('}"
+        f"Is {issue} Jira open? - {'Yeah. It is still not fixed :(' if is_open else 'Nope! It is fixed!'}"
     )
-    return status
+    return is_open
