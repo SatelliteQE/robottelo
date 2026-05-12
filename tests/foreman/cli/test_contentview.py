@@ -4280,6 +4280,53 @@ class TestContentViewFileRepo:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert content_view['versions'] == existing_versions
 
+    def test_negative_inc_update_with_existing_errata(self, module_org, module_target_sat):
+        """Incremental update of a CVV is rejected when the specified errata is already present
+
+        :id: 565fcb6e-4ae1-4777-be46-2553b502b345
+
+        :Verifies: SAT-37368
+
+        :customerscenario: true
+
+        :steps:
+            1. Create a product and sync a YUM repository.
+            2. Create a content view with the repository and publish it.
+            3. Attempt an incremental update using errata already present in the CVV.
+
+        :expectedresults: Incremental update fails with an error message indicating
+            no new content will be added, and no new content view version is created.
+        """
+        product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
+        repo = module_target_sat.cli_factory.make_repository(
+            {
+                'content-type': 'yum',
+                'product-id': product['id'],
+                'url': settings.repos.yum_1.url,
+            }
+        )
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        content_view = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': repo['id']}
+        )
+        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        existing_versions = content_view['versions']
+        cvv = content_view['versions'][0]
+        errata = module_target_sat.cli.Erratum.list(
+            {'repository-id': repo['id'], 'search': f'errata_id = {settings.repos.yum_1.errata[0]}'}
+        )[0]
+        with pytest.raises(CLIReturnCodeError) as error:
+            module_target_sat.cli.ContentView.version_incremental_update(
+                {
+                    'content-view-version-id': cvv['id'],
+                    'errata-ids': errata['id'],
+                }
+            )
+        assert 'Incremental update will not add any new content' in error.value.stderr
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        assert content_view['versions'] == existing_versions
+
     def test_promote_ccv_to_lce_with_nondefault_pattern(
         self, module_target_sat, module_org, module_product
     ):
