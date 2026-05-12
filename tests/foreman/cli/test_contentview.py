@@ -4251,7 +4251,7 @@ class TestContentViewFileRepo:
             3. Attempt an incremental update using a package already present in the CVV.
 
         :expectedresults: Incremental update fails with an error message indicating
-            no new content will be added.
+            no new content will be added, and no new content view version is created.
         """
         product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
         repo = module_target_sat.cli_factory.make_repository(
@@ -4267,6 +4267,7 @@ class TestContentViewFileRepo:
         )
         module_target_sat.cli.ContentView.publish({'id': content_view['id']})
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        existing_versions = content_view['versions']
         cvv = content_view['versions'][0]
         package = module_target_sat.cli.Package.list(
             {'repository-id': repo['id'], 'search': f'name = {FAKE_2_CUSTOM_PACKAGE_NAME}'}
@@ -4276,6 +4277,8 @@ class TestContentViewFileRepo:
                 {'content-view-version-id': cvv['id'], 'package-ids': package['id']}
             )
         assert 'Incremental update will not add any new content' in error.value.stderr
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        assert content_view['versions'] == existing_versions
 
     def test_promote_ccv_to_lce_with_nondefault_pattern(
         self, module_target_sat, module_org, module_product
