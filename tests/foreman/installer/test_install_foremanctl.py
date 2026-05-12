@@ -142,6 +142,7 @@ def module_sat_foremanctl_custom_certs():
         sat.custom_cert_generate(sat.hostname)
         sat.install_satellite_foremanctl(
             parameters=[
+                '--certificate-source=custom_server',
                 f'--certificate-server-certificate /root/{sat.hostname}/{sat.hostname}.crt',
                 f'--certificate-server-key /root/{sat.hostname}/{sat.hostname}.key',
                 '--certificate-server-ca-certificate /root/cacert.crt',
