@@ -18,6 +18,8 @@ import pytest
 import requests
 from wait_for import wait_for
 
+from robottelo.utils.issue_handlers import is_open
+
 
 @pytest.mark.e2e
 def test_positive_puppet_bootstrap(
@@ -130,6 +132,9 @@ def test_host_provisioning_with_external_puppetserver(
 
     :customerscenario: true
     """
+    if module_provisioning_rhel_content.os.major == '7' and is_open('SAT-44580'):
+        pytest.skip('Skipping as openvox-agent for EL7 is still not delivered')
+
     puppet_env = 'production'
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat
@@ -166,8 +171,8 @@ def test_host_provisioning_with_external_puppetserver(
     # the result of the installation. Wait until Satellite reports that the host is installed.
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
-        timeout=1500,
-        delay=10,
+        timeout='40m',
+        delay=30,
     )
     host = host.read()
     assert host.build_status_label == 'Installed'
@@ -193,8 +198,8 @@ def test_host_provisioning_with_external_puppetserver(
     assert provisioning_host.subscribed, 'Host is not subscribed'
 
     # Validate external Puppet server deployment with Satellite
-    assert provisioning_host.execute('rpm -q puppet-agent').status == 0, (
-        'Puppet agent package is not installed'
+    assert provisioning_host.execute('rpm -q --whatprovides puppet-agent').status == 0, (
+        'Package providing Puppet agent is not installed'
     )
 
     assert (
