@@ -4236,6 +4236,47 @@ class TestContentViewFileRepo:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
+    def test_negative_inc_update_with_existing_package(self, module_org, module_target_sat):
+        """Incremental update of a CVV is rejected when the specified package is already present
+
+        :id: 16f3866e-7b42-49a8-8ac0-81bce99d09f4
+
+        :Verifies: SAT-37368
+
+        :customerscenario: true
+
+        :steps:
+            1. Create a product and sync a YUM repository.
+            2. Create a content view with the repository and publish it.
+            3. Attempt an incremental update using a package already present in the CVV.
+
+        :expectedresults: Incremental update fails with an error message indicating
+            no new content will be added.
+        """
+        product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
+        repo = module_target_sat.cli_factory.make_repository(
+            {
+                'content-type': 'yum',
+                'product-id': product['id'],
+                'url': settings.repos.yum_1.url,
+            }
+        )
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        content_view = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': repo['id']}
+        )
+        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        cvv = content_view['versions'][0]
+        package = module_target_sat.cli.Package.list(
+            {'repository-id': repo['id'], 'search': f'name = {FAKE_2_CUSTOM_PACKAGE_NAME}'}
+        )[0]
+        with pytest.raises(CLIReturnCodeError) as error:
+            module_target_sat.cli.ContentView.version_incremental_update(
+                {'content-view-version-id': cvv['id'], 'package-ids': package['id']}
+            )
+        assert 'Incremental update will not add any new content' in error.value.stderr
+
     def test_promote_ccv_to_lce_with_nondefault_pattern(
         self, module_target_sat, module_org, module_product
     ):
