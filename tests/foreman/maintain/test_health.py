@@ -478,8 +478,10 @@ def test_positive_health_check_tftp_storage(sat_maintain, request):
     mtime_path = f'/var/lib/tftpboot/boot/{files_to_delete[0]}'
     mtime = int(sat_maintain.execute(f'stat -c %Y {mtime_path}').stdout.strip())
     wait_for(
-        lambda: int(sat_maintain.execute('date +%s').stdout.strip()) - mtime
-        >= token_duration_seconds + 5,
+        lambda: (
+            int(sat_maintain.execute('date +%s').stdout.strip()) - mtime
+            >= token_duration_seconds + 5
+        ),
         timeout=token_duration_seconds + 60,
         delay=10,
     )
