@@ -47,8 +47,10 @@ REPOS:
     RHEL9: replace-with-rhel9-http-link
     RHEL10: replace-with-rhel10-http-link
   OPENVOX_AGENT_REPO:
+    RHEL7: some-url
     RHEL8: some-url
     RHEL9: some-url
+    RHEL10: some-url
   # Downstream Satellite-maintain repo
   SATMAINTENANCE_REPO: replace-with-sat-maintain-repo
   # Software Collection Repo
