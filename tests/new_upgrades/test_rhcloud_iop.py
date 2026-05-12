@@ -145,7 +145,8 @@ def test_iop_recommendations_upgrade(iop_recommendations_upgrade_setup):
         session.organization.select(org_name=org_name)
 
         # Force register host with insights
-        rhel_client.execute('insights-client --register --force')
+        result = rhel_client.execute('insights-client --register --force')
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
         # Search for the recommendation and verify it still exists post-upgrade
         result = session.recommendationstab.search(recommendation_name)
