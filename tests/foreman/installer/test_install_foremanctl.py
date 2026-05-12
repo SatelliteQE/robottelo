@@ -173,10 +173,10 @@ def test_positive_install_foremanctl_with_custom_certs(module_sat_foremanctl_cus
     assert_hammer_ping_ok(result)
     # Verify the custom certificate works and there are no errors
     result = sat.execute(
-        f'curl -s -o /dev/null -w "%{{http_code}}" '
-        f'--cacert /root/cacert.crt https://{sat.hostname}/api/v2/ping'
+        'curl --output /dev/null --write-out "%{http_code}" --cacert /root/cacert.crt '
+        f'https://{sat.hostname}/api/v2/ping'
     )
-    assert result.stdout == '200'
+    assert result.stdout == '200', f'Calling API with custom cert failed: {result.stderr}'
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
