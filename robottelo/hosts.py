@@ -2003,20 +2003,19 @@ class Capsule(ContentHost, CapsuleMixins):
         if parameters:
             default_parameters.extend(parameters)
 
-        assert (
-            self.execute(
-                f'foremanctl deploy {" ".join(default_parameters)}',
-                timeout='30m',
-            ).status
-            == 0
+        deploy = self.execute(
+            f'foremanctl deploy {" ".join(default_parameters)}',
+            timeout='30m',
+        )
+        assert deploy.status == 0, f'foremanctl deploy failed:\n{deploy.stderr}'
+
+        deploy_features = self.execute(
+            'foremanctl deploy --add-feature foreman-proxy --add-feature hammer'
+        )
+        assert deploy_features.status == 0, (
+            f'foremanctl deploy --add-feature failed:\n{deploy_features.stderr}'
         )
 
-        assert (
-            self.execute(
-                'foremanctl deploy --add-feature foreman-proxy --add-feature hammer'
-            ).status
-            == 0
-        )
         return
 
     def query_db(self, query, db='foreman', output_format='json'):
