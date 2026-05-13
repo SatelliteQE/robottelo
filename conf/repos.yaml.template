@@ -44,14 +44,6 @@ REPOS:
     RHEL9: replace-with-rhel9-http-link
   # Downstream Satellite-maintain repo
   SATMAINTENANCE_REPO: replace-with-sat-maintain-repo
-  # Software Collection Repo
-  RHSCL_REPO: replace-with-rhscl-repo
-  # Ansible 2.8 Repo
-  ANSIBLE_REPO: replace-with-ansible-repo
-  # Added swid_tools_repo for installing swid-tools and dnf-plugin-swidtags packages
-  # which are essentially required for generating swid tags in RHEL8 content host.
-  SWID_TOOLS_REPO: replace-with-swid-tools-repo
-  FAKE_REPO_ZOO3: replace-with-zoo-fedorapeople-repo
   MOCK_SERVICE_REPO_BASE: replace-with-repo-providing-robttelo-mock-service
   MOCK_SERVICE_REPO:
     RHEL7: "@format {this[repos].MOCK_SERVICE_REPO_BASE}/epel-7-x86_64/"
