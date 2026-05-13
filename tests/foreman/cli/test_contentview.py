@@ -2662,7 +2662,7 @@ class TestContentView:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(
-        self, module_org, capsule_configured, module_target_sat
+        self, function_org, capsule_configured, module_target_sat
     ):
         """Remove promoted content view version from multiple environment,
         with satellite setup to use capsule
@@ -2696,16 +2696,14 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        # Note: This test case requires complete external capsule
-        #  configuration.
         dev_env = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_org.id}
+            {'organization-id': function_org.id}
         )
         qe_env = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_org.id, 'prior': dev_env['name']}
+            {'organization-id': function_org.id, 'prior': dev_env['name']}
         )
         prod_env = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_org.id, 'prior': qe_env['name']}
+            {'organization-id': function_org.id, 'prior': qe_env['name']}
         )
         capsule = module_target_sat.cli.Capsule().info({'name': capsule_configured.hostname})
         # Add all environments to capsule
@@ -2714,92 +2712,78 @@ class TestContentView:
             module_target_sat.cli.Capsule.content_add_lifecycle_environment(
                 {
                     'id': capsule['id'],
-                    'organization-id': module_org.id,
+                    'organization-id': function_org.id,
                     'environment': env_name,
                 }
             )
         capsule_environments = module_target_sat.cli.Capsule.content_lifecycle_environments(
-            {'id': capsule['id'], 'organization-id': module_org.id}
+            {'id': capsule['id'], 'organization-id': function_org.id}
         )
-        capsule_environments_names = {env['name'] for env in capsule_environments}
-        assert environments == capsule_environments_names
-        # Setup a yum repo
-        custom_yum_product = module_target_sat.cli_factory.make_product(
-            {'organization-id': module_org.id}
-        )
+        assert environments == {env['name'] for env in capsule_environments}
+        # Setup yum and docker repos
+        product = module_target_sat.cli_factory.make_product({'organization-id': function_org.id})
         custom_yum_repo = module_target_sat.cli_factory.make_repository(
             {
                 'content-type': 'yum',
-                'product-id': custom_yum_product['id'],
+                'product-id': product['id'],
                 'url': settings.repos.yum_1.url,
             }
-        )
-        module_target_sat.cli.Repository.synchronize({'id': custom_yum_repo['id']})
-        docker_product = module_target_sat.cli_factory.make_product(
-            {'organization-id': module_org.id}
         )
         docker_repository = module_target_sat.cli_factory.make_repository(
             {
                 'content-type': 'docker',
                 'docker-upstream-name': settings.container.upstream_name,
                 'name': gen_string('alpha', 20),
-                'product-id': docker_product['id'],
+                'product-id': product['id'],
                 'url': settings.container.registry_hub,
             }
         )
-        module_target_sat.cli.Repository.synchronize({'id': docker_repository['id']})
+        for repo in [custom_yum_repo, docker_repository]:
+            module_target_sat.cli.Repository.synchronize({'id': repo['id']})
         content_view = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_org.id}
+            {'organization-id': function_org.id}
         )
         for repo in [custom_yum_repo, docker_repository]:
             module_target_sat.cli.ContentView.add_repository(
                 {
                     'id': content_view['id'],
-                    'organization-id': module_org.id,
+                    'organization-id': function_org.id,
                     'repository-id': repo['id'],
                 }
             )
-        # Publish the content view
+        # Publish and promote the content view to DEV, QE, PROD
         module_target_sat.cli.ContentView.publish({'id': content_view['id']})
         content_view_version = module_target_sat.cli.ContentView.info({'id': content_view['id']})[
             'versions'
         ][-1]
-        # Promote the content view to DEV, QE, PROD
         for env in [dev_env, qe_env, prod_env]:
             module_target_sat.cli.ContentView.version_promote(
                 {
                     'id': content_view_version['id'],
-                    'organization-id': module_org.id,
+                    'organization-id': function_org.id,
                     'to-lifecycle-environment-id': env['id'],
                 }
             )
-        # Synchronize the capsule content
         module_target_sat.cli.Capsule.content_synchronize(
-            {'id': capsule['id'], 'organization-id': module_org.id}
+            {'id': capsule['id'], 'organization-id': function_org.id}
         )
         capsule_content_info = module_target_sat.cli.Capsule.content_info(
-            {'id': capsule['id'], 'organization-id': module_org.id}
+            {'id': capsule['id'], 'organization-id': function_org.id}
         )
         # Ensure that all environments exists in capsule content
-        capsule_content_info_lces = capsule_content_info['lifecycle-environments']
-        capsule_content_lce_names = {lce['name'] for lce in capsule_content_info_lces.values()}
-        assert environments == capsule_content_lce_names
+        lces = capsule_content_info['lifecycle-environments']
+        lce_names = {lce['name'] for lce in lces.values()}
+        assert environments == lce_names
         # Ensure first that the content view exit in all capsule
         # environments
-        for capsule_content_info_lce in capsule_content_info_lces.values():
-            assert 'content-views' in capsule_content_info_lce
-            # Retrieve the content views info of this lce
-            capsule_content_info_lce_cvs = list(capsule_content_info_lce['content-views'].values())
-            # Get the content views names of this lce
-            capsule_content_info_lce_cvs_names = [
-                cv['name']['name'] for cv in capsule_content_info_lce_cvs
-            ]
-            cv_count = 1
-            if capsule_content_info_lce['name'] == constants.ENVIRONMENT:
-                # There is a Default Organization View in addition
-                cv_count = 2
-            assert len(capsule_content_info_lce_cvs) == cv_count
-            assert content_view['name'] in capsule_content_info_lce_cvs_names
+        for lce in lces.values():
+            assert 'content-views' in lce
+            cvs = list(lce['content-views'].values())
+            cv_names = [cv['name']['name'] for cv in cvs]
+            # There is a Default Organization View in addition to the test CV in Library
+            cv_count = 2 if lce['name'] == constants.ENVIRONMENT else 1
+            assert len(cvs) == cv_count
+            assert content_view['name'] in cv_names
         # Suspend the capsule with ensure True to ping the virtual machine
         try:
             capsule_configured.power_control(state=VmState.STOPPED, ensure=True)
@@ -2810,7 +2794,7 @@ class TestContentView:
             module_target_sat.cli.ContentView.remove_from_environment(
                 {
                     'id': content_view['id'],
-                    'organization-id': module_org.id,
+                    'organization-id': function_org.id,
                     'lifecycle-environment': lce_name,
                 }
             )
@@ -2820,7 +2804,7 @@ class TestContentView:
         assert environments_with_cv == _get_content_view_version_lce_names_set(
             content_view['id'], content_view_version['id'], sat=module_target_sat
         )
-        # Resume the capsule with ensure True to ping the virtual machine
+        # Resume the capsule
         try:
             capsule_configured.power_control(state=VmState.RUNNING, ensure=True)
         except NotImplementedError:
@@ -2828,22 +2812,15 @@ class TestContentView:
         # Assert that in capsule content the content view version
         # does not exit in Library and DEV and exist only in QE and PROD
         capsule_content_info = module_target_sat.cli.Capsule.content_info(
-            {'id': capsule['id'], 'organization-id': module_org.id}
+            {'id': capsule['id'], 'organization-id': function_org.id}
         )
-        capsule_content_info_lces = capsule_content_info['lifecycle-environments']
-        for capsule_content_info_lce in capsule_content_info_lces.values():
-            # retrieve the content views info of this lce
-            capsule_content_info_lce_cvs = capsule_content_info_lce.get(
-                'content-views', {}
-            ).values()
-            # get the content views names of this lce
-            capsule_content_info_lce_cvs_names = [
-                cv['name']['name'] for cv in capsule_content_info_lce_cvs
-            ]
-            if capsule_content_info_lce['name'] in environments_with_cv:
-                assert content_view['name'] in capsule_content_info_lce_cvs_names
+        lces = capsule_content_info['lifecycle-environments']
+        for lce in lces.values():
+            cv_names = [cv['name']['name'] for cv in lce.get('content-views', {}).values()]
+            if lce['name'] in environments_with_cv:
+                assert content_view['name'] in cv_names
             else:
-                assert content_view['name'] not in capsule_content_info_lce_cvs_names
+                assert content_view['name'] not in cv_names
 
     def test_negative_user_with_no_create_view_cv_permissions(self, module_org, module_target_sat):
         """Unauthorized users are not able to create/view content views
