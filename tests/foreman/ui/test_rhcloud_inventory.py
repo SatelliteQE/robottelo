@@ -701,7 +701,9 @@ def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, m
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-def test_sync_inventory_status_without_satellite_host(rhcloud_manifest_org, rhcloud_registered_hosts, target_sat):
+def test_sync_inventory_status_without_satellite_host(
+    rhcloud_manifest_org, rhcloud_registered_hosts, target_sat
+):
     """Test syncing Lightspeed inventory status after deleting satellite host
 
     :id: 3ac7a238-6d71-4504-ba23-4774950ece4f
@@ -746,6 +748,7 @@ def test_sync_inventory_status_without_satellite_host(rhcloud_manifest_org, rhcl
         )
         assert task_output[0].output['host_statuses']['sync'] == 2
         assert task_output[0].output['host_statuses']['disconnect'] == 0
+
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_inventory_upload_without_satellite_host(
