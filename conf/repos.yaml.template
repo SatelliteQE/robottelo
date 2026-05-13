@@ -53,14 +53,6 @@ REPOS:
     RHEL10: some-url
   # Downstream Satellite-maintain repo
   SATMAINTENANCE_REPO: replace-with-sat-maintain-repo
-  # Software Collection Repo
-  RHSCL_REPO: replace-with-rhscl-repo
-  # Ansible 2.8 Repo
-  ANSIBLE_REPO: replace-with-ansible-repo
-  # Added swid_tools_repo for installing swid-tools and dnf-plugin-swidtags packages
-  # which are essentially required for generating swid tags in RHEL8 content host.
-  SWID_TOOLS_REPO: replace-with-swid-tools-repo
-  FAKE_REPO_ZOO3: replace-with-zoo-fedorapeople-repo
   # Custom yum upstream for UI tests: HTTP basic auth with username (token) only, no password.
   USERNAME_ONLY_UPSTREAM_URL: replace-with-username-only-upstream-url
   USERNAME_ONLY_UPSTREAM_USERNAME: replace-with-username-only-upstream-username
