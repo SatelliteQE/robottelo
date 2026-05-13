@@ -18,7 +18,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-from robottelo.constants import DNF_RECOMMENDATION, OPENSSH_RECOMMENDATION
+from robottelo.constants import DNF_RECOMMENDATION, OPENSSH_RECOMMENDATION, DEFAULT_ORG
 
 
 def create_insights_vulnerability(host):
@@ -591,3 +591,87 @@ def test_host_breadcrumb_switcher_updates_insights_tabs(
             f"After switching back to host1 via breadcrumb, expected host1 recommendations. "
             f"Expected: {host1_titles}, Got: {titles_back_to_host1}"
         )
+
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_sync_recommendation_without_satellite_host(
+    rhel_insights_vm,
+    rhcloud_manifest_org,
+    module_target_sat_insights,
+):
+    """Synchronize hits data from hosted, verify results are displayed in Satellite, and run remediation.
+
+    :id: 7b2c412d-5f7b-440c-9ddd-2d8dae385210
+
+    :steps:
+        1. Prepare misconfigured machine and upload its data to Insights.
+        2. Go to all host and delete satellite host
+        2. In Satellite UI, go to Insights > Recommendations.
+        3. Run remediation for "OpenSSH config permissions" recommendation against host.
+        4. Verify that the remediation job completed successfully.
+        5. Re-sync recommendations.
+        6. Search for previously remediated issue.
+
+    :expectedresults:
+        1. Insights recommendation related to "OpenSSH config permissions" issue is listed
+            for misconfigured machine.
+        2. Remediation job finished successfully.
+        3. Insights recommendation related to "OpenSSH config permissions" issue is not listed.
+
+    :Verifies: SAT-25889
+
+    :parametrized: yes
+
+    :CaseAutomation: Automated
+    """
+    org_name = rhcloud_manifest_org.name
+
+    # Query for searching the available recommendation
+    REC_QUERY = f'hostname = "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
+
+    # Verify insights-client can update to latest version available from server
+    assert rhel_insights_vm.execute('insights-client --version').status == 0
+
+    # Prepare misconfigured machine and upload data to Insights
+    create_insights_vulnerability(rhel_insights_vm)
+
+    with module_target_sat_insights.ui_session() as session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.host_new.delete(module_target_sat_insights.hostname)
+        session.organization.select(org_name=org_name)
+
+        # Sync the recommendations
+        sync_recommendations(session)
+
+        # Verify that we can see the rule hit via insights-client
+        result = rhel_insights_vm.execute('insights-client --diagnosis')
+        assert result.status == 0
+        assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
+
+        # Verify that errors are not present in production.log (SAT-36449)
+        result = module_target_sat_insights.execute(
+            'grep "500 Internal Server Error" /var/log/foreman/production.log'
+        )
+        assert result.status != 0
+        result = module_target_sat_insights.execute(
+            'grep "uninitialized constant" /var/log/foreman/production.log'
+        )
+        assert result.status != 0
+
+        # Search for the recommendation.
+        result = session.cloudinsights.search(REC_QUERY)[0]
+        assert result['Hostname'] == rhel_insights_vm.hostname
+        assert result['Recommendation'] == OPENSSH_RECOMMENDATION
+
+        # Run the remediation.
+        session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
+        session.jobinvocation.wait_job_invocation_state(
+            entity_name='Insights remediations for selected issues',
+            host_name=rhel_insights_vm.hostname,
+        )
+
+        # Re-sync the recommendations
+        sync_recommendations(session)
+
+        # Verify that the recommendation is not listed anymore.
+        assert not session.cloudinsights.search(REC_QUERY)

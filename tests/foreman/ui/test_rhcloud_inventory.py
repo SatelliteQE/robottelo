@@ -700,6 +700,109 @@ def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, m
         assert task_output[0].output['host_statuses']['disconnect'] == 0
 
 
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_sync_inventory_status_without_satellite_host(rhcloud_manifest_org, rhcloud_registered_hosts, target_sat):
+    """Test syncing Lightspeed inventory status after deleting satellite host
+
+    :id: 3ac7a238-6d71-4504-ba23-4774950ece4f
+
+    :steps:
+        1. Register 2 hosts to Satellite to an org with a manifest imported and set up Lightspeed.
+        2. Delete satellite host from all host page in default org
+        2. Sync the Lightspeed inventory for the org.
+
+    :expectedresults: Inventory status is successfully synced for the hosts.
+
+    :Verifies: SAT-25889
+
+    :CaseAutomation: Automated
+    """
+    org = rhcloud_manifest_org
+    inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.host_new.delete(target_sat.hostname)
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        session.cloudinventory.sync_inventory_status()
+        wait_for(
+            lambda: (
+                target_sat.api.ForemanTask()
+                .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[
+                    0
+                ]
+                .result
+                == 'success'
+            ),
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        task_output = target_sat.api.ForemanTask().search(
+            query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'}
+        )
+        assert task_output[0].output['host_statuses']['sync'] == 2
+        assert task_output[0].output['host_statuses']['disconnect'] == 0
+
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_inventory_upload_without_satellite_host(
+    target_sat,
+    inventory_settings,
+    rhcloud_manifest_org,
+    rhcloud_registered_hosts,
+):
+    """Generate report and verify its basic properties in case we delete satellite host
+    :id: bfc5b566-c695-46a6-a543-c4f049ce96b6
+
+    :expectedresults:
+
+        1. Report can be generated
+        2. Report can be downloaded
+        3. Report has non-zero size
+        4. Report can be extracted
+        5. JSON files inside report can be parsed
+        6. metadata.json lists all and only slice JSON files in tar
+        7. Host counts in metadata matches host counts in slices
+
+    :Verifies: SAT-25889
+    """
+
+    org = rhcloud_manifest_org
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.host_new.delete(target_sat.hostname)
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.cloudinventory.generate_and_upload_report(org.name)
+        # wait_for_tasks report generation task to finish.
+        wait_for(
+            lambda: (
+                target_sat.api.ForemanTask()
+                .search(
+                    query={
+                        'search': f'label = ForemanInventoryUpload::Async::HostInventoryReportJob '
+                        f'and started_at >= "{timestamp}"'
+                    }
+                )[0]
+                .result
+                == 'success'
+            ),
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        report_path = session.cloudinventory.download_report_only(org.name)
+        inventory_data = session.cloudinventory.read(org.name)
+        # Verify that generated archive is valid.
+        common_assertion(report_path, inventory_data, org, target_sat)
+
+
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_inventory_sync_check_host_status_categories(
     request,
