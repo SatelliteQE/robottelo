@@ -606,11 +606,11 @@ def test_sync_recommendation_without_satellite_host(
     :steps:
         1. Prepare misconfigured machine and upload its data to Insights.
         2. Go to all host and delete satellite host
-        2. In Satellite UI, go to Insights > Recommendations.
-        3. Run remediation for "OpenSSH config permissions" recommendation against host.
-        4. Verify that the remediation job completed successfully.
-        5. Re-sync recommendations.
-        6. Search for previously remediated issue.
+        3. In Satellite UI, go to Insights > Recommendations.
+        4. Run remediation for "OpenSSH config permissions" recommendation against host.
+        5. Verify that the remediation job completed successfully.
+        6. Re-sync recommendations.
+        7. Search for previously remediated issue.
 
     :expectedresults:
         1. Insights recommendation related to "OpenSSH config permissions" issue is listed

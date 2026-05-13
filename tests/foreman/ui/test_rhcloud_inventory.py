@@ -711,7 +711,7 @@ def test_sync_inventory_status_without_satellite_host(
     :steps:
         1. Register 2 hosts to Satellite to an org with a manifest imported and set up Lightspeed.
         2. Delete satellite host from all host page in default org
-        2. Sync the Lightspeed inventory for the org.
+        3. Sync the Lightspeed inventory for the org.
 
     :expectedresults: Inventory status is successfully synced for the hosts.
 
@@ -758,6 +758,7 @@ def test_inventory_upload_without_satellite_host(
     rhcloud_registered_hosts,
 ):
     """Generate report and verify its basic properties in case we delete satellite host
+
     :id: bfc5b566-c695-46a6-a543-c4f049ce96b6
 
     :expectedresults:
@@ -771,6 +772,8 @@ def test_inventory_upload_without_satellite_host(
         7. Host counts in metadata matches host counts in slices
 
     :Verifies: SAT-25889
+
+    :CaseAutomation: Automated
     """
 
     org = rhcloud_manifest_org
