@@ -1964,6 +1964,16 @@ class Capsule(ContentHost, CapsuleMixins):
         self.register_to_cdn()
         self.setup_rhel_repos()
         self.setup_satellite_repos()
+
+        # Enable Packit repos
+        pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
+        if pull_requests:
+            Broker(
+                job_template='upstream-pr-install',
+                target_vm=self.name,
+                pull_requests=pull_requests,
+            ).execute()
+
         assert self.execute('dnf install -y foremanctl').status == 0
 
         if enable_fapolicyd:
