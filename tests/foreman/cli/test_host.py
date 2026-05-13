@@ -2134,7 +2134,7 @@ def test_positive_multi_cv_host_repo_availability(
             org_id=session_multicv_org.id,
             product_name=gen_string('alpha'),
             repo_name=repo,
-            repo_url=settings.repos.fake_repo_zoo3,
+            repo_url=settings.repos.yum_1.url,
         )
         repo_instances.append(session_multicv_sat.api.Repository(id=repo_id).read())
 
