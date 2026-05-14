@@ -93,7 +93,6 @@ import pytest
 
 from robottelo.config import configure_airgun, configure_nailgun, settings
 from robottelo.logging import logger
-from robottelo.utils.decorators.func_locker import lock_function
 
 json_file = Path('upgrade_workers.json')
 
@@ -201,7 +200,6 @@ def _get_test_node_id(test_func):
     return getattr(test_func, TEST_NODE_ID_NAME)
 
 
-@lock_function
 def _save_test_data(test_node_id, value):
     """Save the test data value with key node_id"""
     create_dict({test_node_id: value})
