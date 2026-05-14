@@ -12,18 +12,6 @@ import sys
 # Set the __sphinx_build__ variable to True. This is used to skip config generation
 builtins.__sphinx_build__ = True
 
-
-def skip_data(app, what, name, obj, skip, options):
-    """Skip double generating docs for robottelo.utils.decorators.func_shared.shared"""
-    if what == 'function' and name == 'robottelo.utils.decorators.func_shared.shared':
-        return True
-    return None
-
-
-def setup(app):
-    app.connect("autoapi-skip-member", skip_data)
-
-
 # Add the Robottelo root directory to the system path. This allows references
 # such as :mod:`robottelo` to be processed correctly.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
