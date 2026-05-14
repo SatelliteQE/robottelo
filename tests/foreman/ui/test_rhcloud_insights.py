@@ -422,13 +422,15 @@ def test_insights_registration_with_capsule(
         3. Override Insights and Rex parameters.
         4. Check host is registered successfully with selected capsule.
         5. Test insights client connection & reporting status.
-        6. Run rh_cloud_insights:clean_statuses rake command
-        7. Verify that host properties doesn't contain insights status.
+        6. Verify Remote Execution is functional by running a job on the host.
+        7. Run rh_cloud_insights:clean_statuses rake command
+        8. Verify that host properties doesn't contain insights status.
 
     :expectedresults:
         1. Host is successfully registered with capsule host,
             having remote execution and insights.
-        2. rake command deletes insights reporting status of host.
+        2. Remote Execution job runs successfully on the host.
+        3. rake command deletes insights reporting status of host.
 
     :BZ: 2110222, 2112386, 1962930
 
@@ -465,6 +467,29 @@ def test_insights_registration_with_capsule(
         assert rhel_contenthost.execute('insights-client --test-connection').status == 0
         values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert values['Red Hat Lightspeed']['Status'] == 'Reporting'
+
+        # Verify Remote Execution is functional by running a simple job
+        template_id = (
+            module_target_sat_insights.api.JobTemplate()
+            .search(query={'search': 'name="Run Command - Ansible Default"'})[0]
+            .id
+        )
+        job = module_target_sat_insights.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_template_id': template_id,
+                'targeting_type': 'static_query',
+                'search_query': f'name = {rhel_contenthost.hostname}',
+                'inputs': {'command': 'id'},
+            },
+        )
+        module_target_sat_insights.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job["id"]}',
+            poll_timeout=300,
+        )
+        job_result = module_target_sat_insights.api.JobInvocation(id=job['id']).read()
+        assert job_result.succeeded == 1, 'Remote Execution job failed on the host'
+
         # Clean insights status
         result = module_target_sat_insights.run(
             f'foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel_contenthost.hostname}"'
