@@ -475,11 +475,11 @@ def test_positive_health_check_tftp_storage(sat_maintain, request):
         assert sat_maintain.execute(f'touch /var/lib/tftpboot/boot/{file}').status == 0
     # Wait until the created files are older than token_duration (set to 2 minutes above).
     token_duration_seconds = 2 * 60
-    mtime_path = f'/var/lib/tftpboot/boot/{files_to_delete[0]}'
-    mtime = int(sat_maintain.execute(f'stat -c %Y {mtime_path}').stdout.strip())
+    file_path = f'/var/lib/tftpboot/boot/{files_to_delete[0]}'
+    file_mtime = int(sat_maintain.execute(f'stat -c %Y {file_path}').stdout.strip())
     wait_for(
         lambda: (
-            int(sat_maintain.execute('date +%s').stdout.strip()) - mtime
+            int(sat_maintain.execute('date +%s').stdout.strip()) - file_mtime
             >= token_duration_seconds + 5
         ),
         timeout=token_duration_seconds + 60,
