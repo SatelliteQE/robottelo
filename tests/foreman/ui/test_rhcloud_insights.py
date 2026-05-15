@@ -601,7 +601,7 @@ def test_sync_recommendation_without_satellite_host(
     rhcloud_manifest_org,
     module_target_sat_insights,
 ):
-    """Synchronize hits data from hosted, verify results are displayed in Satellite, and run remediation.
+    """Synchronize hits data from hosted Insights, verify results are displayed in Satellite, and run remediation.
 
     :id: 7b2c412d-5f7b-440c-9ddd-2d8dae385210
 
