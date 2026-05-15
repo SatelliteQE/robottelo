@@ -14,7 +14,7 @@
 
 import pytest
 
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, LIBRARY_LCE
 from robottelo.utils.datafactory import gen_string
 
 
@@ -91,7 +91,7 @@ def test_positive_availability_for_host_and_hostgroup_in_multiple_orgs(
                     'host.name': host.name,
                     'host.organization': org.name,
                     'host.location': module_puppet_loc.name,
-                    'host.lce': ENVIRONMENT,
+                    'host.lce': LIBRARY_LCE,
                     'host.content_view': DEFAULT_CV,
                     'host.puppet_environment': env_name,
                     'operating_system.architecture': host.architecture.name,

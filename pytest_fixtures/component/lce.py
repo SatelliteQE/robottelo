@@ -1,13 +1,13 @@
 # Lifecycle Environment Fixtures
 import pytest
 
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import LIBRARY_LCE
 
 
 @pytest.fixture(scope='session')
 def default_lce(session_target_sat):
     return session_target_sat.api.LifecycleEnvironment().search(
-        query={'search': f'name="{ENVIRONMENT}"'}
+        query={'search': f'name="{LIBRARY_LCE}"'}
     )[0]
 
 
@@ -26,7 +26,7 @@ def module_lce_library(module_org, module_target_sat):
     """Returns the Library lifecycle environment from chosen organization"""
     return (
         module_target_sat.api.LifecycleEnvironment()
-        .search(query={'search': f'name={ENVIRONMENT} and organization_id={module_org.id}'})[0]
+        .search(query={'search': f'name={LIBRARY_LCE} and organization_id={module_org.id}'})[0]
         .read()
     )
 
@@ -36,7 +36,7 @@ def function_lce_library(function_org, target_sat):
     """Returns the Library lifecycle environment from chosen organization"""
     return (
         target_sat.api.LifecycleEnvironment()
-        .search(query={'search': f'name={ENVIRONMENT} and organization_id={function_org.id}'})[0]
+        .search(query={'search': f'name={LIBRARY_LCE} and organization_id={function_org.id}'})[0]
         .read()
     )
 

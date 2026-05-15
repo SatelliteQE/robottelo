@@ -28,7 +28,7 @@ from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_LOC,
     DEFAULT_ORG,
-    ENVIRONMENT,
+    LIBRARY_LCE,
 )
 from robottelo.utils import datafactory
 
@@ -1133,7 +1133,7 @@ def test_positive_read_enc_information(
     """
     lce = (
         session_puppet_enabled_sat.api.LifecycleEnvironment()
-        .search(query={'search': f'name={ENVIRONMENT} and organization_id={module_puppet_org.id}'})[
+        .search(query={'search': f'name={LIBRARY_LCE} and organization_id={module_puppet_org.id}'})[
             0
         ]
         .read()

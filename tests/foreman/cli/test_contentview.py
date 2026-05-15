@@ -1648,7 +1648,7 @@ class TestContentView:
         module_target_sat.cli.ContentView.publish({'id': composite_cv['id']})
         # Assert whether Version1 was created and exists in Library Env.
         composite_cv = module_target_sat.cli.ContentView.info({'id': composite_cv['id']})
-        assert composite_cv['lifecycle-environments'][0]['name'] == constants.ENVIRONMENT
+        assert composite_cv['lifecycle-environments'][0]['name'] == constants.LIBRARY_LCE
         assert composite_cv['versions'][0]['version'] == '1.0'
 
     def test_positive_auto_update_composite_to_latest_cv_version(
@@ -2033,7 +2033,7 @@ class TestContentView:
         ]
         assert len(content_view_versions) > 0
         content_view_version = content_view_versions[-1]
-        assert constants.ENVIRONMENT in _get_content_view_version_lce_names_set(
+        assert constants.LIBRARY_LCE in _get_content_view_version_lce_names_set(
             content_view['id'], content_view_version['id'], sat=module_target_sat
         )
         # rename the content view
@@ -2045,12 +2045,12 @@ class TestContentView:
             {
                 'id': content_view['id'],
                 'organization-id': module_org.id,
-                'lifecycle-environment': constants.ENVIRONMENT,
+                'lifecycle-environment': constants.LIBRARY_LCE,
             }
         )
         # ensure that the published content version is not in Library
         # environment
-        assert constants.ENVIRONMENT not in _get_content_view_version_lce_names_set(
+        assert constants.LIBRARY_LCE not in _get_content_view_version_lce_names_set(
             content_view['id'], content_view_version['id'], sat=module_target_sat
         )
 
@@ -2124,13 +2124,13 @@ class TestContentView:
         content_view_version_lce_names = {
             lce['name'] for lce in content_view_version_info['lifecycle-environments']
         }
-        assert {constants.ENVIRONMENT, lce_dev['name']} == content_view_version_lce_names
+        assert {constants.LIBRARY_LCE, lce_dev['name']} == content_view_version_lce_names
         # remove content view version from Library lifecycle environment
         module_target_sat.cli.ContentView.remove_from_environment(
             {
                 'id': content_view['id'],
                 'organization-id': module_org.id,
-                'lifecycle-environment': constants.ENVIRONMENT,
+                'lifecycle-environment': constants.LIBRARY_LCE,
             }
         )
         # ensure content view version not in Library and only in DEV
@@ -2229,7 +2229,7 @@ class TestContentView:
         # ensure that the published content version is in Library, DEV, QE,
         # STAGE and PROD environments
         assert {
-            constants.ENVIRONMENT,
+            constants.LIBRARY_LCE,
             lce_dev['name'],
             lce_qe['name'],
             lce_stage['name'],
@@ -2247,7 +2247,7 @@ class TestContentView:
                 }
             )
         # ensure content view version is not in QE, STAGE, PROD and only in Library and DEV envs
-        assert {constants.ENVIRONMENT, lce_dev['name']} == _get_content_view_version_lce_names_set(
+        assert {constants.LIBRARY_LCE, lce_dev['name']} == _get_content_view_version_lce_names_set(
             content_view['id'], content_view_version['id'], sat=module_target_sat
         )
         # Promote again from DEV -> QE -> STAGE
@@ -2257,7 +2257,7 @@ class TestContentView:
             )
         # ensure content view version is not in PROD and only in Library, DEV, QE and STAGE envs
         assert {
-            constants.ENVIRONMENT,
+            constants.LIBRARY_LCE,
             lce_dev['name'],
             lce_qe['name'],
             lce_stage['name'],
@@ -2391,7 +2391,7 @@ class TestContentView:
         )
         capsule = module_target_sat.cli.Capsule().info({'name': capsule_configured.hostname})
         # Add all environments to capsule
-        environments = {constants.ENVIRONMENT, dev_env['name'], qe_env['name'], prod_env['name']}
+        environments = {constants.LIBRARY_LCE, dev_env['name'], qe_env['name'], prod_env['name']}
         for env_name in environments:
             module_target_sat.cli.Capsule.content_add_lifecycle_environment(
                 {
@@ -2465,7 +2465,7 @@ class TestContentView:
             cvs = list(lce['content-views'].values())
             cv_names = [cv['name']['name'] for cv in cvs]
             # There is a Default Organization View in addition to the test CV in Library
-            cv_count = 2 if lce['name'] == constants.ENVIRONMENT else 1
+            cv_count = 2 if lce['name'] == constants.LIBRARY_LCE else 1
             assert len(cvs) == cv_count
             assert content_view['name'] in cv_names
         # Suspend the capsule with ensure True to ping the virtual machine
@@ -2474,7 +2474,7 @@ class TestContentView:
         except NotImplementedError:
             pytest.skip('Power control host workflow is not defined')
         # Remove the content view version from Library and DEV environments
-        for lce_name in [constants.ENVIRONMENT, dev_env['name']]:
+        for lce_name in [constants.LIBRARY_LCE, dev_env['name']]:
             module_target_sat.cli.ContentView.remove_from_environment(
                 {
                     'id': content_view['id'],

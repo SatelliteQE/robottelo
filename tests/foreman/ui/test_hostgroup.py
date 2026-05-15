@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import LIBRARY_LCE
 
 
 @pytest.mark.e2e
@@ -44,7 +44,7 @@ def test_positive_end_to_end(session, module_org, module_location, module_target
             {
                 'host_group.name': name,
                 'host_group.description': description,
-                'host_group.content_view_environment': ENVIRONMENT,
+                'host_group.content_view_environment': LIBRARY_LCE,
                 'network.domain': domain.name,
                 'operating_system.architecture': architecture.name,
                 'operating_system.operating_system': os_name,
@@ -53,7 +53,7 @@ def test_positive_end_to_end(session, module_org, module_location, module_target
         hostgroup_values = session.hostgroup.read(name)
         assert hostgroup_values['host_group']['name'] == name
         assert hostgroup_values['host_group']['description'] == description
-        assert hostgroup_values['host_group']['content_view_environment'] == ENVIRONMENT
+        assert hostgroup_values['host_group']['content_view_environment'] == LIBRARY_LCE
         assert hostgroup_values['operating_system']['architecture'] == architecture.name
         assert hostgroup_values['operating_system']['operating_system'] == os_name
         # Update host group with new name
@@ -253,7 +253,7 @@ def test_positive_nested_host_groups(
             {
                 'host_group.name': parent_hg_name,
                 'host_group.description': description,
-                'host_group.content_view_environment': ENVIRONMENT,
+                'host_group.content_view_environment': LIBRARY_LCE,
                 'operating_system.architecture': architecture.name,
                 'operating_system.operating_system': os_name,
             }
@@ -270,7 +270,7 @@ def test_positive_nested_host_groups(
         assert target_sat.api.HostGroup().search(query={'search': f'name={child_hg_name}'})
         child_hostgroup_values = session.hostgroup.read(f'{parent_hg_name}/{child_hg_name}')
         assert parent_hg_name in child_hostgroup_values['host_group']['parent_name']
-        assert ENVIRONMENT in child_hostgroup_values['host_group']['content_view_environment']
+        assert LIBRARY_LCE in child_hostgroup_values['host_group']['content_view_environment']
 
         # Update nested host group
         session.hostgroup.update(
@@ -359,11 +359,11 @@ def test_positive_clone_host_groups(
         session.hostgroup.update(
             clone_hg_name,
             {
-                'host_group.content_view_environment': ENVIRONMENT,
+                'host_group.content_view_environment': LIBRARY_LCE,
             },
         )
         clone_hostgroup_values = session.hostgroup.read(clone_hg_name)
-        assert ENVIRONMENT in clone_hostgroup_values['host_group']['content_view_environment']
+        assert LIBRARY_LCE in clone_hostgroup_values['host_group']['content_view_environment']
 
         # Delete parent and clone host group
         session.hostgroup.delete(parent_hg_name)

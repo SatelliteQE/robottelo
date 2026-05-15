@@ -16,7 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, LIBRARY_LCE
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_values_list,
@@ -28,7 +28,7 @@ from robottelo.utils.datafactory import (
 def _make_fake_host_helper(module_org, sat):
     """Make a new fake host"""
     library = sat.cli.LifecycleEnvironment.info(
-        {'organization-id': module_org.id, 'name': ENVIRONMENT}
+        {'organization-id': module_org.id, 'name': LIBRARY_LCE}
     )
     default_cv = sat.cli.ContentView.info({'organization-id': module_org.id, 'name': DEFAULT_CV})
     return sat.cli_factory.make_fake_host(

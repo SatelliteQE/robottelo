@@ -142,7 +142,7 @@ def module_puppet_lce_library(session_puppet_enabled_sat, module_puppet_org):
         session_puppet_enabled_sat.api.LifecycleEnvironment()
         .search(
             query={
-                'search': f'name={constants.ENVIRONMENT} and organization_id={module_puppet_org.id}'
+                'search': f'name={constants.LIBRARY_LCE} and organization_id={module_puppet_org.id}'
             }
         )[0]
         .read()

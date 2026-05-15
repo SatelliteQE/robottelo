@@ -137,7 +137,7 @@ def module_synced_repos(sat_maintain, module_sca_manifest, module_stash):
     if type(sat_maintain) is Capsule:
         org = module_stash[synced_repos]['org']
         lce = sat_maintain.satellite.api.LifecycleEnvironment(organization=org).search(
-            query={'search': f'name={constants.ENVIRONMENT}'}
+            query={'search': f'name={constants.LIBRARY_LCE}'}
         )[0]
 
         sat_maintain.nailgun_capsule.content_add_lifecycle_environment(

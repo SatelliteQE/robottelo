@@ -135,7 +135,7 @@ def generate_errata_for_client_setup(
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
         test_data.organization_id = org.id
         environment = target_sat.api.LifecycleEnvironment(organization=org).search(
-            query={'search': f'name={constants.ENVIRONMENT}'}
+            query={'search': f'name={constants.LIBRARY_LCE}'}
         )[0]
         product = target_sat.api.Product(name=f'{test_name}_prod', organization=org).create()
         test_data.product_id = product.id
