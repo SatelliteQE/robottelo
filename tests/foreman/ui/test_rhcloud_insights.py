@@ -624,7 +624,6 @@ def test_sync_recommendation_without_satellite_host(
 
     :parametrized: yes
 
-    :CaseAutomation: Automated
     """
     org_name = rhcloud_manifest_org.name
 
