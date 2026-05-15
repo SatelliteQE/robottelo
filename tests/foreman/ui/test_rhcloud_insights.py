@@ -12,10 +12,12 @@
 
 """
 
+import contextlib
 from datetime import UTC, datetime
 
 import pytest
 from wait_for import wait_for
+from widgetastic.exceptions import RowNotFound
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG, DNF_RECOMMENDATION, OPENSSH_RECOMMENDATION
@@ -637,7 +639,9 @@ def test_sync_recommendation_without_satellite_host(
 
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=DEFAULT_ORG)
-        session.host_new.delete(module_target_sat_insights.hostname)
+        # Delete satellite host if it exists, suppress RowNotFound if already deleted
+        with contextlib.suppress(RowNotFound):
+            session.host_new.delete(module_target_sat_insights.hostname)
         session.organization.select(org_name=org_name)
 
         # Sync the recommendations

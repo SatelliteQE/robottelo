@@ -12,12 +12,14 @@
 
 """
 
+import contextlib
 from datetime import UTC, datetime, timedelta
 import os
 import tempfile
 
 import pytest
 from wait_for import wait_for
+from widgetastic.exceptions import RowNotFound
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
@@ -725,7 +727,9 @@ def test_sync_inventory_status_without_satellite_host(
 
     with target_sat.ui_session() as session:
         session.organization.select(org_name=DEFAULT_ORG)
-        session.host_new.delete(target_sat.hostname)
+        # Delete satellite host if it exists, suppress RowNotFound if already deleted
+        with contextlib.suppress(RowNotFound):
+            session.host_new.delete(target_sat.hostname)
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         session.cloudinventory.sync_inventory_status()
@@ -779,7 +783,9 @@ def test_inventory_upload_without_satellite_host(
     org = rhcloud_manifest_org
     with target_sat.ui_session() as session:
         session.organization.select(org_name=DEFAULT_ORG)
-        session.host_new.delete(target_sat.hostname)
+        # Delete satellite host if it exists, suppress RowNotFound if already deleted
+        with contextlib.suppress(RowNotFound):
+            session.host_new.delete(target_sat.hostname)
         session.organization.select(org_name=org.name)
         session.location.select(loc_name=DEFAULT_LOC)
 
