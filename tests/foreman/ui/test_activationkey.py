@@ -43,14 +43,14 @@ def test_positive_end_to_end_crud(session, module_org, module_target_sat):
     with session:
         # Create activation key with content view and LCE assigned
         session.activationkey.create(
-            {'name': name, 'lce': {constants.ENVIRONMENT: True}, 'content_view': cv.name}
+            {'name': name, 'lce': {constants.LIBRARY_LCE: True}, 'content_view': cv.name}
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         # Verify content view and LCE are assigned
         ak_values = session.activationkey.read(name, widget_names='details')
         assert ak_values['details']['name'] == name
         assert ak_values['details']['content_view_details'][0]['content_view'] == cv.name
-        assert ak_values['details']['content_view_details'][0]['lce'] == constants.ENVIRONMENT
+        assert ak_values['details']['content_view_details'][0]['lce'] == constants.LIBRARY_LCE
         # Update activation key with new name
         session.activationkey.update(name, {'details.name': new_name})
         assert session.activationkey.search(new_name)[0]['Name'] == new_name
@@ -370,15 +370,15 @@ def test_positive_update_env(session, module_org, target_sat):
     target_sat.api_factory.cv_publish_promote(cv_name, env_name, repo_id, module_org.id)
     with session:
         session.activationkey.create(
-            {'name': name, 'lce': {constants.ENVIRONMENT: True}, 'content_view': cv_name}
+            {'name': name, 'lce': {constants.LIBRARY_LCE: True}, 'content_view': cv_name}
         )
         assert session.activationkey.search(name)[0]['Name'] == name
         ak = session.activationkey.read(name, widget_names='details')
-        assert ak['details']['content_view_details'][0]['lce'] == constants.ENVIRONMENT
+        assert ak['details']['content_view_details'][0]['lce'] == constants.LIBRARY_LCE
         assert ak['details']['content_view_details'][0]['lce'] != env_name
         session.activationkey.update(name, {'details.lce': {env_name: True}})
         ak = session.activationkey.read(name, widget_names='details')
-        assert ak['details']['content_view_details'][0]['lce'] != constants.ENVIRONMENT
+        assert ak['details']['content_view_details'][0]['lce'] != constants.LIBRARY_LCE
         assert ak['details']['content_view_details'][0]['lce'] == env_name
 
 
@@ -583,7 +583,7 @@ def test_positive_add_rh_and_custom_products(target_sat, function_sca_manifest_o
         session.activationkey.create(
             {
                 'name': name,
-                'lce': {constants.ENVIRONMENT: True},
+                'lce': {constants.LIBRARY_LCE: True},
                 'content_view': constants.DEFAULT_CV,
             }
         )

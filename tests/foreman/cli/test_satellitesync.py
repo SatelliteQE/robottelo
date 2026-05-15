@@ -25,9 +25,9 @@ from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_CV,
-    ENVIRONMENT,
     EXPORT_LIBRARY_NAME,
     FLATPAK_RHEL_RELEASE_VER,
+    LIBRARY_LCE,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     REPO_TYPE,
@@ -3135,7 +3135,7 @@ class TestInterSatelliteSync:
         ak = target_sat.cli_factory.make_activation_key(
             {
                 'content-view': exp_cv['name'],
-                'lifecycle-environment': ENVIRONMENT,
+                'lifecycle-environment': LIBRARY_LCE,
                 'organization-id': function_import_org.id,
             }
         )

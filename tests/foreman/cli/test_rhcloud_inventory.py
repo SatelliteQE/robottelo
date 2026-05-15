@@ -21,7 +21,7 @@ from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import robottelo_tmp_dir
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, LIBRARY_LCE
 from robottelo.utils.io import get_local_file_data, get_remote_report_checksum
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
@@ -647,7 +647,7 @@ def test_positive_config_on_sat_without_network_protocol(
         query={'search': f'name="{DEFAULT_CV}" AND organization_id={function_org.id}'}
     )[0]
     lce = target_sat.api.LifecycleEnvironment().search(
-        query={'search': f'name="{ENVIRONMENT}" AND organization_id={function_org.id}'}
+        query={'search': f'name="{LIBRARY_LCE}" AND organization_id={function_org.id}'}
     )[0]
 
     # Upload manifest to enable Red Hat content

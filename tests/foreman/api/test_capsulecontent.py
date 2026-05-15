@@ -26,7 +26,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
-    ENVIRONMENT,
     FAKE_1_YUM_REPOS_COUNT,
     FAKE_3_YUM_REPO_RPMS,
     FAKE_3_YUM_REPOS_COUNT,
@@ -35,6 +34,7 @@ from robottelo.constants import (
     FAKE_FILE_NEW_NAME,
     FLATPAK_ENDPOINTS,
     KICKSTART_CONTENT,
+    LIBRARY_LCE,
     PRDS,
     PULP_ARTIFACT_DIR,
     REPOS,
@@ -538,7 +538,7 @@ class TestCapsuleContentManagement:
         # Find "Library" lifecycle env for specific organization
         lce = module_target_sat.api.LifecycleEnvironment(
             organization=module_sca_manifest_org
-        ).search(query={'search': f'name={ENVIRONMENT}'})[0]
+        ).search(query={'search': f'name={LIBRARY_LCE}'})[0]
 
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(

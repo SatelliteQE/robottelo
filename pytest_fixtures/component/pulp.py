@@ -133,7 +133,7 @@ def _setup_prn_content(sat, manifest, test_name=None):
     cv = sat.api.ContentView(organization=org, repository=repos, name=gen_string('alpha')).create()
     library = (
         sat.api.LifecycleEnvironment()
-        .search(query={'search': f'name={constants.ENVIRONMENT} and organization_id={org.id}'})[0]
+        .search(query={'search': f'name={constants.LIBRARY_LCE} and organization_id={org.id}'})[0]
         .read()
     )
     lce = sat.api.LifecycleEnvironment(

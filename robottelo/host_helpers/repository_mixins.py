@@ -675,7 +675,7 @@ class RepositoryCollection:
             repo.add_to_content_view(org_id, content_view['id'])
         # Publish the content view
         self.satellite.cli.ContentView.publish({'id': content_view['id']})
-        if lce['name'] != constants.ENVIRONMENT:
+        if lce['name'] != constants.LIBRARY_LCE:
             # Get the latest content view version id
             content_view_version = self.satellite.cli.ContentView.info({'id': content_view['id']})[
                 'versions'

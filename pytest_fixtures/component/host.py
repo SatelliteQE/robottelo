@@ -2,7 +2,7 @@
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT, PRDS, REPOS, REPOSET
+from robottelo.constants import DEFAULT_CV, LIBRARY_LCE, PRDS, REPOS, REPOSET
 
 
 @pytest.fixture
@@ -65,7 +65,7 @@ def host_ui_options(module_host_template):
         'host.name': name,
         'host.organization': module_host_template.organization.name,
         'host.location': module_host_template.location.name,
-        'host.lce': ENVIRONMENT,
+        'host.lce': LIBRARY_LCE,
         'host.content_view': DEFAULT_CV,
         'operating_system.architecture': module_host_template.architecture.name,
         'operating_system.operating_system': os_name,

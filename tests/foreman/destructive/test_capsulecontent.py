@@ -87,7 +87,7 @@ def test_positive_sync_rpm_without_deadlock(
     # Add the Library environment to the Capsule.
     nailgun_capsule = large_capsule_configured.nailgun_capsule
     lce = target_sat.api.LifecycleEnvironment(organization=function_sca_manifest_org).search(
-        query={'search': f'name={constants.ENVIRONMENT}'}
+        query={'search': f'name={constants.LIBRARY_LCE}'}
     )[0]
     nailgun_capsule.content_add_lifecycle_environment(data={'environment_id': lce.id})
     result = nailgun_capsule.content_lifecycle_environments()

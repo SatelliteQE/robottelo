@@ -215,7 +215,7 @@ RHBK_CLI = "/bin/kcadm.sh"
 RPM_TO_UPLOAD = "which-2.19-6.el6.x86_64.rpm"
 SRPM_TO_UPLOAD = "which-2.19-6.el6.src.rpm"
 
-ENVIRONMENT = "Library"
+LIBRARY_LCE = "Library"
 
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
