@@ -442,3 +442,44 @@ def test_positive_foremanctl_certificate_custom_validity_and_renewal(module_sat_
     # API: Verify CRUD still works with renewed certificates
     org = sat.api.Organization(id=org.id).read()
     assert org.name == org_name
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
+def test_foremanctl_deploy_add_remove_feature(module_sat_ready_rhel):
+    """Verify foremanctl deploy --add-feature and --remove-feature work correctly.
+
+    :id: ec1e8b03-5b29-450a-887d-3a75ab707336
+
+    :steps:
+        1. Deploy Satellite with remote-execution feature
+        2. Verify the remote-execution feature is enabled
+        3. Remove 'remote-execution' feature
+        4. Verify the remote-execution feature is disabled
+
+    :expectedresults:
+        1. The remote-execution feature is enabled
+        2. The remote-execution feature is disabled
+    """
+    FEATURE_NAME = 'remote-execution'
+    sat = module_sat_ready_rhel
+    result = sat.execute(
+        f'foremanctl deploy --add-feature {FEATURE_NAME}',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl deploy --add-feature {FEATURE_NAME} failed: {result.stderr}'
+    )
+
+    assert FEATURE_NAME in sat.list_foremanctl_features(enabled=True), (
+        f'{FEATURE_NAME} is not enabled'
+    )
+
+    result = sat.execute(f'foremanctl deploy --remove-feature {FEATURE_NAME}', timeout='30m')
+    assert result.status == 0, (
+        f'foremanctl deploy --remove-feature {FEATURE_NAME} failed: {result.stderr}'
+    )
+
+    assert FEATURE_NAME not in sat.list_foremanctl_features(enabled=True), (
+        f'{FEATURE_NAME} is still enabled'
+    )

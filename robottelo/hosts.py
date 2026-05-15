@@ -2026,6 +2026,19 @@ class Capsule(ContentHost, CapsuleMixins):
         )
         return
 
+    def list_foremanctl_features(self, enabled=False):
+        """Get the list of features as a set of feature names"""
+        if enabled:
+            result = self.execute('foremanctl features --list-enabled')
+        else:
+            result = self.execute('foremanctl features')
+        assert result.status == 0, f'foremanctl features command failed: {result.stderr}'
+        return {
+            p[0]
+            for line in result.stdout.splitlines()
+            if (p := line.split()) and p[0].lower() != 'feature'
+        }
+
     def query_db(self, query, db='foreman', output_format='json'):
         """Execute a PostgreSQL query and return the result.
 
