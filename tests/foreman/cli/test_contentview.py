@@ -3083,6 +3083,149 @@ class TestContentView:
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.ContentView.info({'id': cv['id']})
 
+    def test_positive_inc_update_should_not_fail(self, module_org, module_target_sat):
+        """Incremental update after removing a package should not give a 400 error code
+
+        :BZ: 2041497
+
+        :id: 704c3302-ac7e-4485-bd97-c85720dd53e8
+
+        :customerscenario: true
+
+        :expectedresults: Incremental update is successful
+        """
+        custom_yum_product = module_target_sat.cli_factory.make_product(
+            {'organization-id': module_org.id}
+        )
+        custom_yum_repo = module_target_sat.cli_factory.make_repository(
+            {
+                'content-type': 'yum',
+                'product-id': custom_yum_product['id'],
+                'url': settings.repos.yum_1.url,
+            }
+        )
+        module_target_sat.cli.Repository.synchronize({'id': custom_yum_repo['id']})
+        repo = module_target_sat.cli.Repository.info({'id': custom_yum_repo['id']})
+        assert repo['content-counts']['packages'] == '32'
+        # grab and remove the 'bear' package
+        package = module_target_sat.cli.Package.list({'repository-id': repo['id']})[0]
+        module_target_sat.cli.Repository.remove_content({'id': repo['id'], 'ids': [package['id']]})
+        repo = module_target_sat.cli.Repository.info({'id': repo['id']})
+        assert repo['content-counts']['packages'] == '31'
+        content_view = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': repo['id']}
+        )
+        module_target_sat.cli.ContentView.add_repository(
+            {
+                'id': content_view['id'],
+                'organization-id': module_org.id,
+                'repository-id': repo['id'],
+            }
+        )
+        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        module_target_sat.cli.Repository.synchronize({'id': custom_yum_repo['id']})
+        repo = module_target_sat.cli.Repository.info({'id': custom_yum_repo['id']})
+        assert repo['content-counts']['packages'] == '32'
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        cvv = content_view['versions'][0]
+        result = module_target_sat.cli.ContentView.version_incremental_update(
+            {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[0]}
+        )
+        assert f'Content View: {content_view["name"]} version 1.1' in result
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
+
+    def test_negative_inc_update_with_existing_package(self, module_org, module_target_sat):
+        """Incremental update of a CVV is rejected when the specified package is already present
+
+        :id: 16f3866e-7b42-49a8-8ac0-81bce99d09f4
+
+        :Verifies: SAT-37368
+
+        :customerscenario: true
+
+        :steps:
+            1. Create a product and sync a YUM repository.
+            2. Create a content view with the repository and publish it.
+            3. Attempt an incremental update using a package already present in the CVV.
+
+        :expectedresults: Incremental update fails with an error message indicating
+            no new content will be added, and no new content view version is created.
+        """
+        product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
+        repo = module_target_sat.cli_factory.make_repository(
+            {
+                'content-type': 'yum',
+                'product-id': product['id'],
+                'url': settings.repos.yum_1.url,
+            }
+        )
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        content_view = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': repo['id']}
+        )
+        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        existing_versions = content_view['versions']
+        cvv = content_view['versions'][0]
+        package = module_target_sat.cli.Package.list(
+            {'repository-id': repo['id'], 'search': f'name = {FAKE_2_CUSTOM_PACKAGE_NAME}'}
+        )[0]
+        with pytest.raises(CLIReturnCodeError) as error:
+            module_target_sat.cli.ContentView.version_incremental_update(
+                {'content-view-version-id': cvv['id'], 'package-ids': package['id']}
+            )
+        assert 'Incremental update will not add any new content' in error.value.stderr
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        assert content_view['versions'] == existing_versions
+
+    def test_negative_inc_update_with_existing_errata(self, module_org, module_target_sat):
+        """Incremental update of a CVV is rejected when the specified errata is already present
+
+        :id: 565fcb6e-4ae1-4777-be46-2553b502b345
+
+        :Verifies: SAT-37368
+
+        :customerscenario: true
+
+        :steps:
+            1. Create a product and sync a YUM repository.
+            2. Create a content view with the repository and publish it.
+            3. Attempt an incremental update using errata already present in the CVV.
+
+        :expectedresults: Incremental update fails with an error message indicating
+            no new content will be added, and no new content view version is created.
+        """
+        product = module_target_sat.cli_factory.make_product({'organization-id': module_org.id})
+        repo = module_target_sat.cli_factory.make_repository(
+            {
+                'content-type': 'yum',
+                'product-id': product['id'],
+                'url': settings.repos.yum_1.url,
+            }
+        )
+        module_target_sat.cli.Repository.synchronize({'id': repo['id']})
+        content_view = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id, 'repository-ids': repo['id']}
+        )
+        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        existing_versions = content_view['versions']
+        cvv = content_view['versions'][0]
+        errata = module_target_sat.cli.Erratum.list(
+            {'repository-id': repo['id'], 'search': f'errata_id = {settings.repos.yum_1.errata[0]}'}
+        )[0]
+        with pytest.raises(CLIReturnCodeError) as error:
+            module_target_sat.cli.ContentView.version_incremental_update(
+                {
+                    'content-view-version-id': cvv['id'],
+                    'errata-ids': errata['id'],
+                }
+            )
+        assert 'Incremental update will not add any new content' in error.value.stderr
+        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
+        assert content_view['versions'] == existing_versions
+
 
 class TestRollingContentView:
     """Hammer testing for Rolling Content Views."""
@@ -3844,58 +3987,6 @@ class TestContentViewFileRepo:
         )['repositories'][0]['name']
 
         assert repo['name'] in expected_repo
-
-    def test_positive_inc_update_should_not_fail(self, module_org, module_target_sat):
-        """Incremental update after removing a package should not give a 400 error code
-
-        :BZ: 2041497
-
-        :id: 704c3302-ac7e-4485-bd97-c85720dd53e8
-
-        :customerscenario: true
-
-        :expectedresults: Incremental update is successful
-        """
-        custom_yum_product = module_target_sat.cli_factory.make_product(
-            {'organization-id': module_org.id}
-        )
-        custom_yum_repo = module_target_sat.cli_factory.make_repository(
-            {
-                'content-type': 'yum',
-                'product-id': custom_yum_product['id'],
-                'url': settings.repos.yum_1.url,
-            }
-        )
-        module_target_sat.cli.Repository.synchronize({'id': custom_yum_repo['id']})
-        repo = module_target_sat.cli.Repository.info({'id': custom_yum_repo['id']})
-        assert repo['content-counts']['packages'] == '32'
-        # grab and remove the 'bear' package
-        package = module_target_sat.cli.Package.list({'repository-id': repo['id']})[0]
-        module_target_sat.cli.Repository.remove_content({'id': repo['id'], 'ids': [package['id']]})
-        repo = module_target_sat.cli.Repository.info({'id': repo['id']})
-        assert repo['content-counts']['packages'] == '31'
-        content_view = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_org.id, 'repository-ids': repo['id']}
-        )
-        module_target_sat.cli.ContentView.add_repository(
-            {
-                'id': content_view['id'],
-                'organization-id': module_org.id,
-                'repository-id': repo['id'],
-            }
-        )
-        module_target_sat.cli.ContentView.publish({'id': content_view['id']})
-        module_target_sat.cli.Repository.synchronize({'id': custom_yum_repo['id']})
-        repo = module_target_sat.cli.Repository.info({'id': custom_yum_repo['id']})
-        assert repo['content-counts']['packages'] == '32'
-        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
-        cvv = content_view['versions'][0]
-        result = module_target_sat.cli.ContentView.version_incremental_update(
-            {'content-view-version-id': cvv['id'], 'errata-ids': settings.repos.yum_1.errata[0]}
-        )
-        assert f'Content View: {content_view["name"]} version 1.1' in result
-        content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
-        assert '1.1' in [cvv_['version'] for cvv_ in content_view['versions']]
 
     def test_promote_ccv_to_lce_with_nondefault_pattern(
         self, module_target_sat, module_org, module_product
