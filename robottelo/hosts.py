@@ -1576,12 +1576,6 @@ class ContentHost(Host, ContentHostMixins):
                 satellite_repo=settings.repos.satellite_repo,
                 satmaintenance_repo=settings.repos.satmaintenance_repo,
             )
-        elif settings.server.version.source == 'upstream':
-            self.create_custom_repos(
-                foreman='https://yum.theforeman.org/nightly/el9/x86_64/',
-                foreman_plugins='https://yum.theforeman.org/plugins/nightly/el9/x86_64/',
-                katello='https://yum.theforeman.org/katello/nightly/katello/el9/x86_64/',
-            )
         else:
             # get ohsnap repofile
             self.download_repofile(
@@ -1970,7 +1964,16 @@ class Capsule(ContentHost, CapsuleMixins):
         self.register_to_cdn()
         self.setup_rhel_repos()
         self.setup_satellite_repos()
-        assert self.execute('dnf copr enable -y @theforeman/foremanctl rhel-9-x86_64').status == 0
+
+        # Enable Packit repos
+        pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
+        if pull_requests:
+            Broker(
+                job_template='upstream-pr-install',
+                target_vm=self.name,
+                pull_requests=pull_requests,
+            ).execute()
+
         assert self.execute('dnf install -y foremanctl').status == 0
 
         if enable_fapolicyd:
@@ -2010,20 +2013,19 @@ class Capsule(ContentHost, CapsuleMixins):
         if parameters:
             default_parameters.extend(parameters)
 
-        assert (
-            self.execute(
-                f'foremanctl deploy {" ".join(default_parameters)}',
-                timeout='30m',
-            ).status
-            == 0
+        deploy = self.execute(
+            f'foremanctl deploy {" ".join(default_parameters)}',
+            timeout='30m',
+        )
+        assert deploy.status == 0, f'foremanctl deploy failed:\n{deploy.stderr}'
+
+        deploy_features = self.execute(
+            'foremanctl deploy --add-feature foreman-proxy --add-feature hammer'
+        )
+        assert deploy_features.status == 0, (
+            f'foremanctl deploy --add-feature failed:\n{deploy_features.stderr}'
         )
 
-        assert (
-            self.execute(
-                'foremanctl deploy --add-feature foreman-proxy --add-feature hammer'
-            ).status
-            == 0
-        )
         return
 
     def list_foremanctl_features(self, enabled=False):
