@@ -1878,322 +1878,6 @@ class TestContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert content_view['content-host-count'] == '1'
 
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-    def test_positive_sub_host_with_restricted_user_perm_at_custom_loc(
-        self, module_org, rhel_contenthost, target_sat
-    ):
-        """Attempt to subscribe a host with restricted user permissions and
-        custom location.
-
-        :id: 0184ab20-2ffd-4377-9efa-4f25bb6e5a0c
-
-        :BZ: 1379856, 1470765, 1511481
-
-        :customerscenario: true
-
-        :steps:
-
-            1. Create organization, location, content view with yum repository.
-            2. Publish the content view
-            3. Create a user within the created organization and location with
-               the following permissions::
-
-                - (Miscellaneous) [my_organizations]
-                - Organization [view_organizations],
-                - Katello::Subscription: [
-                    view_subscriptions,
-                    attach_subscriptions,
-                    unattach_subscriptions,
-                    import_manifest,
-                    delete_manifest]
-                - Katello::ContentView [view_content_views]
-                - Hostgroup view_hostgroups
-                - Host [view_hosts, create_hosts, edit_hosts]
-                - Location [view_locations]
-                - Katello::KTEnvironment [view_lifecycle_environments]
-                - SmartProxy [view_smart_proxies, view_capsule_content]
-                - Architecture [view_architectures]
-
-        :expectedresults: host subscribed to content view with user that has
-            restricted permissions.
-
-        :parametrized: yes
-
-        """
-        # Note: this test has been stubbed waiting for bug 1511481 resolution
-        # prepare the user and the required permissions data
-        user_name = gen_alphanumeric()
-        user_password = gen_alphanumeric()
-        required_rc_permissions = {
-            '(Miscellaneous)': ['my_organizations'],
-            'Organization': ['view_organizations'],
-            'Katello::Subscription': [
-                'view_subscriptions',
-                'attach_subscriptions',
-                'unattach_subscriptions',
-                'import_manifest',
-                'delete_manifest',
-            ],
-            'Katello::ContentView': ['view_content_views'],
-            'Hostgroup': ['view_hostgroups'],
-            'Host': ['view_hosts', 'create_hosts', 'edit_hosts'],
-            'Location': ['view_locations'],
-            'Katello::KTEnvironment': ['view_lifecycle_environments'],
-            'SmartProxy': ['view_smart_proxies', 'view_capsule_content'],
-            'Architecture': ['view_architectures'],
-        }
-        # Create a location and organization
-        loc = target_sat.cli_factory.make_location()
-        default_loc = target_sat.cli.Location.info({'name': constants.DEFAULT_LOC})
-        org = target_sat.cli_factory.make_org()
-        target_sat.cli.Org.add_location({'id': org['id'], 'location-id': loc['id']})
-        # Create a non admin user, for the moment without any permissions
-        user = target_sat.cli_factory.user(
-            {
-                'admin': False,
-                'default-organization-id': org['id'],
-                'organization-ids': [org['id']],
-                'default-location-id': loc['id'],
-                'location-ids': [loc['id'], default_loc['id']],
-                'login': user_name,
-                'password': user_password,
-            }
-        )
-        # Create a new role
-        role = target_sat.cli_factory.make_role()
-        # Get the available permissions
-        available_permissions = target_sat.cli.Filter.available_permissions()
-        # group the available permissions by resource type
-        available_rc_permissions = {}
-        for permission in available_permissions:
-            permission_resource = permission['resource']
-            if permission_resource not in available_rc_permissions:
-                available_rc_permissions[permission_resource] = []
-            available_rc_permissions[permission_resource].append(permission)
-        # create only the required role permissions per resource type
-        for resource_type, permission_names in required_rc_permissions.items():
-            # assert that the required resource type is available
-            assert resource_type in available_rc_permissions
-            available_permission_names = [
-                permission['name']
-                for permission in available_rc_permissions[resource_type]
-                if permission['name'] in permission_names
-            ]
-            # assert that all the required permissions are available
-            assert set(permission_names) == set(available_permission_names)
-            # Create the current resource type role permissions
-            target_sat.cli_factory.make_filter(
-                {'role-id': role['id'], 'permissions': permission_names}
-            )
-        # Add the created and initiated role with permissions to user
-        target_sat.cli.User.add_role({'id': user['id'], 'role-id': role['id']})
-        # assert that the user is not an admin one and cannot read the current
-        # role info (note: view_roles is not in the required permissions)
-        with pytest.raises(CLIReturnCodeError) as context:
-            target_sat.cli.Role.with_user(user_name, user_password).info({'id': role['id']})
-        assert 'Access denied' in str(context)
-        # Create a lifecycle environment
-        env = target_sat.cli_factory.make_lifecycle_environment({'organization-id': org['id']})
-        # Create a product
-        product = target_sat.cli_factory.make_product({'organization-id': org['id']})
-        # Create a yum repository and synchronize
-        repo = target_sat.cli_factory.make_repository(
-            {'content-type': 'yum', 'product-id': product['id'], 'url': settings.repos.yum_1.url}
-        )
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        # Create a content view, add the yum repository and publish
-        content_view = target_sat.cli_factory.make_content_view({'organization-id': org['id']})
-        target_sat.cli.ContentView.add_repository(
-            {'id': content_view['id'], 'organization-id': org['id'], 'repository-id': repo['id']}
-        )
-        target_sat.cli.ContentView.publish({'id': content_view['id']})
-        content_view = target_sat.cli.ContentView.info({'id': content_view['id']})
-        # assert that the content view has been published and has versions
-        assert len(content_view['versions']) > 0
-        content_view_version = content_view['versions'][0]
-        # Promote the content view version to the created environment
-        target_sat.cli.ContentView.version_promote(
-            {'id': content_view_version['id'], 'to-lifecycle-environment-id': env['id']}
-        )
-        # assert that the user can read the content view info as per required
-        # permissions
-        user_content_view = target_sat.cli.ContentView.with_user(user_name, user_password).info(
-            {'id': content_view['id']}
-        )
-        # assert that this is the same content view
-        assert content_view['name'] == user_content_view['name']
-        # Create activation key with content view
-        ak_name = gen_alphanumeric()
-        target_sat.cli.ActivationKey.create(
-            {
-                'organization-id': org.id,
-                'lifecycle-environment': env.name,
-                'content-view': content_view['name'],
-                'name': ak_name,
-            }
-        )
-        # create a client host and register it with the created user
-        rhel_contenthost.register(org, loc, ak_name, target_sat)
-        assert rhel_contenthost.subscribed
-        # check that the client host exist in the system
-        org_hosts = target_sat.cli.Host.list({'organization-id': org['id']})
-        assert len(org_hosts) == 1
-        assert org_hosts[0]['name'] == rhel_contenthost.hostname
-
-    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-    def test_positive_sub_host_with_restricted_user_perm_at_default_loc(
-        self, module_org, rhel_contenthost, target_sat
-    ):
-        """Attempt to subscribe a host with restricted user permissions and
-        default location.
-
-        :id: 7b5ec90b-3942-48a9-9cc1-a361e698d16d
-
-        :BZ: 1379856, 1470765
-
-        :steps:
-
-            1. Create organization, content view with custom yum repository.
-            2. Publish the content view
-            3. Create a user within the created organization and default
-               location  with the following permissions::
-
-                - (Miscellaneous) [my_organizations]
-                - Organization [view_organizations],
-                - Katello::Subscription: [
-                    view_subscriptions,
-                    attach_subscriptions,
-                    unattach_subscriptions,
-                    import_manifest,
-                    delete_manifest]
-                - Katello::ContentView [view_content_views]
-                - Hostgroup view_hostgroups
-                - Host [view_hosts, create_hosts, edit_hosts]
-                - Location [view_locations]
-                - Katello::KTEnvironment [view_lifecycle_environments]
-                - SmartProxy [view_smart_proxies, view_capsule_content]
-                - Architecture [view_architectures]
-
-        :expectedresults: host subscribed to content view with user that has
-            restricted permissions.
-
-        :parametrized: yes
-
-        """
-        # prepare the user and the required permissions data
-        user_name = gen_alphanumeric()
-        user_password = gen_alphanumeric()
-        required_rc_permissions = {
-            '(Miscellaneous)': ['my_organizations'],
-            'Organization': ['view_organizations'],
-            'Katello::Subscription': [
-                'view_subscriptions',
-                'attach_subscriptions',
-                'unattach_subscriptions',
-                'import_manifest',
-                'delete_manifest',
-            ],
-            'Katello::ContentView': ['view_content_views'],
-            'Hostgroup': ['view_hostgroups'],
-            'Host': ['view_hosts', 'create_hosts', 'edit_hosts'],
-            'Location': ['view_locations'],
-            'Katello::KTEnvironment': ['view_lifecycle_environments'],
-            'SmartProxy': ['view_smart_proxies', 'view_capsule_content'],
-            'Architecture': ['view_architectures'],
-        }
-        # Create organization
-        loc = target_sat.cli.Location.info({'name': constants.DEFAULT_LOC})
-        org = target_sat.cli_factory.make_org()
-        target_sat.cli.Org.add_location({'id': org['id'], 'location-id': loc['id']})
-        # Create a non admin user, for the moment without any permissions
-        user = target_sat.cli_factory.user(
-            {
-                'admin': False,
-                'default-organization-id': org['id'],
-                'organization-ids': [org['id']],
-                'default-location-id': loc['id'],
-                'location-ids': [loc['id']],
-                'login': user_name,
-                'password': user_password,
-            }
-        )
-        # Create a new role
-        role = target_sat.cli_factory.make_role()
-        # Get the available permissions
-        available_permissions = target_sat.cli.Filter.available_permissions()
-        # group the available permissions by resource type
-        available_rc_permissions = {}
-        for permission in available_permissions:
-            permission_resource = permission['resource']
-            if permission_resource not in available_rc_permissions:
-                available_rc_permissions[permission_resource] = []
-            available_rc_permissions[permission_resource].append(permission)
-        # create only the required role permissions per resource type
-        for resource_type, permission_names in required_rc_permissions.items():
-            # assert that the required resource type is available
-            assert resource_type in available_rc_permissions
-            available_permission_names = [
-                permission['name']
-                for permission in available_rc_permissions[resource_type]
-                if permission['name'] in permission_names
-            ]
-            # assert that all the required permissions are available
-            assert set(permission_names) == set(available_permission_names)
-            # Create the current resource type role permissions
-            target_sat.cli_factory.make_filter(
-                {'role-id': role['id'], 'permissions': permission_names}
-            )
-        # Add the created and initiated role with permissions to user
-        target_sat.cli.User.add_role({'id': user['id'], 'role-id': role['id']})
-        # assert that the user is not an admin one and cannot read the current
-        # role info (note: view_roles is not in the required permissions)
-        with pytest.raises(CLIReturnCodeError) as context:
-            target_sat.cli.Role.with_user(user_name, user_password).info({'id': role['id']})
-        assert 'Access denied' in str(context)
-        # Create a lifecycle environment
-        env = target_sat.cli_factory.make_lifecycle_environment({'organization-id': org['id']})
-        # Create a product
-        product = target_sat.cli_factory.make_product({'organization-id': org['id']})
-        # Create a yum repository and synchronize
-        repo = target_sat.cli_factory.make_repository(
-            {'content-type': 'yum', 'product-id': product['id'], 'url': settings.repos.yum_1.url}
-        )
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        # Create a content view, add the yum repository and publish
-        content_view = target_sat.cli_factory.make_content_view({'organization-id': org['id']})
-        target_sat.cli.ContentView.add_repository(
-            {'id': content_view['id'], 'organization-id': org['id'], 'repository-id': repo['id']}
-        )
-        target_sat.cli.ContentView.publish({'id': content_view['id']})
-        content_view = target_sat.cli.ContentView.info({'id': content_view['id']})
-        # assert that the content view has been published and has versions
-        assert len(content_view['versions']) > 0
-        content_view_version = content_view['versions'][0]
-        # Promote the content view version to the created environment
-        target_sat.cli.ContentView.version_promote(
-            {'id': content_view_version['id'], 'to-lifecycle-environment-id': env['id']}
-        )
-        # assert that the user can read the content view info as per required
-        # permissions
-        user_content_view = target_sat.cli.ContentView.with_user(user_name, user_password).info(
-            {'id': content_view['id']}
-        )
-        # assert that this is the same content view
-        assert content_view['name'] == user_content_view['name']
-        ak = target_sat.api.ActivationKey(
-            content_view=user_content_view['id'], environment=env['id'], organization=org['id']
-        ).create()
-        # create a client host and register it with the created user
-        rhel_contenthost.register(org, loc, ak.name, target_sat)
-        assert rhel_contenthost.subscribed
-        # check that the client host exist in the system
-        org_hosts = target_sat.cli.Host.list({'organization-id': org['id']})
-        assert len(org_hosts) == 1
-        assert org_hosts[0]['name'] == rhel_contenthost.hostname
-
     def test_positive_clone_by_name(self, module_org, module_target_sat):
         """Clone existing content view by name
 
@@ -2662,7 +2346,7 @@ class TestContentView:
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
     def test_positive_remove_cv_version_from_multi_env_capsule_scenario(
-        self, module_org, capsule_configured, module_target_sat
+        self, function_org, capsule_configured, module_target_sat
     ):
         """Remove promoted content view version from multiple environment,
         with satellite setup to use capsule
@@ -2696,16 +2380,14 @@ class TestContentView:
 
         :CaseImportance: High
         """
-        # Note: This test case requires complete external capsule
-        #  configuration.
         dev_env = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_org.id}
+            {'organization-id': function_org.id}
         )
         qe_env = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_org.id, 'prior': dev_env['name']}
+            {'organization-id': function_org.id, 'prior': dev_env['name']}
         )
         prod_env = module_target_sat.cli_factory.make_lifecycle_environment(
-            {'organization-id': module_org.id, 'prior': qe_env['name']}
+            {'organization-id': function_org.id, 'prior': qe_env['name']}
         )
         capsule = module_target_sat.cli.Capsule().info({'name': capsule_configured.hostname})
         # Add all environments to capsule
@@ -2714,92 +2396,78 @@ class TestContentView:
             module_target_sat.cli.Capsule.content_add_lifecycle_environment(
                 {
                     'id': capsule['id'],
-                    'organization-id': module_org.id,
+                    'organization-id': function_org.id,
                     'environment': env_name,
                 }
             )
         capsule_environments = module_target_sat.cli.Capsule.content_lifecycle_environments(
-            {'id': capsule['id'], 'organization-id': module_org.id}
+            {'id': capsule['id'], 'organization-id': function_org.id}
         )
-        capsule_environments_names = {env['name'] for env in capsule_environments}
-        assert environments == capsule_environments_names
-        # Setup a yum repo
-        custom_yum_product = module_target_sat.cli_factory.make_product(
-            {'organization-id': module_org.id}
-        )
+        assert environments == {env['name'] for env in capsule_environments}
+        # Setup yum and docker repos
+        product = module_target_sat.cli_factory.make_product({'organization-id': function_org.id})
         custom_yum_repo = module_target_sat.cli_factory.make_repository(
             {
                 'content-type': 'yum',
-                'product-id': custom_yum_product['id'],
+                'product-id': product['id'],
                 'url': settings.repos.yum_1.url,
             }
-        )
-        module_target_sat.cli.Repository.synchronize({'id': custom_yum_repo['id']})
-        docker_product = module_target_sat.cli_factory.make_product(
-            {'organization-id': module_org.id}
         )
         docker_repository = module_target_sat.cli_factory.make_repository(
             {
                 'content-type': 'docker',
                 'docker-upstream-name': settings.container.upstream_name,
                 'name': gen_string('alpha', 20),
-                'product-id': docker_product['id'],
+                'product-id': product['id'],
                 'url': settings.container.registry_hub,
             }
         )
-        module_target_sat.cli.Repository.synchronize({'id': docker_repository['id']})
+        for repo in [custom_yum_repo, docker_repository]:
+            module_target_sat.cli.Repository.synchronize({'id': repo['id']})
         content_view = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_org.id}
+            {'organization-id': function_org.id}
         )
         for repo in [custom_yum_repo, docker_repository]:
             module_target_sat.cli.ContentView.add_repository(
                 {
                     'id': content_view['id'],
-                    'organization-id': module_org.id,
+                    'organization-id': function_org.id,
                     'repository-id': repo['id'],
                 }
             )
-        # Publish the content view
+        # Publish and promote the content view to DEV, QE, PROD
         module_target_sat.cli.ContentView.publish({'id': content_view['id']})
         content_view_version = module_target_sat.cli.ContentView.info({'id': content_view['id']})[
             'versions'
         ][-1]
-        # Promote the content view to DEV, QE, PROD
         for env in [dev_env, qe_env, prod_env]:
             module_target_sat.cli.ContentView.version_promote(
                 {
                     'id': content_view_version['id'],
-                    'organization-id': module_org.id,
+                    'organization-id': function_org.id,
                     'to-lifecycle-environment-id': env['id'],
                 }
             )
-        # Synchronize the capsule content
         module_target_sat.cli.Capsule.content_synchronize(
-            {'id': capsule['id'], 'organization-id': module_org.id}
+            {'id': capsule['id'], 'organization-id': function_org.id}
         )
         capsule_content_info = module_target_sat.cli.Capsule.content_info(
-            {'id': capsule['id'], 'organization-id': module_org.id}
+            {'id': capsule['id'], 'organization-id': function_org.id}
         )
         # Ensure that all environments exists in capsule content
-        capsule_content_info_lces = capsule_content_info['lifecycle-environments']
-        capsule_content_lce_names = {lce['name'] for lce in capsule_content_info_lces.values()}
-        assert environments == capsule_content_lce_names
+        lces = capsule_content_info['lifecycle-environments']
+        lce_names = {lce['name'] for lce in lces.values()}
+        assert environments == lce_names
         # Ensure first that the content view exit in all capsule
         # environments
-        for capsule_content_info_lce in capsule_content_info_lces.values():
-            assert 'content-views' in capsule_content_info_lce
-            # Retrieve the content views info of this lce
-            capsule_content_info_lce_cvs = list(capsule_content_info_lce['content-views'].values())
-            # Get the content views names of this lce
-            capsule_content_info_lce_cvs_names = [
-                cv['name']['name'] for cv in capsule_content_info_lce_cvs
-            ]
-            cv_count = 1
-            if capsule_content_info_lce['name'] == constants.ENVIRONMENT:
-                # There is a Default Organization View in addition
-                cv_count = 2
-            assert len(capsule_content_info_lce_cvs) == cv_count
-            assert content_view['name'] in capsule_content_info_lce_cvs_names
+        for lce in lces.values():
+            assert 'content-views' in lce
+            cvs = list(lce['content-views'].values())
+            cv_names = [cv['name']['name'] for cv in cvs]
+            # There is a Default Organization View in addition to the test CV in Library
+            cv_count = 2 if lce['name'] == constants.ENVIRONMENT else 1
+            assert len(cvs) == cv_count
+            assert content_view['name'] in cv_names
         # Suspend the capsule with ensure True to ping the virtual machine
         try:
             capsule_configured.power_control(state=VmState.STOPPED, ensure=True)
@@ -2810,7 +2478,7 @@ class TestContentView:
             module_target_sat.cli.ContentView.remove_from_environment(
                 {
                     'id': content_view['id'],
-                    'organization-id': module_org.id,
+                    'organization-id': function_org.id,
                     'lifecycle-environment': lce_name,
                 }
             )
@@ -2820,7 +2488,7 @@ class TestContentView:
         assert environments_with_cv == _get_content_view_version_lce_names_set(
             content_view['id'], content_view_version['id'], sat=module_target_sat
         )
-        # Resume the capsule with ensure True to ping the virtual machine
+        # Resume the capsule
         try:
             capsule_configured.power_control(state=VmState.RUNNING, ensure=True)
         except NotImplementedError:
@@ -2828,22 +2496,15 @@ class TestContentView:
         # Assert that in capsule content the content view version
         # does not exit in Library and DEV and exist only in QE and PROD
         capsule_content_info = module_target_sat.cli.Capsule.content_info(
-            {'id': capsule['id'], 'organization-id': module_org.id}
+            {'id': capsule['id'], 'organization-id': function_org.id}
         )
-        capsule_content_info_lces = capsule_content_info['lifecycle-environments']
-        for capsule_content_info_lce in capsule_content_info_lces.values():
-            # retrieve the content views info of this lce
-            capsule_content_info_lce_cvs = capsule_content_info_lce.get(
-                'content-views', {}
-            ).values()
-            # get the content views names of this lce
-            capsule_content_info_lce_cvs_names = [
-                cv['name']['name'] for cv in capsule_content_info_lce_cvs
-            ]
-            if capsule_content_info_lce['name'] in environments_with_cv:
-                assert content_view['name'] in capsule_content_info_lce_cvs_names
+        lces = capsule_content_info['lifecycle-environments']
+        for lce in lces.values():
+            cv_names = [cv['name']['name'] for cv in lce.get('content-views', {}).values()]
+            if lce['name'] in environments_with_cv:
+                assert content_view['name'] in cv_names
             else:
-                assert content_view['name'] not in capsule_content_info_lce_cvs_names
+                assert content_view['name'] not in cv_names
 
     def test_negative_user_with_no_create_view_cv_permissions(self, module_org, module_target_sat):
         """Unauthorized users are not able to create/view content views
