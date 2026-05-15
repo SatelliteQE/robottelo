@@ -12,10 +12,9 @@
 
 """
 
-import time
-
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand
@@ -473,7 +472,18 @@ def test_positive_health_check_tftp_storage(sat_maintain, request):
     # Create files for testing check-tftp-storage check.
     for file in files_to_delete:
         assert sat_maintain.execute(f'touch /var/lib/tftpboot/boot/{file}').status == 0
-    time.sleep(200)
+    # Wait until the created files are older than token_duration (set to 2 minutes above).
+    token_duration_seconds = 2 * 60
+    file_path = f'/var/lib/tftpboot/boot/{files_to_delete[0]}'
+    file_mtime = int(sat_maintain.execute(f'stat -c %Y {file_path}').stdout.strip())
+    wait_for(
+        lambda: (
+            int(sat_maintain.execute('date +%s').stdout.strip()) - file_mtime
+            >= token_duration_seconds + 5
+        ),
+        timeout=token_duration_seconds + 60,
+        delay=10,
+    )
     assert sat_maintain.execute(f'touch /var/lib/tftpboot/boot/{files_to_keep[0]}').status == 0
     # Run check-tftp-storage check.
     result = sat_maintain.cli.Health.check(
