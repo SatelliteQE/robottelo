@@ -719,7 +719,6 @@ def test_sync_inventory_status_without_satellite_host(
 
     :Verifies: SAT-25889
 
-    :CaseAutomation: Automated
     """
     org = rhcloud_manifest_org
     inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
