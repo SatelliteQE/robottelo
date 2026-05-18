@@ -36,11 +36,18 @@ def create_insights_vulnerability(host):
     assert result.status == 0
 
 
-def sync_recommendations(session):
+def sync_recommendations(session, satellite):
     timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     session.cloudinsights.sync_hits()
     wait_for(
-        lambda: session.task.search(f'Insights full sync and started_at >= "{timestamp}"'),
+        lambda: (
+            satellite.api.ForemanTask()
+            .search(
+                query={'search': f'Red Hat Lightspeed full sync and started_at >= "{timestamp}"'}
+            )[0]
+            .result
+            == 'success'
+        ),
         timeout=180,
         delay=15,
         handle_exception=True,
@@ -102,7 +109,7 @@ def test_rhcloud_insights_e2e(
         session.organization.select(org_name=org_name)
 
         # Sync the recommendations
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Verify that we can see the rule hit via insights-client
         result = rhel_insights_vm.execute('insights-client --diagnosis')
@@ -132,7 +139,7 @@ def test_rhcloud_insights_e2e(
         )
 
         # Re-sync the recommendations
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Verify that the recommendation is not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
