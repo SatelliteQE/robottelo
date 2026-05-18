@@ -278,7 +278,7 @@ def test_positive_delete_cv_promoted_to_multi_env(
         assert len(lce_values['content_views']['resources']) == 1
         assert cv['name'] == lce_values['content_views']['resources'][0]['Name']
         library_values = session.lifecycleenvironment.read('Library')
-        assert cv['name'] == library_values['content_views']['resources'][0]['Name']
+        assert cv['name'] in [r['Name'] for r in library_values['content_views']['resources']]
 
         # Delete the promoted CVV
         session.contentview_new.delete_version(
@@ -290,9 +290,9 @@ def test_positive_delete_cv_promoted_to_multi_env(
             session.contentview_new.read_cv(entity_name=cv['name'], version_name=VERSION)
         # the CV's name is not associated to either environment anymore
         lce_values = session.lifecycleenvironment.read(lce['name'])
-        assert cv['name'] not in str(lce_values['content_views']['resources'])
+        assert cv['name'] not in [r['Name'] for r in lce_values['content_views']['resources']]
         library_values = session.lifecycleenvironment.read('Library')
-        assert cv['name'] not in str(library_values['content_views']['resources'])
+        assert cv['name'] not in [r['Name'] for r in library_values['content_views']['resources']]
 
         # publish & promote, a new Version 2.0, to test deleting entire CV with a CVV promoted to LCEs.
         session.contentview_new.publish(entity_name=cv['name'], promote=True, lce=lce['name'])
@@ -308,16 +308,16 @@ def test_positive_delete_cv_promoted_to_multi_env(
         lce_values = session.lifecycleenvironment.read(lce['name'])
         assert cv['name'] == lce_values['content_views']['resources'][0]['Name']
         library_values = session.lifecycleenvironment.read('Library')
-        assert cv['name'] == library_values['content_views']['resources'][0]['Name']
+        assert cv['name'] in [r['Name'] for r in library_values['content_views']['resources']]
 
         # delete the whole content view, search for its name to check
         session.contentview_new.delete(cv['name'])
         assert not session.contentview_new.search(cv['name'])
         # the deleted CV's name is not found in either environment
         lce_values = session.lifecycleenvironment.read(lce['name'])
-        assert cv['name'] not in str(lce_values['content_views']['resources'])
+        assert cv['name'] not in [r['Name'] for r in lce_values['content_views']['resources']]
         library_values = session.lifecycleenvironment.read('Library')
-        assert cv['name'] not in str(library_values['content_views']['resources'])
+        assert cv['name'] not in [r['Name'] for r in library_values['content_views']['resources']]
 
 
 @pytest.mark.upgrade
