@@ -664,67 +664,6 @@ class TestRepositoryExport:
         assert importable_msg in history[-1]['path']
 
 
-@pytest.fixture(scope='class')
-def class_export_entities(module_org, module_target_sat):
-    """Setup custom repos for export"""
-    exporting_prod_name = gen_string('alpha')
-    product = module_target_sat.cli_factory.make_product(
-        {'organization-id': module_org.id, 'name': exporting_prod_name}
-    )
-    exporting_repo_name = gen_string('alpha')
-    exporting_repo = module_target_sat.cli_factory.make_repository(
-        {
-            'name': exporting_repo_name,
-            'mirroring-policy': 'mirror_content_only',
-            'download-policy': 'immediate',
-            'product-id': product['id'],
-        }
-    )
-    module_target_sat.cli.Repository.synchronize({'id': exporting_repo['id']})
-    exporting_cv_name = gen_string('alpha')
-    exporting_cv, exporting_cvv_id = _create_cv(
-        exporting_cv_name, exporting_repo, module_org, module_target_sat
-    )
-    return {
-        'exporting_org': module_org,
-        'exporting_prod_name': exporting_prod_name,
-        'exporting_repo_name': exporting_repo_name,
-        'exporting_repo': exporting_repo,
-        'exporting_cv_name': exporting_cv_name,
-        'exporting_cv': exporting_cv,
-        'exporting_cvv_id': exporting_cvv_id,
-    }
-
-
-def _create_cv(cv_name, repo, module_org, sat, publish=True):
-    """Creates CV and/or publishes in organization with given name and repository
-
-    :param cv_name: The name of CV to create
-    :param repo: The repository directory
-    :param organization: The organization directory
-    :param publish: Publishes the CV if True else doesn't
-    :return: The directory of CV and Content View ID
-    """
-    description = gen_string('alpha')
-    content_view = sat.cli_factory.make_content_view(
-        {'name': cv_name, 'description': description, 'organization-id': module_org.id}
-    )
-    sat.cli.ContentView.add_repository(
-        {
-            'id': content_view['id'],
-            'organization-id': module_org.id,
-            'repository-id': repo['id'],
-        }
-    )
-    content_view = sat.cli.ContentView.info({'name': cv_name, 'organization-id': module_org.id})
-    cvv_id = None
-    if publish:
-        sat.cli.ContentView.publish({'id': content_view['id']})
-        content_view = sat.cli.ContentView.info({'id': content_view['id']})
-        cvv_id = content_view['versions'][0]['id']
-    return content_view, cvv_id
-
-
 class TestContentViewSync:
     """Implements Content View Export Import tests in CLI"""
 
@@ -732,7 +671,7 @@ class TestContentViewSync:
     def test_positive_export_import_cv_end_to_end(
         self,
         target_sat,
-        class_export_entities,
+        module_synced_custom_repo,
         config_export_import_settings,
         export_import_cleanup_module,
         module_org,
@@ -758,11 +697,22 @@ class TestContentViewSync:
 
         :customerscenario: true
         """
-        export_prod_name = import_prod_name = class_export_entities['exporting_prod_name']
-        export_repo_name = import_repo_name = class_export_entities['exporting_repo_name']
-        export_cvv_id = class_export_entities['exporting_cvv_id']
-        export_cv_description = class_export_entities['exporting_cv']['description']
-        import_cv_name = class_export_entities['exporting_cv_name']
+        # Create CV and publish
+        cv_description = gen_string('alpha')
+        cv = target_sat.cli_factory.make_content_view(
+            {'description': cv_description, 'organization-id': module_org.id}
+        )
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': module_synced_custom_repo['id'],
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1
+        export_cvv_id = cv['versions'][0]['id']
         # Check packages
         exported_packages = target_sat.cli.Package.list({'content-view-version-id': export_cvv_id})
         assert len(exported_packages)
@@ -781,10 +731,10 @@ class TestContentViewSync:
             {'organization-id': function_import_org.id, 'path': import_path}
         )
         importing_cv = target_sat.cli.ContentView.info(
-            {'name': import_cv_name, 'organization-id': function_import_org.id}
+            {'name': cv['name'], 'organization-id': function_import_org.id}
         )
         importing_cvv = importing_cv['versions']
-        assert importing_cv['description'] == export_cv_description
+        assert importing_cv['description'] == cv_description
         assert len(importing_cvv) >= 1
         imported_packages = target_sat.cli.Package.list(
             {'content-view-version-id': importing_cvv[0]['id']}
@@ -793,15 +743,15 @@ class TestContentViewSync:
         assert len(exported_packages) == len(imported_packages)
         exported_repo = target_sat.cli.Repository.info(
             {
-                'name': export_repo_name,
-                'product': export_prod_name,
+                'name': module_synced_custom_repo['name'],
+                'product': module_synced_custom_repo['product']['name'],
                 'organization-id': module_org.id,
             }
         )
         imported_repo = target_sat.cli.Repository.info(
             {
-                'name': import_repo_name,
-                'product': import_prod_name,
+                'name': module_synced_custom_repo['name'],
+                'product': module_synced_custom_repo['product']['name'],
                 'organization-id': function_import_org.id,
             }
         )
@@ -915,7 +865,7 @@ class TestContentViewSync:
 
     def test_positive_export_import_filtered_cvv(
         self,
-        class_export_entities,
+        module_synced_custom_repo,
         export_import_cleanup_module,
         config_export_import_settings,
         target_sat,
@@ -941,18 +891,22 @@ class TestContentViewSync:
             2. Filtered exported custom contents has been imported in org/satellite
 
         """
-        exporting_cv_name = importing_cvv = gen_string('alpha')
-        exporting_cv, exporting_cvv = _create_cv(
-            exporting_cv_name,
-            class_export_entities['exporting_repo'],
-            class_export_entities['exporting_org'],
-            target_sat,
+        cv_name = gen_string('alpha')
+        cv = target_sat.cli_factory.make_content_view(
+            {'name': cv_name, 'organization-id': module_org.id}
+        )
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': module_synced_custom_repo['id'],
+            }
         )
         filter_name = gen_string('alphanumeric')
         target_sat.cli.ContentView.filter.create(
             {
                 'name': filter_name,
-                'content-view-id': exporting_cv['id'],
+                'content-view-id': cv['id'],
                 'inclusion': 'yes',
                 'type': 'rpm',
             }
@@ -961,17 +915,12 @@ class TestContentViewSync:
             {
                 'name': 'cat',
                 'content-view-filter': filter_name,
-                'content-view-id': exporting_cv['id'],
+                'content-view-id': cv['id'],
             }
         )
-        target_sat.cli.ContentView.publish(
-            {
-                'id': exporting_cv['id'],
-                'organization-id': class_export_entities['exporting_org'].id,
-            }
-        )
-        exporting_cv = target_sat.cli.ContentView.info({'id': exporting_cv['id']})
-        exporting_cvv_id = max(exporting_cv['versions'], key=lambda x: int(x['id']))['id']
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        exporting_cvv_id = cv['versions'][0]['id']
         # Check presence of 1 rpm due to filter
         export_packages = target_sat.cli.Package.list({'content-view-version-id': exporting_cvv_id})
         assert len(export_packages) == 1
@@ -995,7 +944,7 @@ class TestContentViewSync:
             {'organization-id': importing_org['id'], 'path': import_path}
         )
         importing_cvv = target_sat.cli.ContentView.info(
-            {'name': importing_cvv, 'organization-id': importing_org['id']}
+            {'name': cv_name, 'organization-id': importing_org['id']}
         )['versions']
         assert len(importing_cvv) >= 1
         imported_packages = target_sat.cli.Package.list(
@@ -1008,7 +957,7 @@ class TestContentViewSync:
     def test_positive_export_import_promoted_cv(
         self,
         target_sat,
-        class_export_entities,
+        module_synced_custom_repo,
         export_import_cleanup_module,
         config_export_import_settings,
         module_org,
@@ -1032,9 +981,19 @@ class TestContentViewSync:
             3. The imported CV should only be published and not promoted.
 
         """
-        import_cv_name = class_export_entities['exporting_cv_name']
-        export_cv_id = class_export_entities['exporting_cv']['id']
-        export_cvv_id = class_export_entities['exporting_cvv_id']
+        # Create CV and publish
+        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': module_synced_custom_repo['id'],
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1
+        export_cvv_id = cv['versions'][0]['id']
         env = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
         target_sat.cli.ContentView.version_promote(
             {
@@ -1042,9 +1001,7 @@ class TestContentViewSync:
                 'to-lifecycle-environment-id': env['id'],
             }
         )
-        promoted_cvv_id = target_sat.cli.ContentView.info({'id': export_cv_id})['versions'][-1][
-            'id'
-        ]
+        promoted_cvv_id = target_sat.cli.ContentView.info({'id': cv['id']})['versions'][-1]['id']
         # Check packages
         exported_packages = target_sat.cli.Package.list(
             {'content-view-version-id': promoted_cvv_id}
@@ -1061,20 +1018,18 @@ class TestContentViewSync:
         target_sat.cli.ContentImport.version(
             {'organization-id': function_import_org.id, 'path': import_path}
         )
-        importing_cv_id = target_sat.cli.ContentView.info(
-            {'name': import_cv_name, 'organization-id': function_import_org.id}
+        importing_cv = target_sat.cli.ContentView.info(
+            {'name': cv['name'], 'organization-id': function_import_org.id}
         )
-        importing_cvv_id = target_sat.cli.ContentView.info(
-            {'name': import_cv_name, 'organization-id': function_import_org.id}
-        )['versions']
-        assert len(importing_cvv_id) >= 1
+        importing_cvv = importing_cv['versions']
+        assert len(importing_cvv) >= 1
         imported_packages = target_sat.cli.Package.list(
-            {'content-view-version-id': importing_cvv_id[0]['id']}
+            {'content-view-version-id': importing_cvv[0]['id']}
         )
         assert len(imported_packages)
         assert len(exported_packages) == len(imported_packages)
         # Verify the LCE is in Library
-        lce = importing_cv_id['lifecycle-environments'][0]['name']
+        lce = importing_cv['lifecycle-environments'][0]['name']
         assert lce == 'Library'
 
     @pytest.mark.upgrade
@@ -1287,7 +1242,7 @@ class TestContentViewSync:
     def test_negative_import_same_cv_twice(
         self,
         target_sat,
-        class_export_entities,
+        module_synced_custom_repo,
         export_import_cleanup_module,
         config_export_import_settings,
         module_org,
@@ -1309,8 +1264,19 @@ class TestContentViewSync:
             1. Reimporting the contents with same version fails.
             2. Satellite displays an error message.
         """
-        export_cvv_id = class_export_entities['exporting_cvv_id']
-        export_cv_name = class_export_entities['exporting_cv_name']
+        # Create CV and publish
+        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': module_synced_custom_repo['id'],
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        export_cvv_id = cv['versions'][0]['id']
+        export_cv_name = cv['name']
         # Verify export directory is empty
         assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export cv
@@ -2327,7 +2293,7 @@ class TestContentViewSync:
     def test_positive_import_content_for_disconnected_sat_with_existing_content(
         self,
         target_sat,
-        class_export_entities,
+        module_synced_custom_repo,
         config_export_import_settings,
         module_org,
         function_import_org,
@@ -2354,8 +2320,19 @@ class TestContentViewSync:
 
         :customerscenario: true
         """
-        export_cvv_id = class_export_entities['exporting_cvv_id']
-        export_cv_name = class_export_entities['exporting_cv_name']
+        # Create CV and publish
+        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+        target_sat.cli.ContentView.add_repository(
+            {
+                'id': cv['id'],
+                'organization-id': module_org.id,
+                'repository-id': module_synced_custom_repo['id'],
+            }
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        export_cvv_id = cv['versions'][0]['id']
+        export_cv_name = cv['name']
         # Verify export directory is empty
         assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) == ''
         # Export cv
@@ -2368,7 +2345,7 @@ class TestContentViewSync:
         assert result.stdout != ''
         # Import section
         # Create cv with 'import-only' set to False
-        cv = target_sat.cli_factory.make_content_view(
+        import_cv = target_sat.cli_factory.make_content_view(
             {
                 'name': export_cv_name,
                 'import-only': False,
@@ -2383,9 +2360,9 @@ class TestContentViewSync:
             f"Unable to import in to Content View specified in the metadata - '{export_cv_name}'. "
             "The 'import_only' attribute for the content view is set to false. To mark this "
             "Content View as importable, have your system administrator run the following command "
-            f"on the server. \n  foreman-rake katello:set_content_view_import_only ID={cv.id}"
+            f"on the server. \n  foreman-rake katello:set_content_view_import_only ID={import_cv.id}"
         ) in error.value.message
-        target_sat.cli.ContentView.remove({'id': cv.id, 'destroy-content-view': 'yes'})
+        target_sat.cli.ContentView.remove({'id': import_cv.id, 'destroy-content-view': 'yes'})
 
         # Create cv with 'import-only' set to True
         target_sat.cli_factory.make_content_view(
