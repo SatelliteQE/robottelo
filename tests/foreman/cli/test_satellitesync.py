@@ -277,9 +277,15 @@ def function_exporter_user(target_sat, function_org):
 
 
 @pytest.fixture(scope='module')
-def module_import_sat(module_satellite_host):
-    """Provides a separate Satellite instance for imports."""
-    return module_satellite_host
+def module_import_sat(request, module_target_sat):
+    """Provides a Satellite instance for imports.
+
+    Returns a separate Satellite when settings.iss.separate_import_sat is True,
+    or the exporting Satellite when False (for local debugging).
+    """
+    if settings.iss.separate_import_sat:
+        return request.getfixturevalue('module_satellite_host')
+    return module_target_sat
 
 
 @pytest.fixture
@@ -293,7 +299,8 @@ def complete_export_import_cleanup(target_sat, module_import_sat):
     """Deletes all export/import dirs at both, export and import, Satellites."""
     yield
     target_sat.execute(f'rm -rf {PULP_EXPORT_DIR}* {PULP_IMPORT_DIR}*')
-    module_import_sat.execute(f'rm -rf {PULP_EXPORT_DIR}* {PULP_IMPORT_DIR}*')
+    if module_import_sat.hostname != target_sat.hostname:
+        module_import_sat.execute(f'rm -rf {PULP_EXPORT_DIR}* {PULP_IMPORT_DIR}*')
 
 
 @pytest.mark.run_in_one_thread
