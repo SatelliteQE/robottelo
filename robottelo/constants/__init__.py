@@ -2088,7 +2088,7 @@ BOOKMARK_ENTITIES_SELECTION = [
         'name': 'ArfReport',
         'controller': 'arf_reports',
         'session_name': 'arfreport',
-        'skip_for_ui': True,
+        'skip_for_ui': True,  # search bar is only available when reports exist; otherwise the welcome page renders
     },
 ]
 
