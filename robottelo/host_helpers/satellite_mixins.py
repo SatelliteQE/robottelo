@@ -191,7 +191,7 @@ class ContentInfo:
         Moves exported archive(s) and its metadata into import directory,
         sets ownership, returns import path
         """
-        if target and isinstance(target, Host):
+        if target and isinstance(target, Host) and target.hostname != self.hostname:
             self.execute(
                 f'sshpass -p "{settings.server.ssh_password}" rsync -e "ssh -o StrictHostKeyChecking=no" -aPz '
                 f'{PULP_EXPORT_DIR}{org.name} root@{target.hostname}:{PULP_IMPORT_DIR}'
