@@ -96,7 +96,9 @@ def test_positive_puppet_bootstrap(
 
 
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match(r'^\d+$')
+@pytest.mark.rhel_ver_match(
+    f'[{"" if is_open("SAT-41340") else "7"}89]'  # Skip EL7 for provisioning test as UEFI is not supported yet
+)
 def test_host_provisioning_with_external_puppetserver(
     request,
     external_puppet_server,
@@ -132,9 +134,6 @@ def test_host_provisioning_with_external_puppetserver(
 
     :customerscenario: true
     """
-    if module_provisioning_rhel_content.os.major == '7' and is_open('SAT-44580'):
-        pytest.skip('Skipping as openvox-agent for EL7 is still not delivered')
-
     puppet_env = 'production'
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat

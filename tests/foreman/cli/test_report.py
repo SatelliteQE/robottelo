@@ -18,7 +18,6 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.exceptions import CLIReturnCodeError
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -84,9 +83,6 @@ def test_positive_install_configure_host(
 
     :Verifies: SAT-25418
     """
-    if agent == 'openvox' and content_hosts[0].os_version.major == 7 and is_open('SAT-44580'):
-        pytest.skip('Skipping as openvox-agent for EL7 is still not delivered')
-
     puppet_infra_host = [session_puppet_enabled_sat, session_puppet_enabled_capsule]
     for client, puppet_proxy in zip(content_hosts, puppet_infra_host, strict=True):
         client.configure_puppet(
@@ -140,9 +136,6 @@ def test_positive_run_puppet_agent_generate_report_when_no_message(
     :BZ: 2192939, 2257327, 2257314
     :parametrized: yes
     """
-    if agent == 'openvox' and rhel_contenthost.os_version.major == 7 and is_open('SAT-44580'):
-        pytest.skip('Skipping as openvox-agent for EL7 is still not delivered')
-
     sat = session_puppet_enabled_sat
     client = rhel_contenthost
     client.configure_puppet(
