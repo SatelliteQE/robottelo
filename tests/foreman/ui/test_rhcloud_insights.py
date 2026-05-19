@@ -363,7 +363,10 @@ def test_host_details_page(
         # Verify Insights status of host.
         result = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
         assert result['Red Hat Lightspeed']['Status'] == 'Reporting'
-        assert result['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
+        assert (
+            result['Inventory']['Status']
+            == 'Host is uploaded and present on console.redhat.com Inventory service'
+        )
 
         # Verify recommendations exist for host.
         result = session.host_new.search(rhel_insights_vm.hostname)[0]
