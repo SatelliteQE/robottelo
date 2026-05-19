@@ -85,7 +85,8 @@ def contenthost_factory(request, **kwargs):
     host_params = host_conf(request)
     post_configs = host_params.pop("post_configs", [])
     host_class = kwargs.pop("host_class", ContentHost)
-    with Broker(**host_params, host_class=host_class, **kwargs) as host:
+    broker_args = {**host_params, **kwargs}
+    with Broker(host_class=host_class, **broker_args) as host:
         if post_configs:
             hosts = host if isinstance(host, list) else [host]
             for config_name in post_configs:
