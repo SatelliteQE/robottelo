@@ -689,47 +689,31 @@ class TestExport:
             1. Export fails when 'fail-on-missing' option is used
             2. Export passes otherwise with warning and skips the on_demand repo
         """
-        # Create custom product
+        # Create custom product with one on_demand and one immediate repo, sync both
         product = target_sat.cli_factory.make_product(
             {'organization-id': module_org.id, 'name': gen_string('alpha')}
         )
+        repos = [
+            target_sat.cli_factory.make_repository(
+                {
+                    'content-type': 'yum',
+                    'download-policy': policy,
+                    'organization-id': module_org.id,
+                    'product-id': product['id'],
+                }
+            )
+            for policy in ('on_demand', 'immediate')
+        ]
+        repo_ondemand, repo_immediate = repos
+        for repo in repos:
+            target_sat.cli.Repository.synchronize({'id': repo['id']})
 
-        # Create repositories and sync them
-        repo_ondemand = target_sat.cli_factory.make_repository(
-            {
-                'content-type': 'yum',
-                'download-policy': 'on_demand',
-                'organization-id': module_org.id,
-                'product-id': product['id'],
-            }
-        )
-        repo_immediate = target_sat.cli_factory.make_repository(
-            {
-                'content-type': 'yum',
-                'download-policy': 'immediate',
-                'organization-id': module_org.id,
-                'product-id': product['id'],
-            }
-        )
-        target_sat.cli.Repository.synchronize({'id': repo_ondemand['id']})
-        target_sat.cli.Repository.synchronize({'id': repo_immediate['id']})
-
-        # Create cv and publish
+        # Create CV with both repos and publish
         cv = target_sat.cli_factory.make_content_view(
-            {'name': gen_string('alpha'), 'organization-id': module_org.id}
-        )
-        target_sat.cli.ContentView.add_repository(
             {
-                'id': cv['id'],
+                'name': gen_string('alpha'),
                 'organization-id': module_org.id,
-                'repository-id': repo_ondemand['id'],
-            }
-        )
-        target_sat.cli.ContentView.add_repository(
-            {
-                'id': cv['id'],
-                'organization-id': module_org.id,
-                'repository-id': repo_immediate['id'],
+                'repository-ids': [repo['id'] for repo in repos],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -3213,7 +3197,7 @@ class TestExportImport:
         function_product,
         function_import_org,
     ):
-        """Test import of a repo created via Podman push
+        """Test export/import of a repo created via Podman push
 
         :id: d44f494c-918f-4cf0-8eae-5b382505e371
 
@@ -3236,7 +3220,8 @@ class TestExportImport:
         assert large_image_id
         large_repo_cmd = f'{(function_org.label)}/{(function_product.label)}/{REPO_NAME}'.lower()
         target_sat.execute(
-            f'podman push --creds admin:changeme {large_image_id.stdout.strip()} {target_sat.hostname}/{large_repo_cmd}'
+            f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password}'
+            f' {large_image_id.stdout.strip()} {target_sat.hostname}/{large_repo_cmd}'
         )
         repo = target_sat.cli.Repository.info(
             {
