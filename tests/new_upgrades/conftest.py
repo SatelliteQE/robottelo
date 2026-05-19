@@ -2,12 +2,12 @@
 This module is intended to be used for upgrade tests that have a single run stage.
 """
 
-import datetime
 import json
 from tempfile import mkstemp
 
 from box import Box
 from broker import Broker
+from broker.exceptions import ProviderError
 import pytest
 from wrapanapi.systems.google import GoogleCloudSystem
 
@@ -16,22 +16,10 @@ from robottelo.constants import (
     GCE_RHEL_CLOUD_PROJECTS,
     GCE_TARGET_RHEL_IMAGE_NAME,
 )
-from robottelo.exceptions import GCECertNotFoundError
+from robottelo.exceptions import GCECertNotFoundError, SatelliteHostError
 from robottelo.hosts import Capsule, Satellite
+from robottelo.logging import logger
 from robottelo.utils.shared_resource import SharedResource
-
-
-def log(message, level="DEBUG"):
-    """Pytest has a limitation to use logging.logger from conftest.py
-    so we need to emulate the logger by std-out the output
-    """
-    now = datetime.datetime.now()
-    full_message = "{date} - conftest - {level} - {message}\n".format(
-        date=now.strftime("%Y-%m-%d %H:%M:%S"), level=level, message=message
-    )
-    print(full_message)  # noqa
-    with open('robottelo.log', 'a') as log_file:
-        log_file.write(full_message)
 
 
 def pytest_configure(config):
@@ -51,7 +39,7 @@ def pytest_configure(config):
 
 
 def shared_checkout(shared_name):
-    Satellite(hostname="blank")._swap_nailgun(f"{settings.UPGRADE.FROM_VERSION}.z")
+    Satellite(hostname="blank")._swap_nailgun(settings.UPGRADE.FROM_VERSION)
     bx_inst = Broker(
         workflow=settings.SERVER.deploy_workflows.product,
         deploy_sat_version=settings.UPGRADE.FROM_VERSION,
@@ -99,20 +87,30 @@ def shared_checkin(sat_instance):
         resource_name=sat_instance.hostname + "_checkin",
         action=Broker(hosts=[sat_instance]).checkin,
     ) as sat_checkin:
-        log(f'Running sat_checkin.ready() for {sat_instance.hostname} ')
+        logger.debug(f'Running sat_checkin.ready() for {sat_instance.hostname}')
         sat_checkin.ready()
 
 
 @pytest.fixture(scope='session')
 def upgrade_action():
     def _upgrade_action(target_sat):
-        Broker(
+
+        result = Broker(
             job_template=settings.UPGRADE.SATELLITE_UPGRADE_JOB_TEMPLATE,
             target_vm=target_sat.name,
             sat_version=settings.UPGRADE.TO_VERSION,
             upgrade_path="ystream",
             tower_inventory=target_sat.tower_inventory,
         ).execute()
+
+        # Broker catches ProviderError and returns it instead of raising.
+        # We need to re-raise so that the error propagates correctly.
+        if isinstance(result, ProviderError):
+            # extract the message from Broker
+            broker_msg = getattr(result, 'message', str(result))
+            raise SatelliteHostError(f"Satellite upgrade job failed:\n{broker_msg}") from result
+
+        return result
 
     return _upgrade_action
 

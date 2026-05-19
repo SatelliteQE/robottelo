@@ -794,6 +794,8 @@ class TestCapsuleContentManagement:
 
         :expectedresults:
             1. HTTP 200
+
+        :BlockedBy: SAT-44554
         """
         ep = FLATPAK_ENDPOINTS[endpoint].format(module_capsule_configured.hostname)
         rq = requests.get(ep, verify=settings.server.verify_ca)

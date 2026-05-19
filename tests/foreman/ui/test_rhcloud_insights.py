@@ -363,7 +363,10 @@ def test_host_details_page(
         # Verify Insights status of host.
         result = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
         assert result['Red Hat Lightspeed']['Status'] == 'Reporting'
-        assert result['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
+        assert (
+            result['Inventory']['Status']
+            == 'Host is uploaded and present on console.redhat.com Inventory service'
+        )
 
         # Verify recommendations exist for host.
         result = session.host_new.search(rhel_insights_vm.hostname)[0]
@@ -374,7 +377,6 @@ def test_host_details_page(
         insights_recommendations = session.host_new.get_insights(rhel_insights_vm.hostname)[
             'recommendations_table'
         ]
-
         # Verify
         for recommendation in insights_recommendations:
             if recommendation['Recommendation'] == DNF_RECOMMENDATION:
@@ -481,3 +483,111 @@ def test_insights_registration_with_capsule(
         # Verify that Insights status again.
         values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert values['Red Hat Lightspeed']['Status'] == 'Reporting'
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_host_breadcrumb_switcher_updates_insights_tabs(
+    rhel_insights_vms,
+    rhcloud_manifest_org,
+    module_target_sat_insights,
+):
+    """Test that breadcrumb switcher properly updates Recommendations tab
+    when switching between hosts on the host details page.
+
+    :id: e9f3fde8-c56b-42de-921f-576c83efcec7
+
+    :steps:
+        1. Prepare one host with vulnerabilities (host1) and one without (host2).
+        2. Upload insights data and sync recommendations.
+        3. Navigate to host1's details page and verify Insights tab shows recommendations.
+        4. Use breadcrumb switcher to switch to host2 (without full page navigation).
+        5. Verify that Recommendations tab updates to show no recommendations for host2.
+        6. Switch back to host1 and verify recommendations are displayed again.
+
+    :expectedresults:
+        1. Host1 displays recommendations in the Insights tab.
+        2. After switching to host2 via breadcrumb, tab shows no recommendations.
+        3. After switching back to host1 via breadcrumb, recommendations are displayed again.
+        4. The tab content properly updates with each breadcrumb switch without requiring page reload.
+
+    :parametrized: yes
+
+    :Verifies: SAT-38703
+    """
+    org_name = rhcloud_manifest_org.name
+
+    # Ensure we have at least 2 hosts
+    assert len(rhel_insights_vms) >= 2, "Test requires at least 2 hosts"
+    host1, host2 = rhel_insights_vms[0], rhel_insights_vms[1]
+
+    # Only create vulnerabilities on host1 so that host1 and host2 have different data
+    # This allows us to verify that the tab actually updates when switching hosts
+    create_insights_vulnerability(host1)
+
+    with module_target_sat_insights.ui_session() as session:
+        session.organization.select(org_name=org_name)
+
+        # Sync insights recommendations
+        sync_recommendations(session)
+
+        # Get baseline recommendations for host1
+        insights_host1 = session.host_new.get_insights(host1.hostname)
+        recommendations_host1 = insights_host1.get('recommendations_table', [])
+        assert len(recommendations_host1) > 0, f"No recommendations found for {host1.hostname}"
+
+        # Get baseline recommendations for host2
+        insights_host2 = session.host_new.get_insights(host2.hostname)
+        recommendations_host2 = insights_host2.get('recommendations_table', [])
+
+        # Store recommendation counts and titles for comparison
+        host1_titles = {rec['Recommendation'] for rec in recommendations_host1}
+        host2_titles = {rec['Recommendation'] for rec in recommendations_host2}
+
+        # Verify that host1 has not same recommendations as host2
+        assert set(host1_titles) != set(host2_titles), (
+            "Host1 and Host2 should not have same recommendations"
+        )
+
+        # Navigate back to host1's details page
+        session.host_new.get_insights(host1.hostname)
+
+        # Use breadcrumb switcher to switch to host2
+        session.host_new.select_host_from_breadcrumb(host2.hostname)
+
+        # Read the Insights tab content after breadcrumb switch
+        insights_after_switch = session.host_new.read_current_insights_tab()
+        recommendations_after_switch = insights_after_switch.get('recommendations_table', [])
+
+        titles_after_switch = {rec['Recommendation'] for rec in recommendations_after_switch}
+
+        assert titles_after_switch == host2_titles, (
+            f"After breadcrumb switch to host2, expected host2 data. "
+            f"Expected: {host2_titles}, Got: {titles_after_switch}"
+        )
+
+        # Verify we're NOT showing host1's recommendations (the bug scenario)
+        assert titles_after_switch != host1_titles, (
+            f"BUG: Breadcrumb switcher did not update Recommendations tab. "
+            f"Still showing {len(recommendations_after_switch)} recommendations from host1 "
+            f"instead of host2's recommendations list."
+        )
+
+        # Switch back to host1 using breadcrumb
+        session.host_new.select_host_from_breadcrumb(host1.hostname)
+
+        # Verify the tab updates to show host1's recommendations again (not empty)
+        insights_back_to_host1 = session.host_new.read_current_insights_tab()
+        recommendations_back = insights_back_to_host1.get('recommendations_table', [])
+
+        # Verify we see host1's recommendations again
+        assert len(recommendations_back) > 0, (
+            f"After switching back to host1, expected to see recommendations again, "
+            f"but got {len(recommendations_back)} recommendations"
+        )
+
+        titles_back_to_host1 = {rec['Recommendation'] for rec in recommendations_back}
+        assert titles_back_to_host1 == host1_titles, (
+            f"After switching back to host1 via breadcrumb, expected host1 recommendations. "
+            f"Expected: {host1_titles}, Got: {titles_back_to_host1}"
+        )

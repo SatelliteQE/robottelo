@@ -17,6 +17,8 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 
+pytestmark = [pytest.mark.skip_if_not_set('ocpv')]
+
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning

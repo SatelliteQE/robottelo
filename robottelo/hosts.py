@@ -10,6 +10,8 @@ import json
 from pathlib import Path, PurePath
 import random
 import re
+import subprocess
+import sys
 from tempfile import NamedTemporaryFile
 import time
 from urllib.parse import urljoin, urlparse, urlunsplit
@@ -17,6 +19,7 @@ from urllib.parse import urljoin, urlparse, urlunsplit
 import apypie
 from box import Box
 from broker import Broker
+from broker.helpers import FileLock
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha, gen_string
@@ -1007,9 +1010,7 @@ class ContentHost(Host, ContentHostMixins):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_puppet(
-        self, proxy_hostname=None, run_puppet_agent=True, install_puppet_agent7=False
-    ):
+    def configure_puppet(self, proxy_hostname=None, run_agent=True, use_openvox=True):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
         :return: None.
@@ -1018,21 +1019,21 @@ class ContentHost(Host, ContentHostMixins):
         if proxy_hostname is None:
             proxy_hostname = settings.server.hostname
 
-        if install_puppet_agent7:
+        self.create_custom_repos(
+            sat_client=settings.repos.satclient_repo[f'RHEL{self.os_version.major}']
+        )
+        if use_openvox:
             self.create_custom_repos(
-                sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
-            )
-        else:
-            self.create_custom_repos(
-                sat_client=settings.repos['SATCLIENT2_REPO'][f'RHEL{self.os_version.major}']
+                openvox_agent=settings.repos.openvox_agent_repo[f'RHEL{self.os_version.major}']
             )
 
-        result = self.execute('yum install puppet-agent -y')
-        if result.status != 0:
-            raise ContentHostError('Failed to install the puppet-agent rpm')
+        rpm_name = 'openvox-agent' if use_openvox else 'puppet-agent'
+        if self.execute(f'yum -y install {rpm_name}').status != 0:
+            raise ContentHostError('Failed to install the puppet agent rpm')
 
-        rpm_version = self.execute('rpm -q --qf "%{VERSION}" puppet-agent').stdout
-        assert '7' in rpm_version if install_puppet_agent7 else '7' not in rpm_version
+        assert self.execute(f'rpm -q {rpm_name}').status == 0, (
+            'Puppet agent package is not installed'
+        )
 
         cert_name = self.hostname
         puppet_conf = (
@@ -1059,11 +1060,9 @@ class ContentHost(Host, ContentHostMixins):
         proxy_host = Host(hostname=proxy_hostname, ipv6=self.network_type == NetworkType.IPV6)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
 
-        if run_puppet_agent:
-            # This particular puppet run would create the host entity under
-            # 'All Hosts' and let's redirect stderr to /dev/null as errors at
-            #  this stage can be ignored.
-            result = self.execute('/opt/puppetlabs/bin/puppet agent -t 2> /dev/null')
+        if run_agent:
+            # This particular puppet run would create the host entity under 'All Hosts'
+            result = self.execute('/opt/puppetlabs/bin/puppet agent -t')
             if result.status:
                 raise ContentHostError('Failed to configure puppet on the content host')
 
@@ -2005,15 +2004,51 @@ class Satellite(Capsule, SatelliteMixins):
 
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
-        import sys
 
-        from pip._internal import main as pip_main
+        logger.debug(f'Installing nailgun for new_version: {new_version}')
+        nailgun_ref = 'master' if new_version == 'stream' else f'{new_version}.z'
 
-        pip_main(['uninstall', '-y', 'nailgun'])
-        pip_main(['install', f'https://github.com/SatelliteQE/nailgun/archive/{new_version}.zip'])
+        # Use file locking to prevent race conditions when multiple xdist workers
+        # try to install/uninstall nailgun simultaneously
+        lock_file = Path('/tmp/nailgun-install')
+        with FileLock(lock_file, timeout=120):
+            logger.debug('Acquired nailgun install lock, running pip commands')
+
+            expected_url = f'https://github.com/SatelliteQE/nailgun/archive/{nailgun_ref}.zip'
+            # Check if correct version already installed
+            result = subprocess.run(
+                [sys.executable, '-m', 'pip', 'freeze'], capture_output=True, text=True, check=True
+            )
+            is_installed = any(
+                line.startswith('nailgun') and expected_url in line
+                for line in result.stdout.split('\n')
+            )
+            if is_installed:
+                logger.debug(f'Nailgun {new_version} already installed, skipping pip install')
+            else:
+                logger.debug(f'Nailgun {new_version} not already installed, running pip install')
+                subprocess.run(
+                    [sys.executable, '-m', 'pip', 'uninstall', '-y', 'nailgun'], check=True
+                )
+                subprocess.run(
+                    [
+                        sys.executable,
+                        '-m',
+                        'pip',
+                        'install',
+                        expected_url,
+                    ],
+                    check=True,
+                )
+            logger.debug('Nailgun pip commands complete, releasing lock')
+
+        # Clear module cache after lock is released (each worker clears its own cache).
+        # Run this even if the worker didn't need to reinstall nailgun,
+        # to make sure it has the correct api.
         self._api = type('api', (), {'_configured': False})
         to_clear = [k for k in sys.modules if 'nailgun' in k]
-        [sys.modules.pop(k) for k in to_clear]
+        for k in to_clear:
+            sys.modules.pop(k)
 
     @property
     def api(self):
