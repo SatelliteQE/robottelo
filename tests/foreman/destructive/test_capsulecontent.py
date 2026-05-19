@@ -230,7 +230,9 @@ def test_sync_AC_without_deadlock(
 
     :customerscenario: true
 
-    :Verifies: SAT-34271
+    :Verifies: SAT-34271, SAT-44202
+
+    :BlockedBy: SAT-44202
 
     """
     # Set capsule to immediate download policy
