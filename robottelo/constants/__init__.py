@@ -1001,6 +1001,24 @@ RHEL10_VULNERABLE_MARIADB_CVES = ['CVE-2023-52969', 'CVE-2023-52970', 'CVE-2023-
 RHEL10_MARIADB_ERRATUM = 'RHSA-2026:0136'
 # Use the first CVE as the primary one for single-CVE tests
 RHEL10_VULNERABILITY_CVE_ID = RHEL10_VULNERABLE_MARIADB_CVES[0]
+# Per-version vulnerability data for IoP vulnerability testing
+VULNERABLE_PACKAGES = {
+    8: {
+        'rpm': 'mariadb-10.3.39-1.module+el8.8.0+19673+72b0d35f.x86_64',
+        'cves': ['CVE-2025-13699'],
+        'erratum': '',
+    },
+    9: {
+        'rpm': 'mariadb-3:10.5.29-2.el9_6.x86_64',
+        'cves': ['CVE-2025-13699'],
+        'erratum': '',
+    },
+    10: {
+        'rpm': RHEL10_VULNERABLE_MARIADB_RPM,
+        'cves': RHEL10_VULNERABLE_MARIADB_CVES,
+        'erratum': RHEL10_MARIADB_ERRATUM,
+    },
+}
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_REPOS_COUNT = 78
 FAKE_9_YUM_SECURITY_ERRATUM = [
