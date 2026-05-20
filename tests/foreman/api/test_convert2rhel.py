@@ -364,8 +364,14 @@ def test_convert2rhel_oracle_with_pre_conversion_template_check(
     convert2rhel_facts = json.loads(oracle.execute('cat /etc/rhsm/facts/convert2rhel.facts').stdout)
     assert convert2rhel_facts['conversions.env.CONVERT2RHEL_THROUGH_FOREMAN'] == '1'
     # https://issues.redhat.com/browse/RHELC-1737
-    target_os_name = 'Oracle Linux Server' if is_open('RHELC-1737') else 'Red Hat'
-    assert target_os_name in convert2rhel_facts['conversions.target_os.name']
+    source_os = convert2rhel_facts['conversions.source_os.name']
+    target_os = convert2rhel_facts['conversions.target_os.name']
+    if is_open('RHELC-1737') and source_os == target_os:
+        assert 'Oracle Linux Server' in target_os
+    else:
+        assert 'Red Hat' in target_os, (
+            f'unexpected conversions.target_os.name after conversion: {target_os!r}'
+        )
     assert convert2rhel_facts['conversions.success'] is True
 
 
@@ -466,6 +472,12 @@ def test_convert2rhel_centos_with_pre_conversion_template_check(
     convert2rhel_facts = json.loads(centos.execute('cat /etc/rhsm/facts/convert2rhel.facts').stdout)
     assert convert2rhel_facts['conversions.env.CONVERT2RHEL_THROUGH_FOREMAN'] == '1'
     # https://issues.redhat.com/browse/RHELC-1737
-    target_os_name = 'CentOS Linux' if is_open('RHELC-1737') else 'Red Hat'
-    assert target_os_name in convert2rhel_facts['conversions.target_os.name']
+    source_os = convert2rhel_facts['conversions.source_os.name']
+    target_os = convert2rhel_facts['conversions.target_os.name']
+    if is_open('RHELC-1737') and source_os == target_os:
+        assert 'CentOS Linux' in target_os
+    else:
+        assert 'Red Hat' in target_os, (
+            f'unexpected conversions.target_os.name after conversion: {target_os!r}'
+        )
     assert convert2rhel_facts['conversions.success'] is True
