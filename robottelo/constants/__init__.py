@@ -2026,6 +2026,7 @@ JIRA_WONTFIX_RESOLUTIONS = (
     "Not a Bug",
     "MirrorOrphan",
 )
+JIRA_COMMON_FIELDS = ['key', 'status', 'labels', 'resolution']
 
 GROUP_MEMBERSHIP_MAPPER = {
     "config": {
