@@ -20,6 +20,7 @@ TESTIMONY_OPTIONS=--config testimony.yaml
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  docs                       to make documentation in the default format"
+	@echo "  customer-scenario-check-jira Find tests without customerscenario tags"
 	@echo "  docs-clean                 to remove docs and doc build artifacts"
 	@echo "  test-docstrings            to check whether docstrings are good quality"
 	@echo "  test-robottelo             to run internal robottelo tests"
@@ -154,7 +155,7 @@ clean-cache:
 clean-all: docs-clean logs-clean pyc-clean clean-cache clean-shared
 
 customer-scenario-check-jira:
-	@scripts/customer_scenarios.py --jira
+	@scripts/customer_scenarios.py --jira $(EXTRA_ARGS)
 
 vault-login:
 	@scripts/vault_login.py --login
