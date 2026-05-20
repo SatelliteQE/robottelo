@@ -384,24 +384,29 @@ def configure_secureboot_provisioning(
     request, pxe_loader, module_provisioning_sat, module_provisioning_rhel_content
 ):
     """Fixture for configuring Secureboot pxe_loader for provisioning, when hosts RHEL version > Satellites RHEL version"""
-    rhel_ver = module_provisioning_rhel_content.os.major
+    rhel_ver_major = module_provisioning_rhel_content.os.major
+    rhel_ver_minor = module_provisioning_rhel_content.os.minor
     sat = module_provisioning_sat.sat
     if (
-        int(rhel_ver) > sat.os_version.major
-        and pxe_loader.vm_firmware == 'uefi_secure_boot'
+        pxe_loader.vm_firmware == 'uefi_secure_boot'
         and module_provisioning_sat.sat.network_type != NetworkType.IPV6
     ):
         # Set the path for the shim and GRUB2 binaries for the OS of host
-        bootloader_path = '/var/lib/tftpboot/bootloader-universe/pxegrub2/redhat/default/x86_64'
+        bootloader_path = f'/var/lib/tftpboot/bootloader-universe/pxegrub2/redhat/{rhel_ver_major}.{rhel_ver_minor}/x86_64'
 
         # Create the directory to store the shim and GRUB2 binaries for the OS of host
         sat.execute(f'install -o foreman-proxy -g foreman-proxy -d {bootloader_path}')
 
         # Fetch and Download SB packages, and extract Shim/Grub2 binaries
         for prefix in ['grub2-efi-x64', 'shim-x64']:
-            url = sat.get_secureboot_packages_with_version(
-                f'{settings.repos.get(f"rhel{rhel_ver}_os").baseos}/Packages', prefix
-            )
+            if int(rhel_ver_major) > 7:
+                url = sat.get_secureboot_packages_with_version(
+                    f'{settings.repos.get(f"rhel{rhel_ver_major}_os").baseos}/Packages', prefix
+                )
+            else:
+                url = sat.get_secureboot_packages_with_version(
+                    f'{settings.repos.get(f"rhel{rhel_ver_major}_os")}Packages', prefix
+                )
             sat.execute(f'curl -o /tmp/{prefix}.rpm {url}')
             sat.execute(f'rpm2cpio /tmp/{prefix}.rpm | cpio -idv --directory /tmp')
 
@@ -412,6 +417,13 @@ def configure_secureboot_provisioning(
         sat.execute(f'ln -sr {bootloader_path}/shimx64.efi {bootloader_path}/boot-sb.efi')
         sat.execute(f'chmod 644 {bootloader_path}/grubx64.efi {bootloader_path}/shimx64.efi')
         yield
-        sat.execute(f'rm -rf {bootloader_path}')
+        for _path in (
+            os.path.dirname(bootloader_path),
+            '/tmp/boot',
+            '/tmp/etc',
+            '/tmp/grub2-efi-x64.rpm',
+            '/tmp/shim-x64.rpm',
+        ):
+            sat.execute(f'if [ -e "{_path}" ]; then rm -rf "{_path}"; fi')
     else:
         yield None
