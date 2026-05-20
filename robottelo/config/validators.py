@@ -333,6 +333,7 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    iss=[Validator('iss.separate_import_sat', default=True, is_type_of=bool)],
     performance=[Validator('performance.time_hammer', default=False)],
     report_portal=[
         Validator(
