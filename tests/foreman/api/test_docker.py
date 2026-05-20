@@ -612,20 +612,8 @@ class TestPodman:
 
     @pytest.fixture(scope='class')
     def enable_podman(module_product, module_target_sat):
-        """Enable base_os and appstream repos on the sat through cdn registration and install podman."""
-        module_target_sat.register_to_cdn()
-        if module_target_sat.os_version.major > 7:
-            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_bos']['id'])
-            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_aps']['id'])
-        else:
-            module_target_sat.enable_repo(module_target_sat.REPOS['rhscl']['id'])
-            module_target_sat.enable_repo(module_target_sat.REPOS['rhel']['id'])
-        result = module_target_sat.execute(
-            'dnf install -y --disableplugin=foreman-protector podman'
-        )
-        assert result.status == 0
-        # Enable IPv6 HTTP proxy for podman so external registries are reachable in IPv6-only setups
-        module_target_sat.enable_ipv6_podman_proxy()
+        """Install podman on the Satellite."""
+        module_target_sat.ensure_podman_installed(enable_ipv6_proxy=True)
 
     def test_podman_push(self, module_target_sat, module_product, module_org, enable_podman):
         """Push a small and large container image to Pulp, and verify the results
