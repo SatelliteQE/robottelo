@@ -4,9 +4,12 @@ name: weekly_checks
 on:
   schedule:
     - cron: 0 0 * * 0
+  workflow_dispatch:
 
 env:
     PYCURL_SSL_LIBRARY: openssl
+    ROBOTTELO_JIRA__API_KEY: ${{ secrets.JIRA_KEY }}
+    ROBOTTELO_JIRA__EMAIL: ${{ secrets.JIRA_EMAIL }}
 
 jobs:
   customerscenario_tags:
@@ -39,15 +42,6 @@ jobs:
             uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
             uv-${{ runner.os }}
 
-      - name: Restore Jira Status Cache
-        uses: actions/cache@v4
-        with:
-          # If the path is changed in the validator or jira.yaml.template, it should be changed here too
-          path: jira_status_cache.json
-          key: jira-status-cache-global
-          restore-keys: |
-            jira-status-cache-global
-
       - name: Install Dependencies
         run: |
           sudo apt update
@@ -66,42 +60,16 @@ jobs:
 
       - name: Repopulate jira status cache
         run: |
-          python scripts/populate_jira_cache.py --fresh
-
-      - name: Customer scenario check
-        run: |
-          touch .env.md
-          echo "---" >> .env.md
-          echo "title: Add missing customerscenario tags" >> .env.md
-          echo "assignees: pondrejk " >> .env.md
-          echo "labels: Documentation" >> .env.md
-          echo "---" >> .env.md
-          echo CS_TAGS="$(make customer-scenario-check-jira)" >> .env.md
-          if grep 'The following tests need customerscenario tags' .env.md; then
-            echo "::set-output name=result::0"
-          fi
-        id: cscheck
-        env:
-          ROBOTTELO_JIRA__API_KEY: ${{ secrets.JIRA_KEY }}
-          ROBOTTELO_JIRA__EMAIL: ${{ secrets.JIRA_EMAIL }}
-
-      - name: Customer scenario status
-        run: |
-          cat .env.md
-
-      - name: Create an issue for customerscenatio tag addition
-        uses: JasonEtco/create-an-issue@v2
-        if: ${{ env.CS_CHECK_RESULT }}
-        with:
-          filename: .env.md
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CS_CHECK_RESULT: ${{ steps.cscheck.outputs.result}}
+          python scripts/populate_jira_cache.py --fresh tests
 
       - name: Save Jira Status Cache
         if: always()
-        uses: actions/cache@v4
+        uses: actions/cache/save@v5
         with:
           # If the path is changed in the validator or jira.yaml.template, it should be changed here too
           path: jira_status_cache.json
-          key: jira-status-cache-global
+          key: jira-status-cache-global-${{ github.run_id }}
+
+      - name: Check for missing CustomerScenario tags and create a Jira issue if any are found
+        run: |
+          python scripts/customer_scenarios.py --jira --create-jira
