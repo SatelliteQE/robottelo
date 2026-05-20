@@ -453,15 +453,15 @@ def test_positive_image_provision_end_to_end(
         uuid=settings.libvirt.libvirt_image_path,
     ).create()
 
+    host_fqdn = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
+
     @request.addfinalizer
     def _finalize():
         sat.provisioning_cleanup(host_fqdn)
         cr = sat.api.LibvirtComputeResource().search(
             query={'search': f'name={module_cr_libvirt.name}'}
         )
-        if cr:
-            sat.api.Image(id=image.id, compute_resource=cr[0].id).delete()
-            sat.api.LibvirtComputeResource(id=cr[0].id).delete()
+        sat.api.Image(id=image.id, compute_resource=cr[0].id).delete()
 
     # Begin UI session to create and manage the host
     with sat.ui_session() as session:
@@ -494,7 +494,6 @@ def test_positive_image_provision_end_to_end(
 
         # Monitor the build status until provisioning completes
         # The host should transition from 'Pending installation' to 'Installed'
-        host_fqdn = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
         wait_for(
             lambda: (
                 session.host_new.get_host_statuses(host_fqdn)['Build']['Status']
