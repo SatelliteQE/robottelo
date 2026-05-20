@@ -482,3 +482,46 @@ def configure_secureboot_provisioning(
             sat.execute(f'if [ -e "{_path}" ]; then rm -rf "{_path}"; fi')
     else:
         yield None
+
+
+@pytest.fixture
+def configure_uefi_provisioning_for_older_rhels(
+    request, pxe_loader, module_provisioning_sat, module_provisioning_rhel_content
+):
+    """Fixture for configuring pxe_loader for provisioning of older RHEL versions"""
+    rhel_ver_major = module_provisioning_rhel_content.os.major
+    rhel_ver_minor = module_provisioning_rhel_content.os.minor
+    sat = module_provisioning_sat.sat
+    if (
+        int(rhel_ver_major) <= 7
+        and pxe_loader.vm_firmware == 'uefi'
+        and module_provisioning_sat.sat.network_type != NetworkType.IPV6
+    ):
+        # Set the path for the shim and GRUB2 binaries for the OS of host
+        bootloader_path = f'/var/lib/tftpboot/bootloader-universe/pxegrub2/redhat/{rhel_ver_major}.{rhel_ver_minor}/x86_64'
+
+        # Create the directory to store the shim and GRUB2 binaries for the OS of host
+        sat.execute(f'install -o foreman-proxy -g foreman-proxy -d {bootloader_path}')
+
+        # Fetch and Download SB packages, and extract Grub2 binaries
+        pkg_prefix = 'grub2-efi-x64'
+        url = sat.get_secureboot_packages_with_version(
+            f'{settings.repos.get(f"rhel{rhel_ver_major}_os")}Packages', pkg_prefix
+        )
+        sat.execute(f'curl -o /tmp/{pkg_prefix}.rpm {url}')
+        sat.execute(f'rpm2cpio /tmp/{pkg_prefix}.rpm | cpio -idv --directory /tmp')
+
+        # Make the shim and GRUB2 binaries available for host provisioning:
+        sat.execute(f'cp /tmp/boot/efi/EFI/redhat/grubx64.efi {bootloader_path}/grubx64.efi')
+        sat.execute(f'ln -sr {bootloader_path}/grubx64.efi {bootloader_path}/boot.efi')
+        sat.execute(f'chmod 644 {bootloader_path}/grubx64.efi')
+        yield
+        for _path in (
+            os.path.dirname(bootloader_path),
+            '/tmp/boot',
+            '/tmp/etc',
+            '/tmp/grub2-efi-x64.rpm',
+        ):
+            sat.execute(f'if [ -e "{_path}" ]; then rm -rf "{_path}"; fi')
+    else:
+        yield None
