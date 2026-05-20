@@ -240,7 +240,7 @@ def test_foremanctl_deploy_certificate_cname(module_sat_ready_rhel):
         2. Verify HTTPS connectivity using the CNAME with the self-signed CA
 
     :expectedresults:
-        1. foremanctl deploy completes successfully
+        1. Foremanctl deploy completes successfully
         2. HTTPS request via the CNAME returns HTTP 200 without certificate errors
     """
     satellite = module_sat_ready_rhel
@@ -255,11 +255,15 @@ def test_foremanctl_deploy_certificate_cname(module_sat_ready_rhel):
     )
 
     result = satellite.execute(
-        f'curl --fail --output /dev/null --cacert {FOREMANCTL_CERTS_DIR}/ca.crt '
+        f'curl --fail -sSI '
+        f'--cacert {FOREMANCTL_CERTS_DIR}/ca.crt '
         f'--resolve "{cname}:443:127.0.0.1" '
         f'https://{cname}/users/login'
     )
-    assert result.status == 0, f'HTTPS request to {cname} failed with output:\n{result.stderr}'
+    assert result.status == 0, f'HTTPS request failed for {cname}:\n{result.stderr}'
+    assert '200 OK' in result.stdout, (
+        f'Expected HTTP 200 response for {cname}.\nOutput:\n{result.stdout}'
+    )
 
 
 def get_cert_validity_days(sat, cert_path):
