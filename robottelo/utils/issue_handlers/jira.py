@@ -11,19 +11,21 @@ from wait_for import TimedOutError, wait_for
 from robottelo.config import settings
 from robottelo.constants import (
     JIRA_CLOSED_STATUSES,
+    JIRA_COMMON_FIELDS,
     JIRA_ONQA_STATUS,
     JIRA_OPEN_STATUSES,
     JIRA_WONTFIX_RESOLUTIONS,
 )
 from robottelo.logging import logger
 
-common_jira_fields = ['key', 'status', 'labels', 'resolution']
-
 FIELD_EXTRACTORS = {
     "key": lambda issue: issue.key,
     "status": lambda issue: issue.fields.status.name if issue.fields.status else "",
     "labels": lambda issue: list(issue.fields.labels or []),
     "resolution": lambda issue: issue.fields.resolution.name if issue.fields.resolution else "",
+    "customfield_10978": lambda issue: (
+        issue.renderedFields.customfield_10978 if issue.renderedFields else ""
+    ),
 }
 
 
@@ -188,13 +190,17 @@ def _jira_client():
     )
 
 
-def get_jira(jql, fields=None):
-    """Accepts the jql to retrieve the data from Jira for the given fields
+def get_jira(issue_ids, fields=None, expand='renderedFields', max_results=100):
+    """Retrieve Jira issues for the given list of issue keys/IDs and fields.
 
-    :param jql: The query for retrieving the issue(s) details from jira
-    :type jql: str
+    :param issue_ids: Jira issue ids to get data for
+    :type issue_ids: list
     :param fields: The custom fields in query to retrieve the data for
     :type fields: list
+    :param expand: extra information to fetch inside each resource
+    :type fields: str
+    :param max_results: Maximum number of issues to return.
+    :type max_results: int
     :returns: List of Issue objects from the jira library
     :rtype: list
     """
@@ -203,8 +209,15 @@ def get_jira(jql, fields=None):
     def _make_request():
         try:
             jira = _jira_client()
-            issues = jira.search_issues(jql_str=jql, fields=fields_str)
-            return list(issues)
+            all_issues = []
+            for i in range(0, len(issue_ids), max_results):
+                batch = issue_ids[i : i + max_results]
+                jql = ' OR '.join([f"id = {issue_id}" for issue_id in batch])
+                issues = jira.search_issues(
+                    jql_str=jql, fields=fields_str, expand=expand, maxResults=max_results
+                )
+                all_issues.extend(issues)
+            return all_issues
         except JIRAError as err:
             if getattr(err, 'status_code', None) == 429:
                 logger.warning("Hit Jira API rate limit (429). Will retry after wait period.")
@@ -236,7 +249,7 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
     :rtype: list of dict
     """
     if not jira_fields:
-        jira_fields = common_jira_fields
+        jira_fields = JIRA_COMMON_FIELDS
 
     if not issue_ids:
         return []
@@ -288,8 +301,7 @@ def get_data_jira(issue_ids, cached_data=None, jira_fields=None):  # pragma: no 
     # Generate jql
     if isinstance(remaining_issues, str):
         remaining_issues = [issue_id.strip() for issue_id in remaining_issues.split(',')]
-    jql = ' OR '.join([f"id = {issue_id}" for issue_id in remaining_issues])
-    issues = get_jira(jql, jira_fields)
+    issues = get_jira(remaining_issues, jira_fields)
     fetched_data = [
         _issue_to_flat_dict(issue, jira_fields) for issue in issues if issue is not None
     ]
