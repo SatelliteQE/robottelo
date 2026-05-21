@@ -32,7 +32,7 @@ def subscription_upgrade_manifest():
 
 @pytest.fixture
 def manifest_scenario_refresh_setup(
-    subscription_upgrade_shared_satellite, upgrade_action, subscription_upgrade_manifest
+    shared_satellite, upgrade_action, subscription_upgrade_manifest
 ):
     """Before upgrade, upload & refresh the manifest.
 
@@ -41,7 +41,7 @@ def manifest_scenario_refresh_setup(
 
     :expectedresults: Manifest should be uploaded and refreshed successfully.
     """
-    target_sat = subscription_upgrade_shared_satellite
+    target_sat = shared_satellite
     manifest = subscription_upgrade_manifest
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'subscription_upgrade_{gen_alpha()}'
@@ -67,7 +67,7 @@ def manifest_scenario_refresh_setup(
         yield test_data
 
 
-@pytest.mark.subscription_upgrades
+@pytest.mark.upgrade("subscription")
 @pytest.mark.manifester
 def test_manifest_scenario_refresh(manifest_scenario_refresh_setup):
     """After upgrade, Check the manifest refresh and delete functionality.

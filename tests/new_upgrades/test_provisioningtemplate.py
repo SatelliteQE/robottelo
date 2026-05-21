@@ -34,7 +34,7 @@ PXE_LOADER_MAP = {
 
 @pytest.fixture
 def provisioning_templates_setup(
-    content_upgrade_shared_satellite,
+    shared_satellite,
     request,
     upgrade_action,
 ):
@@ -50,7 +50,7 @@ def provisioning_templates_setup(
     :parametrized: yes
     """
     pxe_loader = Box(PXE_LOADER_MAP[request.param])
-    target_sat = content_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'provisioning_template_upgrade_{gen_alpha(length=8)}'
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
@@ -115,10 +115,12 @@ def provisioning_templates_setup(
                 'target_sat': target_sat,
             }
         )
+        target_sat._swap_nailgun(settings.upgrade.to_version)
         target_sat._session = None
         yield test_data
 
 
+@pytest.mark.upgrade("content")
 @pytest.mark.parametrize('provisioning_templates_setup', ['bios', 'uefi'], indirect=True)
 def test_post_scenario_provisioning_templates(
     provisioning_templates_setup,

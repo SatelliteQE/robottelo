@@ -22,7 +22,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def fdi_upgrade_setup(fdi_upgrade_shared_satellite, upgrade_action):
+def fdi_upgrade_setup(shared_satellite, upgrade_action):
     """Perform setup for Foreman Discovery Image upgrade test.
 
     :id: preupgrade-8c94841c-6791-4af0-aa9c-e54c8d8b9a92
@@ -32,7 +32,7 @@ def fdi_upgrade_setup(fdi_upgrade_shared_satellite, upgrade_action):
 
     :expectedresults: Version should be saved and checked post-upgrade
     """
-    target_sat = fdi_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         target_sat.register_to_cdn()
         target_sat.execute('foreman-maintain packages install -y foreman-discovery-image')
@@ -50,7 +50,7 @@ def fdi_upgrade_setup(fdi_upgrade_shared_satellite, upgrade_action):
         yield test_data
 
 
-@pytest.mark.discovery_upgrades
+@pytest.mark.upgrade("fdi")
 def test_post_upgrade_fdi_version(fdi_upgrade_setup):
     """Test FDI version post upgrade.
 

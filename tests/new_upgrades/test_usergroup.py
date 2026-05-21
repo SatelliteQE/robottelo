@@ -21,7 +21,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def user_group_with_ldap_user_setup(ad_data, usergroup_upgrade_shared_satellite, upgrade_action):
+def user_group_with_ldap_user_setup(ad_data, shared_satellite, upgrade_action):
     """Create User-group in pre_upgrade version.
 
     :steps:
@@ -31,7 +31,7 @@ def user_group_with_ldap_user_setup(ad_data, usergroup_upgrade_shared_satellite,
 
     :expectedresults: The usergroup, with ldap user as member, should be created successfully.
     """
-    target_sat = usergroup_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'usergroup_upgrade_{gen_alpha()}'
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
@@ -94,7 +94,7 @@ def user_group_with_ldap_user_setup(ad_data, usergroup_upgrade_shared_satellite,
         yield test_data
 
 
-@pytest.mark.usergroup_upgrades
+@pytest.mark.upgrade("usergroup")
 def test_verify_user_group_membership(
     user_group_with_ldap_user_setup,
 ):

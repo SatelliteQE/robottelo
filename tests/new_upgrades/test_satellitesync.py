@@ -22,7 +22,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def version_cv_export_import_setup(content_upgrade_shared_satellite, upgrade_action):
+def version_cv_export_import_setup(shared_satellite, upgrade_action):
     """Before upgrade, create the content view and publish, and promote it.
 
     :steps:
@@ -33,7 +33,7 @@ def version_cv_export_import_setup(content_upgrade_shared_satellite, upgrade_act
     :expectedresults: Before the upgrade, Content view published and promoted, and package
         count should be greater than 0.
     """
-    target_sat = content_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'sat_sync_upgrade_{gen_alpha()}'
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
@@ -57,11 +57,12 @@ def version_cv_export_import_setup(content_upgrade_shared_satellite, upgrade_act
             }
         )
         sat_upgrade.ready()
+        target_sat._swap_nailgun(settings.upgrade.to_version)
         target_sat._session = None
         yield test_data
 
 
-@pytest.mark.content_upgrades
+@pytest.mark.upgrade("content")
 def test_post_version_cv_export_import(version_cv_export_import_setup):
     """After upgrade, content view version import and export works on the existing content
      view (that we created before the upgrade).

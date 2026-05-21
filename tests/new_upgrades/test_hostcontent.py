@@ -22,7 +22,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 @pytest.fixture
 def db_seed_host_mismatch_setup(
-    content_upgrade_shared_satellite,
+    shared_satellite,
     rhel_contenthost,
     upgrade_action,
 ):
@@ -44,10 +44,8 @@ def db_seed_host_mismatch_setup(
 
     :customerscenario: true
     """
-    target_sat = content_upgrade_shared_satellite
-    with SharedResource(
-        content_upgrade_shared_satellite.hostname, upgrade_action, target_sat=target_sat
-    ) as sat_upgrade:
+    target_sat = shared_satellite
+    with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'content_host_upgrade_{gen_alpha(length=8)}'
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
         location = target_sat.api.Location(name=f'{test_name}_location').create()
@@ -91,7 +89,7 @@ def db_seed_host_mismatch_setup(
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
-@pytest.mark.content_upgrades
+@pytest.mark.upgrade("content")
 def test_post_db_seed_host_mismatch(db_seed_host_mismatch_setup):
     """
     :id: postupgrade-28861b9f-8abd-4efc-bfd5-40b7e825a941

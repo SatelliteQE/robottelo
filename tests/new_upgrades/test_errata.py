@@ -94,7 +94,7 @@ def _check_yum_plugins_count(host):
 
 @pytest.fixture
 def generate_errata_for_client_setup(
-    errata_upgrade_shared_satellite,
+    shared_satellite,
     rhel_contenthost,
     upgrade_action,
 ):
@@ -115,7 +115,7 @@ def generate_errata_for_client_setup(
         2. errata count, erratum list will be generated to Satellite content host
         3. All the expected errata are ready-to-be-applied on the client
     """
-    target_sat = errata_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(
         target_sat.hostname, upgrade_action, target_sat=target_sat, action_is_recoverable=True
     ) as sat_upgrade:
@@ -195,13 +195,14 @@ def generate_errata_for_client_setup(
         errata_ids = [errata.errata_id for errata in erratum_list]
         assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
         sat_upgrade.ready()
+        target_sat._swap_nailgun(settings.upgrade.to_version)
         target_sat._session = None
         yield test_data
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.no_containers
-@pytest.mark.errata_upgrade
+@pytest.mark.upgrade("errata")
 def test_post_scenario_errata_count_installation(generate_errata_for_client_setup):
     """Post-upgrade scenario that applies errata on the RHEL client that was set up
     in the pre-upgrade test and verifies that the errata was applied correctly.

@@ -586,20 +586,20 @@ def setup_scenario(sat_instance):
     org = sat_instance.api.Organization().create()
     return {'org_id': org.id}
 
-@pytest.mark.content_upgrades
-def test_content_view_upgrade(upgrade_shared_satellite):
+@pytest.mark.upgrade("content")
+def test_content_view_upgrade(shared_satellite):
     """Test content view survives upgrade"""
 
     # Setup before upgrade
     with SharedResource(
         "cv_upgrade_setup",
         action=setup_scenario,
-        sat_instance=upgrade_shared_satellite,
+        sat_instance=shared_satellite,
     ) as setup_data:
         setup_result = setup_data.ready()
 
         # Verify after upgrade
-        org = upgrade_shared_satellite.api.Organization(
+        org = shared_satellite.api.Organization(
             id=setup_result['org_id']
         ).read()
         assert org.id == setup_result['org_id']
@@ -615,10 +615,10 @@ def test_content_view_upgrade(upgrade_shared_satellite):
 **Run Commands**:
 ```bash
 # Run all upgrade tests
-pytest tests/new_upgrades/ --upgrade
+pytest tests/new_upgrades/
 
 # Run specific test file
-pytest tests/new_upgrades/test_activation_key.py --upgrade
+pytest tests/new_upgrades/test_activation_key.py
 ```
 
 ---

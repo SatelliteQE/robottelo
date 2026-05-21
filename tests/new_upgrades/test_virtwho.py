@@ -6,7 +6,7 @@
 
 :CaseComponent: Virt-whoConfigurePlugin
 
-:Team: Phoenix-subscriptions
+:Team: Proton
 
 :CaseImportance: High
 
@@ -28,7 +28,7 @@ from robottelo.utils.virtwho import (
 
 
 @pytest.fixture
-def form_data(virt_who_upgrade_shared_satellite):
+def form_data(shared_satellite):
     esx = settings.virtwho.esx
     return {
         'debug': 1,
@@ -37,7 +37,7 @@ def form_data(virt_who_upgrade_shared_satellite):
         'hypervisor_type': esx.hypervisor_type,
         'hypervisor_server': esx.hypervisor_server,
         'filtering_mode': 'none',
-        'satellite_url': virt_who_upgrade_shared_satellite.hostname,
+        'satellite_url': shared_satellite.hostname,
         'hypervisor_username': esx.hypervisor_username,
         'hypervisor_password': esx.hypervisor_password,
         'name': f'preupgrade_virt_who_{gen_alpha()}',
@@ -55,7 +55,7 @@ ORG_DATA = {'name': f'virtwho_upgrade_{gen_alpha()}'}
 
 @pytest.fixture
 def create_virt_who_configuration_setup(
-    virt_who_upgrade_shared_satellite,
+    shared_satellite,
     form_data,
     virt_who_upgrade_manifest,
     upgrade_action,
@@ -69,7 +69,7 @@ def create_virt_who_configuration_setup(
         2. No error msg in /var/log/rhsm/rhsm.log.
         3. Report is sent to satellite.
     """
-    target_sat = virt_who_upgrade_shared_satellite
+    target_sat = shared_satellite
     settings.server.hostname = target_sat.hostname
     manifest = virt_who_upgrade_manifest
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
@@ -105,7 +105,7 @@ def create_virt_who_configuration_setup(
         yield test_data
 
 
-@pytest.mark.virt_who_upgrades
+@pytest.mark.upgrade("virt_who", use_cdn=True)
 def test_post_crud_virt_who_configuration(create_virt_who_configuration_setup, form_data):
     """Virt-who config is intact post upgrade and verify the config can be updated and deleted.
 

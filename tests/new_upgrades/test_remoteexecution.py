@@ -21,7 +21,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 @pytest.fixture
 def remote_execution_external_capsule_setup(
-    capsule_upgrade_integrated_sat_cap,
+    integrated_sat_cap,
     rhel_contenthost,
     upgrade_action,
 ):
@@ -38,9 +38,9 @@ def remote_execution_external_capsule_setup(
         2. REX job should run on it.
 
     """
-    target_sat = capsule_upgrade_integrated_sat_cap.satellite
-    capsule = capsule_upgrade_integrated_sat_cap.capsule
-    cap_smart_proxy = capsule_upgrade_integrated_sat_cap.cap_smart_proxy
+    target_sat = integrated_sat_cap.satellite
+    capsule = integrated_sat_cap.capsule
+    cap_smart_proxy = integrated_sat_cap.cap_smart_proxy
     with (
         SharedResource(
             target_sat.hostname, upgrade_action, target_sat=target_sat, action_is_recoverable=True
@@ -115,7 +115,7 @@ def remote_execution_external_capsule_setup(
 
 @pytest.mark.rhel_ver_list([7, 8, 9, 10])
 @pytest.mark.no_containers
-@pytest.mark.capsule_upgrades
+@pytest.mark.upgrade("remote_execution_capsule")
 def test_post_scenario_remote_execution_external_capsule(remote_execution_external_capsule_setup):
     """Run a REX job on pre-upgrade created client registered
     with external capsule.
@@ -149,7 +149,7 @@ def test_post_scenario_remote_execution_external_capsule(remote_execution_extern
 
 @pytest.fixture
 def remote_execution_satellite_setup(
-    capsule_upgrade_integrated_sat_cap,
+    shared_satellite,
     rhel_contenthost,
     upgrade_action,
 ):
@@ -163,7 +163,7 @@ def remote_execution_satellite_setup(
     5. Run a REX job again with same content host.
     6. Check if REX job still succeeds.
     """
-    target_sat = capsule_upgrade_integrated_sat_cap.satellite
+    target_sat = shared_satellite.satellite
     # register host with rex, enable client repo, install katello-agent
     with SharedResource(
         target_sat.hostname, upgrade_action, target_sat=target_sat, action_is_recoverable=True
@@ -223,7 +223,7 @@ def remote_execution_satellite_setup(
 
 @pytest.mark.rhel_ver_list([7, 8, 9, 10])
 @pytest.mark.no_containers
-@pytest.mark.capsule_upgrades
+@pytest.mark.upgrade("remote_execution")
 def test_post_scenario_remote_execution_satellite(remote_execution_satellite_setup):
     """Run a REX job on pre-upgrade created client registered
     with Satellite.
