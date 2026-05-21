@@ -25,21 +25,7 @@ from robottelo.utils.shared_resource import SharedResource
 def pytest_configure(config):
     """Register custom markers to avoid warnings."""
     markers = [
-        "capsule_upgrades: Capsule upgrade tests that use SharedResource.",
-        "capsule_puppet_upgrades: Capsule puppet upgrade tests that use SharedResource.",
-        "client_upgrades: Client upgrade tests that use SharedResource.",
-        "content_upgrades: Content upgrade tests that use SharedResource.",
-        "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
-        "errata_upgrades: Errata upgrade tests that use SharedResource.",
-        "hostgroup_upgrades: Host group upgrade tests that use SharedResource.",
-        "perf_tuning_upgrades: Performance tuning upgrade tests that use SharedResource.",
-        "pulp_upgrades: Pulp upgrade tests that use SharedResource.",
-        "puppet_upgrades: Puppet upgrade tests that use SharedResource.",
-        "search_upgrades: Search upgrade tests that use SharedResource.",
-        "subscription_upgrades: Subscription upgrade tests that use SharedResource.",
-        "sync_plan_upgrades: Sync plan upgrade tests that use SharedResource.",
-        "usergroup_upgrades: User group upgrade tests that use SharedResource.",
-        "virt_who_upgrades: Virt_who upgrade tests that use SharedResource.",
+        "upgrade: Upgrade tests that use SharedResource.",
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
@@ -47,7 +33,7 @@ def pytest_configure(config):
 
 def shared_checkout(shared_name):
     Satellite(hostname="blank")._swap_nailgun(settings.upgrade.from_version)
-    bx_inst = Broker(
+    broker_instance = Broker(
         workflow=settings.server.deploy_workflows.product,
         deploy_sat_version=settings.upgrade.from_version,
         deploy_network_type=settings.server.network_type,
@@ -56,11 +42,11 @@ def shared_checkout(shared_name):
     )
     with SharedResource(
         resource_name=f"{shared_name}_sat_checkout",
-        action=bx_inst.checkout,
+        action=broker_instance.checkout,
         action_validator=lambda result: isinstance(result, Satellite),
     ) as sat_checkout:
         sat_checkout.ready()
-        sat_instance = bx_inst.from_inventory(
+        sat_instance = broker_instance.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
             '@inv._broker_args.workflow == "deploy-satellite"'
         )
@@ -68,7 +54,7 @@ def shared_checkout(shared_name):
 
 
 def shared_cap_checkout(shared_name):
-    cap_inst = Broker(
+    broker_instance = Broker(
         workflow=settings.capsule.deploy_workflows.product,
         deploy_sat_version=settings.upgrade.from_version,
         deploy_network_type=settings.capsule.network_type,
@@ -77,25 +63,25 @@ def shared_cap_checkout(shared_name):
     )
     with SharedResource(
         resource_name=f'{shared_name}_cap_checkout',
-        action=cap_inst.checkout,
+        action=broker_instance.checkout,
         action_validator=lambda result: isinstance(result, Capsule),
     ) as cap_checkout:
         cap_checkout.ready()
-        cap_instance = cap_inst.from_inventory(
+        cap_instance = broker_instance.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
             '@inv._broker_args.workflow == "deploy-capsule"'
         )
     return cap_instance[-1]
 
 
-def shared_checkin(sat_instance):
-    sat_instance.teardown()
+def shared_checkin(host_instance):
+    host_instance.teardown()
     with SharedResource(
-        resource_name=sat_instance.hostname + "_checkin",
-        action=Broker(hosts=[sat_instance]).checkin,
-    ) as sat_checkin:
-        logger.debug(f'Running sat_checkin.ready() for {sat_instance.hostname}')
-        sat_checkin.ready()
+        resource_name=f"{host_instance.hostname}_checkin",
+        action=Broker(hosts=[host_instance]).checkin,
+    ) as host_checkin:
+        logger.debug(f'Running host_checkin.ready() for {host_instance.hostname}')
+        host_checkin.ready()
 
 
 @pytest.fixture(scope='session')
@@ -123,168 +109,48 @@ def upgrade_action():
 
 
 @pytest.fixture
-def content_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.content_upgrades."""
-    sat_instance = shared_checkout("content_upgrade")
+def shared_satellite(request):
+    """Fixture for shared Satellite deployment in upgrade tests.
+
+    Use with @pytest.mark.upgrade(arg)
+    The shared resource name will be f"{arg}_upgrade".
+    """
+    mark = request.node.get_closest_marker("upgrade")
+    shared_name = f"{mark.args[0]}_upgrade"
+
+    sat_instance = shared_checkout(shared_name)
+
+    if mark.kwargs.get("use_cdn"):
+        sat_instance.register_to_cdn()
+
     with SharedResource(
-        "content_upgrade_tests", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture(scope='module')
-def pulp_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.pulp_upgrades."""
-    sat_instance = shared_checkout("pulp_upgrade")
-    with SharedResource(
-        "pulp_upgrade_tests", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def search_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.search_upgrades."""
-    sat_instance = shared_checkout("search_upgrade")
-    with SharedResource(
-        "search_upgrade_tests",
-        shared_checkin,
-        sat_instance=sat_instance,
+        f"{shared_name}_tests_satellite", shared_checkin, host_instance=sat_instance
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
 
 
 @pytest.fixture
-def hostgroup_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.hostgroup_upgrades."""
-    sat_instance = shared_checkout("hostgroup_upgrade")
+def shared_capsule(request):
+    """Fixture for shared Capsule deployment in upgrade tests.
+
+    Use with @pytest.mark.upgrade(arg)
+    The shared resource name will be f"{arg}_upgrade".
+    """
+    mark = request.node.get_closest_marker("upgrade")
+    shared_name = f"{mark.args[0]}_upgrade"
+
+    cap_instance = shared_cap_checkout(shared_name)
+
     with SharedResource(
-        "hostgroup_upgrade_tests", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def usergroup_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.usergroup_upgrades."""
-    sat_instance = shared_checkout("usergroup_upgrade")
-    with SharedResource(
-        "usergroup_upgrade_tests", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def errata_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.search_upgrades."""
-    sat_instance = shared_checkout("errata_upgrade")
-    with SharedResource(
-        "errata_upgrade_tests",
-        shared_checkin,
-        sat_instance=sat_instance,
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def fdi_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.discovery_upgrades."""
-    sat_instance = shared_checkout("fdi_upgrade")
-    with SharedResource(
-        "fdi_upgrade_tests", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def perf_tuning_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.perf_tuning_upgrades."""
-    sat_instance = shared_checkout("perf_tuning_upgrade")
-    with SharedResource(
-        "perf_tuning_upgrade_tests", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def subscription_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.subscription_upgrades."""
-    sat_instance = shared_checkout("subscription_upgrade")
-    with SharedResource(
-        "subscription_upgrade_tests", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def sync_plan_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.sync_plan_upgrades."""
-    sat_instance = shared_checkout("sync_plan_upgrade")
-    with SharedResource(
-        "sync_plan_upgrade_tests", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def virt_who_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.virt_who_upgrades."""
-    sat_instance = shared_checkout("virt_who_upgrade")
-    sat_instance.register_to_cdn()
-    with SharedResource(
-        "virt_who_upgrade_tests", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def client_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.client_upgrades."""
-    sat_instance = shared_checkout("client_plan_upgrade")
-    with SharedResource(
-        "client_plan_upgrade_tests", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def capsule_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
-    sat_instance = shared_checkout("capsule_upgrade")
-    with SharedResource(
-        "capsule_upgrade_tests_satellite", shared_checkin, sat_instance=sat_instance
-    ) as test_duration:
-        yield sat_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def capsule_upgrade_shared_capsule():
-    """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
-    cap_instance = shared_cap_checkout("capsule_upgrade")
-    with SharedResource(
-        "capsule_upgrade_tests_capsule", shared_checkin, sat_instance=cap_instance
+        f"{shared_name}_tests_capsule", shared_checkin, host_instance=cap_instance
     ) as test_duration:
         yield cap_instance
         test_duration.ready()
 
 
 @pytest.fixture
-def capsule_upgrade_integrated_sat_cap(
-    capsule_upgrade_shared_satellite, capsule_upgrade_shared_capsule
-):
+def integrated_sat_cap(shared_satellite, shared_capsule):
     """Return a Satellite and Capsule that have been set up"""
     setup_data = Box(
         {
@@ -295,63 +161,35 @@ def capsule_upgrade_integrated_sat_cap(
     )
     with SharedResource(
         "capsule_setup",
-        action=capsule_upgrade_shared_capsule.capsule_setup,
-        sat_host=capsule_upgrade_shared_satellite,
-        release=capsule_upgrade_shared_capsule.version,
+        action=shared_capsule.capsule_setup,
+        sat_host=shared_satellite,
+        release=shared_capsule.version,
     ) as cap_setup:
         cap_setup.ready()
-    cap_smart_proxy = capsule_upgrade_shared_satellite.api.SmartProxy().search(
-        query={'search': f'name = {capsule_upgrade_shared_capsule.hostname}'}
+    cap_smart_proxy = shared_satellite.api.SmartProxy().search(
+        query={'search': f'name = {shared_capsule.hostname}'}
     )[0]
     cap_smart_proxy.organization = []
-    setup_data.satellite = capsule_upgrade_shared_satellite
-    setup_data.capsule = capsule_upgrade_shared_capsule
+    setup_data.satellite = shared_satellite
+    setup_data.capsule = shared_capsule
     setup_data.cap_smart_proxy = cap_smart_proxy
     return setup_data
 
 
 @pytest.fixture
-def puppet_upgrade_shared_satellite():
-    """Mark tests using this fixture with pytest.mark.puppet_upgrades"""
-    sat_instance = shared_checkout("puppet_upgrade")
-    with (
-        SharedResource(
-            "puppet_upgrade_enable_puppet",
-            action=sat_instance.enable_puppet_satellite,
-            action_is_recoverable=True,
-        ) as enable_puppet,
-        SharedResource(
-            "puppet_upgrade_satellite",
-            shared_checkin,
-            sat_instance=sat_instance,
-            action_is_recoverable=True,
-        ) as test_duration,
-    ):
+def puppet_upgrade_shared_satellite(shared_satellite):
+    sat_instance = shared_satellite
+    with SharedResource(
+        "puppet_upgrade_enable_puppet",
+        action=sat_instance.enable_puppet_satellite,
+        action_is_recoverable=True,
+    ) as enable_puppet:
         enable_puppet.ready()
         yield sat_instance
-        test_duration.ready()
 
 
 @pytest.fixture
-def puppet_upgrade_shared_capsule():
-    """Mark tests using this fixture with pytest.mark.puppet_upgrades"""
-    cap_instance = shared_cap_checkout("puppet_upgrade")
-    with (
-        SharedResource(
-            "puppet_upgrade_capsule",
-            shared_checkin,
-            sat_instance=cap_instance,
-            action_is_recoverable=True,
-        ) as test_duration,
-    ):
-        yield cap_instance
-        test_duration.ready()
-
-
-@pytest.fixture
-def puppet_upgrade_integrated_sat_cap(
-    puppet_upgrade_shared_satellite, puppet_upgrade_shared_capsule
-):
+def puppet_upgrade_integrated_sat_cap(puppet_upgrade_shared_satellite, shared_capsule):
     """Return a Satellite and Capsule that have been set up"""
     setup_data = Box(
         {
@@ -362,13 +200,13 @@ def puppet_upgrade_integrated_sat_cap(
     with (
         SharedResource(
             "capsule_setup",
-            action=puppet_upgrade_shared_capsule.capsule_setup,
+            action=shared_capsule.capsule_setup,
             sat_host=puppet_upgrade_shared_satellite,
-            release=puppet_upgrade_shared_capsule.version,
+            release=shared_capsule.version,
         ) as cap_setup,
         SharedResource(
             "puppet_upgrade_enable_puppet_capsule",
-            action=puppet_upgrade_shared_capsule.enable_puppet_capsule,
+            action=shared_capsule.enable_puppet_capsule,
             action_is_recoverable=True,
             satellite=puppet_upgrade_shared_satellite,
         ) as enable_puppet,
@@ -376,7 +214,7 @@ def puppet_upgrade_integrated_sat_cap(
         cap_setup.ready()
         enable_puppet.ready()
     setup_data.satellite = puppet_upgrade_shared_satellite
-    setup_data.capsule = puppet_upgrade_shared_capsule
+    setup_data.capsule = shared_capsule
     return setup_data
 
 

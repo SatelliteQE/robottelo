@@ -30,9 +30,9 @@ def pulp_upgrade_manifest():
 
 
 @pytest.fixture(scope='module')
-def pulp_upgrade_setup(pulp_upgrade_shared_satellite, upgrade_action, pulp_upgrade_manifest):
+def pulp_upgrade_setup(shared_satellite, upgrade_action, pulp_upgrade_manifest):
     """Fixture to set up content entities to properly test pulp HREF to PRN mapping."""
-    target_sat = pulp_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_data = _setup_prn_content(
             target_sat, pulp_upgrade_manifest, test_name='pulp_href_prn_migration'
@@ -42,7 +42,7 @@ def pulp_upgrade_setup(pulp_upgrade_shared_satellite, upgrade_action, pulp_upgra
         yield test_data
 
 
-@pytest.mark.pulp_upgrades
+@pytest.mark.upgrade("pulp")
 @pytest.mark.parametrize('table', PULP_PRN_TABLES, ids=lambda t: f"{t['name']}:{t['prn_key']}")
 def test_pulp_href_prn_migration_scenario(pulp_upgrade_setup, table):
     """Verify Pulp HREF to PRN migration for all relevant Katello tables, except for repo versions.
@@ -77,7 +77,7 @@ def test_pulp_href_prn_migration_scenario(pulp_upgrade_setup, table):
         assert row[table['prn_key']] == PULP_HREF_PRN_MAP.get(base_path, '') + uuid
 
 
-@pytest.mark.pulp_upgrades
+@pytest.mark.upgrade("pulp")
 def test_pulp_repoversion_href_prn_migration_scenario(pulp_upgrade_setup):
     """Verify Pulp HREF to PRN migration for repository versions in katello_repositories table.
 

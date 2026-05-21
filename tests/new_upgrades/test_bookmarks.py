@@ -21,7 +21,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def disabled_bookmark_setup(search_upgrade_shared_satellite, upgrade_action):
+def disabled_bookmark_setup(shared_satellite, upgrade_action):
     """Create public disabled bookmarks for system entities using available bookmark
     data.
 
@@ -42,7 +42,7 @@ def disabled_bookmark_setup(search_upgrade_shared_satellite, upgrade_action):
 
     :CaseImportance: Critical
     """
-    target_sat = search_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_data = Box(
             {
@@ -70,7 +70,7 @@ def disabled_bookmark_setup(search_upgrade_shared_satellite, upgrade_action):
         yield test_data
 
 
-@pytest.mark.search_upgrades
+@pytest.mark.upgrade("search")
 def test_post_disabled_bookmark(disabled_bookmark_setup):
     """Check the status of public disabled bookmark for all the
     system entities(activation keys, tasks, compute profile, content hosts etc) after upgrade.
@@ -100,7 +100,7 @@ def test_post_disabled_bookmark(disabled_bookmark_setup):
 
 
 @pytest.fixture
-def enabled_bookmark_setup(search_upgrade_shared_satellite, upgrade_action):
+def enabled_bookmark_setup(shared_satellite, upgrade_action):
     """Create public enable bookmark for system entities using available bookmark
     data.
 
@@ -120,7 +120,7 @@ def enabled_bookmark_setup(search_upgrade_shared_satellite, upgrade_action):
 
     :customerscenario: true
     """
-    target_sat = search_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_data = Box(
             {
@@ -147,7 +147,7 @@ def enabled_bookmark_setup(search_upgrade_shared_satellite, upgrade_action):
         yield test_data
 
 
-@pytest.mark.search_upgrades
+@pytest.mark.upgrade("search")
 def test_post_enabled_bookmark(enabled_bookmark_setup):
     """Check the status of public enabled bookmark for all the
     system entities(activation keys, tasks, compute profile, content hosts etc) after upgrade.

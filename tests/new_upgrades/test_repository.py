@@ -28,7 +28,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def custom_repo_check_setup(sat_upgrade_chost, content_upgrade_shared_satellite, upgrade_action):
+def custom_repo_check_setup(sat_upgrade_chost, shared_satellite, upgrade_action):
     """This is pre-upgrade scenario test to verify if we can create a
         custom repository and consume it via content host.
 
@@ -47,7 +47,7 @@ def custom_repo_check_setup(sat_upgrade_chost, content_upgrade_shared_satellite,
         2. Package is installed on Content host.
 
     """
-    target_sat = content_upgrade_shared_satellite
+    target_sat = shared_satellite
     sat_upgrade_chost._skip_context_checkin = True
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_data = Box(
@@ -91,7 +91,7 @@ def custom_repo_check_setup(sat_upgrade_chost, content_upgrade_shared_satellite,
         yield test_data
 
 
-@pytest.mark.content_upgrades
+@pytest.mark.upgrade("content")
 def test_scenario_custom_repo_check(custom_repo_check_setup):
     """This is post-upgrade scenario test to verify if we can alter the
     created custom repository and satellite will be able to sync back
@@ -128,7 +128,7 @@ def test_scenario_custom_repo_check(custom_repo_check_setup):
 
 
 @pytest.fixture
-def container_repo_sync_setup(content_upgrade_shared_satellite, upgrade_action):
+def container_repo_sync_setup(shared_satellite, upgrade_action):
     """This is a pre-upgrade fixture to sync container repositories
     with some labels, annotations and bootable and flatpak flags.
 
@@ -142,7 +142,7 @@ def container_repo_sync_setup(content_upgrade_shared_satellite, upgrade_action):
 
     :expectedresults: Container repositories are synced and ready for upgrade.
     """
-    target_sat = content_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_data = Box(
             {
@@ -169,7 +169,7 @@ def container_repo_sync_setup(content_upgrade_shared_satellite, upgrade_action):
         yield test_data
 
 
-@pytest.mark.content_upgrades
+@pytest.mark.upgrade("content")
 def test_container_repo_sync(container_repo_sync_setup):
     """This is a post-upgrade test to verify the container labels
     were indexed properly in the post-upgrade task.

@@ -26,7 +26,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def capsule_sync_setup(capsule_upgrade_integrated_sat_cap, upgrade_action):
+def capsule_sync_setup(integrated_sat_cap, upgrade_action):
     """Pre-upgrade scenario that creates and syncs repository with
     rpm in Satellite which will be synced in post upgrade scenario.
 
@@ -40,9 +40,9 @@ def capsule_sync_setup(capsule_upgrade_integrated_sat_cap, upgrade_action):
         2. Activation key's environment id should be available in the content views environment
             id's list
     """
-    target_sat = capsule_upgrade_integrated_sat_cap.satellite
-    capsule = capsule_upgrade_integrated_sat_cap.capsule
-    cap_smart_proxy = capsule_upgrade_integrated_sat_cap.cap_smart_proxy
+    target_sat = integrated_sat_cap.satellite
+    capsule = integrated_sat_cap.capsule
+    cap_smart_proxy = integrated_sat_cap.cap_smart_proxy
     with (
         SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade,
         SharedResource(capsule.hostname, upgrade_action, target_sat=capsule) as cap_upgrade,
@@ -101,7 +101,7 @@ def capsule_sync_setup(capsule_upgrade_integrated_sat_cap, upgrade_action):
         yield test_data
 
 
-@pytest.mark.capsule_upgrades
+@pytest.mark.upgrade("capsule")
 def test_post_capsule_features(capsule_sync_setup):
     """Post-upgrade scenario that sync capsule from satellite and then
     verifies if the repo/rpm of pre-upgrade scenario is synced to capsule
@@ -123,7 +123,7 @@ def test_post_capsule_features(capsule_sync_setup):
     assert refreshed_features == pre_features, 'capsule features after refresh are differrent'
 
 
-@pytest.mark.capsule_upgrades
+@pytest.mark.upgrade("capsule")
 def test_post_user_scenario_capsule_sync(capsule_sync_setup):
     """Post-upgrade scenario that sync capsule from satellite and then
     verifies if the repo/rpm of pre-upgrade scenario is synced to capsule
@@ -185,7 +185,7 @@ def test_post_user_scenario_capsule_sync(capsule_sync_setup):
     assert sat_files_md5 == cap_files_md5, 'satellite and capsule rpm md5sums are differrent'
 
 
-@pytest.mark.capsule_upgrades
+@pytest.mark.upgrade("capsule")
 def test_post_user_scenario_capsule_sync_yum_repo(capsule_sync_setup):
     """Post-upgrade scenario that creates and sync repository with
     rpm, sync capsule with satellite and verifies if the repo/rpm in

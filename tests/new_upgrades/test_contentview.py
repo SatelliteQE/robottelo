@@ -22,7 +22,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def cv_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
+def cv_upgrade_setup(shared_satellite, upgrade_action):
     """Pre-upgrade scenario that creates content-view with various repositories.
 
     :id: preupgrade-a4ebbfa1-106a-4962-9c7c-082833879ae8
@@ -35,7 +35,7 @@ def cv_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
 
     :expectedresults: Content-view created with various repositories.
     """
-    target_sat = content_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_data = Box(
             {
@@ -76,7 +76,7 @@ def cv_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
         yield test_data
 
 
-@pytest.mark.content_upgrades
+@pytest.mark.upgrade("content")
 def test_cv_upgrade_scenario(cv_upgrade_setup):
     """After upgrade, the existing content-view(created before upgrade) should be updated.
 

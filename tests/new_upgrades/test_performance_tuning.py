@@ -22,7 +22,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def perf_tuning_upgrade_setup(perf_tuning_upgrade_shared_satellite, upgrade_action):
+def perf_tuning_upgrade_setup(shared_satellite, upgrade_action):
     """In preupgrade scenario we apply non-default tuning size.
 
     :steps:
@@ -34,7 +34,7 @@ def perf_tuning_upgrade_setup(perf_tuning_upgrade_shared_satellite, upgrade_acti
     :expectedresults: Non-default tuning parameter should be applied.
 
     """
-    target_sat = perf_tuning_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         try:
             target_sat.get(
@@ -60,7 +60,7 @@ def perf_tuning_upgrade_setup(perf_tuning_upgrade_shared_satellite, upgrade_acti
         yield target_sat
 
 
-@pytest.mark.perf_tuning_upgrades
+@pytest.mark.upgrade("perf_tuning")
 def test_post_performance_tuning_apply(perf_tuning_upgrade_setup):
     """In postupgrade scenario, we verify the set tuning parameters and custom-hiera.yaml
     file's content.

@@ -31,7 +31,7 @@ from robottelo.utils.shared_resource import SharedResource
 @pytest.fixture
 def pre_client_package_installation_setup(
     rhel_contenthost,
-    client_upgrade_shared_satellite,
+    shared_satellite,
     upgrade_action,
 ):
     """Create product and repo, from which a package will be installed
@@ -53,7 +53,7 @@ def pre_client_package_installation_setup(
         2. The new repo is enabled on the content host.
 
     """
-    target_sat = client_upgrade_shared_satellite
+    target_sat = shared_satellite
     rhel_contenthost._skip_context_checkin = True
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'rex_upgrade_{gen_alpha()}'
@@ -117,9 +117,9 @@ def pre_client_package_installation_setup(
         yield test_data
 
 
-@pytest.mark.client_upgrades
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
+@pytest.mark.upgrade("client")
 def test_pre_client_package_installation(pre_client_package_installation_setup):
     """Post-upgrade install of a package on a client created and registered pre-upgrade.
 
@@ -143,9 +143,9 @@ def test_pre_client_package_installation(pre_client_package_installation_setup):
     assert FAKE_0_CUSTOM_PACKAGE_NAME in result.stdout
 
 
-@pytest.mark.client_upgrades
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
+@pytest.mark.upgrade("client")
 def test_post_scenario_post_client_package_installation(pre_client_package_installation_setup):
     """Post-upgrade test that installs a package on a client registered post-upgrade
     and then verifies the package is installed.

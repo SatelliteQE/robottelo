@@ -108,7 +108,7 @@ def puppet_class_parameter_data_and_type_setup(
         yield test_data
 
 
-@pytest.mark.puppet_upgrades
+@pytest.mark.upgrade("puppet")
 def test_post_puppet_class_parameter_data_and_type(
     puppet_class_parameter_data_and_type_setup,
 ):

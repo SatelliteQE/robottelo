@@ -25,7 +25,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def sync_plan_migration_setup(sync_plan_upgrade_shared_satellite, upgrade_action):
+def sync_plan_migration_setup(shared_satellite, upgrade_action):
     """Creates sync plan and assigns repo to sync plan
 
     :steps:
@@ -35,7 +35,7 @@ def sync_plan_migration_setup(sync_plan_upgrade_shared_satellite, upgrade_action
 
     :expectedresults: Run sync plan create, get, assign and verify it should pass
     """
-    target_sat = sync_plan_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'sync_plan_upgrade_{gen_alpha()}'
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
@@ -71,7 +71,7 @@ def sync_plan_migration_setup(sync_plan_upgrade_shared_satellite, upgrade_action
         yield test_data
 
 
-@pytest.mark.sync_plan_upgrades
+@pytest.mark.upgrade("sync_plan")
 def test_post_sync_plan_migration(request, sync_plan_migration_setup):
     """After upgrade, sync interval update should work on existing sync plan(created before
     upgrade)

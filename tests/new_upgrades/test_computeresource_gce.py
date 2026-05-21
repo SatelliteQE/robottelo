@@ -70,11 +70,7 @@ def setup_gce_cr_and_host(
         3. The host should show Installed status for provisioned host
     """
     target_sat = puppet_upgrade_shared_satellite
-    with SharedResource(
-        puppet_upgrade_shared_satellite.hostname,
-        upgrade_action,
-        target_sat=puppet_upgrade_shared_satellite,
-    ) as sat_upgrade:
+    with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_name = f'gce_upgrade_{gen_alpha(length=8)}'
         compute_attrs = {
             'image_id': shared_gce_latest_rhel_uuid,
@@ -175,7 +171,7 @@ def setup_gce_cr_and_host(
         yield test_data
 
 
-@pytest.mark.puppet_upgrades
+@pytest.mark.upgrade("puppet")
 def test_post_create_gce_cr_and_host(
     setup_gce_cr_and_host,
 ):

@@ -19,7 +19,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def hostgroup_upgrade_setup(hostgroup_upgrade_shared_satellite, upgrade_action):
+def hostgroup_upgrade_setup(shared_satellite, upgrade_action):
     """Hostgroup with different data type are created
 
     :id: preupgrade-79958754-94b6-4bfe-af12-7d4031cd2dd2
@@ -28,7 +28,7 @@ def hostgroup_upgrade_setup(hostgroup_upgrade_shared_satellite, upgrade_action):
 
     :expectedresults: Hostgroup should be create successfully.
     """
-    target_sat = hostgroup_upgrade_shared_satellite
+    target_sat = shared_satellite
     test_name = f'hostgroup_upgrade{gen_alpha()}'
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_data = Box(
@@ -95,7 +95,7 @@ def hostgroup_upgrade_setup(hostgroup_upgrade_shared_satellite, upgrade_action):
         yield test_data
 
 
-@pytest.mark.hostgroup_upgrades
+@pytest.mark.upgrade("hostgroup")
 def test_post_crud_hostgroup(hostgroup_upgrade_setup, request):
     """After upgrade, Update, delete and clone should work on existing hostgroup(created before
     upgrade)

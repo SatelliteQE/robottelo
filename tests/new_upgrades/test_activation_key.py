@@ -22,7 +22,7 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def ak_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
+def ak_upgrade_setup(shared_satellite, upgrade_action):
     """Pre-upgrade scenario that creates an activation key and custom repo.
 
     :id: preupgrade-a7443b54-eb2e-497b-8a50-92abeae01496
@@ -33,7 +33,7 @@ def ak_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
         3. Create and sync custom repo.
         4. Create activation key.
     """
-    target_sat = content_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_data = Box(
             {
@@ -78,7 +78,7 @@ def ak_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
         yield test_data
 
 
-@pytest.mark.content_upgrades
+@pytest.mark.upgrade("content")
 def test_ak_upgrade_scenario(ak_upgrade_setup):
     """After Upgrade, Activation keys entities remain the same and
     all their functionality works.

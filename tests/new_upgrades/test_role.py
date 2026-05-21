@@ -19,14 +19,14 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def default_role_permission_setup(search_upgrade_shared_satellite, upgrade_action):
+def default_role_permission_setup(shared_satellite, upgrade_action):
     """New permission is added to Default Role
 
     :steps: New permission is added to existing 'Default role'
 
     :expectedresults: Permission is added to existing 'Default role'.
     """
-    target_sat = search_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         default_role = target_sat.api.Role().search(query={'search': 'name="Default role"'})[0]
         subnet_filter = target_sat.api.Filter(
@@ -47,7 +47,7 @@ def default_role_permission_setup(search_upgrade_shared_satellite, upgrade_actio
 
 
 @pytest.fixture
-def default_role_permission_with_filter_setup(search_upgrade_shared_satellite, upgrade_action):
+def default_role_permission_with_filter_setup(shared_satellite, upgrade_action):
     """New permission with filter is added to Default Role
 
     :steps: New permission is added to existing 'Default role' with filter
@@ -55,7 +55,7 @@ def default_role_permission_with_filter_setup(search_upgrade_shared_satellite, u
     :expectedresults: Permission with filter is added to existing
         'Default role'
     """
-    target_sat = search_upgrade_shared_satellite
+    target_sat = shared_satellite
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         default_role = target_sat.api.Role().search(query={'search': 'name="Default role"'})[0]
         domain_filter = target_sat.api.Filter(
@@ -72,7 +72,7 @@ def default_role_permission_with_filter_setup(search_upgrade_shared_satellite, u
         yield test_data
 
 
-@pytest.mark.search_upgrades
+@pytest.mark.upgrade("search")
 def test_default_role_added_permission(default_role_permission_setup):
     """The new permission in 'Default role' is intact post upgrade
 
@@ -91,7 +91,7 @@ def test_default_role_added_permission(default_role_permission_setup):
     subnet_filter[0].delete()
 
 
-@pytest.mark.search_upgrades
+@pytest.mark.upgrade("search")
 def test_default_role_added_permission_with_filter(default_role_permission_with_filter_setup):
     """The new permission with filter in 'Default role' is intact post
         upgrade
