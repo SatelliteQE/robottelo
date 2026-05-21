@@ -218,11 +218,11 @@ def test_post_user_scenario_capsule_sync_yum_repo(capsule_sync_setup):
     content_view = target_sat.publish_content_view(org.id, repo, 'post_upgrade_sync_content_view')
     content_view.version[0].promote(data={'environment_ids': lce.id})
     content_view_env_id = [env.id for env in content_view.read().environment]
+    cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, lce)
     ak = target_sat.api.ActivationKey(
         name='post_upgrade_sync_ak',
         organization=org.id,
-        environment=lce.id,
-        content_view=content_view,
+        content_view_environment_ids=[cvenv_id],
     ).create()
     ak_env = ak.environment.read()
     assert ak_env.id in content_view_env_id

@@ -220,8 +220,9 @@ def test_positive_create_and_update_with_hostgroup(
         location=module_location,
         organization=module_org,
         content_facet_attributes={
-            'content_view_id': module_published_cv.id,
-            'lifecycle_environment_id': module_lce.id,
+            'content_view_environment_ids': [
+                module_target_sat.api_factory.get_cvenv_id(module_published_cv, module_lce)
+            ],
         },
     ).create()
     assert host.hostgroup.read().name == hostgroup.name
@@ -230,8 +231,9 @@ def test_positive_create_and_update_with_hostgroup(
     ).create()
     host.hostgroup = new_hostgroup
     host.content_facet_attributes = {
-        'content_view_id': module_published_cv.id,
-        'lifecycle_environment_id': module_lce.id,
+        'content_view_environment_ids': [
+            module_target_sat.api_factory.get_cvenv_id(module_published_cv, module_lce)
+        ],
     }
     host = host.update(['hostgroup', 'content_facet_attributes'])
     assert host.hostgroup.read().name == new_hostgroup.name
@@ -250,9 +252,11 @@ def test_positive_create_inherit_lce_cv(
 
     :BZ: 1391656
     """
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+        module_default_org_view, module_lce_library
+    )
     hostgroup = module_target_sat.api.HostGroup(
-        content_view=module_default_org_view,
-        lifecycle_environment=module_lce_library,
+        content_view_environment_id=cvenv_id,
         organization=[module_org],
     ).create()
     host = module_target_sat.api.Host(hostgroup=hostgroup, organization=module_org).create()
@@ -728,16 +732,20 @@ def test_positive_create_and_update_with_content_view(
         organization=module_org,
         location=module_location,
         content_facet_attributes={
-            'content_view_id': module_default_org_view.id,
-            'lifecycle_environment_id': module_lce_library.id,
+            'content_view_environment_ids': [
+                module_target_sat.api_factory.get_cvenv_id(
+                    module_default_org_view, module_lce_library
+                )
+            ],
         },
     ).create()
     assert host.content_facet_attributes['content_view']['id'] == module_default_org_view.id
     assert host.content_facet_attributes['lifecycle_environment']['id'] == module_lce_library.id
 
     host.content_facet_attributes = {
-        'content_view_id': module_default_org_view.id,
-        'lifecycle_environment_id': module_lce_library.id,
+        'content_view_environment_ids': [
+            module_target_sat.api_factory.get_cvenv_id(module_default_org_view, module_lce_library)
+        ],
     }
     host = host.update(['content_facet_attributes'])
     assert host.content_facet_attributes['content_view']['id'] == module_default_org_view.id
@@ -1063,8 +1071,9 @@ def test_positive_read_content_source_id(
         location=module_location,
         content_facet_attributes={
             'content_source_id': proxy.id,
-            'content_view_id': module_published_cv.id,
-            'lifecycle_environment_id': module_lce.id,
+            'content_view_environment_ids': [
+                target_sat.api_factory.get_cvenv_id(module_published_cv, module_lce)
+            ],
         },
     ).create()
     content_facet_attributes = host.content_facet_attributes
@@ -1095,8 +1104,9 @@ def test_positive_update_content_source_id(
         organization=module_org,
         location=module_location,
         content_facet_attributes={
-            'content_view_id': module_published_cv.id,
-            'lifecycle_environment_id': module_lce.id,
+            'content_view_environment_ids': [
+                target_sat.api_factory.get_cvenv_id(module_published_cv, module_lce)
+            ],
         },
     ).create()
     host.content_facet_attributes['content_source_id'] = proxy.id
@@ -1154,8 +1164,9 @@ def test_positive_read_enc_information(
         environment=module_env_search,
         puppetclass=module_puppet_classes,
         content_facet_attributes={
-            'content_view_id': cv.id,
-            'lifecycle_environment_id': lce.id,
+            'content_view_environment_ids': [
+                session_puppet_enabled_sat.api_factory.get_cvenv_id(cv, lce)
+            ],
         },
         host_parameters_attributes=host_parameters_attributes,
         puppet_proxy=session_puppet_enabled_proxy,

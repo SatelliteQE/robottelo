@@ -62,10 +62,11 @@ def module_vmware_hostgroup(
         architecture=default_architecture,
         domain=module_provisioning_sat.domain,
         content_source=module_provisioning_capsule.id,
-        content_view=module_provisioning_rhel_content.cv,
+        content_view_environment_id=module_provisioning_sat.sat.api_factory.get_cvenv_id(
+            module_provisioning_rhel_content.cv, module_lce_library
+        ),
         compute_resource=module_vmware_cr,
         kickstart_repository=module_provisioning_rhel_content.ksrepo,
-        lifecycle_environment=module_lce_library,
         root_pass=settings.provisioning.host_root_password,
         operatingsystem=module_provisioning_rhel_content.os,
         ptable=default_partitiontable,

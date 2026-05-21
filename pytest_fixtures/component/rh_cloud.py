@@ -67,12 +67,15 @@ def rhcloud_manifest_org(module_target_sat_insights, module_sca_manifest):
 @pytest.fixture(scope='module')
 def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
     """A module-level fixture to create an Activation key in rhcloud_manifest_org"""
-    return module_target_sat_insights.api.ActivationKey(
-        content_view=rhcloud_manifest_org.default_content_view,
-        organization=rhcloud_manifest_org,
-        environment=module_target_sat_insights.api.LifecycleEnvironment(
+    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
+        rhcloud_manifest_org.default_content_view,
+        module_target_sat_insights.api.LifecycleEnvironment(
             id=rhcloud_manifest_org.library.id
         ),
+    )
+    return module_target_sat_insights.api.ActivationKey(
+        content_view_environment_ids=[cvenv_id],
+        organization=rhcloud_manifest_org,
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
@@ -82,12 +85,15 @@ def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
 @pytest.fixture(scope='module')
 def activation_key_with_els_manifest_org(module_target_sat_insights, module_els_manifest_org):
     """A module-level fixture to create an Activation key in module_els_manifest_org"""
-    return module_target_sat_insights.api.ActivationKey(
-        content_view=module_els_manifest_org.default_content_view,
-        organization=module_els_manifest_org,
-        environment=module_target_sat_insights.api.LifecycleEnvironment(
+    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
+        module_els_manifest_org.default_content_view,
+        module_target_sat_insights.api.LifecycleEnvironment(
             id=module_els_manifest_org.library.id
         ),
+    )
+    return module_target_sat_insights.api.ActivationKey(
+        content_view_environment_ids=[cvenv_id],
+        organization=module_els_manifest_org,
     ).create()
 
 

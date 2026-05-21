@@ -138,13 +138,15 @@ def test_host_provisioning_with_external_puppetserver(
     puppet_env = 'production'
     host_mac_addr = provisioning_host.provisioning_nic_mac_addr
     sat = module_provisioning_sat.sat
+    cvenv_id = sat.api_factory.get_cvenv_id(
+        module_provisioning_rhel_content.cv, module_lce_library
+    )
     host = sat.api.Host(
         hostgroup=provisioning_hostgroup,
         organization=module_sca_manifest_org,
         location=module_location,
         content_facet_attributes={
-            'content_view_id': module_provisioning_rhel_content.cv.id,
-            'lifecycle_environment_id': module_lce_library.id,
+            'content_view_environment_ids': [cvenv_id],
         },
         name=gen_string('alpha').lower(),
         mac=host_mac_addr,

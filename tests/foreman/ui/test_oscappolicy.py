@@ -61,13 +61,13 @@ def test_positive_check_dashboard(
     content_view.publish()
     content_view = content_view.read()
     content_view.version[0].promote(data={'environment_ids': lce.id})
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(content_view, lce)
     module_target_sat.api.Host(
         hostgroup=module_host_group,
         location=default_location,
         organization=default_org,
         content_facet_attributes={
-            'content_view_id': content_view.id,
-            'lifecycle_environment_id': lce.id,
+            'content_view_environment_ids': [cvenv_id],
         },
     ).create()
     module_target_sat.api.ScapContents(

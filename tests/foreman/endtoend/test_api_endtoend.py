@@ -1178,8 +1178,9 @@ class TestEndToEnd:
         # content view and last lifecycle where it exists
         content_host = target_sat.api.Host(
             content_facet_attributes={
-                'content_view_id': content_view.id,
-                'lifecycle_environment_id': le1.id,
+                'content_view_environment_ids': [
+                    target_sat.api_factory.get_cvenv_id(content_view, le1)
+                ],
             },
             organization=org,
         ).create()

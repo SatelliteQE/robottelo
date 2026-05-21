@@ -264,6 +264,9 @@ class TestProvisioningTemplate:
         """
         macaddress = gen_mac(multicast=False)
         capsule = module_target_sat.nailgun_smart_proxy
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+            module_default_org_view, module_lce_library
+        )
         host = module_target_sat.api.Host(
             organization=module_sca_manifest_org,
             location=module_location,
@@ -276,8 +279,7 @@ class TestProvisioningTemplate:
             ptable=default_partitiontable,
             content_facet_attributes={
                 'content_source_id': capsule.id,
-                'content_view_id': module_default_org_view.id,
-                'lifecycle_environment_id': module_lce_library.id,
+                'content_view_environment_ids': [cvenv_id],
             },
         ).create()
         request.addfinalizer(lambda: host.delete())
@@ -320,6 +322,9 @@ class TestProvisioningTemplate:
         identifier = gen_string('alphanumeric')
         tag = gen_string('numeric', length=4)
         # create a host with vlan enabled interface
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+            module_default_org_view, module_lce_library
+        )
         host = module_target_sat.api.Host(
             organization=module_sca_manifest_org,
             location=module_location,
@@ -329,8 +334,7 @@ class TestProvisioningTemplate:
             ptable=default_partitiontable,
             content_facet_attributes={
                 'content_source_id': capsule.id,
-                'content_view_id': module_default_org_view.id,
-                'lifecycle_environment_id': module_lce_library.id,
+                'content_view_environment_ids': [cvenv_id],
             },
             interfaces_attributes=[
                 {
@@ -509,6 +513,9 @@ class TestProvisioningTemplate:
             {'name': 'ansible_job_template_id', 'value': template_id, 'parameter_type': 'integer'},
             {'name': 'ansible_extra_vars', 'value': extra_vars_dict, 'parameter_type': 'string'},
         ]
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+            module_default_org_view, module_lce_library
+        )
         host = module_target_sat.api.Host(
             organization=module_sca_manifest_org,
             location=module_location,
@@ -520,8 +527,7 @@ class TestProvisioningTemplate:
             ptable=default_partitiontable,
             content_facet_attributes={
                 'content_source_id': module_target_sat.nailgun_smart_proxy.id,
-                'content_view_id': module_default_org_view.id,
-                'lifecycle_environment_id': module_lce_library.id,
+                'content_view_environment_ids': [cvenv_id],
             },
             host_parameters_attributes=host_params,
         ).create()
@@ -567,6 +573,9 @@ class TestProvisioningTemplate:
         macaddress = gen_mac(multicast=False)
         rex_user = gen_string('alpha')
         ssh_key = gen_string('alphanumeric')
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+            module_default_org_view, module_lce_library
+        )
         host = module_target_sat.api.Host(
             organization=module_sca_manifest_org,
             location=module_location,
@@ -579,8 +588,7 @@ class TestProvisioningTemplate:
             ptable=default_partitiontable,
             content_facet_attributes={
                 'content_source_id': module_provisioning_capsule.id,
-                'content_view_id': module_default_org_view.id,
-                'lifecycle_environment_id': module_lce_library.id,
+                'content_view_environment_ids': [cvenv_id],
             },
             host_parameters_attributes=[
                 {
@@ -707,6 +715,9 @@ class TestProvisioningTemplate:
         :parametrized: yes
         """
         host_params = [{'name': 'fips_enabled', 'value': 'true', 'parameter_type': 'boolean'}]
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+            module_default_org_view, module_lce_library
+        )
         host = module_target_sat.api.Host(
             organization=module_sca_manifest_org,
             location=module_location,
@@ -718,8 +729,7 @@ class TestProvisioningTemplate:
             ptable=default_partitiontable,
             content_facet_attributes={
                 'content_source_id': module_target_sat.nailgun_smart_proxy.id,
-                'content_view_id': module_default_org_view.id,
-                'lifecycle_environment_id': module_lce_library.id,
+                'content_view_environment_ids': [cvenv_id],
             },
             host_parameters_attributes=host_params,
         ).create()

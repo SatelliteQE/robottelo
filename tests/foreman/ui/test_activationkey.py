@@ -631,7 +631,10 @@ def test_positive_fetch_product_content(target_sat, function_sca_manifest_org, s
     cv.publish()
     cvv = cv.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id, 'force': True})
-    ak = target_sat.api.ActivationKey(content_view=cv, organization=org, environment=lce).create()
+    cvenv_id = target_sat.api_factory.get_cvenv_id(cv, lce)
+    ak = target_sat.api.ActivationKey(
+        content_view_environment_ids=[cvenv_id], organization=org
+    ).create()
     with session:
         session.organization.select(org.name)
         ak = session.activationkey.read(ak.name, widget_names='repository_sets')

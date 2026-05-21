@@ -143,8 +143,9 @@ class TestHostGroup:
             location=location,
             organization=org,
             content_facet_attributes={
-                'content_view_id': content_view.id,
-                'lifecycle_environment_id': lc_env.id,
+                'content_view_environment_ids': [
+                    session_puppet_enabled_sat.api_factory.get_cvenv_id(content_view, lc_env)
+                ],
             },
             name=gen_string('alpha'),
         ).create(False)
@@ -174,8 +175,9 @@ class TestHostGroup:
             organization=module_org,
             managed=True,
             content_facet_attributes={
-                'content_view_id': content_view.id,
-                'lifecycle_environment_id': lce.id,
+                'content_view_environment_ids': [
+                    module_target_sat.api_factory.get_cvenv_id(content_view, lce)
+                ],
             },
         ).create()
         # TODO: use host that can also rebuild the SSH_Nic, SSH_Host, and Content_Host_Status
@@ -271,13 +273,13 @@ class TestHostGroup:
             organization=module_puppet_org
         ).create()
         content_view.version[0].promote(data={'environment_ids': lce.id, 'force': False})
+        cvenv_id = session_puppet_enabled_sat.api_factory.get_cvenv_id(content_view, lce)
         hostgroup = session_puppet_enabled_sat.api.HostGroup(
             architecture=arch,
             content_source=proxy,
-            content_view=content_view,
+            content_view_environment_id=cvenv_id,
             domain=domain,
             environment=env,
-            lifecycle_environment=lce,
             location=[module_puppet_loc],
             medium=media,
             operatingsystem=os,
@@ -330,12 +332,12 @@ class TestHostGroup:
             operatingsystem=[os], location=[new_loc], organization=[new_org]
         ).create()
         new_cv.version[0].promote(data={'environment_ids': new_lce.id, 'force': False})
+        new_cvenv_id = session_puppet_enabled_sat.api_factory.get_cvenv_id(new_cv, new_lce)
 
         # update itself
         hostgroup.organization = [new_org]
         hostgroup.location = [new_loc]
-        hostgroup.lifecycle_environment = new_lce
-        hostgroup.content_view = new_cv
+        hostgroup.content_view_environment_id = new_cvenv_id
         hostgroup.domain = new_domain
         hostgroup.architecture = new_arch
         hostgroup.operatingsystem = new_os
@@ -353,8 +355,7 @@ class TestHostGroup:
                 'ptable',
                 'subnet',
                 'domain',
-                'content_view',
-                'lifecycle_environment',
+                'content_view_environment_id',
                 'location',
                 'organization',
                 'medium',

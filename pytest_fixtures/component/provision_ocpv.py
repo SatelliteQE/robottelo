@@ -100,10 +100,11 @@ def module_ocpv_hostgroup(
         location=[module_location],
         architecture=default_architecture,
         content_source=module_provisioning_capsule.id,
-        content_view=module_org.default_content_view,
+        content_view_environment_id=module_ocpv_sat.api_factory.get_cvenv_id(
+            module_org.default_content_view, module_lce_library
+        ),
         compute_resource=module_ocpv_cr,
         domain=domain,
-        lifecycle_environment=module_lce_library,
         root_pass=settings.provisioning.host_root_password,
         operatingsystem=module_ocpv_image.os,
     ).create()

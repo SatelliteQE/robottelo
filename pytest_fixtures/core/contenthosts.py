@@ -212,11 +212,14 @@ def registered_hosts(request, target_sat, module_org, module_ak_with_cv):
 def katello_host_tools_host(target_sat, module_org, rhel_contenthost):
     """Register content host to Satellite and install katello-host-tools on the host."""
     repo = settings.repos['SATCLIENT_REPO'][f'RHEL{rhel_contenthost.os_version.major}']
+    cvenv_id = target_sat.api_factory.get_cvenv_id(
+        module_org.default_content_view,
+        target_sat.api.LifecycleEnvironment(id=module_org.library.id),
+    )
     ak = target_sat.api.ActivationKey(
-        content_view=module_org.default_content_view,
+        content_view_environment_ids=[cvenv_id],
         max_hosts=100,
         organization=module_org,
-        environment=target_sat.api.LifecycleEnvironment(id=module_org.library.id),
     ).create()
     rhel_contenthost.register(module_org, None, ak.name, target_sat, repo_data=f'repo={repo}')
     rhel_contenthost.install_katello_host_tools()
