@@ -82,7 +82,7 @@ def test_positive_max_age(module_target_sat):
     :expectedresults: Max age setting takes effect
 
     """
-    key = 'advisor_on_prem_remediations_count'
+    key = 'iop_remediations_count'
     key_cond = f'foreman.{key}'
     server_value = int(module_target_sat.get_reported_condensed_value(key_cond))
     test_value = (server_value + 1) * 2
