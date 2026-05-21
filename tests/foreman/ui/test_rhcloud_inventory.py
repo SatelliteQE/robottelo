@@ -381,8 +381,6 @@ def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
             insights_view.menu.select('Insights', 'Inventory Upload')
 
 
-@pytest.mark.pit_server
-@pytest.mark.pit_client
 @pytest.mark.run_in_one_thread
 @pytest.mark.no_containers
 def test_rhcloud_global_parameters(
