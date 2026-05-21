@@ -14,6 +14,7 @@
 
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -136,18 +137,25 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                 # Host Delete
                 with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                     session.host.delete(fqdn)
-                assert not session.host.search(fqdn)
-
-                # AzureRm Cloud assertion
-                assert not azurecloud_vm.exists
+                wait_for(
+                    lambda: (
+                        not session.host.search(fqdn)
+                        and not azurermclient.find_vms(name=hostname.lower())
+                    ),
+                    timeout=300,
+                    delay=10,
+                )
 
         except Exception as error:
             azure_vm = sat_azure.api.Host().search(query={'search': f'name={fqdn}'})
             if azure_vm:
                 azure_vm[0].delete(synchronous=False)
-            azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
-            if azurecloud_vm.exists:
-                azurecloud_vm.delete()
+            try:
+                matching_vms = azurermclient.find_vms(name=hostname.lower())
+                if matching_vms:
+                    matching_vms[0].delete()
+            except Exception:
+                pass
             raise error
 
 
