@@ -5,7 +5,7 @@ from unittest import mock
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import JIRA_WONTFIX_RESOLUTIONS
+from robottelo.constants import JIRA_COMMON_FIELDS, JIRA_WONTFIX_RESOLUTIONS
 from robottelo.utils.issue_handlers import jira
 
 
@@ -29,7 +29,7 @@ class TestJiraIssueHandler:
         mock_issue.fields.status.name = 'Closed'
         mock_issue.fields.labels = ['bug']
         mock_issue.fields.resolution.name = 'Done'
-        out = jira._issue_to_flat_dict(mock_issue, jira.common_jira_fields)
+        out = jira._issue_to_flat_dict(mock_issue, JIRA_COMMON_FIELDS)
         assert out['key'] == 'SAT-456'
         assert out['status'] == 'Closed'
         assert out['resolution'] == 'Done'
@@ -118,10 +118,13 @@ class TestJiraIssueHandler:
             m_jira = mock.Mock()
             m_jira.search_issues.return_value = mock_issues
             m_client.return_value = m_jira
-            result = jira.get_jira('id = SAT-1 OR id = SAT-2', ['key', 'status'])
+            result = jira.get_jira(['SAT-1', 'SAT-2'], ['key', 'status'])
         assert result == mock_issues
         m_jira.search_issues.assert_called_once_with(
-            jql_str='id = SAT-1 OR id = SAT-2', fields='key,status'
+            jql_str='id = SAT-1 OR id = SAT-2',
+            fields='key,status',
+            expand='renderedFields',
+            maxResults=100,
         )
 
     def test_get_data_jira_empty_ids_returns_empty_list(self):
