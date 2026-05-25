@@ -914,12 +914,14 @@ class ContentHost(Host, ContentHostMixins):
         """Execute procedures for enabling IPv6 HTTP Proxy on Podman engine"""
         if not self.network_type.has_ipv4:
             container_cfg = '/etc/containers/containers.conf'
-            assert (
-                self.execute(
-                    f'echo -e "[engine]\\nenv = [\'https_proxy={settings.http_proxy.http_proxy_ipv6_url}\']" >> {container_cfg}'
-                ).status
-                == 0
-            )
+            proxy_url = settings.http_proxy.http_proxy_ipv6_url
+            if self.execute(f'grep -q "https_proxy" {container_cfg}').status != 0:
+                assert (
+                    self.execute(
+                        f'echo -e "[engine]\\nenv = [\'https_proxy={proxy_url}\']" >> {container_cfg}'
+                    ).status
+                    == 0
+                )
 
     def disable_rhsm_proxy(self):
         """Disables HTTP proxy for subscription manager"""
@@ -1603,20 +1605,21 @@ class ContentHost(Host, ContentHostMixins):
                 snap=settings.capsule.version.snap,
             )
 
-    def ensure_podman_installed(self):
+    def ensure_podman_installed(self, enable_ipv6_proxy=False):
         """Ensure Podman is installed, registering temporarily if needed."""
-        if self.execute('rpm -q podman').status == 0:
-            return
-        was_registered = self.subscription_manager_status().status == 0
-        if not was_registered:
-            self.register_to_cdn()
-        try:
-            result = self.execute('dnf -y install podman --disableplugin=foreman-protector')
-            if result.status != 0:
-                raise ContentHostError(f'Podman installation failed: {result.stdout}')
-        finally:
+        if self.execute('rpm -q podman').status != 0:
+            was_registered = self.subscription_manager_status().status == 0
             if not was_registered:
-                self.unregister()
+                self.register_to_cdn()
+            try:
+                result = self.execute('dnf -y install podman --disableplugin=foreman-protector')
+                if result.status != 0:
+                    raise ContentHostError(f'Podman installation failed: {result.stdout}')
+            finally:
+                if not was_registered:
+                    self.unregister()
+        if enable_ipv6_proxy:
+            self.enable_ipv6_podman_proxy()
 
     def podman_login(self, username=None, password=None, registry=None):
         """Login to a podman registry."""
