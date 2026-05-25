@@ -3382,21 +3382,6 @@ class TestPodman:
     :team: Artemis
     """
 
-    @pytest.fixture(scope='class')
-    def enable_podman(module_product, module_target_sat):
-        """Enable base_os and appstream repos on the sat through cdn registration and install podman."""
-        module_target_sat.register_to_cdn()
-        if module_target_sat.os_version.major > 7:
-            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_bos']['id'])
-            module_target_sat.enable_repo(module_target_sat.REPOS['rhel_aps']['id'])
-        else:
-            module_target_sat.enable_repo(module_target_sat.REPOS['rhscl']['id'])
-            module_target_sat.enable_repo(module_target_sat.REPOS['rhel']['id'])
-        result = module_target_sat.execute(
-            'dnf install -y --disableplugin=foreman-protector podman'
-        )
-        assert result.status == 0
-
     def test_postive_export_import_podman_repo(
         self,
         target_sat,
@@ -3405,7 +3390,6 @@ class TestPodman:
         function_org,
         function_product,
         function_import_org,
-        enable_podman,
     ):
         """Test import of a repo created via Podman push
 
@@ -3422,6 +3406,7 @@ class TestPodman:
 
         :Verifies: SAT-25265
         """
+        target_sat.ensure_podman_installed(enable_ipv6_proxy=True)
         REPO_NAME = 'fedora'
         result = target_sat.execute(f'podman pull registry.fedoraproject.org/{REPO_NAME}')
         assert result.status == 0
