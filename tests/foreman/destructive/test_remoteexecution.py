@@ -230,7 +230,7 @@ def register_host(satellite, host, org, cockpit=False):
     return org
 
 
-def test_execution(satellite, host):
+def run_job(satellite, host):
     """Run a job invocation and return its results"""
     command = "echo rex_passed $(date) > /root/test"
     invocation_command = satellite.cli_factory.job_invocation(
@@ -281,7 +281,7 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost, function_org):
     )
     assert sat.install(command).status == 0
     register_host(sat, host, function_org, cockpit=True)
-    result = test_execution(sat, host)
+    result = run_job(sat, host)
     # assert the run actually happened and it was authenticated using cert
     assert result['success'] == '1'
     logger.debug(result)
@@ -325,7 +325,7 @@ def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost, function_org):
 
     # assert the run fails
     with pytest.raises(CLIFactoryError) as err:
-        test_execution(sat, host)
+        run_job(sat, host)
     assert 'A sub task failed' in err.value.args[0]
     check = host.execute('grep rex_passed /root/test')
     assert check.status != 0
@@ -354,7 +354,7 @@ def test_positive_ssh_ca_host_only(
     )
     assert sat.install(command).status == 0
     register_host(sat, host, function_org, cockpit=True)
-    result = test_execution(sat, host)
+    result = run_job(sat, host)
     # assert the run actually happened and it was NOT authenticated using cert
     assert result['success'] == '1'
     logger.debug(result)
@@ -390,7 +390,7 @@ def test_negative_ssh_ca_host_wrong_cert(
     register_host(sat, host, function_org, cockpit=True)
     # assert the run failed
     with pytest.raises(CLIFactoryError) as err:
-        test_execution(sat, host)
+        run_job(sat, host)
     assert 'A sub task failed' in err.value.args[0]
     check = host.execute('grep rex_passed /root/test')
     assert check.status != 0
@@ -425,7 +425,7 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
     assert sat.install(command).status == 0
     register_host(sat, host, function_org, cockpit=True)
     # SSH REX
-    result = test_execution(sat, host)
+    result = run_job(sat, host)
     # assert the run actually happened and it was authenticated using cert
     assert result['success'] == '1'
     logger.debug(result)
