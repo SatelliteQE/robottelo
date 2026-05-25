@@ -857,6 +857,10 @@ def test_positive_negotiate_logout(
         2. Hammer command fails after log out.
         3. Proper messages are returned in all cases.
     """
+    hostname = (
+        getattr(parametrized_enrolled_sat, 'shortened_hostname', None)
+        or parametrized_enrolled_sat.hostname
+    )
     auth_type = request.node.callspec.params['parametrized_enrolled_sat']
     user = (
         settings.ipa.user
@@ -873,9 +877,7 @@ def test_positive_negotiate_logout(
     # Log out, verify the hammer sessions was closed
     result = parametrized_enrolled_sat.cli.Auth.logout()
     assert 'Logged out.' in str(result)
-    result = parametrized_enrolled_sat.execute(
-        f'cat {HAMMER_SESSIONS}/https_{parametrized_enrolled_sat.hostname}'
-    )
+    result = parametrized_enrolled_sat.execute(f'cat {HAMMER_SESSIONS}/https_{hostname}')
     assert '"id":null' in result.stdout
     result = parametrized_enrolled_sat.cli.Auth.status()
     assert NO_SESSION_BUT_KERB_MSG in str(result)
