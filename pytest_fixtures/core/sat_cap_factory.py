@@ -323,7 +323,9 @@ def parametrized_enrolled_sat(
         yield new_sat
         ipa_host.disenroll_idm()
     else:
-        new_sat.enroll_ad_and_configure_external_auth(ad_data)
+        shortened_hostname = new_sat.enroll_ad_and_configure_external_auth(ad_data)
+        if shortened_hostname is not None:
+            new_sat.shortened_hostname = shortened_hostname
         yield new_sat
     new_sat.unregister()
     new_sat.teardown()
