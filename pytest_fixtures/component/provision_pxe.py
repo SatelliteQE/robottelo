@@ -13,6 +13,7 @@ from robottelo import constants
 from robottelo.config import settings
 from robottelo.enums import NetworkType
 from robottelo.hosts import ContentHost
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
