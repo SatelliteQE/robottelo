@@ -181,6 +181,8 @@ def test_positive_erratum_installable(vm, module_target_sat):
     :CaseImportance: Critical
     """
     errata_id = REAL_RHEL10_ERRATA_ID if vm.os_version.major == 10 else REAL_RHEL9_ERRATA_ID
+    host_id = module_target_sat.cli.Host.info({'name': vm.hostname})['id']
+    module_target_sat.cli.Host.errata_recalculate({'host-id': host_id})
     # check that package errata is applicable
     for _ in range(30):
         erratum = module_target_sat.cli.Host.errata_list(
