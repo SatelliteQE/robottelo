@@ -703,35 +703,6 @@ class TestRepository:
         repo.remove_content(data={'ids': [srpm_detail[0].id], 'content_type': 'srpm'})
         assert repo.read().content_counts['srpm'] == 0
 
-    @pytest.mark.upgrade
-    @pytest.mark.skip('Uses deprecated SRPM repository')
-    @pytest.mark.skipif(
-        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
-    )
-    @pytest.mark.parametrize(
-        'repo_options',
-        [{'url': repo_constants.FAKE_YUM_SRPM_REPO}],
-        ids=['yum_fake'],
-        indirect=True,
-    )
-    def test_positive_create_delete_srpm_repo(self, repo, target_sat):
-        """Create a repository, sync SRPM contents and remove repo
-
-        :id: e091a725-042f-43ca-99cc-c017c450ced9
-
-        :parametrized: yes
-
-        :expectedresults: The repository's contents include SRPM and able to remove repo
-
-        :CaseImportance: Critical
-        """
-        repo.sync()
-        assert repo.read().content_counts['srpm'] == 3
-        assert len(target_sat.api.Srpms().search(query={'repository_id': repo.id})) == 3
-        repo.delete()
-        with pytest.raises(HTTPError):
-            repo.read()
-
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -2154,6 +2125,34 @@ class TestDockerRepository:
 
 class TestSRPMRepository:
     """Tests specific to using repositories containing source RPMs."""
+
+    @pytest.mark.upgrade
+    @pytest.mark.skipif(
+        (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
+    )
+    @pytest.mark.parametrize(
+        'repo_options',
+        [{'url': repo_constants.FAKE_YUM_SRPM_REPO}],
+        ids=['yum_fake'],
+        indirect=True,
+    )
+    def test_positive_create_delete_srpm_repo(self, repo, target_sat):
+        """Create a repository, sync SRPM contents and remove repo
+
+        :id: e091a725-042f-43ca-99cc-c017c450ced9
+
+        :parametrized: yes
+
+        :expectedresults: The repository's contents include SRPM and able to remove repo
+
+        :CaseImportance: Critical
+        """
+        repo.sync()
+        assert repo.read().content_counts['srpm'] == 3
+        assert len(target_sat.api.Srpms().search(query={'repository_id': repo.id})) == 3
+        repo.delete()
+        with pytest.raises(HTTPError):
+            repo.read()
 
     @pytest.mark.upgrade
     def test_positive_srpm_upload_publish_promote_cv(

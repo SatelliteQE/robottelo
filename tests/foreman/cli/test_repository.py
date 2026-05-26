@@ -41,7 +41,6 @@ from robottelo.constants.repos import (
     CUSTOM_RPM_SHA,
     FAKE_5_YUM_REPO,
     FAKE_YUM_MD5_REPO,
-    FAKE_YUM_SRPM_REPO,
 )
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
@@ -52,7 +51,6 @@ from robottelo.utils.datafactory import (
     valid_docker_repository_names,
     valid_http_credentials,
 )
-from tests.foreman.api.test_contentview import content_view
 
 YUM_REPOS = (
     settings.repos.yum_0.url,
@@ -2092,91 +2090,6 @@ class TestRepository:
 #         Repository.delete({'id': repo['id']})
 #         with pytest.raises(CLIReturnCodeError):
 #             Repository.info({'id': repo['id']})
-
-
-class TestSRPMRepository:
-    """Tests specific to using repositories containing source RPMs."""
-
-    @pytest.mark.skip("Uses deprecated SRPM repository")
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync(self, repo, module_org, module_product, target_sat):
-        """Synchronize repository with SRPMs
-
-        :id: eb69f840-122d-4180-b869-1bd37518480c
-
-        :parametrized: yes
-
-        :expectedresults: srpms can be listed in repository
-        """
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        result = target_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/Library"
-            f"/custom/{module_product.label}/{repo['label']}/Packages/t/ | grep .src.rpm"
-        )
-        assert result.status == 0
-        assert result.stdout
-
-    @pytest.mark.skip("Uses deprecated SRPM repository")
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync_publish_cv(self, module_org, module_product, repo, target_sat):
-        """Synchronize repository with SRPMs, add repository to content view
-        and publish content view
-
-        :id: 78cd6345-9c6c-490a-a44d-2ad64b7e959b
-
-        :parametrized: yes
-
-        :expectedresults: srpms can be listed in content view
-        """
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
-        target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
-        target_sat.cli.ContentView.publish({'id': cv['id']})
-        result = target_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/content_views/"
-            f"{cv['label']}/1.0/custom/{module_product.label}/{repo['label']}/Packages/t/"
-            " | grep .src.rpm"
-        )
-        assert result.status == 0
-        assert result.stdout
-
-    @pytest.mark.upgrade
-    @pytest.mark.skip("Uses deprecated SRPM repository")
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync_publish_promote_cv(self, repo, module_org, module_product, target_sat):
-        """Synchronize repository with SRPMs, add repository to content view,
-        publish and promote content view to lifecycle environment
-
-        :id: 3d197118-b1fa-456f-980e-ad1a517bc769
-
-        :parametrized: yes
-
-        :expectedresults: srpms can be listed in content view in proper
-            lifecycle environment
-        """
-        lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
-        target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
-        target_sat.cli.ContentView.publish({'id': cv['id']})
-        target_sat.cli.content_view = target_sat.cli.ContentView.info({'id': cv['id']})
-        cvv = content_view['versions'][0]
-        target_sat.cli.ContentView.version_promote(
-            {'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']}
-        )
-        result = target_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/{lce['label']}/"
-            f"{cv['label']}/custom/{module_product.label}/{repo['label']}/Packages/t"
-            " | grep .src.rpm"
-        )
-        assert result.status == 0
-        assert result.stdout
 
 
 class TestAnsibleCollectionRepository:
