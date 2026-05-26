@@ -255,11 +255,15 @@ def test_foremanctl_deploy_certificate_cname(module_sat_ready_rhel):
     )
 
     result = satellite.execute(
-        f'curl --fail --output /dev/null --cacert {FOREMANCTL_CERTS_DIR}/ca.crt '
+        'curl --fail --silent --show-error --head '
+        f'--cacert {FOREMANCTL_CERTS_DIR}/ca.crt '
         f'--resolve "{cname}:443:127.0.0.1" '
         f'https://{cname}/users/login'
     )
-    assert result.status == 0, f'HTTPS request to {cname} failed with output:\n{result.stderr}'
+    assert result.status == 0, f'HTTPS request failed for {cname}:\n{result.stderr}'
+    assert '200 OK' in result.stdout, (
+        f'Expected HTTP 200 response for {cname}.\nOutput:\n{result.stdout}'
+    )
 
 
 def get_cert_validity_days(sat, cert_path):
