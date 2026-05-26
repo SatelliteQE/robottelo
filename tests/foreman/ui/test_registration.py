@@ -232,7 +232,9 @@ def test_positive_global_registration_end_to_end(
     now = datetime.now(tzinfo)
     today = now.strftime('%Y-%m-%d')
     yesterday = (now - timedelta(days=1)).strftime('%Y-%m-%d')
-    assert today in result.stdout or yesterday in result.stdout
+    assert today in result.stdout or yesterday in result.stdout, (
+        f'Expected yum history to contain {today} or {yesterday}, got:\n{result.stdout}'
+    )
     # Set "Connect to host using IP address"
     module_target_sat.api.Parameter(
         host=rhel_contenthost.hostname,
