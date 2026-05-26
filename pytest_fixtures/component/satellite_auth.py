@@ -500,6 +500,10 @@ def sessions_tear_down(parametrized_enrolled_sat):
     parametrized_enrolled_sat.execute(
         f'rm -f {HAMMER_SESSIONS}/https_{parametrized_enrolled_sat.hostname}'
     )
+    if hasattr(parametrized_enrolled_sat, 'shortened_hostname'):
+        parametrized_enrolled_sat.execute(
+            f'rm -f {HAMMER_SESSIONS}/https_{parametrized_enrolled_sat.shortened_hostname}'
+        )
 
 
 @pytest.fixture
