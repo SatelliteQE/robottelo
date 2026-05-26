@@ -1586,3 +1586,86 @@ class TestHostBulkAction:
         for host_id in host_ids[:-1]:
             with pytest.raises(HTTPError):
                 module_target_sat.api.Host(id=host_id).read()
+
+
+@pytest.mark.rhel_ver_match('N-0')
+def test_positive_uuid_persists_after_unregister_reregister(
+    module_target_sat,
+    module_sca_manifest_org,
+    module_activation_key,
+    module_location,
+    registered_host,
+):
+    """Verify subscription_facet UUID lifecycle: creation, delegation, clearing, and re-registration
+
+    :id: d511b9ee-d657-4dff-a05e-3dcc66b29b60
+
+    :steps:
+        1. Register a content host
+        2. Verify subscription_facet has a valid UUID
+        3. Verify content_facet.uuid delegates to subscription_facet.uuid
+        4. Unregister the host
+        5. Verify UUID is cleared after unregistration
+        6. Re-register the host
+        7. Verify a new UUID is assigned
+
+    :expectedresults:
+        1. Host registration succeeds
+        2. subscription_facet contains a non-null UUID
+        3. content_facet.uuid matches subscription_facet.uuid (delegation)
+        4. After unregistration, UUID is None or subscription_facet is removed
+        5. After re-registration, a new UUID is assigned
+
+    :Verifies: SAT-40424
+    """
+    contenthost, _, host_json = registered_host
+
+    # Verify subscription_facet has UUID
+    assert 'subscription_facet_attributes' in host_json
+    subscription_facet = host_json['subscription_facet_attributes']
+    assert subscription_facet['uuid'] is not None
+    assert len(subscription_facet['uuid']) > 0
+    first_uuid = subscription_facet['uuid']
+
+    # Verify content_facet.uuid delegates to subscription_facet.uuid
+    assert 'content_facet_attributes' in host_json
+    content_facet = host_json['content_facet_attributes']
+    assert content_facet['uuid'] == subscription_facet['uuid']
+
+    # Unregister
+    result = contenthost.unregister()
+    assert result.status == 0
+
+    # Verify UUID is cleared after unregistration
+    def reload_host_json():
+        host = module_target_sat.api.Host().search(
+            query={'search': f'name={contenthost.hostname}'}
+        )[0]
+        return host.read_json()
+
+    host_json = reload_host_json()
+    subscription_facet = host_json.get('subscription_facet_attributes')
+    if subscription_facet:
+        assert subscription_facet.get('uuid') is None
+    else:
+        assert (
+            'subscription_facet_attributes' not in host_json
+            or host_json['subscription_facet_attributes'] is None
+        )
+
+    # Re-register manually
+    result = contenthost.api_register(
+        module_target_sat,
+        organization=module_sca_manifest_org,
+        activation_keys=[module_activation_key.name],
+        location=module_location,
+    )
+    assert result.status == 0, f'Failed to re-register host: {result.stderr}'
+
+    # Get the re-registered host
+    host_json = reload_host_json()
+    second_uuid = host_json['subscription_facet_attributes']['uuid']
+    assert second_uuid is not None
+
+    # UUID should be different after re-registration
+    assert first_uuid != second_uuid

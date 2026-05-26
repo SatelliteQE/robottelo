@@ -155,6 +155,48 @@ def mod_content_hosts(request):
 
 
 @pytest.fixture
+def registered_host(
+    rhel_contenthost,
+    module_target_sat,
+    module_sca_manifest_org,
+    module_activation_key,
+    module_location,
+):
+    """Register a content host and return the host object with its JSON representation.
+
+    This fixture automatically handles host registration using pytest dependency injection.
+    All required fixtures (rhel_contenthost, module_target_sat, etc.) are auto-injected.
+
+    Usage:
+        def test_something(registered_host):
+            contenthost, host, host_json = registered_host
+            # Use contenthost, host, and host_json directly
+
+    Returns:
+        tuple: (contenthost, host, host_json) where contenthost is the rhel content host,
+            host is the API host entity, and host_json contains facet attributes
+
+    Raises:
+        AssertionError: If registration fails
+    """
+    result = rhel_contenthost.api_register(
+        module_target_sat,
+        organization=module_sca_manifest_org,
+        activation_keys=[module_activation_key.name],
+        location=module_location,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    # Fetch the registered host
+    host = module_target_sat.api.Host().search(
+        query={'search': f'name={rhel_contenthost.hostname}'}
+    )[0]
+    host_json = host.read_json()
+
+    return rhel_contenthost, host, host_json
+
+
+@pytest.fixture
 def registered_hosts(request, target_sat, module_org, module_ak_with_cv):
     """Fixture that registers content hosts to Satellite, based on rh_cloud setup"""
     with contenthost_factory(request=request, _count=2) as hosts:
