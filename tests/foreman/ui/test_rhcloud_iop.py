@@ -437,7 +437,7 @@ def test_iop_negative_rhcloud_inventory_upload_not_displayed(module_target_sat_i
 @pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?!7).*')
-@pytest.mark.parametrize('module_target_sat_insights', [True], ids=['local'], indirect=True)
+@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_remediation_type_and_status(
     rhel_insights_vm,
     rhcloud_manifest_org,
