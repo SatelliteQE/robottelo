@@ -75,7 +75,34 @@ def test_positive_module_stream_details_search_in_repo(
         }
         module_stream_details = {
             key: value
-            for key, value in walrus_details['details']['details_table'].items()
+            for key, value in walrus_details['details_table'].items()
             if key in expected_module_details
         }
         assert expected_module_details == module_stream_details
+
+
+def test_positive_module_stream_all_tabs(module_target_sat, module_org):
+    """Verify all 4 tabs render correctly on Module Stream details page.
+
+    :id: 09c92551-3581-4476-8e9d-c7e4e77a3a24
+
+    :steps:
+        1. Navigate to Content -> Content Types -> Module Streams
+        2. Click on a module stream name
+        3. Verify all 4 tabs render (Details, Repositories, Profiles, Artifacts)
+        4. Verify tab content can be read
+
+    :expectedresults: All tabs are present and accessible
+
+    :Verifies: SAT-39267
+    """
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        module_data = session.modulestream.read('walrus', '5.21')
+
+        assert 'details_table' in module_data, 'Details table not found'
+        assert module_data['details_table']['Name'] == 'walrus'
+        assert module_data['details_table']['Stream'] == '5.21'
+        assert 'repositories_tab' in module_data, 'Repositories tab not found'
+        assert 'profiles_tab' in module_data, 'Profiles tab not found'
+        assert 'artifacts_tab' in module_data, 'Artifacts tab not found'
