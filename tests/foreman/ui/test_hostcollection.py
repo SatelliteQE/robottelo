@@ -359,9 +359,7 @@ def test_positive_add_host(session, module_target_sat):
         organization=org,
         location=loc,
         content_facet_attributes={
-            'content_view_environment_ids': [
-                module_target_sat.api_factory.get_cvenv_id(cv, lce)
-            ],
+            'content_view_environment_ids': [module_target_sat.api_factory.get_cvenv_id(cv, lce)],
         },
     ).create()
     with session:

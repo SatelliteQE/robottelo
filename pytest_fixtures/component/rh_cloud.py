@@ -69,9 +69,7 @@ def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
     """A module-level fixture to create an Activation key in rhcloud_manifest_org"""
     cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
         rhcloud_manifest_org.default_content_view,
-        module_target_sat_insights.api.LifecycleEnvironment(
-            id=rhcloud_manifest_org.library.id
-        ),
+        module_target_sat_insights.api.LifecycleEnvironment(id=rhcloud_manifest_org.library.id),
     )
     return module_target_sat_insights.api.ActivationKey(
         content_view_environment_ids=[cvenv_id],
@@ -87,9 +85,7 @@ def activation_key_with_els_manifest_org(module_target_sat_insights, module_els_
     """A module-level fixture to create an Activation key in module_els_manifest_org"""
     cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
         module_els_manifest_org.default_content_view,
-        module_target_sat_insights.api.LifecycleEnvironment(
-            id=module_els_manifest_org.library.id
-        ),
+        module_target_sat_insights.api.LifecycleEnvironment(id=module_els_manifest_org.library.id),
     )
     return module_target_sat_insights.api.ActivationKey(
         content_view_environment_ids=[cvenv_id],

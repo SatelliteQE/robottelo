@@ -33,7 +33,11 @@ class APIFactory:
     def get_cvenv_id(self, content_view, lifecycle_environment):
         """Look up a ContentViewEnvironment ID from a CV + LCE pair."""
         cv_id = content_view.id if hasattr(content_view, 'id') else content_view
-        lce_id = lifecycle_environment.id if hasattr(lifecycle_environment, 'id') else lifecycle_environment
+        lce_id = (
+            lifecycle_environment.id
+            if hasattr(lifecycle_environment, 'id')
+            else lifecycle_environment
+        )
         result = self._satellite.api.ContentViewEnvironment().list_content_view_environments(
             params={'content_view_id': cv_id, 'lifecycle_environment_id': lce_id}
         )
