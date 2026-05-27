@@ -84,7 +84,7 @@ def test_positive_module_stream_details_search_in_repo(
 def test_positive_module_stream_all_tabs(module_target_sat, module_org):
     """Verify all 4 tabs render correctly on Module Stream details page.
 
-    :id: 7c5f4e8a-3b2d-4a1f-9e6c-8d7b5a4c3e2f
+    :id: 09c92551-3581-4476-8e9d-c7e4e77a3a24
 
     :steps:
         1. Navigate to Content -> Content Types -> Module Streams
@@ -93,8 +93,6 @@ def test_positive_module_stream_all_tabs(module_target_sat, module_org):
         4. Verify tab content can be read
 
     :expectedresults: All tabs are present and accessible
-
-    :CaseImportance: High
 
     :Verifies: SAT-39267
     """
