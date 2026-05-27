@@ -33,15 +33,19 @@ def pytest_configure(config):
         "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
         "capsule_upgrades: Capsule upgrade tests that use SharedResource.",
         "puppet_upgrades: Puppet upgrade tests that use SharedResource.",
+        "iop_upgrades: IOP (Red Hat Lightspeed) upgrade tests that use SharedResource.",
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
 
 
-def shared_checkout(shared_name):
+def shared_checkout(shared_name, iop=False):
     Satellite(hostname="blank")._swap_nailgun(settings.UPGRADE.FROM_VERSION)
+    workflow = (
+        settings.server.deploy_workflows.iop if iop else settings.server.deploy_workflows.product
+    )
     bx_inst = Broker(
-        workflow=settings.SERVER.deploy_workflows.product,
+        workflow=workflow,
         deploy_sat_version=settings.UPGRADE.FROM_VERSION,
         deploy_network_type=settings.SERVER.network_type,
         host_class=Satellite,
@@ -55,7 +59,7 @@ def shared_checkout(shared_name):
         sat_checkout.ready()
         sat_instance = bx_inst.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
-            '@inv._broker_args.workflow == "deploy-satellite"'
+            f'@inv._broker_args.workflow == "{workflow}"'
         )
     return sat_instance[0]
 
@@ -180,6 +184,17 @@ def errata_upgrade_shared_satellite():
         "errata_upgrade_tests",
         shared_checkin,
         sat_instance=sat_instance,
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture
+def iop_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.iop_upgrades."""
+    sat_instance = shared_checkout("iop_upgrade", iop=True)
+    with SharedResource(
+        "iop_upgrade_tests", shared_checkin, sat_instance=sat_instance
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
