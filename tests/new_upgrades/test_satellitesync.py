@@ -57,6 +57,7 @@ def version_cv_export_import_setup(content_upgrade_shared_satellite, upgrade_act
             }
         )
         sat_upgrade.ready()
+        target_sat._swap_nailgun(settings.upgrade.to_version)
         target_sat._session = None
         yield test_data
 
