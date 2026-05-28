@@ -97,6 +97,14 @@ def function_import_org_with_manifest(target_sat, function_import_org):
     return function_import_org
 
 
+@pytest.fixture
+def function_import_org_at_isat_with_manifest(module_import_sat, function_import_org_at_isat):
+    """Creates an Organization with a brand-new manifest on the import Satellite."""
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        module_import_sat.upload_manifest(function_import_org_at_isat.id, manifest.content)
+    return function_import_org_at_isat
+
+
 @pytest.fixture(scope='module')
 def module_synced_custom_repo(module_target_sat, module_org, module_product):
     repo = module_target_sat.cli_factory.make_repository(
@@ -935,12 +943,13 @@ class TestExportImport:
     def test_positive_export_import_default_org_view(
         self,
         target_sat,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         config_export_import_settings,
         function_sca_manifest_org,
-        function_import_org_with_manifest,
         function_synced_custom_repo,
         function_synced_rh_repo,
+        module_import_sat,
+        function_import_org_at_isat_with_manifest,
     ):
         """Export Default Organization View version contents in directory and Import them.
 
@@ -966,31 +975,17 @@ class TestExportImport:
         :customerscenario: true
         """
         # Create cv and publish
-        cv_name = gen_string('alpha')
         cv = target_sat.cli_factory.make_content_view(
-            {'name': cv_name, 'organization-id': function_sca_manifest_org.id}
-        )
-        target_sat.cli.ContentView.add_repository(
             {
-                'id': cv['id'],
                 'organization-id': function_sca_manifest_org.id,
-                'repository-id': function_synced_custom_repo['id'],
-            }
-        )
-        target_sat.cli.ContentView.add_repository(
-            {
-                'id': cv['id'],
-                'organization-id': function_sca_manifest_org.id,
-                'repository-id': function_synced_rh_repo['id'],
+                'repository-ids': [
+                    function_synced_custom_repo['id'],
+                    function_synced_rh_repo['id'],
+                ],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
-        content_view = target_sat.cli.ContentView.info(
-            {
-                'name': cv_name,
-                'organization-id': function_sca_manifest_org.id,
-            }
-        )
+        content_view = target_sat.cli.ContentView.info({'id': cv['id']})
         # Verify packages
         default_cvv_id = content_view['versions'][0]['id']
         cv_packages = target_sat.cli.Package.list({'content-view-version-id': default_cvv_id})
@@ -1002,7 +997,9 @@ class TestExportImport:
             {'organization-id': function_sca_manifest_org.id}
         )
         # Verify 'export-library' is created and packages are there
-        import_path = target_sat.move_pulp_archive(function_sca_manifest_org, export['message'])
+        import_path = target_sat.move_pulp_archive(
+            function_sca_manifest_org, export['message'], target=module_import_sat
+        )
         export_lib_cv = target_sat.cli.ContentView.info(
             {
                 'name': EXPORT_LIBRARY_NAME,
@@ -1016,15 +1013,23 @@ class TestExportImport:
         assert len(exported_lib_packages)
         assert exported_lib_packages == cv_packages
         # Import and verify content of library
-        target_sat.cli.Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
-        target_sat.cli.ContentImport.library(
-            {'organization-id': function_import_org_with_manifest.id, 'path': import_path}
+        module_import_sat.cli.Settings.set(
+            {'name': 'subscription_connection_enabled', 'value': 'No'}
         )
-        importing_cvv = target_sat.cli.ContentView.info(
-            {'name': DEFAULT_CV, 'organization-id': function_import_org_with_manifest.id}
+        module_import_sat.cli.ContentImport.library(
+            {
+                'organization-id': function_import_org_at_isat_with_manifest.id,
+                'path': import_path,
+            }
+        )
+        importing_cvv = module_import_sat.cli.ContentView.info(
+            {
+                'name': DEFAULT_CV,
+                'organization-id': function_import_org_at_isat_with_manifest.id,
+            }
         )['versions']
         assert len(importing_cvv) >= 1
-        imported_packages = target_sat.cli.Package.list(
+        imported_packages = module_import_sat.cli.Package.list(
             {'content-view-version-id': importing_cvv[0]['id']}
         )
         assert len(imported_packages)
@@ -1033,10 +1038,12 @@ class TestExportImport:
     def test_positive_export_import_filtered_cvv(
         self,
         module_synced_custom_repo,
-        export_import_cleanup_module,
+        complete_export_import_cleanup,
         config_export_import_settings,
         target_sat,
         module_org,
+        module_import_sat,
+        function_import_org_at_isat,
     ):
         """CV Version with filtered contents is the only one that gets exported and imported
 
@@ -1058,15 +1065,10 @@ class TestExportImport:
             2. Filtered exported custom contents has been imported in org/satellite
 
         """
-        cv_name = gen_string('alpha')
         cv = target_sat.cli_factory.make_content_view(
-            {'name': cv_name, 'organization-id': module_org.id}
-        )
-        target_sat.cli.ContentView.add_repository(
             {
-                'id': cv['id'],
                 'organization-id': module_org.id,
-                'repository-id': module_synced_custom_repo['id'],
+                'repository-ids': [module_synced_custom_repo['id']],
             }
         )
         filter_name = gen_string('alphanumeric')
@@ -1097,24 +1099,27 @@ class TestExportImport:
         export = target_sat.cli.ContentExport.completeVersion(
             {'id': exporting_cvv_id, 'organization-id': module_org.id}
         )
-        import_path = target_sat.move_pulp_archive(module_org, export['message'])
+        import_path = target_sat.move_pulp_archive(
+            module_org, export['message'], target=module_import_sat
+        )
 
         # Import section
-        importing_org = target_sat.cli_factory.make_org()
         # set disconnected mode
-        target_sat.cli.Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
+        module_import_sat.cli.Settings.set(
+            {'name': 'subscription_connection_enabled', 'value': 'No'}
+        )
         # check that files are present in import_path
-        result = target_sat.execute(f'ls {import_path}')
+        result = module_import_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import file and verify content
-        target_sat.cli.ContentImport.version(
-            {'organization-id': importing_org['id'], 'path': import_path}
+        module_import_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org_at_isat.id, 'path': import_path}
         )
-        importing_cvv = target_sat.cli.ContentView.info(
-            {'name': cv_name, 'organization-id': importing_org['id']}
+        importing_cvv = module_import_sat.cli.ContentView.info(
+            {'name': cv['name'], 'organization-id': function_import_org_at_isat.id}
         )['versions']
         assert len(importing_cvv) >= 1
-        imported_packages = target_sat.cli.Package.list(
+        imported_packages = module_import_sat.cli.Package.list(
             {'content-view-version-id': importing_cvv[0]['id']}
         )
         assert len(imported_packages) == 1
@@ -1209,11 +1214,12 @@ class TestExportImport:
     def test_positive_export_import_redhat_cv(
         self,
         target_sat,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         config_export_import_settings,
         function_sca_manifest_org,
-        function_import_org_with_manifest,
         function_synced_rh_repo,
+        module_import_sat,
+        function_import_org_at_isat_with_manifest,
     ):
         """Export CV version with RedHat contents in directory and import them.
 
@@ -1239,15 +1245,10 @@ class TestExportImport:
 
         """
         # Create cv and publish
-        cv_name = gen_string('alpha')
         cv = target_sat.cli_factory.make_content_view(
-            {'name': cv_name, 'organization-id': function_sca_manifest_org.id}
-        )
-        target_sat.cli.ContentView.add_repository(
             {
-                'id': cv['id'],
                 'organization-id': function_sca_manifest_org.id,
-                'repository-id': function_synced_rh_repo['id'],
+                'repository-ids': [function_synced_rh_repo['id']],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -1264,20 +1265,24 @@ class TestExportImport:
         # Verify export directory is not empty
         assert target_sat.validate_pulp_filepath(function_sca_manifest_org, PULP_EXPORT_DIR) != ''
 
-        import_path = target_sat.move_pulp_archive(function_sca_manifest_org, export['message'])
+        import_path = target_sat.move_pulp_archive(
+            function_sca_manifest_org, export['message'], target=module_import_sat
+        )
         exported_packages = target_sat.cli.Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
         # Import and verify content
-        target_sat.cli.Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
-        target_sat.cli.ContentImport.version(
-            {'organization-id': function_import_org_with_manifest.id, 'path': import_path},
+        module_import_sat.cli.Settings.set(
+            {'name': 'subscription_connection_enabled', 'value': 'No'}
+        )
+        module_import_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org_at_isat_with_manifest.id, 'path': import_path},
             timeout='2h',
         )
-        importing_cvv = target_sat.cli.ContentView.info(
-            {'name': cv_name, 'organization-id': function_import_org_with_manifest.id}
+        importing_cvv = module_import_sat.cli.ContentView.info(
+            {'name': cv['name'], 'organization-id': function_import_org_at_isat_with_manifest.id}
         )['versions']
         assert len(importing_cvv) >= 1
-        imported_packages = target_sat.cli.Package.list(
+        imported_packages = module_import_sat.cli.Package.list(
             {'content-view-version-id': importing_cvv[0]['id']}
         )
         assert len(imported_packages)
@@ -1289,11 +1294,11 @@ class TestExportImport:
                 'organization-id': function_sca_manifest_org.id,
             }
         )
-        imported_repo = target_sat.cli.Repository.info(
+        imported_repo = module_import_sat.cli.Repository.info(
             {
                 'name': function_synced_rh_repo['name'],
                 'product': function_synced_rh_repo['product']['name'],
-                'organization-id': function_import_org_with_manifest.id,
+                'organization-id': function_import_org_at_isat_with_manifest.id,
             }
         )
         assert exported_repo['content-counts'] == imported_repo['content-counts'], (
@@ -1573,7 +1578,7 @@ class TestExportImport:
         importing_cv = module_import_sat.cli.ContentView.info(
             {'name': exporting_cv['name'], 'organization-id': function_import_org_at_isat.id}
         )
-        assert all([exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]), (
+        assert all(exporting_cv[key] == importing_cv[key] for key in ['label', 'name']), (
             'Imported CV name/label does not match the export'
         )
         assert len(exporting_cv['versions']) == len(importing_cv['versions']) == 1, (
@@ -1744,12 +1749,13 @@ class TestExportImport:
 
     def test_postive_export_import_cv_with_mixed_content_syncable(
         self,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         target_sat,
         function_org,
         function_synced_custom_repo,
         function_synced_file_repo,
-        function_import_org,
+        module_import_sat,
+        function_import_org_at_isat,
     ):
         """Export and import CV with mixed content in the syncable format.
 
@@ -1775,19 +1781,13 @@ class TestExportImport:
 
         """
         # Create CV, add all setup repos and publish
-        cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
-        repos = [
-            function_synced_custom_repo,
-            function_synced_file_repo,
-        ]
-        for repo in repos:
-            target_sat.cli.ContentView.add_repository(
-                {
-                    'id': cv['id'],
-                    'organization-id': function_org.id,
-                    'repository-id': repo['id'],
-                }
-            )
+        repos = [function_synced_custom_repo, function_synced_file_repo]
+        cv = target_sat.cli_factory.make_content_view(
+            {
+                'organization-id': function_org.id,
+                'repository-ids': [repo['id'] for repo in repos],
+            }
+        )
         target_sat.cli.ContentView.publish({'id': cv['id']})
         exporting_cv = target_sat.cli.ContentView.info({'id': cv['id']})
         exporting_cvv = target_sat.cli.ContentView.version_info(
@@ -1806,36 +1806,42 @@ class TestExportImport:
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) != ''
 
         # Import the syncable export, check the content
-        import_path = target_sat.move_pulp_archive(function_org, export['message'])
-        target_sat.cli.ContentImport.version(
-            {'organization-id': function_import_org.id, 'path': import_path}
+        import_path = target_sat.move_pulp_archive(
+            function_org, export['message'], target=module_import_sat
         )
-        importing_cv = target_sat.cli.ContentView.info(
-            {'name': exporting_cv['name'], 'organization-id': function_import_org.id}
+        module_import_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org_at_isat.id, 'path': import_path}
         )
-        assert all([exporting_cv[key] == importing_cv[key] for key in ['label', 'name']]), (
+        importing_cv = module_import_sat.cli.ContentView.info(
+            {'name': exporting_cv['name'], 'organization-id': function_import_org_at_isat.id}
+        )
+        assert all(exporting_cv[key] == importing_cv[key] for key in ['label', 'name']), (
             'Imported CV name/label does not match the export'
         )
         assert len(exporting_cv['versions']) == len(importing_cv['versions']) == 1, (
             'CV versions count does not match'
         )
 
-        importing_cvv = target_sat.cli.ContentView.version_info(
+        importing_cvv = module_import_sat.cli.ContentView.version_info(
             {'id': importing_cv['versions'][0]['id']}
         )
         assert (
             len(exporting_cvv['repositories']) == len(importing_cvv['repositories']) == len(repos)
         ), 'Repositories count does not match'
 
-        imported_packages = target_sat.cli.Package.list(
+        imported_packages = module_import_sat.cli.Package.list(
             {'content-view-version-id': importing_cvv['id']}
         )
-        imported_files = target_sat.cli.File.list({'content-view-version-id': importing_cvv['id']})
+        imported_files = module_import_sat.cli.File.list(
+            {'content-view-version-id': importing_cvv['id']}
+        )
         assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
         assert exported_files == imported_files, 'Imported Files do not match the export'
 
         # Check the import history
-        import_list = target_sat.cli.ContentImport.list({'organization-id': function_import_org.id})
+        import_list = module_import_sat.cli.ContentImport.list(
+            {'organization-id': function_import_org_at_isat.id}
+        )
         assert len(import_list) == 1, 'Only 1 import expected within the Organization'
         assert import_list[0]['path'] == import_path
         assert import_list[0]['content-view-version'] == importing_cvv['name']
@@ -2023,9 +2029,10 @@ class TestExportImport:
         self,
         target_sat,
         config_export_import_settings,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         function_org,
-        function_import_org,
+        module_import_sat,
+        function_import_org_at_isat,
     ):
         """Exporting and Importing library with ansible collection
 
@@ -2060,21 +2067,25 @@ class TestExportImport:
         target_sat.cli.Repository.synchronize({'id': ansible_repo['id']})
         # Export library
         export = target_sat.cli.ContentExport.completeLibrary({'organization-id': function_org.id})
-        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        import_path = target_sat.move_pulp_archive(
+            function_org, export['message'], target=module_import_sat
+        )
         # Check that files are present in import_path
-        result = target_sat.execute(f'ls {import_path}')
+        result = module_import_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import files and verify content
-        target_sat.cli.ContentImport.library(
-            {'organization-id': function_import_org.id, 'path': import_path}
+        module_import_sat.cli.ContentImport.library(
+            {'organization-id': function_import_org_at_isat.id, 'path': import_path}
         )
-        assert target_sat.cli.Product.list({'organization-id': function_import_org.id})
-        import_product = target_sat.cli.Product.info(
+        assert module_import_sat.cli.Product.list(
+            {'organization-id': function_import_org_at_isat.id}
+        )
+        import_product = module_import_sat.cli.Product.info(
             {
-                'organization-id': function_import_org.id,
-                'id': target_sat.cli.Product.list({'organization-id': function_import_org.id})[0][
-                    'id'
-                ],
+                'organization-id': function_import_org_at_isat.id,
+                'id': module_import_sat.cli.Product.list(
+                    {'organization-id': function_import_org_at_isat.id}
+                )[0]['id'],
             }
         )
         assert import_product['name'] == export_product['name']
@@ -2085,10 +2096,11 @@ class TestExportImport:
         self,
         target_sat,
         config_export_import_settings,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         function_org,
         function_synced_custom_repo,
-        function_import_org,
+        module_import_sat,
+        function_import_org_at_isat,
     ):
         """Test export and import of a repository with GPG key
 
@@ -2123,26 +2135,28 @@ class TestExportImport:
         export = target_sat.cli.ContentExport.completeRepository(
             {'id': function_synced_custom_repo.id}
         )
-        import_path = target_sat.move_pulp_archive(function_org, export['message'])
-        target_sat.cli.ContentImport.repository(
+        import_path = target_sat.move_pulp_archive(
+            function_org, export['message'], target=module_import_sat
+        )
+        module_import_sat.cli.ContentImport.repository(
             {
-                'organization-id': function_import_org.id,
+                'organization-id': function_import_org_at_isat.id,
                 'path': import_path,
             }
         )
         # Check the imported repo has the GPG key assigned.
-        imported_repo = target_sat.cli.Repository.info(
+        imported_repo = module_import_sat.cli.Repository.info(
             {
                 'name': function_synced_custom_repo.name,
                 'product': function_synced_custom_repo.product.name,
-                'organization-id': function_import_org.id,
+                'organization-id': function_import_org_at_isat.id,
             }
         )
         assert int(imported_repo['content-counts']['packages'])
         assert imported_repo['gpg-key']['name'] == gpg_key.name
         # Check the GPG key is imported to the importing org too.
-        imported_gpg = target_sat.cli.ContentCredential.info(
-            {'organization-id': function_import_org.id, 'name': gpg_key.name}
+        imported_gpg = module_import_sat.cli.ContentCredential.info(
+            {'organization-id': function_import_org_at_isat.id, 'name': gpg_key.name}
         )
         assert imported_gpg
         assert imported_gpg['content'] == gpg_key.content
@@ -2557,11 +2571,12 @@ class TestExportImport:
     def test_postive_export_import_large_cv(
         self,
         request,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         target_sat,
         function_org,
         function_synced_large_file_repo,
-        function_import_org,
+        module_import_sat,
+        function_import_org_at_isat,
     ):
         """Export and import CV with 100k files and check both operations succeeded.
 
@@ -2584,12 +2599,10 @@ class TestExportImport:
         :customerscenario: true
         """
         # Create CV, add the repository and publish
-        cv = target_sat.cli_factory.make_content_view({'organization-id': function_org.id})
-        target_sat.cli.ContentView.add_repository(
+        cv = target_sat.cli_factory.make_content_view(
             {
-                'id': cv['id'],
                 'organization-id': function_org.id,
-                'repository-id': function_synced_large_file_repo['id'],
+                'repository-ids': [function_synced_large_file_repo['id']],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -2606,16 +2619,18 @@ class TestExportImport:
         assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
         # Import the exported CV, check the files count.
-        import_path = target_sat.move_pulp_archive(function_org, export['message'])
-        target_sat.cli.ContentImport.version(
-            {'organization-id': function_import_org.id, 'path': import_path}, timeout='90m'
+        import_path = target_sat.move_pulp_archive(
+            function_org, export['message'], target=module_import_sat
         )
-        importing_cv = target_sat.cli.ContentView.info(
-            {'name': exporting_cv['name'], 'organization-id': function_import_org.id}
+        module_import_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org_at_isat.id, 'path': import_path}, timeout='90m'
+        )
+        importing_cv = module_import_sat.cli.ContentView.info(
+            {'name': exporting_cv['name'], 'organization-id': function_import_org_at_isat.id}
         )
         assert len(importing_cv['versions']) == 1
         assert (
-            target_sat.api.ContentViewVersion(id=importing_cv['versions'][0]['id'])
+            module_import_sat.api.ContentViewVersion(id=importing_cv['versions'][0]['id'])
             .read()
             .file_count
             == settings.repos.large_file_type_repo.files_count
@@ -2719,11 +2734,12 @@ class TestExportImport:
     def test_positive_export_import_incremental_yum_repo(
         self,
         target_sat,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         config_export_import_settings,
         function_org,
-        function_import_org,
         function_synced_custom_repo,
+        module_import_sat,
+        function_import_org_at_isat,
     ):
         """Export and import custom YUM repo contents incrementally.
 
@@ -2758,13 +2774,15 @@ class TestExportImport:
 
         # Run import and verify the product and repo is created
         # in the importing org and the content counts match.
-        import_path = target_sat.move_pulp_archive(function_org, export['message'])
-        target_sat.cli.ContentImport.repository(
-            {'organization-id': function_import_org.id, 'path': import_path}
+        import_path = target_sat.move_pulp_archive(
+            function_org, export['message'], target=module_import_sat
         )
-        import_repo = target_sat.cli.Repository.info(
+        module_import_sat.cli.ContentImport.repository(
+            {'organization-id': function_import_org_at_isat.id, 'path': import_path}
+        )
+        import_repo = module_import_sat.cli.Repository.info(
             {
-                'organization-id': function_import_org.id,
+                'organization-id': function_import_org_at_isat.id,
                 'name': function_synced_custom_repo.name,
                 'product': function_synced_custom_repo.product.name,
             }
@@ -2785,13 +2803,15 @@ class TestExportImport:
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
         # Run the import and verify the content counts match the updated counts.
-        import_path = target_sat.move_pulp_archive(function_org, export['message'])
-        target_sat.cli.ContentImport.repository(
-            {'organization-id': function_import_org.id, 'path': import_path}
+        import_path = target_sat.move_pulp_archive(
+            function_org, export['message'], target=module_import_sat
         )
-        import_repo = target_sat.cli.Repository.info(
+        module_import_sat.cli.ContentImport.repository(
+            {'organization-id': function_import_org_at_isat.id, 'path': import_path}
+        )
+        import_repo = module_import_sat.cli.Repository.info(
             {
-                'organization-id': function_import_org.id,
+                'organization-id': function_import_org_at_isat.id,
                 'name': function_synced_custom_repo.name,
                 'product': function_synced_custom_repo.product.name,
             }
@@ -3025,11 +3045,12 @@ class TestExportImport:
     def test_positive_export_import_consume_incremental_yum_repo(
         self,
         target_sat,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         config_export_import_settings,
         function_org,
-        function_import_org,
         function_synced_custom_repo,
+        module_import_sat,
+        function_import_org_at_isat,
         rhel_contenthost,
     ):
         """Export and import custom repo incrementally and consume it on a content host.
@@ -3083,41 +3104,48 @@ class TestExportImport:
         assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
         # On the importing side import version 1, check the package count.
-        import_path1 = target_sat.move_pulp_archive(function_org, export_1['message'])
-        target_sat.cli.ContentImport.version(
-            {'organization-id': function_import_org.id, 'path': import_path1}
+        import_path1 = target_sat.move_pulp_archive(
+            function_org, export_1['message'], target=module_import_sat
         )
-        imp_cv = target_sat.cli.ContentView.info(
-            {'name': exp_cv['name'], 'organization-id': function_import_org.id}
+        module_import_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org_at_isat.id, 'path': import_path1}
+        )
+        imp_cv = module_import_sat.cli.ContentView.info(
+            {'name': exp_cv['name'], 'organization-id': function_import_org_at_isat.id}
         )
         assert len(imp_cv['versions']) == 1
         imp_cvv = imp_cv['versions'][0]
-        assert target_sat.api.ContentViewVersion(id=imp_cvv['id']).read().package_count == pkg_cnt_1
+        assert (
+            module_import_sat.api.ContentViewVersion(id=imp_cvv['id']).read().package_count
+            == pkg_cnt_1
+        )
 
         # Create an AK with the imported CV, register the content host and check
         # the package count available to install. Filtered package should be missing.
-        ak = target_sat.cli_factory.make_activation_key(
+        ak = module_import_sat.cli_factory.make_activation_key(
             {
                 'content-view': exp_cv['name'],
                 'lifecycle-environment': LIBRARY_LCE,
-                'organization-id': function_import_org.id,
+                'organization-id': function_import_org_at_isat.id,
             }
         )
-        repo_content_label = target_sat.cli.Repository.info(
+        repo_content_label = module_import_sat.cli.Repository.info(
             {
                 'name': function_synced_custom_repo['name'],
                 'product': function_synced_custom_repo['product']['name'],
-                'organization-id': function_import_org.id,
+                'organization-id': function_import_org_at_isat.id,
             }
         )['content-label']
-        target_sat.cli.ActivationKey.content_override(
+        module_import_sat.cli.ActivationKey.content_override(
             {
                 'id': ak.id,
                 'content-label': repo_content_label,
                 'value': 'true',
             }
         )
-        res = rhel_contenthost.register(function_import_org, None, ak.name, target_sat)
+        res = rhel_contenthost.register(
+            function_import_org_at_isat, None, ak.name, module_import_sat
+        )
         assert res.status == 0, (
             f'Failed to register host: {rhel_contenthost.hostname}\n'
             f'StdOut: {res.stdout}\nStdErr: {res.stderr}'
@@ -3151,12 +3179,14 @@ class TestExportImport:
         assert '2.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
 
         # Import version 2, check the package count.
-        import_path2 = target_sat.move_pulp_archive(function_org, export_2['message'])
-        target_sat.cli.ContentImport.version(
-            {'organization-id': function_import_org.id, 'path': import_path2}
+        import_path2 = target_sat.move_pulp_archive(
+            function_org, export_2['message'], target=module_import_sat
         )
-        imp_cv = target_sat.cli.ContentView.info(
-            {'name': exp_cv['name'], 'organization-id': function_import_org.id}
+        module_import_sat.cli.ContentImport.version(
+            {'organization-id': function_import_org_at_isat.id, 'path': import_path2}
+        )
+        imp_cv = module_import_sat.cli.ContentView.info(
+            {'name': exp_cv['name'], 'organization-id': function_import_org_at_isat.id}
         )
         assert len(imp_cv['versions']) == 2
         imp_cvv = max(imp_cv['versions'], key=lambda x: int(x['id']))
@@ -3172,7 +3202,7 @@ class TestExportImport:
             )['content-counts']['packages']
         )
         assert (
-            target_sat.api.ContentViewVersion(id=imp_cvv['id']).read().package_count
+            module_import_sat.api.ContentViewVersion(id=imp_cvv['id']).read().package_count
             == pkg_cnt_2
             == package_count
         ), 'Unexpected package count after second import'
@@ -3192,10 +3222,11 @@ class TestExportImport:
         self,
         target_sat,
         config_export_import_settings,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         function_org,
         function_product,
-        function_import_org,
+        module_import_sat,
+        function_import_org_at_isat,
     ):
         """Test export/import of a repo created via Podman push
 
@@ -3234,21 +3265,25 @@ class TestExportImport:
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         export = target_sat.cli.ContentExport.completeRepository({'id': repo['id']})
         assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
-        import_path = target_sat.move_pulp_archive(function_org, export['message'])
+        import_path = target_sat.move_pulp_archive(
+            function_org, export['message'], target=module_import_sat
+        )
         # Check that files are present in import_path
-        result = target_sat.execute(f'ls {import_path}')
+        result = module_import_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
         # Import files and verify content
-        target_sat.cli.ContentImport.library(
-            {'organization-id': function_import_org.id, 'path': import_path}
+        module_import_sat.cli.ContentImport.library(
+            {'organization-id': function_import_org_at_isat.id, 'path': import_path}
         )
-        assert target_sat.cli.Product.list({'organization-id': function_import_org.id})
-        import_repo = target_sat.cli.Repository.info(
+        assert module_import_sat.cli.Product.list(
+            {'organization-id': function_import_org_at_isat.id}
+        )
+        import_repo = module_import_sat.cli.Repository.info(
             {
-                'organization-id': function_import_org.id,
-                'id': target_sat.cli.Repository.list({'organization-id': function_import_org.id})[
-                    0
-                ]['id'],
+                'organization-id': function_import_org_at_isat.id,
+                'id': module_import_sat.cli.Repository.list(
+                    {'organization-id': function_import_org_at_isat.id}
+                )[0]['id'],
             }
         )
         assert import_repo['name'] == repo['name']
