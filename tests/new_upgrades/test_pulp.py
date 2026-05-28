@@ -77,6 +77,7 @@ def test_pulp_href_prn_migration_scenario(pulp_upgrade_setup, table):
         assert row[table['prn_key']] == PULP_HREF_PRN_MAP.get(base_path, '') + uuid
 
 
+@pytest.mark.pulp_upgrades
 def test_pulp_repoversion_href_prn_migration_scenario(pulp_upgrade_setup):
     """Verify Pulp HREF to PRN migration for repository versions in katello_repositories table.
 
