@@ -2084,6 +2084,12 @@ BOOKMARK_ENTITIES_SELECTION = [
         'controller': 'provisioning_templates',
         'session_name': 'provisioningtemplate',
     },
+    {
+        'name': 'ArfReport',
+        'controller': 'arf_reports',
+        'session_name': 'arfreport',
+        'skip_for_ui': True,  # search bar is only available when reports exist; otherwise the welcome page renders
+    },
 ]
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
