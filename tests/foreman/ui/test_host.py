@@ -3785,19 +3785,20 @@ def test_positive_all_hosts_check_status_icon(
 
     :steps:
         1. Create/register three content hosts with different statuses:
-           - Host registered with setupInsights=NO, setupRex=YES (success status)
+           - Host with content and latest packages installed (success status)
            - Host with applicable security errata (danger status)
            - Host with no package profile reported (warning status)
-        2. For the errata host, install and then downgrade a package to create applicable errata
-        3. Navigate to All Hosts page
-        4. Read the status icon for each host
-        5. Verify the status icon matches the expected state
+        2. For the success host, register with content and install latest packages
+        3. For the errata host, install and then downgrade a package to create applicable errata
+        4. Navigate to All Hosts page
+        5. Read the status icon for each host
+        6. Verify the status icon matches the expected state
 
     :expectedresults:
         1. Host with security errata shows 'danger' status with
            'Errata: Security errata applicable' details
         2. Host without package profile shows 'warning' status with appropriate message
-        3. Host registered with setupInsights=NO, setupRex=YES shows 'success' status
+        3. Host with content and latest packages shows 'success' status
         4. Status icons accurately represent each host's actual dynamically recalculated state
 
     :Verifies: SAT-36330, SAT-42220
@@ -3817,18 +3818,9 @@ def test_positive_all_hosts_check_status_icon(
         no_profile_host.register(module_org, None, module_ak_with_cv.name, target_sat).status == 0
     )
 
-    # Register success host with setupInsights=NO, setupRex=YES
-    assert (
-        success_host.register(
-            module_org,
-            None,
-            module_ak_with_cv.name,
-            target_sat,
-            setup_insights=False,
-            setup_remote_execution=True,
-        ).status
-        == 0
-    )
+    # Setup success host: register with content, install latest packages, no applicable errata
+    module_repos_collection_with_setup.setup_virtual_machine(success_host, enable_custom_repos=True)
+    assert success_host.execute(f'yum install -y {FAKE_8_CUSTOM_PACKAGE}').status == 0
 
     with target_sat.ui_session() as session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
