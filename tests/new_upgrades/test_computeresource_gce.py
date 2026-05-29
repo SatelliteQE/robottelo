@@ -162,9 +162,7 @@ def setup_gce_cr_and_host(
                 'domain': domain,
                 'compute_attrs': compute_attrs,
                 'compute_resource': compute_resource,
-                'gce_finishimg': gce_finishimg,
                 'googleclient': shared_googleclient,
-                'google_host': google_host,
                 'hostgroup': hostgroup,
                 'architecture': default_arch,
                 'os': default_os,
@@ -172,10 +170,12 @@ def setup_gce_cr_and_host(
                 'provision_host_ip': host.ip,
             }
         )
+        target_sat._swap_nailgun(settings.upgrade.to_version)
         target_sat._session = None
         yield test_data
 
 
+@pytest.mark.puppet_upgrades
 def test_post_create_gce_cr_and_host(
     setup_gce_cr_and_host,
 ):
@@ -200,13 +200,21 @@ def test_post_create_gce_cr_and_host(
     pre_upgrade_host = target_sat.api.Host().search(
         query={'search': f'name={setup_gce_cr_and_host.provision_host_name}'}
     )[0]
-    org = target_sat.api.Organization(id=pre_upgrade_host.organization.id).read()
-    loc = target_sat.api.Location(id=pre_upgrade_host.location.id).read()
+
+    # Re-read all entities using IDs to get fresh objects after nailgun re-install
+    architecture = target_sat.api.Architecture(id=setup_gce_cr_and_host.architecture.id).read()
+    compute_resource = target_sat.api.GCEComputeResource(
+        id=setup_gce_cr_and_host.compute_resource.id
+    ).read()
     domain = target_sat.api.Domain(id=pre_upgrade_host.domain.id).read()
+    hostgroup = target_sat.api.HostGroup(id=pre_upgrade_host.hostgroup.id).read()
     image = target_sat.api.Image(
         id=pre_upgrade_host.image.id, compute_resource=pre_upgrade_host.compute_resource.id
     ).read()
-    gce_hostgroup = target_sat.api.HostGroup(id=pre_upgrade_host.hostgroup.id).read()
+    loc = target_sat.api.Location(id=pre_upgrade_host.location.id).read()
+    org = target_sat.api.Organization(id=pre_upgrade_host.organization.id).read()
+    os = target_sat.api.OperatingSystem(id=setup_gce_cr_and_host.os.id).read()
+
     assert pre_upgrade_host.ip == setup_gce_cr_and_host.provision_host_ip
     assert pre_upgrade_host.build_status_label == 'Installed'
     with target_sat.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
@@ -217,16 +225,17 @@ def test_post_create_gce_cr_and_host(
     # Create new host
     hostname = gen_alpha(length=8)
     host = target_sat.api.Host(
-        architecture=setup_gce_cr_and_host.architecture,
+        architecture=architecture,
         compute_attributes=setup_gce_cr_and_host.compute_attrs,
+        compute_resource=compute_resource,
         domain=domain,
-        hostgroup=gce_hostgroup,
-        organization=org,
-        operatingsystem=setup_gce_cr_and_host.os,
+        hostgroup=hostgroup,
+        image=image,
         location=loc,
+        organization=org,
+        operatingsystem=os,
         name=hostname,
         provision_method='image',
-        image=image,
         root_pass=gen_string('alphanumeric'),
     ).create()
     assert host.name == f'{hostname}.{domain.name}'.lower()
@@ -237,7 +246,6 @@ def test_post_create_gce_cr_and_host(
         assert host.name not in [vm.name for vm in googleclient.list_vms()]
 
     # Modify compute resource
-    compute_resource = setup_gce_cr_and_host.compute_resource
     newgce_name = gen_string('alpha')
     newgce_zone = random.choice(VALID_GCE_ZONES)
     compute_resource.name = newgce_name
