@@ -48,6 +48,7 @@ def custom_repo_check_setup(sat_upgrade_chost, content_upgrade_shared_satellite,
 
     """
     target_sat = content_upgrade_shared_satellite
+    sat_upgrade_chost._skip_context_checkin = True
     with SharedResource(target_sat.hostname, upgrade_action, target_sat=target_sat) as sat_upgrade:
         test_data = Box(
             {
