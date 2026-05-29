@@ -678,18 +678,18 @@ class ContentHost(Host, ContentHostMixins):
             'update-packages': str(update_packages).lower(),
         }
         if org is not None:
-            if isinstance(org, entities.Organization):
-                options['organization-id'] = org.id
-            elif isinstance(org, dict):
+            if isinstance(org, dict):
                 options['organization-id'] = org['id']
+            elif hasattr(org, 'id'):
+                options['organization-id'] = org.id
             else:
                 raise ValueError('org must be a dict or an Organization object')
 
         if loc is not None:
-            if isinstance(loc, entities.Location):
-                options['location-id'] = loc.id
-            elif isinstance(loc, dict):
+            if isinstance(loc, dict):
                 options['location-id'] = loc['id']
+            elif hasattr(loc, 'id'):
+                options['location-id'] = loc.id
             else:
                 raise ValueError('loc must be a dict or a Location object')
 
@@ -1559,9 +1559,12 @@ class ContentHost(Host, ContentHostMixins):
                 snap=settings.server.version.snap,
             )
 
-    def setup_capsule_repos(self):
+    def setup_capsule_repos(self, release=None):
         """Setup Capsule repositories on host
         requires registered host if ga source has to be enabled
+
+        Args:
+            release: Override capsule version release (Default: settings.capsule.version.release)
         """
         if settings.capsule.version.source == "ga":
             # enable cdn repos
@@ -1574,8 +1577,8 @@ class ContentHost(Host, ContentHostMixins):
         else:
             self.download_repofile(
                 product='capsule',
-                release=settings.capsule.version.release,
-                snap=settings.capsule.version.snap,
+                release=release or settings.capsule.version.release,
+                snap='' if release else settings.capsule.version.snap,
             )
 
 
@@ -1722,12 +1725,21 @@ class Capsule(ContentHost, CapsuleMixins):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
-    def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
-        """Prepare the host and run the capsule installer"""
+    def capsule_setup(
+        self, sat_host=None, capsule_cert_opts=None, release=None, **installer_kwargs
+    ):
+        """Prepare the host and run the capsule installer
 
+        Args:
+            sat_host: Satellite host object
+            capsule_cert_opts: Certificate options for capsule
+            release: Override capsule version release for upgrade testing (Default: settings.capsule.version.release)
+        Kwargs:
+            installer_kwargs: Additional installer arguments
+        """
         self.register_to_cdn()
         self.setup_rhel_repos()
-        self.setup_capsule_repos()
+        self.setup_capsule_repos(release=release)
 
         # After capsule registration to cdn, it should be initialized with the Satellite.
         self._satellite = sat_host or Satellite()

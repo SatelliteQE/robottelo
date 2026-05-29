@@ -115,10 +115,12 @@ def provisioning_templates_setup(
                 'target_sat': target_sat,
             }
         )
+        target_sat._swap_nailgun(settings.upgrade.to_version)
         target_sat._session = None
         yield test_data
 
 
+@pytest.mark.content_upgrades
 @pytest.mark.parametrize('provisioning_templates_setup', ['bios', 'uefi'], indirect=True)
 def test_post_scenario_provisioning_templates(
     provisioning_templates_setup,
