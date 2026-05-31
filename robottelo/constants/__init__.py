@@ -2544,6 +2544,8 @@ DUMMY_BOOTC_FACTS = """{
 
 FOREMANCTL_PARAMETERS_FILE = '/var/lib/foremanctl/parameters.yaml'
 
+REGIONAL_RED_HAT_CDN_URLS = ['https://cdn-us.redhat.com', 'https://cdn-eu.redhat.com']
+
 
 # Data File Paths
 class DataFile(Box):

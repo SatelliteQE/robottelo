@@ -24,11 +24,14 @@ from robottelo.config import settings
 from robottelo.constants import (
     CUSTOM_FILE_REPO_FILES_COUNT,
     CUSTOM_LOCAL_FOLDER,
+    DEFAULT_ARCHITECTURE,
     DOWNLOAD_POLICIES,
     FAKE_3_YUM_REPO_RPMS,
     MIRRORING_POLICIES,
     OS_TEMPLATE_DATA_FILE,
+    REGIONAL_RED_HAT_CDN_URLS,
     REPO_TYPE,
+    REPOS,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
     SUPPORTED_REPO_CHECKSUMS,
@@ -2615,3 +2618,65 @@ def test_positive_install_uploaded_rpm_on_host(
         f'rpm -q {FAKE_3_YUM_REPO_RPMS[0].split("-")[0]}'
     )
     assert installed_package_name.stdout == queryinfo.stdout
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize(
+    'cdn_url',
+    REGIONAL_RED_HAT_CDN_URLS,
+)
+def test_positive_sync_rh_repo_custom_cdn_no_credential(
+    target_sat,
+    function_sca_manifest_org,
+    cdn_url,
+):
+    """Sync a Red Hat repo using a regional CDN URL without a regional CA credential.
+
+    Verifies the redhat-uep.pem CA fallback and allows syncing from alternate Red Hat
+    CDN hosts without uploading a custom CA credential.
+
+    :id: d651c2da-9fad-4df3-a45f-ffd63a8fad70
+
+    :steps:
+        1. Upload manifest to the organization.
+        2. Set CDN configuration to custom_cdn with a regional Red Hat CDN URL.
+        3. Enable a Red Hat repository set.
+        4. Sync the repository.
+
+    :expectedresults:
+        1. CDN configuration is updated successfully.
+        2. Repository is enabled and syncs without SSL errors.
+
+    :Verifies: SAT-45151
+    """
+    org = function_sca_manifest_org
+
+    res = target_sat.cli.Org.configure_cdn(
+        {
+            'id': org.id,
+            'type': 'custom_cdn',
+            'url': cdn_url,
+        }
+    )
+    assert 'Updated CDN configuration' in res
+
+    repo_dict = REPOS['rhae2']
+    target_sat.cli.RepositorySet.enable(
+        {
+            'organization-id': org.id,
+            'name': repo_dict['reposet'],
+            'product': repo_dict['product'],
+            'basearch': DEFAULT_ARCHITECTURE,
+        }
+    )
+
+    repos = target_sat.cli.Repository.list({'organization-id': org.id})
+    print(repos, "repos")
+    assert len(repos) == 1, "Expected only one repo enabled"
+    repo = repos[0]
+
+    target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+    repo = target_sat.cli.Repository.info({'id': repo['id']})
+    assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
+    assert int(repo['content-counts']['packages']) > 0, 'No packages synced'
