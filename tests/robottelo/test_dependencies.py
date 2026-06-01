@@ -131,7 +131,7 @@ def test_testimony():
 def test_wait_for():
     from wait_for import wait_for
 
-    assert wait_for(lambda: True, num_sec=1, delay=1)
+    assert wait_for(lambda: True, timeout=1, delay=1)
 
 
 def test_wrapanapi():
