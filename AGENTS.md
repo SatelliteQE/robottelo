@@ -752,7 +752,7 @@ pytest_plugins = [
 
 **Solution**:
 - Add timeout to long-running operations
-- Use `wait_for()` with proper timeout
+- Use `wait_for()` with proper timeout in seconds passed as int
 - Check for blocking I/O operations
 
 ```python
