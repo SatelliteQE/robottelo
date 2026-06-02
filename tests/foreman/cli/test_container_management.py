@@ -89,7 +89,7 @@ class TestDockerClient:
             # publishing takes few seconds sometimes
             result, _ = wait_for(
                 lambda: module_container_contenthost.execute(f'docker pull {repo["published-at"]}'),
-                num_sec=60,
+                timeout=60,
                 delay=2,
                 fail_condition=lambda out: out.status != 0,
                 logger=logger,
@@ -307,7 +307,7 @@ class TestDockerClient:
         # publishing takes few seconds sometimes
         result, _ = wait_for(
             lambda: module_container_contenthost.execute(docker_pull_command),
-            num_sec=60,
+            timeout=60,
             delay=2,
             fail_condition=lambda out: out.status != 0,
             logger=logger,
