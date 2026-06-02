@@ -63,8 +63,9 @@ def ak_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
         cv = target_sat.publish_content_view(org, [custom_repo], f'{test_name}_cv')
         assert len(cv.read_json()['versions']) == 1
         test_data.cv = cv
+        cvenv_id = target_sat.api_factory.get_cvenv_id(cv, org.library)
         ak = target_sat.api.ActivationKey(
-            content_view=cv, organization=org, environment=org.library.id, name=f'{test_name}_ak'
+            content_view_environment_ids=[cvenv_id], organization=org, name=f'{test_name}_ak'
         ).create()
         test_data.ak = ak
         ak.host_collection.append(

@@ -866,9 +866,9 @@ def test_positive_add_host(
 
     :parametrized: yes
     """
+    cvenv_id = target_sat.api_factory.get_cvenv_id(module_promoted_cv, module_lce)
     ak = target_sat.api.ActivationKey(
-        content_view=module_promoted_cv,
-        environment=module_lce,
+        content_view_environment_ids=[cvenv_id],
         organization=module_org,
     ).create()
     result = rhel_contenthost.register(module_org, None, ak.name, target_sat)
@@ -1034,9 +1034,12 @@ def test_positive_host_associations(session, target_sat):
         {'url': settings.repos.yum_1.url, 'organization-id': org.id}
     )
     ak1 = target_sat.api.ActivationKey(id=org_entities['activationkey-id']).read()
+    cvenv_id = target_sat.api_factory.get_cvenv_id(
+        org_entities['content-view-id'],
+        org_entities['lifecycle-environment-id'],
+    )
     ak2 = target_sat.api.ActivationKey(
-        content_view=org_entities['content-view-id'],
-        environment=org_entities['lifecycle-environment-id'],
+        content_view_environment_ids=[cvenv_id],
         organization=org.id,
     ).create()
     with Broker(

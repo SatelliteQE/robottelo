@@ -66,10 +66,10 @@ def activation_key_rhel(
     module_target_sat, module_els_sca_manifest_org, module_lce, module_promoted_cv
 ):
     """Create activation key that will be used after conversion for registration"""
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(module_promoted_cv, module_lce)
     return module_target_sat.api.ActivationKey(
         organization=module_els_sca_manifest_org,
-        content_view=module_promoted_cv,
-        environment=module_lce,
+        content_view_environment_ids=[cvenv_id],
     ).create()
 
 
@@ -141,10 +141,10 @@ def centos(
     cv = update_cv(
         module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
     )
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(cv, module_lce)
     ak = module_target_sat.api.ActivationKey(
         organization=module_els_sca_manifest_org,
-        content_view=cv,
-        environment=module_lce,
+        content_view_environment_ids=[cvenv_id],
     ).create()
     # Ensure C2R repo is enabled in the activation key
     all_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
@@ -237,10 +237,10 @@ def oracle(
     cv = update_cv(
         module_target_sat, module_promoted_cv, module_lce, enable_rhel_subscriptions + [repo]
     )
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(cv, module_lce)
     ak = module_target_sat.api.ActivationKey(
         organization=module_els_sca_manifest_org,
-        content_view=cv,
-        environment=module_lce,
+        content_view_environment_ids=[cvenv_id],
     ).create()
     # Ensure C2R repo is enabled in the activation key
     all_content = ak.product_content(data={'content_access_mode_all': '1'})['results']

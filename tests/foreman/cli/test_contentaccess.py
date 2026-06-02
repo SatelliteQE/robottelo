@@ -63,9 +63,9 @@ def rh_repo_setup_ak(module_sca_manifest_org, module_rhel_contenthost, module_ta
     # promote the last version published into the module lce
     cv.version[-1].promote(data={'environment_ids': lce.id, 'force': False})
 
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(cv, lce)
     ak = module_target_sat.api.ActivationKey(
-        content_view=cv,
-        environment=lce,
+        content_view_environment_ids=[cvenv_id],
         organization=module_sca_manifest_org,
     ).create()
     # Ensure tools repo is enabled in the activation key

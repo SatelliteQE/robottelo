@@ -2238,8 +2238,9 @@ def change_content_source_prep(
     content_view.publish()
     content_view.read().version[0].promote(data={'environment_ids': lce.id})
 
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(content_view, lce)
     ak = module_target_sat.api.ActivationKey(
-        content_view=content_view, organization=org.id, environment=lce.id
+        content_view_environment_ids=[cvenv_id], organization=org.id
     ).create()
 
     # Edit capsule's taxonomies
@@ -2416,10 +2417,10 @@ def test_manage_content_source_with_multi_cv(
     cv_version2.promote(data={'environment_ids': lce2.id})
 
     # Step 3 & 4: Create activation key and register host
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(module_cv, module_org.library)
     ak = module_target_sat.api.ActivationKey(
         organization=module_org.id,
-        content_view=module_cv.id,
-        environment=module_org.library.id,
+        content_view_environment_ids=[cvenv_id],
     ).create()
     result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
@@ -3010,11 +3011,11 @@ def test_positive_manage_repository_sets(
     cv_version.promote(data={'environment_ids': module_lce.id})
 
     # Update activation key
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(content_view, module_lce)
     module_ak = module_target_sat.api.ActivationKey(
         id=module_ak.id,
         organization=module_sca_manifest_org,
-        content_view=content_view,
-        environment=module_lce,
+        content_view_environment_ids=[cvenv_id],
     ).update()
 
     # Register hosts and collect repo names
@@ -4065,9 +4066,9 @@ def test_positive_all_hosts_manage_system_purpose(
     content_view = content_view.read()
     cvv = content_view.version[0].read()
     cvv.promote(data={'environment_ids': module_lce.id})
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(content_view, module_lce)
     ak = module_target_sat.api.ActivationKey(
-        content_view=content_view,
-        environment=module_lce,
+        content_view_environment_ids=[cvenv_id],
         organization=module_sca_manifest_org,
     ).create()
 
@@ -4314,10 +4315,10 @@ def test_assign_multi_cv_from_host_page(
 
     :verifies: SAT-25846
     """
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(module_cv_repo, module_org.library)
     ak = module_target_sat.api.ActivationKey(
         organization=module_org.id,
-        content_view=module_cv_repo.id,
-        environment=module_org.library.id,
+        content_view_environment_ids=[cvenv_id],
     ).create()
     result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
     assert result.status == 0
@@ -4363,10 +4364,10 @@ def test_assign_different_cv_from_same_env(
     :verifies: SAT-25846
     """
     # Create activation key and register host
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(module_cv_repo, module_org.library)
     ak = module_target_sat.api.ActivationKey(
         organization=module_org.id,
-        content_view=module_cv_repo.id,
-        environment=module_org.library.id,
+        content_view_environment_ids=[cvenv_id],
     ).create()
     result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
     assert result.status == 0

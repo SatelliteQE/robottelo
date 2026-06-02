@@ -1174,9 +1174,11 @@ def test_positive_check_errata_dates(module_sca_manifest_org, module_target_sat)
 def new_module_ak(
     module_sca_manifest_org, rh_repo_module_manifest, module_lce_library, module_target_sat
 ):
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+        module_sca_manifest_org.default_content_view, module_lce_library
+    )
     new_module_ak = module_target_sat.api.ActivationKey(
-        environment=module_lce_library,
-        content_view=module_sca_manifest_org.default_content_view,
+        content_view_environment_ids=[cvenv_id],
         organization=module_sca_manifest_org,
     ).create()
     # Ensure tools repo is enabled in the activation key

@@ -106,11 +106,14 @@ def fixture_setup_rhc_satellite(
         ).create()
         content_view.publish()
         # Create Activation key
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+            content_view,
+            module_target_sat.api.LifecycleEnvironment(id=module_rhc_org.library.id),
+        )
         ak = module_target_sat.api.ActivationKey(
             name=settings.rh_cloud.activation_key or gen_string('alpha'),
-            content_view=content_view,
+            content_view_environment_ids=[cvenv_id],
             organization=module_rhc_org,
-            environment=module_target_sat.api.LifecycleEnvironment(id=module_rhc_org.library.id),
         ).create()
         logger.debug(
             f"Activation key: {ak} \n CV: {content_view} \n Organization: {module_rhc_org}"

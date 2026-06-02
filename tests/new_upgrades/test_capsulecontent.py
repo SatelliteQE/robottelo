@@ -75,8 +75,9 @@ def capsule_sync_setup(capsule_upgrade_integrated_sat_cap, upgrade_action):
         content_view = target_sat.publish_content_view(org, repo, f'{test_name}_content_view')
         content_view.version[0].promote(data={'environment_ids': [lce.id]})
         content_view_env_id = [env.id for env in content_view.read().environment]
+        cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, lce)
         ak = target_sat.api.ActivationKey(
-            name=f'{test_name}_ak', organization=org.id, environment=lce, content_view=content_view
+            name=f'{test_name}_ak', organization=org.id, content_view_environment_ids=[cvenv_id]
         ).create()
         assert lce.id in content_view_env_id
         test_data = Box(

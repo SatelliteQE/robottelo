@@ -55,9 +55,11 @@ class TestScenarioDBseedHostMismatch:
 
         :customerscenario: true
         """
-        ak = self.api.ActivationKey(
-            content_view=function_org.default_content_view.id,
-            environment=function_org.library.id,
+        cvenv_id = target_sat.api_factory.get_cvenv_id(
+            function_org.default_content_view, function_org.library
+        )
+        ak = target_sat.api.ActivationKey(
+            content_view_environment_ids=[cvenv_id],
             organization=function_org,
         ).create()
         rhel7_contenthost_module.register(function_org, function_location, ak.name, target_sat)

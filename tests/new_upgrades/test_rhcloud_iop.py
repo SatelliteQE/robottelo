@@ -54,11 +54,14 @@ def iop_recommendations_upgrade_setup(
         manifest = Manifester(manifest_category=settings.manifest.golden_ticket)
         target_sat.upload_manifest(org.id, manifest.get_manifest().content)
 
+        cvenv_id = target_sat.api_factory.get_cvenv_id(
+            org.default_content_view,
+            target_sat.api.LifecycleEnvironment(id=org.library.id),
+        )
         activation_key = target_sat.api.ActivationKey(
             name=f'{test_name}_ak',
-            content_view=org.default_content_view,
+            content_view_environment_ids=[cvenv_id],
             organization=org,
-            environment=target_sat.api.LifecycleEnvironment(id=org.library.id),
         ).create()
 
         # Enable RHEL OS repos so insights-client can be installed during registration

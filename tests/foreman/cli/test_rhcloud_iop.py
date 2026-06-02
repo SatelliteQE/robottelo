@@ -143,10 +143,12 @@ def test_positive_install_iop_custom_certs(
     org = satellite.api.Organization().create()
     satellite.upload_manifest(org.id, module_sca_manifest.content)
 
+    cvenv_id = satellite.api_factory.get_cvenv_id(
+        org.default_content_view, satellite.api.LifecycleEnvironment(id=org.library.id)
+    )
     activation_key = satellite.api.ActivationKey(
-        content_view=org.default_content_view,
+        content_view_environment_ids=[cvenv_id],
         organization=org,
-        environment=satellite.api.LifecycleEnvironment(id=org.library.id),
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',
@@ -197,10 +199,12 @@ def test_disable_enable_iop(module_satellite_iop, module_sca_manifest, rhel_cont
     org = satellite.api.Organization().create()
     satellite.upload_manifest(org.id, module_sca_manifest.content)
 
+    cvenv_id = satellite.api_factory.get_cvenv_id(
+        org.default_content_view, satellite.api.LifecycleEnvironment(id=org.library.id)
+    )
     activation_key = satellite.api.ActivationKey(
-        content_view=org.default_content_view,
+        content_view_environment_ids=[cvenv_id],
         organization=org,
-        environment=satellite.api.LifecycleEnvironment(id=org.library.id),
         service_level='Self-Support',
         purpose_usage='test-usage',
         purpose_role='test-role',

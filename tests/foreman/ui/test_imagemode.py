@@ -257,10 +257,10 @@ def test_positive_oscap_remediation_bootc(module_org, default_smart_proxy, targe
     assert len(content_view.version) == 1, "CV not published"
     version = content_view.version[0].read()
     version.promote(data={'environment_ids': lifecycle_env.id, 'force': True})
+    cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, lifecycle_env)
     activation_key = target_sat.api.ActivationKey(
         name=ak_name,
-        environment=lifecycle_env,
-        content_view=content_view,
+        content_view_environment_ids=[cvenv_id],
         organization=module_org,
     ).create()
     # Setup org for a custom repo for RHEL10

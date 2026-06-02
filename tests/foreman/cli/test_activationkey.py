@@ -1637,9 +1637,9 @@ def test_syspurpose_end_to_end(
     """
     # Create an activation key with test values
     # purpose_addons = "test-addon1, test-addon2"
+    cvenv_id = target_sat.api_factory.get_cvenv_id(module_promoted_cv, module_lce)
     activation_key = target_sat.api.ActivationKey(
-        content_view=module_promoted_cv,
-        environment=module_lce,
+        content_view_environment_ids=[cvenv_id],
         organization=module_org,
         # purpose_addons=[purpose_addons],
         purpose_role="test-role",

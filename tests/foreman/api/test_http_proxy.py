@@ -212,10 +212,10 @@ def test_positive_install_content_with_http_proxy(
     content_view = content_view.read()
     content_view.version[-1].promote(data={'environment_ids': lce.id})
 
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(content_view, lce)
     activation_key = module_target_sat.api.ActivationKey(
-        content_view=content_view,
+        content_view_environment_ids=[cvenv_id],
         organization=org,
-        environment=lce,
     ).create()
     activation_key.content_override(
         data={

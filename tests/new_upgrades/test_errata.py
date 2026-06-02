@@ -157,11 +157,11 @@ def generate_errata_for_client_setup(
         ]
         content_view = target_sat.publish_content_view(org, repolist, f'{test_name}_cv')
         test_data.content_view_id = content_view.id
+        cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, environment)
         ak = target_sat.api.ActivationKey(
             name=f'{test_name}_ak',
-            content_view=content_view,
+            content_view_environment_ids=[cvenv_id],
             organization=org.id,
-            environment=environment,
         ).create()
         test_data.activation_key = ak.name
         # Override/enable all AK repos (disabled by default since 6.15)

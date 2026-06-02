@@ -40,8 +40,9 @@ class TestActivationKey:
         lce = target_sat.api.LifecycleEnvironment(organization=org).search(
             query={'search': 'name=Library'}
         )[0]
+        cvenv_id = target_sat.api_factory.get_cvenv_id(cv, lce)
         ak = target_sat.api.ActivationKey(
-            content_view=cv, environment=lce, organization=org, name=f"{request.param}_ak"
+            content_view_environment_ids=[cvenv_id], organization=org, name=f"{request.param}_ak"
         ).create()
         return {'org': org, 'cv': cv, 'ak': ak, 'custom_repo': custom_repo}
 

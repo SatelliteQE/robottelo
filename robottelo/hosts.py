@@ -1108,9 +1108,9 @@ class ContentHost(Host, ContentHostMixins):
         :param bool register: Whether to register to the Satellite. Keyexchange done regardless
         """
         if register:
+            cvenv_id = satellite.api_factory.get_cvenv_id(org.default_content_view, org.library)
             ak = satellite.api.ActivationKey(
-                content_view=org.default_content_view.id,
-                environment=org.library.id,
+                content_view_environment_ids=[cvenv_id],
                 organization=org,
             ).create()
             self.register(
@@ -1183,9 +1183,9 @@ class ContentHost(Host, ContentHostMixins):
         # attempt to register host
         if register:
             if not activation_key:
+                cvenv_id = satellite.api_factory.get_cvenv_id(org.default_content_view, org.library)
                 activation_key = satellite.api.ActivationKey(
-                    content_view=org.default_content_view.id,
-                    environment=org.library.id,
+                    content_view_environment_ids=[cvenv_id],
                     organization=org,
                 ).create()
             self.register(
@@ -2586,9 +2586,11 @@ class Satellite(Capsule, SatelliteMixins):
             assert task_status['result'] == 'success'
 
         # register contenthost
+        cvenv_id = self.api_factory.get_cvenv_id(
+            module_org.default_content_view, module_org.library
+        )
         ak = self.api.ActivationKey(
-            content_view=module_org.default_content_view.id,
-            environment=module_org.library.id,
+            content_view_environment_ids=[cvenv_id],
             organization=module_org,
         ).create()
         register = rhel_contenthost.register(module_org, None, ak.name, self)
