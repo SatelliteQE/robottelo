@@ -171,7 +171,7 @@ def test_host_provisioning_with_external_puppetserver(
     # the result of the installation. Wait until Satellite reports that the host is installed.
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
-        timeout='40m',
+        timeout=2400,
         delay=30,
     )
     host = host.read()
