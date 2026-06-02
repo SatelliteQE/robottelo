@@ -530,6 +530,10 @@ def test_positive_oscap_remediation(
         )
         title = 'xccdf_org.ssgproject.content_rule_package_aide_installed'
         session.organization.select(module_org.name)
+        report_chart = session.oscapreport.details(
+            f'id={arf_id}', widget_names=['report_status_chart']
+        )['report_status_chart']
+        assert any(v > 0 for v in report_chart.values())
         results = session.oscapreport.details(f'id={arf_id}', widget_names=['table'], limit=10)[
             'table'
         ]
