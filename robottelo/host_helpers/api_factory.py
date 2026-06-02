@@ -41,6 +41,12 @@ class APIFactory:
         result = self._satellite.api.ContentViewEnvironment().list_content_view_environments(
             params={'content_view_id': cv_id, 'lifecycle_environment_id': lce_id}
         )
+        if not result['results']:
+            raise ValueError(
+                f'No ContentViewEnvironment found for content_view_id={cv_id}, '
+                f'lifecycle_environment_id={lce_id}. '
+                f'Has the content view been published and promoted to this environment?'
+            )
         return result['results'][0]['id']
 
     def make_http_proxy(self, org, http_proxy_type, use_ip=False):
