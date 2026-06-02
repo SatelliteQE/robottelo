@@ -1337,6 +1337,139 @@ class TestRollingContentView:
         # rolling cv contains all the environments (match sets by :ids)
         assert set(cv.id for cv in rolling_cv.environment) == set(cv.id for cv in all_envs)
 
+    @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+    def test_negative_incremental_update_rolling_cv(
+        self,
+        target_sat,
+        rhel_contenthost,
+        function_sca_manifest_org,
+        function_product,
+    ):
+        """Incremental update raises a descriptive error when a rolling CV version is
+        included in the scope, instead of crashing with 'undefined method version_href
+        for nil:NilClass'.
+
+        :id: 1f2e06f2-8270-4d74-9caa-40f338ea61e0
+
+        :setup:
+            1. Sync a custom yum repo with errata content (component CV repo).
+            2. Create a component CV with the repo, add errata exclusion filter, publish v1.0.
+            3. Create a Composite CV with the component CV, publish v1.0 to Library.
+            4. Create a Rolling CV with a separate custom repo, add to Library.
+            5. Create a multi-CV activation key with both CV environments and register the host.
+
+        :steps:
+            1. Trigger incremental update passing both the component CVV and the rolling CVV
+               in content_view_version_environments, adding the filtered errata.
+
+        :expectedresults:
+            1. Incremental update raises an HTTPError with a descriptive message stating
+               that incremental update cannot be performed on a Rolling Content View Version.
+            2. Component CV version remains at v1.0 (no increment was applied).
+            3. Rolling CV retains its single version at v1.0.
+
+        :Verifies: SAT-45590
+
+        :customerscenario: true
+        """
+        org = function_sca_manifest_org
+        ERRATUM_ID = settings.repos.yum_9.errata[0]
+
+        # Sync custom yum repo containing errata
+        repo = target_sat.api.Repository(
+            product=function_product,
+            url=settings.repos.yum_9.url,
+        ).create()
+        repo.sync()
+
+        # Component CV with errata exclusion filter so the errata is applicable but not installed
+        component_cv = target_sat.api.ContentView(
+            organization=org,
+            repository=[repo],
+        ).create()
+        cv_filter = target_sat.api.ErratumContentViewFilter(
+            content_view=component_cv, inclusion=False
+        ).create()
+        erratum = target_sat.api.Errata().search(query={'search': f'errata_id="{ERRATUM_ID}"'})[0]
+        target_sat.api.ContentViewFilterRule(content_view_filter=cv_filter, errata=erratum).create()
+        component_cv.publish()
+        component_cv = component_cv.read()
+        component_cvv = component_cv.version[0].read()
+        assert component_cvv.version == '1.0'
+
+        # Composite CV with the component CV, publish v1.0 to Library
+        composite_cv = target_sat.api.ContentView(
+            organization=org,
+            composite=True,
+            component=[component_cvv],
+        ).create()
+        composite_cv.publish()
+        composite_cv = composite_cv.read()
+        assert composite_cv.version[0].read().version == '1.0'
+
+        # Rolling CV with a custom repo, added to Library
+        rolling_repo = target_sat.api.Repository(
+            product=function_product,
+            url=settings.repos.yum_0.url,
+        ).create()
+        rolling_repo.sync()
+        rolling_cv = target_sat.api.ContentView(
+            organization=org,
+            rolling=True,
+            repository=[rolling_repo],
+        ).create()
+        rolling_cv.environment = [org.library]
+        rolling_cv.update(['environment'])
+        rolling_cvv = rolling_cv.version[0].read()
+
+        # Create a multi-CV activation key with both CV environments and register the host
+        ak = target_sat.api.ActivationKey(
+            organization=org,
+            content_view_environment_ids=[
+                target_sat.api_factory.get_cvenv_id(composite_cv, org.library),
+                target_sat.api_factory.get_cvenv_id(rolling_cv, org.library),
+            ],
+        ).create()
+        result = rhel_contenthost.register(
+            org=org,
+            loc=None,
+            activation_keys=ak.name,
+            target=target_sat,
+        )
+        assert result.status == 0, f'Host registration failed: {result.stderr}'
+
+        # Incremental update with a rolling CVV must raise a descriptive error,
+        # not the original nil:NilClass crash.
+        with pytest.raises(HTTPError) as e:
+            target_sat.api.ContentViewVersion().incremental_update(
+                data={
+                    'content_view_version_environments': [
+                        {
+                            'content_view_version_id': component_cvv.id,
+                            'environment_ids': [org.library.id],
+                        },
+                        {
+                            'content_view_version_id': rolling_cvv.id,
+                            'environment_ids': [org.library.id],
+                        },
+                    ],
+                    'add_content': {'errata_ids': [ERRATUM_ID]},
+                }
+            )
+        assert (
+            f'Cannot perform an incremental update on a Rolling Content View Version'
+            f' ({rolling_cv.name} version {rolling_cvv.version})'
+        ) in e.value.response.text
+
+        # Neither CV was updated — the whole operation was rejected
+        component_cv = component_cv.read()
+        assert len(component_cv.version) == 1
+        assert component_cv.version[0].read().version == '1.0'
+
+        rolling_cv = rolling_cv.read()
+        assert len(rolling_cv.version) == 1
+        assert rolling_cv.version[0].read().version == '1.0'
+
     @pytest.mark.stubbed
     @pytest.mark.e2e
     def test_positive_host_collection_with_rolling_content_source(self, target_sat):
