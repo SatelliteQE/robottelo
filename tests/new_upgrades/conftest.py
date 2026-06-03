@@ -108,6 +108,7 @@ def upgrade_action():
             job_template=settings.upgrade.satellite_upgrade_job_template,
             target_vm=target_sat.name,
             sat_version=settings.upgrade.to_version,
+            snap_version=settings.upgrade.to_snap_version,
             upgrade_path=settings.upgrade.upgrade_path,
             tower_inventory=target_sat.tower_inventory,
         ).execute()
