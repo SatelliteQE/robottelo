@@ -6,7 +6,7 @@
 
 :CaseComponent: Logging
 
-:Team: Endeavour
+:Team: Dragonfly
 
 :CaseImportance: Medium
 
