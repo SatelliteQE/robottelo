@@ -6,7 +6,7 @@
 
 :CaseComponent: Dashboard
 
-:Team: Endeavour
+:Team: Dragonfly
 
 :CaseImportance: High
 """
