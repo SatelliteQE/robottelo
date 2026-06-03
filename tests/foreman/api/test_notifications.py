@@ -6,7 +6,7 @@
 
 :CaseComponent: Notifications
 
-:Team: Endeavour
+:Team: Dragonfly
 
 :CaseImportance: High
 

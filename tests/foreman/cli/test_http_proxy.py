@@ -4,7 +4,7 @@
 
 :CaseComponent: HTTPProxy
 
-:team: Endeavour
+:team: Dragonfly
 
 :CaseImportance: High
 
