@@ -2671,7 +2671,7 @@ def test_positive_sync_rh_repo_custom_cdn_no_credential(
     )
 
     repos = target_sat.cli.Repository.list({'organization-id': org.id})
-    assert len(repos) == 1, "Expected only one repo enabled"
+    assert len(repos) == 1, 'Expected only one repo enabled'
     repo = repos[0]
 
     target_sat.cli.Repository.synchronize({'id': repo['id']})
