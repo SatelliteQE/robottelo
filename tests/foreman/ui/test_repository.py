@@ -1135,9 +1135,8 @@ def test_positive_rpm_metadata_display():
     pass
 
 
-@pytest.mark.stubbed
-def test_positive_select_org_in_any_context():
-    """When attempting to check Sync Status from 'Any Context' the user
+def test_positive_select_org_in_any_context(session, module_org, module_target_sat):
+    """When attempting to check Content views from 'Any Context' the user
     should be properly routed away from the 'Select An Organization' page
 
     :id: 6bd94c3d-1a8b-494b-b1ae-40c17532f8e5
@@ -1156,8 +1155,24 @@ def test_positive_select_org_in_any_context():
         the correct organization should be selected.
 
     :CaseImportance: High
+
+    :Verifies: SAT-32072
     """
-    pass
+    with module_target_sat.ui_session() as session:
+        # Step 1: Set "Any organization" and "Any location" context
+        session.organization.select(org_name=constants.ANY_CONTEXT['org'])
+        session.location.select(loc_name=constants.ANY_CONTEXT['location'])
+
+        # Step 2: Navigate to Sync Status (org-specific page) which triggers 'Select an Organization' page
+        session.browser.url = f'{module_target_sat.url}/sync_management'
+        # Step 3: Select organization
+        session.organization.select(org_name=module_org.name)
+
+        # Verify we're redirected to sync status page with the correct organization context
+        current_url = session.browser.selenium.current_url
+        assert 'sync_management' in current_url, (
+            f"Expected to be on sync_management page but URL is: {current_url}"
+        )
 
 
 def test_positive_sync_sha_repo(session, module_org, module_target_sat):
