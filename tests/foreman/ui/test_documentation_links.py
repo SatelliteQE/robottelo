@@ -6,7 +6,7 @@
 
 :CaseComponent: Branding
 
-:Team: Endeavour
+:Team: Dragonfly
 
 :CaseImportance: High
 

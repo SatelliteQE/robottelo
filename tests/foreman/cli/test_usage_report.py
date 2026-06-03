@@ -6,7 +6,7 @@
 
 :CaseComponent: Reporting
 
-:Team: Endeavour
+:Team: Dragonfly
 
 :CaseImportance: Critical
 

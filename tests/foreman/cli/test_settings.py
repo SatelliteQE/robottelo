@@ -6,7 +6,7 @@
 
 :CaseComponent: Settings
 
-:Team: Endeavour
+:Team: Dragonfly
 
 :CaseImportance: High
 
