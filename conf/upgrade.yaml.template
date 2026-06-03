@@ -1,13 +1,15 @@
 UPGRADE:
-  # Base version of the Satellite, Capsule.
+  # Base version of the Satellite or Capsule.
   FROM_VERSION: '6.16'
-  # Target version of the Satellite, Capsule.
+  # Target version of the Satellite or Capsule.
   TO_VERSION: '6.17'
-  # Satellite, Capsule hosts RHEL operating system version.
+  # Target snap version of the Satellite or Capsule (optional).
+  TO_SNAP_VERSION: ''
+  # Satellite or Capsule host's RHEL operating system version.
   OS: rhel9
-  # The job template Broker should use to upgrade a Satellite
+  # The job template Broker should use to upgrade a Satellite or Capsule.
   SATELLITE_UPGRADE_JOB_TEMPLATE: satellite-upgrade
-  # The upgrade path to use when upgrading Satellite (< ystream | zstream >)
+  # The upgrade path to use when upgrading Satellite or Capsule (< ystream | zstream >).
   UPGRADE_PATH: ystream
   # Capsule's activation key will only be available when we spawn the VM using upgrade template.
   CAPSULE_AK:
