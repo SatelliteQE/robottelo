@@ -6,7 +6,7 @@
 
 :CaseComponent: Search
 
-:Team: Endeavour
+:Team: Dragonfly
 
 :CaseImportance: High
 
