@@ -96,14 +96,6 @@ def function_import_org_with_manifest(target_sat, function_import_org):
     return function_import_org
 
 
-@pytest.fixture
-def function_import_org_at_isat_with_manifest(module_import_sat, function_import_org_at_isat):
-    """Creates an Organization with a brand-new manifest on the import Satellite."""
-    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
-        module_import_sat.upload_manifest(function_import_org_at_isat.id, manifest.content)
-    return function_import_org_at_isat
-
-
 @pytest.fixture(scope='module')
 def module_synced_custom_repo(module_target_sat, module_org, module_product):
     repo = module_target_sat.cli_factory.make_repository(
@@ -289,9 +281,12 @@ def module_import_sat(request, module_target_sat):
 
     Returns a separate Satellite when settings.iss.separate_import_sat is True,
     or the exporting Satellite when False (for local debugging).
+    An air-gapped import Satellite has subscription_connection_enabled set to No.
     """
     if settings.iss.separate_import_sat:
-        return request.getfixturevalue('module_satellite_host')
+        sat = request.getfixturevalue('module_satellite_host')
+        sat.cli.Settings.set({'name': 'subscription_connection_enabled', 'value': 'No'})
+        return sat
     return module_target_sat
 
 
@@ -299,6 +294,14 @@ def module_import_sat(request, module_target_sat):
 def function_import_org_at_isat(module_import_sat):
     """Creates an Organization for content import."""
     return module_import_sat.api.Organization().create()
+
+
+@pytest.fixture
+def function_import_org_at_isat_with_manifest(module_import_sat, function_import_org_at_isat):
+    """Creates an Organization with a brand-new manifest on the import Satellite."""
+    with Manifester(manifest_category=settings.manifest.golden_ticket) as manifest:
+        module_import_sat.upload_manifest(function_import_org_at_isat.id, manifest.content)
+    return function_import_org_at_isat
 
 
 @pytest.fixture
@@ -1012,9 +1015,6 @@ class TestExportImport:
         assert len(exported_lib_packages)
         assert exported_lib_packages == cv_packages
         # Import and verify content of library
-        module_import_sat.cli.Settings.set(
-            {'name': 'subscription_connection_enabled', 'value': 'No'}
-        )
         module_import_sat.cli.ContentImport.library(
             {
                 'organization-id': function_import_org_at_isat_with_manifest.id,
@@ -1103,10 +1103,6 @@ class TestExportImport:
         )
 
         # Import section
-        # set disconnected mode
-        module_import_sat.cli.Settings.set(
-            {'name': 'subscription_connection_enabled', 'value': 'No'}
-        )
         # check that files are present in import_path
         result = module_import_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
@@ -1270,9 +1266,6 @@ class TestExportImport:
         exported_packages = target_sat.cli.Package.list({'content-view-version-id': cvv['id']})
         assert len(exported_packages)
         # Import and verify content
-        module_import_sat.cli.Settings.set(
-            {'name': 'subscription_connection_enabled', 'value': 'No'}
-        )
         module_import_sat.cli.ContentImport.version(
             {'organization-id': function_import_org_at_isat_with_manifest.id, 'path': import_path},
             timeout='2h',
@@ -1794,10 +1787,14 @@ class TestExportImport:
         exporting_cvv = target_sat.cli.ContentView.version_info(
             {'id': exporting_cv['versions'][0]['id']}
         )
-        exported_packages = target_sat.cli.Package.list(
-            {'content-view-version-id': exporting_cvv['id']}
-        )
-        exported_files = target_sat.cli.File.list({'content-view-version-id': exporting_cvv['id']})
+        exported_packages = {
+            p['filename']
+            for p in target_sat.cli.Package.list({'content-view-version-id': exporting_cvv['id']})
+        }
+        exported_files = {
+            f['name']
+            for f in target_sat.cli.File.list({'content-view-version-id': exporting_cvv['id']})
+        }
 
         # Export CV version contents in syncable format
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
@@ -1830,14 +1827,28 @@ class TestExportImport:
             len(exporting_cvv['repositories']) == len(importing_cvv['repositories']) == len(repos)
         ), 'Repositories count does not match'
 
-        imported_packages = module_import_sat.cli.Package.list(
-            {'content-view-version-id': importing_cvv['id']}
+        imported_packages = {
+            p['filename']
+            for p in module_import_sat.cli.Package.list(
+                {'content-view-version-id': importing_cvv['id']}
+            )
+        }
+        imported_files = {
+            f['name']
+            for f in module_import_sat.cli.File.list(
+                {'content-view-version-id': importing_cvv['id']}
+            )
+        }
+        assert exported_packages == imported_packages, (
+            f'Imported RPMs do not match the export.\n'
+            f'Only in export: {sorted(exported_packages - imported_packages)}\n'
+            f'Only in import: {sorted(imported_packages - exported_packages)}'
         )
-        imported_files = module_import_sat.cli.File.list(
-            {'content-view-version-id': importing_cvv['id']}
+        assert exported_files == imported_files, (
+            f'Imported Files do not match the export.\n'
+            f'Only in export: {sorted(exported_files - imported_files)}\n'
+            f'Only in import: {sorted(imported_files - exported_files)}'
         )
-        assert exported_packages == imported_packages, 'Imported RPMs do not match the export'
-        assert exported_files == imported_files, 'Imported Files do not match the export'
 
         # Check the import history
         import_list = module_import_sat.cli.ContentImport.list(
@@ -2232,10 +2243,12 @@ class TestExportImport:
     def test_negative_import_redhat_cv_without_manifest(
         self,
         target_sat,
-        export_import_cleanup_function,
+        complete_export_import_cleanup,
         config_export_import_settings,
         function_sca_manifest_org,
         function_synced_rh_repo,
+        module_import_sat,
+        function_import_org_at_isat,
     ):
         """Redhat content can't be imported into satellite/organization without manifest
 
@@ -2257,15 +2270,10 @@ class TestExportImport:
                importing content."
         """
         # Create cv and publish
-        cv_name = gen_string('alpha')
         cv = target_sat.cli_factory.make_content_view(
-            {'name': cv_name, 'organization-id': function_sca_manifest_org.id}
-        )
-        target_sat.cli.ContentView.add_repository(
             {
-                'id': cv['id'],
                 'organization-id': function_sca_manifest_org.id,
-                'repository-id': function_synced_rh_repo['id'],
+                'repository-ids': [function_synced_rh_repo['id']],
             }
         )
         target_sat.cli.ContentView.publish({'id': cv['id']})
@@ -2278,18 +2286,17 @@ class TestExportImport:
         export = target_sat.cli.ContentExport.completeVersion(
             {'id': cvv['id'], 'organization-id': function_sca_manifest_org.id}
         )
-        import_path = target_sat.move_pulp_archive(function_sca_manifest_org, export['message'])
+        import_path = target_sat.move_pulp_archive(
+            function_sca_manifest_org, export['message'], target=module_import_sat
+        )
         # check that files are present in import_path
-        result = target_sat.execute(f'ls {import_path}')
+        result = module_import_sat.execute(f'ls {import_path}')
         assert result.stdout != ''
 
-        # importing portion
-        importing_org = target_sat.cli_factory.make_org()
-        # set disconnected mode
-        target_sat.cli.Settings.set({'name': 'subscription_connection_enabled', 'value': "No"})
+        # importing portion — org has no manifest, import must fail
         with pytest.raises(CLIReturnCodeError) as error:
-            target_sat.cli.ContentImport.version(
-                {'organization-id': importing_org['id'], 'path': import_path}
+            module_import_sat.cli.ContentImport.version(
+                {'organization-id': function_import_org_at_isat.id, 'path': import_path}
             )
         assert (
             'Could not import the archive.:\n  No manifest found. Import a manifest with the '
@@ -2512,7 +2519,9 @@ class TestExportImport:
             }
         )
         target_sat.cli.Repository.synchronize({'id': repo.id})
-        exported_packages = target_sat.cli.Package.list({'repository-id': repo.id})
+        exported_packages = {
+            p['filename'] for p in target_sat.cli.Package.list({'repository-id': repo.id})
+        }
 
         # Export the repository, import it and verify the prod and repo names match the export.
         export = target_sat.cli.ContentExport.completeRepository(
@@ -2531,8 +2540,14 @@ class TestExportImport:
         )
 
         # Verify the imported content matches the export.
-        imported_packages = target_sat.cli.Package.list({'repository-id': import_repo['id']})
-        assert imported_packages == exported_packages, 'Imported content does not match the export'
+        imported_packages = {
+            p['filename'] for p in target_sat.cli.Package.list({'repository-id': import_repo['id']})
+        }
+        assert exported_packages == imported_packages, (
+            f'Imported content does not match the export.\n'
+            f'Only in export: {sorted(exported_packages - imported_packages)}\n'
+            f'Only in import: {sorted(imported_packages - exported_packages)}'
+        )
 
         # Create CV with a long name, add the repo and publish.
         exporting_cv = target_sat.cli_factory.make_content_view(
@@ -2564,10 +2579,17 @@ class TestExportImport:
         assert len(importing_cv['versions']) == 1
 
         # Verify the imported content matches the export.
-        imported_packages = target_sat.cli.Package.list(
-            {'content-view-version-id': importing_cv['versions'][0]['id']}
+        imported_packages = {
+            p['filename']
+            for p in target_sat.cli.Package.list(
+                {'content-view-version-id': importing_cv['versions'][0]['id']}
+            )
+        }
+        assert exported_packages == imported_packages, (
+            f'Imported content does not match the export.\n'
+            f'Only in export: {sorted(exported_packages - imported_packages)}\n'
+            f'Only in import: {sorted(imported_packages - exported_packages)}'
         )
-        assert exported_packages == imported_packages
 
     def test_postive_export_import_large_cv(
         self,
