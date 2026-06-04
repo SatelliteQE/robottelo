@@ -2556,6 +2556,8 @@ FOREMANCTL_POSTGRESQL_TUNING_PROFILES = {
     },
 }
 
+REGIONAL_RED_HAT_CDN_URLS = ['https://cdn-us.redhat.com', 'https://cdn-eu.redhat.com']
+
 
 # Data File Paths
 class DataFile(Box):
