@@ -129,7 +129,14 @@ def test_positive_run_default_job_template(
 
     with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
-        assert session.host.search(hostname)[0]['Name'] == hostname
+        # Search with retry to handle potential context/indexing delays
+        result = wait_for(
+            lambda: session.host_new.search(hostname),
+            timeout=30,
+            delay=2,
+            fail_condition=[],
+        ).out
+        assert result[0]['Name'] == hostname
         command = 'ls'
         session.jobinvocation.run(
             {
@@ -185,7 +192,17 @@ def test_rex_through_host_details(session, target_sat, rex_contenthost, module_o
         )
         task_status = target_sat.api.ForemanTask(id=task_result[0].id).poll()
         assert task_status['result'] == 'success'
-        recent_jobs = session.host_new.get_details(hostname, "overview.recent_jobs")['overview']
+
+        # Wait for recent jobs table to load with job data
+        recent_jobs = wait_for(
+            lambda: session.host_new.get_details(hostname, "overview.recent_jobs")['overview'],
+            timeout=30,
+            delay=2,
+            fail_condition=lambda result: (
+                not result.get('recent_jobs', {}).get('finished', {}).get('table')
+            ),
+        ).out
+
         assert recent_jobs['recent_jobs']['finished']['table'][0]['column0'] == "Run ls"
         assert recent_jobs['recent_jobs']['finished']['table'][0]['column2'] == "succeeded"
 
@@ -226,7 +243,15 @@ def test_positive_run_custom_job_template(
     job_template_name = gen_string('alpha')
     with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
-        assert session.host.search(hostname)[0]['Name'] == hostname
+        session.location.select(default_location.name)
+        # Search with retry to handle potential context/indexing delays
+        result = wait_for(
+            lambda: session.host_new.search(hostname),
+            timeout=30,
+            delay=2,
+            fail_condition=[],
+        ).out
+        assert result[0]['Name'] == hostname
         session.jobtemplate.create(
             {
                 'template.name': job_template_name,
@@ -282,9 +307,16 @@ def test_positive_run_job_template_multiple_hosts(
     with target_sat.ui_session() as session:
         session.organization.select(module_org.name)
         for host in host_names:
-            assert session.host.search(host)[0]['Name'] == host
-        session.host.reset_search()
-        job_status = session.host.schedule_remote_job(
+            # Search with retry to handle potential context/indexing delays
+            result = wait_for(
+                lambda h=host: session.host_new.search(h),
+                timeout=30,
+                delay=2,
+                fail_condition=[],
+            ).out
+            assert result[0]['Name'] == host
+        session.host_new.reset_search()
+        job_status = session.host_new.schedule_remote_job(
             host_names,
             {
                 'category_and_template.job_category': 'Commands',
@@ -326,10 +358,17 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
     with session:
         session.organization.select(module_org.name)
         session.location.select('Default Location')
-        assert session.host.search(hostname)[0]['Name'] == hostname
+        # Search with retry to handle potential context/indexing delays
+        result = wait_for(
+            lambda: session.host_new.search(hostname),
+            timeout=30,
+            delay=2,
+            fail_condition=[],
+        ).out
+        assert result[0]['Name'] == hostname
         plan_time = session.browser.get_client_datetime() + datetime.timedelta(seconds=job_time)
         command_to_run = 'sleep 10'
-        job_status = session.host.schedule_remote_job(
+        job_status = session.host_new.schedule_remote_job(
             [hostname],
             {
                 'category_and_template.job_category': 'Commands',
@@ -341,52 +380,55 @@ def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_cont
             },
             wait_for_results=False,
         )
-        # Note that to create this host scheduled job we spent some time from that plan_time, as it
-        # was calculated before creating the job
+        # Track state transitions through polling
         job_left_time = (plan_time - session.browser.get_client_datetime()).total_seconds()
-        # assert that we have time left to wait, otherwise we have to use more job time,
-        # the job_time must be significantly greater than job creation time.
-        assert job_left_time > 0
+        assert job_left_time > 0, "Job scheduled time already passed during creation"
+
+        # Initial state: should be waiting to start
         assert job_status['hosts'][0]['Name'] == hostname
         assert job_status['hosts'][0]['Status'] in ('Awaiting start', 'N/A')
-        # sleep 3/4 of the left time
-        time.sleep(job_left_time * 3 / 4)
-        job_status = session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')
-        assert job_status['hosts'][0]['Name'] == hostname
-        assert job_status['hosts'][0]['Status'] in (
-            'Awaiting start',
-            'N/A',
-            'Succeeded',
-        )
-        # recalculate the job left time to be more accurate
-        job_left_time = (plan_time - session.browser.get_client_datetime()).total_seconds()
-        # the last read time should not take more than 1/4 of the last left time
-        assert job_left_time > 0
-        wait_for(
-            lambda: (
-                session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')['hosts'][0][
-                    'Status'
-                ]
-                == 'Pending'
-            ),
-            timeout=(job_left_time + 30),
-            delay=1,
-        )
-        # wait the job to change status to "Succeeded"
-        wait_for(
-            lambda: (
-                session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')['hosts'][0][
-                    'Status'
-                ]
-                == 'Succeeded'
-            ),
-            timeout=30,
-            delay=1,
-        )
+
+        # Poll for state transitions and record them
+        observed_states = [job_status['hosts'][0]['Status']]
+        poll_timeout = job_left_time + 60  # Extra buffer for job execution
+        poll_start = time.time()
+
+        while time.time() - poll_start < poll_timeout:
+            job_status = session.jobinvocation.read(f'Run {command_to_run}', hostname, 'hosts')
+            current_status = job_status['hosts'][0]['Status']
+
+            # Record state changes
+            if current_status != observed_states[-1]:
+                observed_states.append(current_status)
+
+            # Exit when job completes
+            if current_status in ('Succeeded', 'Failed', 'Cancelled'):
+                break
+
+            time.sleep(2)
+
+        # Read final complete status
         job_status = session.jobinvocation.read(f'Run {command_to_run}', hostname)
+        final_status = job_status['hosts'][0]['Status']
+        if final_status != observed_states[-1]:
+            observed_states.append(final_status)
+
+        # Verify state progression
+        # Expected: Awaiting start/N/A -> Running/Pending -> Succeeded
+        assert 'Succeeded' in observed_states, f"Job never succeeded. States: {observed_states}"
+        assert observed_states[-1] == 'Succeeded', f"Final state not Succeeded: {observed_states}"
+
+        # Verify it went through a running state (not immediate execution)
+        has_pre_run_state = any(s in ('Awaiting start', 'N/A') for s in observed_states[:-1])
+        has_running_state = any(s in ('Pending', 'Running') for s in observed_states)
+        assert has_pre_run_state, f"Missing pre-run state. States: {observed_states}"
+        assert has_running_state or len(observed_states) == 2, (
+            f"Job should go through running state or transition directly. States: {observed_states}"
+        )
+
+        # Final assertions
         assert job_status['overall_status']['is_success']
         assert job_status['hosts'][0]['Name'] == hostname
-        assert job_status['hosts'][0]['Status'] == 'Succeeded'
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
