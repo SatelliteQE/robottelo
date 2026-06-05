@@ -395,6 +395,7 @@ def test_iop_recommendations_remediation_type_and_status(
         )
         assert 'Decreased security: OpenSSH config permissions' in result[0]['Name']
 
+
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
