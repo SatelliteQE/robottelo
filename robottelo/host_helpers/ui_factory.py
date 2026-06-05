@@ -6,7 +6,7 @@ example: my_satellite.ui_factory(session).ui_method()
 
 from fauxfactory import gen_string
 
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.constants import DEFAULT_CV, LIBRARY_LCE
 
 
 class UIFactory:
@@ -35,7 +35,7 @@ class UIFactory:
             'host.name': name,
             'host.organization': host.organization.name,
             'host.location': host.location.name,
-            'host.lce': ENVIRONMENT,
+            'host.lce': LIBRARY_LCE,
             'host.content_view': DEFAULT_CV,
             'operating_system.architecture': host.architecture.name,
             'operating_system.operating_system': os_name,

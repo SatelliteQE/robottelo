@@ -19,7 +19,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     BOOTABLE_REPO,
     DEFAULT_CV,
-    ENVIRONMENT,
+    LIBRARY_LCE,
     REPO_TYPE,
 )
 
@@ -62,7 +62,7 @@ def test_positive_search(session, module_org, module_product, module_repository)
         assert module_product.name in [i['Product Name'] for i in search]
         values = session.containerimagetag.read('latest')
         assert module_product.name == values['details']['product']
-        assert values['lce']['table'][0]['Environment'] == ENVIRONMENT
+        assert values['lce']['table'][0]['Environment'] == LIBRARY_LCE
         repo_line = next(
             (item for item in values['repos']['table'] if item['Name'] == module_repository.name),
             None,

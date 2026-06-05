@@ -135,7 +135,7 @@ def generate_errata_for_client_setup(
         org = target_sat.api.Organization(name=f'{test_name}_org').create()
         test_data.organization_id = org.id
         environment = target_sat.api.LifecycleEnvironment(organization=org).search(
-            query={'search': f'name={constants.ENVIRONMENT}'}
+            query={'search': f'name={constants.LIBRARY_LCE}'}
         )[0]
         product = target_sat.api.Product(name=f'{test_name}_prod', organization=org).create()
         test_data.product_id = product.id
@@ -195,13 +195,14 @@ def generate_errata_for_client_setup(
         errata_ids = [errata.errata_id for errata in erratum_list]
         assert sorted(errata_ids) == sorted(settings.repos.yum_9.errata)
         sat_upgrade.ready()
+        target_sat._swap_nailgun(settings.upgrade.to_version)
         target_sat._session = None
         yield test_data
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
 @pytest.mark.no_containers
-@pytest.mark.errata_upgrade
+@pytest.mark.errata_upgrades
 def test_post_scenario_errata_count_installation(generate_errata_for_client_setup):
     """Post-upgrade scenario that applies errata on the RHEL client that was set up
     in the pre-upgrade test and verifies that the errata was applied correctly.

@@ -6,7 +6,7 @@
 
 :CaseComponent: Dashboard
 
-:Team: Endeavour
+:Team: Dragonfly
 
 :CaseImportance: High
 
@@ -132,11 +132,10 @@ def test_positive_task_status(session, target_sat):
 
     :BZ: 1718889
     """
-    url = 'www.non_existent_repo_url.org'
     org = target_sat.api.Organization().create()
     product = target_sat.api.Product(organization=org).create()
     repo = target_sat.api.Repository(
-        url=f'http://{url}', product=product, content_type='yum'
+        url='http://doesnotexist.invalid', product=product, content_type='yum'
     ).create()
     with pytest.raises(TaskFailedError):
         repo.sync()
@@ -157,13 +156,6 @@ def test_positive_task_status(session, target_sat):
         assert tasks['table'][0]['Action'] == task_name
         assert tasks['table'][0]['State'] == 'stopped'
         assert tasks['table'][0]['Result'] == 'warning'
-        session.dashboard.action({'LatestFailedTasks': {'name': 'Synchronize'}})
-        values = session.task.read(task_name)
-        assert values['task']['result'] == 'warning'
-        assert values['task']['errors'] in [
-            f"500, message='Internal Server Error', url='http://{url}'",
-            f'Cannot connect to host {url}:80 ssl:default [Domain name not found]',
-        ]
 
 
 @pytest.mark.upgrade

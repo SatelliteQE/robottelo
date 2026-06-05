@@ -1294,6 +1294,24 @@
               "value": "ENUM"
             },
             {
+              "help": "Debian architectures (e.g., amd64, arm64)",
+              "name": "deb-architectures",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Debian components (e.g., main, contrib)",
+              "name": "deb-components",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Debian releases/distributions (e.g., trixie, bookworm)",
+              "name": "deb-releases",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
               "help": "Description for the alternate content source",
               "name": "description",
               "shortname": null,
@@ -1535,6 +1553,24 @@
             {
               "help": "Base URL for finding alternate content",
               "name": "base-url",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Debian architectures (e.g., amd64, arm64)",
+              "name": "deb-architectures",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Debian components (e.g., main, contrib)",
+              "name": "deb-components",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Debian releases/distributions (e.g., trixie, bookworm)",
+              "name": "deb-releases",
               "shortname": null,
               "value": "VALUE"
             },
@@ -14481,6 +14517,12 @@
               "value": "LIST"
             },
             {
+              "help": "Content view environment to reassign orphaned host groups to",
+              "name": "hostgroup-content-view-environment-id",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
               "help": "Content view numeric identifier",
               "name": "id",
               "shortname": null,
@@ -15708,6 +15750,12 @@
               "name": "activation-key-id",
               "shortname": null,
               "value": null
+            },
+            {
+              "help": "Content source identifier to filter by available lifecycle environments",
+              "name": "content-source-id",
+              "shortname": null,
+              "value": "NUMBER"
             },
             {
               "help": "VALUE/NUMBER               Content view identifier",
@@ -22172,6 +22220,12 @@
               "value": "SCHEMA"
             },
             {
+              "help": "UUID of a VM to import from a compute resource",
+              "name": "uuid",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
               "help": "Volume parameters Can be specified multiple times.",
               "name": "volume",
               "shortname": null,
@@ -25462,6 +25516,12 @@
               "value": "SCHEMA"
             },
             {
+              "help": "UUID of a VM to import from a compute resource",
+              "name": "uuid",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
               "help": "Volume parameters Can be specified multiple times.",
               "name": "volume",
               "shortname": null,
@@ -26914,6 +26974,18 @@
               "value": null
             },
             {
+              "help": "VALUE/NUMBER Content view environment name/id",
+              "name": "content-view-environment",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Content view environment name/id",
+              "name": "content-view-environment-id",
+              "shortname": null,
+              "value": null
+            },
+            {
               "help": "VALUE/NUMBER          Content view name/id",
               "name": "content-view",
               "shortname": null,
@@ -27661,6 +27733,18 @@
             {
               "help": "VALUE/NUMBER        Content source name/id",
               "name": "content-source-id",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Content view environment name/id",
+              "name": "content-view-environment",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "VALUE/NUMBER Content view environment name/id",
+              "name": "content-view-environment-id",
               "shortname": null,
               "value": null
             },
@@ -43279,6 +43363,12 @@
               "name": "lifecycle-environment-id",
               "shortname": null,
               "value": null
+            },
+            {
+              "help": "Id of a module stream to find repositories that contain the module stream",
+              "name": "modulemd-id",
+              "shortname": null,
+              "value": "VALUE"
             },
             {
               "help": "Name of the repository",

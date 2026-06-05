@@ -24,11 +24,14 @@ from robottelo.config import settings
 from robottelo.constants import (
     CUSTOM_FILE_REPO_FILES_COUNT,
     CUSTOM_LOCAL_FOLDER,
+    DEFAULT_ARCHITECTURE,
     DOWNLOAD_POLICIES,
     FAKE_3_YUM_REPO_RPMS,
     MIRRORING_POLICIES,
     OS_TEMPLATE_DATA_FILE,
+    REGIONAL_RED_HAT_CDN_URLS,
     REPO_TYPE,
+    REPOS,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
     SUPPORTED_REPO_CHECKSUMS,
@@ -41,7 +44,6 @@ from robottelo.constants.repos import (
     CUSTOM_RPM_SHA,
     FAKE_5_YUM_REPO,
     FAKE_YUM_MD5_REPO,
-    FAKE_YUM_SRPM_REPO,
 )
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
@@ -52,7 +54,6 @@ from robottelo.utils.datafactory import (
     valid_docker_repository_names,
     valid_http_credentials,
 )
-from tests.foreman.api.test_contentview import content_view
 
 YUM_REPOS = (
     settings.repos.yum_0.url,
@@ -2094,91 +2095,6 @@ class TestRepository:
 #             Repository.info({'id': repo['id']})
 
 
-class TestSRPMRepository:
-    """Tests specific to using repositories containing source RPMs."""
-
-    @pytest.mark.skip("Uses deprecated SRPM repository")
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync(self, repo, module_org, module_product, target_sat):
-        """Synchronize repository with SRPMs
-
-        :id: eb69f840-122d-4180-b869-1bd37518480c
-
-        :parametrized: yes
-
-        :expectedresults: srpms can be listed in repository
-        """
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        result = target_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/Library"
-            f"/custom/{module_product.label}/{repo['label']}/Packages/t/ | grep .src.rpm"
-        )
-        assert result.status == 0
-        assert result.stdout
-
-    @pytest.mark.skip("Uses deprecated SRPM repository")
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync_publish_cv(self, module_org, module_product, repo, target_sat):
-        """Synchronize repository with SRPMs, add repository to content view
-        and publish content view
-
-        :id: 78cd6345-9c6c-490a-a44d-2ad64b7e959b
-
-        :parametrized: yes
-
-        :expectedresults: srpms can be listed in content view
-        """
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
-        target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
-        target_sat.cli.ContentView.publish({'id': cv['id']})
-        result = target_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/content_views/"
-            f"{cv['label']}/1.0/custom/{module_product.label}/{repo['label']}/Packages/t/"
-            " | grep .src.rpm"
-        )
-        assert result.status == 0
-        assert result.stdout
-
-    @pytest.mark.upgrade
-    @pytest.mark.skip("Uses deprecated SRPM repository")
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_SRPM_REPO}]), indirect=True
-    )
-    def test_positive_sync_publish_promote_cv(self, repo, module_org, module_product, target_sat):
-        """Synchronize repository with SRPMs, add repository to content view,
-        publish and promote content view to lifecycle environment
-
-        :id: 3d197118-b1fa-456f-980e-ad1a517bc769
-
-        :parametrized: yes
-
-        :expectedresults: srpms can be listed in content view in proper
-            lifecycle environment
-        """
-        lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
-        target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
-        target_sat.cli.ContentView.publish({'id': cv['id']})
-        target_sat.cli.content_view = target_sat.cli.ContentView.info({'id': cv['id']})
-        cvv = content_view['versions'][0]
-        target_sat.cli.ContentView.version_promote(
-            {'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']}
-        )
-        result = target_sat.execute(
-            f"ls /var/lib/pulp/published/yum/https/repos/{module_org.label}/{lce['label']}/"
-            f"{cv['label']}/custom/{module_product.label}/{repo['label']}/Packages/t"
-            " | grep .src.rpm"
-        )
-        assert result.status == 0
-        assert result.stdout
-
-
 class TestAnsibleCollectionRepository:
     """Ansible Collections repository tests"""
 
@@ -2702,3 +2618,64 @@ def test_positive_install_uploaded_rpm_on_host(
         f'rpm -q {FAKE_3_YUM_REPO_RPMS[0].split("-")[0]}'
     )
     assert installed_package_name.stdout == queryinfo.stdout
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize(
+    'cdn_url',
+    REGIONAL_RED_HAT_CDN_URLS,
+)
+def test_positive_sync_rh_repo_custom_cdn_no_credential(
+    target_sat,
+    function_sca_manifest_org,
+    cdn_url,
+):
+    """Sync a Red Hat repo using a regional CDN URL without a regional CA credential.
+
+    Verifies the redhat-uep.pem CA fallback and allows syncing from alternate Red Hat
+    CDN hosts without uploading a custom CA credential.
+
+    :id: d651c2da-9fad-4df3-a45f-ffd63a8fad70
+
+    :steps:
+        1. Upload manifest to the organization.
+        2. Set CDN configuration to custom_cdn with a regional Red Hat CDN URL.
+        3. Enable a Red Hat repository set.
+        4. Sync the repository.
+
+    :expectedresults:
+        1. CDN configuration is updated successfully.
+        2. Repository is enabled and syncs without SSL errors.
+
+    :Verifies: SAT-45151
+    """
+    org = function_sca_manifest_org
+
+    res = target_sat.cli.Org.configure_cdn(
+        {
+            'id': org.id,
+            'type': 'custom_cdn',
+            'url': cdn_url,
+        }
+    )
+    assert 'Updated CDN configuration' in res
+
+    repo_dict = REPOS['rhae2']
+    target_sat.cli.RepositorySet.enable(
+        {
+            'organization-id': org.id,
+            'name': repo_dict['reposet'],
+            'product': repo_dict['product'],
+            'basearch': DEFAULT_ARCHITECTURE,
+        }
+    )
+
+    repos = target_sat.cli.Repository.list({'organization-id': org.id})
+    assert len(repos) == 1, 'Expected only one repo enabled'
+    repo = repos[0]
+
+    target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+    repo = target_sat.cli.Repository.info({'id': repo['id']})
+    assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
+    assert int(repo['content-counts']['packages']) > 0, 'No packages synced'

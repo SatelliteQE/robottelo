@@ -66,7 +66,7 @@ FOREMAN_PROVIDERS_MODEL = {
 
 EC2_REGION_CA_CENTRAL_1 = 'ca-central-1'
 
-CONTENT_CREDENTIALS_TYPES = {'gpg': 'GPG Key', 'ssl': 'SSL Certificate'}
+CONTENT_CREDENTIALS_TYPES = {'gpg': 'GPG Key', 'ssl': 'Certificate'}
 
 VIRT_WHO_HYPERVISOR_TYPES = {
     'esx': 'esx',
@@ -215,7 +215,7 @@ RHBK_CLI = "/bin/kcadm.sh"
 RPM_TO_UPLOAD = "which-2.19-6.el6.x86_64.rpm"
 SRPM_TO_UPLOAD = "which-2.19-6.el6.src.rpm"
 
-ENVIRONMENT = "Library"
+LIBRARY_LCE = "Library"
 
 SYNC_INTERVAL = {'hour': "hourly", 'day': "daily", 'week': "weekly", 'custom': "custom cron"}
 
@@ -343,6 +343,8 @@ RECOMMENDED_REPOS = [
     'rhel-10-for-x86_64-appstream-rpms',
     'rhel-10-for-x86_64-baseos-eus-rpms',
     'rhel-10-for-x86_64-appstream-eus-rpms',
+    'rhel-10-for-x86_64-extensions-rpms',
+    'rhel-10-for-aarch64-extensions-rpms',
     'rhel-9-for-x86_64-baseos-rpms',
     'rhel-9-for-x86_64-appstream-rpms',
     'rhel-9-for-x86_64-baseos-eus-rpms',
@@ -626,32 +628,32 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.7',
-            'version': '9.7',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.8',
+            'version': '9.8',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.7',
-            'version': '9.7',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.8',
+            'version': '9.8',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel10_bos': {
             'id': 'rhel-10-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Kickstart 10.1',
-            'version': '10.1',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Kickstart 10.2',
+            'version': '10.2',
             'reposet': REPOSET['kickstart']['rhel10_bos'],
             'product': PRDS['rhel10'],
             'distro': 'rhel10',
         },
         'rhel10_aps': {
             'id': 'rhel-10-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Kickstart 10.1',
-            'version': '10.1',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Kickstart 10.2',
+            'version': '10.2',
             'reposet': REPOSET['kickstart']['rhel10_aps'],
             'product': PRDS['rhel10'],
             'distro': 'rhel10',
@@ -770,8 +772,8 @@ REPOS = {
 # RHEL versions for LEAPP testing
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.10'
-RHEL9_VER = '9.7'
-RHEL10_VER = '10.1'
+RHEL9_VER = '9.8'
+RHEL10_VER = '10.2'
 
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
@@ -977,6 +979,8 @@ FAKE_9_YUM_UPDATED_PACKAGES = [
 ]
 REAL_RHEL9_OUTDATED_PACKAGE_FILENAME = 'python3-gofer-2.12.5-7.1.el9sat.noarch'
 REAL_RHEL9_PACKAGE = 'python3-gofer'
+REAL_RHEL10_OUTDATED_PACKAGE_FILENAME = 'katello-host-tools-4.4.0-1.el10sat.noarch'
+REAL_RHEL10_PACKAGE = 'katello-host-tools'
 REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # for rhst7 (update every GA day)
 REAL_1_ERRATA_ID = 'RHBA-2012:1076'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHBA-2012:0707'  # for REAL_0_RH_PACKAGE
@@ -990,6 +994,7 @@ REAL_RHEL8_1_ERRATA_ID = 'RHSA-2022:4867'  # for REAL_RHEL8_1_PACKAGE
 REAL_RHEL8_ERRATA_CVES = ['CVE-2021-27023', 'CVE-2021-27025']
 REAL_RHSCLIENT_ERRATA = 'RHSA-2023:5982'  # for RH Satellite Client 8
 REAL_RHEL9_ERRATA_ID = 'RHBA-2022:7243'
+REAL_RHEL10_ERRATA_ID = 'RHBA-2025:10812'
 # Vulnerability testing constants for RHEL 10
 RHEL10_VULNERABLE_MARIADB_RPM = 'mariadb-3:10.11.11-1.el10.x86_64'
 RHEL10_VULNERABLE_MARIADB_CVES = ['CVE-2023-52969', 'CVE-2023-52970', 'CVE-2023-52971']
@@ -1259,6 +1264,35 @@ PERMISSIONS = {
         'edit_filters',
         'destroy_filters',
     ],
+    'ForemanAnsibleDirector::AnsibleContentAssignment': [
+        'create_ansible_assignments',
+        'destroy_ansible_assignments',
+        'view_ansible_assignments',
+    ],
+    'ForemanAnsibleDirector::ContentUnit': [
+        'create_ansible_content',
+        'destroy_ansible_content',
+        'view_ansible_content',
+    ],
+    'ForemanAnsibleDirector::ExecutionEnvironment': [
+        'create_ansible_execution_environments',
+        'destroy_ansible_execution_environments',
+        'edit_ansible_execution_environments',
+        'view_ansible_execution_environments',
+    ],
+    'ForemanAnsibleDirector::LifecycleEnvironment': [
+        'create_ansible_lifecycle_environments',
+        'destroy_ansible_lifecycle_environments',
+        'edit_ansible_lifecycle_environments',
+        'view_ansible_lifecycle_environments',
+    ],
+    'ForemanAnsibleDirector::LifecycleEnvironmentPath': [
+        'create_ansible_lifecycle_environment_paths',
+        'destroy_ansible_lifecycle_environment_paths',
+        'edit_ansible_lifecycle_environment_paths',
+        'promote_ansible_lifecycle_environment_paths',
+        'view_ansible_lifecycle_environment_paths',
+    ],
     'ForemanResourceQuota::ResourceQuota': [
         "destroy_resource_quotas",
         "create_resource_quotas",
@@ -1416,6 +1450,10 @@ PERMISSIONS = {
         'create_lookup_values',
         'destroy_lookup_values',
         'view_lookup_values',
+        'destroy_ansible_variable_overrides',
+        'edit_ansible_variable_overrides',
+        'create_ansible_variable_overrides',
+        'view_ansible_variable_overrides',
     ],
     'MailNotification': ['view_mail_notifications', 'edit_user_mail_notifications'],
     'Medium': ['view_media', 'create_media', 'edit_media', 'destroy_media'],
@@ -2046,6 +2084,12 @@ BOOKMARK_ENTITIES_SELECTION = [
         'controller': 'provisioning_templates',
         'session_name': 'provisioningtemplate',
     },
+    {
+        'name': 'ArfReport',
+        'controller': 'arf_reports',
+        'session_name': 'arfreport',
+        'skip_for_ui': True,  # search bar is only available when reports exist; otherwise the welcome page renders
+    },
 ]
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
@@ -2124,6 +2168,7 @@ JIRA_WONTFIX_RESOLUTIONS = (
     "Not a Bug",
     "MirrorOrphan",
 )
+JIRA_COMMON_FIELDS = ['key', 'status', 'labels', 'resolution']
 
 GROUP_MEMBERSHIP_MAPPER = {
     "config": {
@@ -2498,6 +2543,20 @@ DUMMY_BOOTC_FACTS = """{
 }"""
 
 FOREMANCTL_PARAMETERS_FILE = '/var/lib/foremanctl/parameters.yaml'
+FOREMANCTL_POSTGRESQL_TUNING_PROFILES = {
+    'medium': {
+        'max_connections': '1000',
+        'shared_buffers': '4GB',
+        'effective_cache_size': '8GB',
+    },
+    'default': {
+        'max_connections': '500',
+        'shared_buffers': '512MB',
+        'effective_cache_size': '1GB',
+    },
+}
+
+REGIONAL_RED_HAT_CDN_URLS = ['https://cdn-us.redhat.com', 'https://cdn-eu.redhat.com']
 
 
 # Data File Paths

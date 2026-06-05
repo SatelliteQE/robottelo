@@ -1,23 +1,15 @@
 # For foreman-mcp-server
 FOREMAN_MCP:
-  USERNAME:
-  PASSWORD:
-  PORT:
-  REGISTRY:
-  IMAGE_PATH:
-FOREMAN_MCP_DOWNSTREAM:
-  USERNAME:
-  PASSWORD:
-  PORT:
-  REGISTRY:
-  IMAGE_PATH:
-  REGISTRY_USERNAME:
-  REGISTRY_PASSWORD:
-FOREMAN_MCP_STAGE:
-  USERNAME:
-  PASSWORD:
-  PORT:
-  REGISTRY:
-  IMAGE_PATH:
-  REGISTRY_USERNAME:
-  REGISTRY_PASSWORD:
+  USERNAME: '@jinja {{this.server.admin_username}}'
+  PASSWORD: '@jinja {{this.server.admin_password}}'
+  PORT: 8080
+  UPSTREAM:
+    REGISTRY_URL: quay.io
+    IMAGE_PATH: foreman/foreman-mcp-server
+    IMAGE_TAG: latest
+  STAGE:
+    REGISTRY_URL:
+    REGISTRY_USERNAME:
+    REGISTRY_PASSWORD:
+    IMAGE_PATH:
+    IMAGE_TAG:

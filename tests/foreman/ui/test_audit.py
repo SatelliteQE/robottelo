@@ -6,14 +6,14 @@
 
 :CaseComponent: AuditLog
 
-:Team: Endeavour
+:Team: Dragonfly
 
 """
 
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import LIBRARY_LCE
 
 
 @pytest.fixture(scope='module')
@@ -175,10 +175,10 @@ def test_positive_add_event(session, module_org, module_target_sat):
         )
         assert values['action_type'] == 'add'
         assert values['resource_type'] == 'KATELLO/CONTENT VIEW ENVIRONMENT'
-        assert values['resource_name'] == f'{ENVIRONMENT}/{cv.name} / {cv.name}'
+        assert values['resource_name'] == f'{LIBRARY_LCE}/{cv.name} / {cv.name}'
         assert len(values['action_summary']) == 1
         assert (
-            values['action_summary'][0]['column0'] == f'Added {ENVIRONMENT}/{cv.name} to {cv.name}'
+            values['action_summary'][0]['column0'] == f'Added {LIBRARY_LCE}/{cv.name} to {cv.name}'
         )
 
 

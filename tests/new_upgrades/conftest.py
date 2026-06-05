@@ -2,12 +2,12 @@
 This module is intended to be used for upgrade tests that have a single run stage.
 """
 
-import datetime
 import json
 from tempfile import mkstemp
 
 from box import Box
 from broker import Broker
+from broker.exceptions import ProviderError
 import pytest
 from wrapanapi.systems.google import GoogleCloudSystem
 
@@ -16,46 +16,45 @@ from robottelo.constants import (
     GCE_RHEL_CLOUD_PROJECTS,
     GCE_TARGET_RHEL_IMAGE_NAME,
 )
-from robottelo.exceptions import GCECertNotFoundError
+from robottelo.exceptions import GCECertNotFoundError, SatelliteHostError
 from robottelo.hosts import Capsule, Satellite
+from robottelo.logging import logger
 from robottelo.utils.shared_resource import SharedResource
-
-
-def log(message, level="DEBUG"):
-    """Pytest has a limitation to use logging.logger from conftest.py
-    so we need to emulate the logger by std-out the output
-    """
-    now = datetime.datetime.now()
-    full_message = "{date} - conftest - {level} - {message}\n".format(
-        date=now.strftime("%Y-%m-%d %H:%M:%S"), level=level, message=message
-    )
-    print(full_message)  # noqa
-    with open('robottelo.log', 'a') as log_file:
-        log_file.write(full_message)
 
 
 def pytest_configure(config):
     """Register custom markers to avoid warnings."""
     markers = [
-        "content_upgrades: Content upgrade tests that use SharedResource.",
-        "search_upgrades: Search upgrade tests that use SharedResource.",
-        "hostgroup_upgrades: Host group upgrade tests that use SharedResource.",
-        "errata_upgrades: Errata upgrade tests that use SharedResource.",
-        "perf_tuning_upgrades: Performance tuning upgrade tests that use SharedResource.",
-        "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
         "capsule_upgrades: Capsule upgrade tests that use SharedResource.",
+        "capsule_puppet_upgrades: Capsule puppet upgrade tests that use SharedResource.",
+        "client_upgrades: Client upgrade tests that use SharedResource.",
+        "content_upgrades: Content upgrade tests that use SharedResource.",
+        "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
+        "errata_upgrades: Errata upgrade tests that use SharedResource.",
+        "hostgroup_upgrades: Host group upgrade tests that use SharedResource.",
+        "iop_upgrades: IOP (Red Hat Lightspeed) upgrade tests that use SharedResource.",
+        "perf_tuning_upgrades: Performance tuning upgrade tests that use SharedResource.",
+        "pulp_upgrades: Pulp upgrade tests that use SharedResource.",
         "puppet_upgrades: Puppet upgrade tests that use SharedResource.",
+        "search_upgrades: Search upgrade tests that use SharedResource.",
+        "subscription_upgrades: Subscription upgrade tests that use SharedResource.",
+        "sync_plan_upgrades: Sync plan upgrade tests that use SharedResource.",
+        "usergroup_upgrades: User group upgrade tests that use SharedResource.",
+        "virt_who_upgrades: Virt_who upgrade tests that use SharedResource.",
     ]
     for marker in markers:
         config.addinivalue_line("markers", marker)
 
 
-def shared_checkout(shared_name):
-    Satellite(hostname="blank")._swap_nailgun(f"{settings.UPGRADE.FROM_VERSION}.z")
+def shared_checkout(shared_name, iop=False):
+    Satellite(hostname="blank")._swap_nailgun(settings.UPGRADE.FROM_VERSION)
+    workflow = (
+        settings.server.deploy_workflows.iop if iop else settings.server.deploy_workflows.product
+    )
     bx_inst = Broker(
-        workflow=settings.SERVER.deploy_workflows.product,
-        deploy_sat_version=settings.UPGRADE.FROM_VERSION,
-        deploy_network_type=settings.SERVER.network_type,
+        workflow=workflow,
+        deploy_sat_version=settings.upgrade.from_version,
+        deploy_network_type=settings.server.network_type,
         host_class=Satellite,
         upgrade_group=f"{shared_name}_shared_checkout",
     )
@@ -67,16 +66,16 @@ def shared_checkout(shared_name):
         sat_checkout.ready()
         sat_instance = bx_inst.from_inventory(
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
-            '@inv._broker_args.workflow == "deploy-satellite"'
+            f'@inv._broker_args.workflow == "{workflow}"'
         )
-    return sat_instance[0]
+    return sat_instance[-1]
 
 
 def shared_cap_checkout(shared_name):
     cap_inst = Broker(
-        workflow=settings.CAPSULE.deploy_workflows.product,
-        deploy_sat_version=settings.UPGRADE.FROM_VERSION,
-        deploy_network_type=settings.CAPSULE.network_type,
+        workflow=settings.capsule.deploy_workflows.product,
+        deploy_sat_version=settings.upgrade.from_version,
+        deploy_network_type=settings.capsule.network_type,
         host_class=Capsule,
         upgrade_group=f'{shared_name}_shared_checkout',
     )
@@ -90,7 +89,7 @@ def shared_cap_checkout(shared_name):
             filter=f'@inv._broker_args.upgrade_group == "{shared_name}_shared_checkout" |'
             '@inv._broker_args.workflow == "deploy-capsule"'
         )
-    return cap_instance[0]
+    return cap_instance[-1]
 
 
 def shared_checkin(sat_instance):
@@ -99,20 +98,31 @@ def shared_checkin(sat_instance):
         resource_name=sat_instance.hostname + "_checkin",
         action=Broker(hosts=[sat_instance]).checkin,
     ) as sat_checkin:
-        log(f'Running sat_checkin.ready() for {sat_instance.hostname} ')
+        logger.debug(f'Running sat_checkin.ready() for {sat_instance.hostname}')
         sat_checkin.ready()
 
 
 @pytest.fixture(scope='session')
 def upgrade_action():
     def _upgrade_action(target_sat):
-        Broker(
-            job_template=settings.UPGRADE.SATELLITE_UPGRADE_JOB_TEMPLATE,
+
+        result = Broker(
+            job_template=settings.upgrade.satellite_upgrade_job_template,
             target_vm=target_sat.name,
-            sat_version=settings.UPGRADE.TO_VERSION,
-            upgrade_path="ystream",
+            sat_version=settings.upgrade.to_version,
+            snap_version=settings.upgrade.to_snap_version,
+            upgrade_path=settings.upgrade.upgrade_path,
             tower_inventory=target_sat.tower_inventory,
         ).execute()
+
+        # Broker catches ProviderError and returns it instead of raising.
+        # We need to re-raise so that the error propagates correctly.
+        if isinstance(result, ProviderError):
+            # extract the message from Broker
+            broker_msg = getattr(result, 'message', str(result))
+            raise SatelliteHostError(f"Satellite upgrade job failed:\n{broker_msg}") from result
+
+        return result
 
     return _upgrade_action
 
@@ -182,6 +192,17 @@ def errata_upgrade_shared_satellite():
         "errata_upgrade_tests",
         shared_checkin,
         sat_instance=sat_instance,
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
+
+
+@pytest.fixture
+def iop_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.iop_upgrades."""
+    sat_instance = shared_checkout("iop_upgrade", iop=True)
+    with SharedResource(
+        "iop_upgrade_tests", shared_checkin, sat_instance=sat_instance
     ) as test_duration:
         yield sat_instance
         test_duration.ready()
@@ -292,6 +313,7 @@ def capsule_upgrade_integrated_sat_cap(
         "capsule_setup",
         action=capsule_upgrade_shared_capsule.capsule_setup,
         sat_host=capsule_upgrade_shared_satellite,
+        release=capsule_upgrade_shared_capsule.version,
     ) as cap_setup:
         cap_setup.ready()
     cap_smart_proxy = capsule_upgrade_shared_satellite.api.SmartProxy().search(
@@ -358,6 +380,7 @@ def puppet_upgrade_integrated_sat_cap(
             "capsule_setup",
             action=puppet_upgrade_shared_capsule.capsule_setup,
             sat_host=puppet_upgrade_shared_satellite,
+            release=puppet_upgrade_shared_capsule.version,
         ) as cap_setup,
         SharedResource(
             "puppet_upgrade_enable_puppet_capsule",

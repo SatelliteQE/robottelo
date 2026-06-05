@@ -618,6 +618,9 @@ class TestAnsibleREX:
             session.organization.select(module_org.name)
             session.location.select(constants.DEFAULT_LOC)
             assert session.host.search(target_host.name)[0]['Name'] == rhel_contenthost.hostname
+            chart_data = session.dashboard.read('RunDistributionChart')
+            assert 'Ansible' in chart_data, f'RunDistributionChart returned: {chart_data}'
+            assert any(v > 0 for v in chart_data['Ansible'].values())
             session.configreport.search(rhel_contenthost.hostname)
             session.configreport.delete(rhel_contenthost.hostname)
             assert len(session.configreport.read()['table']) == 0

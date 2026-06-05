@@ -34,14 +34,15 @@ def puppet_upgrade_setup(puppet_upgrade_integrated_sat_cap, upgrade_action):
             }
         )
         sat_upgrade.ready()
-        satellite._swap_nailgun(f'{settings.UPGRADE.TO_VERSION}.z')
-        cap_upgrade.ready()
+        satellite._swap_nailgun(settings.upgrade.to_version)
         satellite._session = None
+
+        cap_upgrade.ready()
         capsule._session = None
         yield test_data
 
 
-@pytest.mark.puppet_upgrades
+@pytest.mark.capsule_puppet_upgrades
 def test_post_puppet_active(puppet_upgrade_setup):
     """Test that puppet remains active after the upgrade on both,
     Satellite and Capsule.
@@ -66,13 +67,13 @@ def test_post_puppet_active(puppet_upgrade_setup):
         assert 'puppet' in result
         assert 'puppetca' in result
 
-        assert server.execute('rpm -q puppetserver').status == 0
+        assert server.execute('rpm -q openvox-server').status == 0
 
         result = server.execute('systemctl status puppetserver')
         assert 'active (running)' in result.stdout
 
 
-@pytest.mark.puppet_upgrades
+@pytest.mark.capsule_puppet_upgrades
 def test_post_puppet_reporting(puppet_upgrade_setup):
     """Test that puppet is reporting to Satellite after the upgrade.
 

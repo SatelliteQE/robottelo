@@ -26,7 +26,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
-    ENVIRONMENT,
     FAKE_1_YUM_REPOS_COUNT,
     FAKE_3_YUM_REPO_RPMS,
     FAKE_3_YUM_REPOS_COUNT,
@@ -35,6 +34,7 @@ from robottelo.constants import (
     FAKE_FILE_NEW_NAME,
     FLATPAK_ENDPOINTS,
     KICKSTART_CONTENT,
+    LIBRARY_LCE,
     PRDS,
     PULP_ARTIFACT_DIR,
     REPOS,
@@ -538,7 +538,7 @@ class TestCapsuleContentManagement:
         # Find "Library" lifecycle env for specific organization
         lce = module_target_sat.api.LifecycleEnvironment(
             organization=module_sca_manifest_org
-        ).search(query={'search': f'name={ENVIRONMENT}'})[0]
+        ).search(query={'search': f'name={LIBRARY_LCE}'})[0]
 
         # Associate the lifecycle environment with the capsule
         module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
@@ -794,6 +794,8 @@ class TestCapsuleContentManagement:
 
         :expectedresults:
             1. HTTP 200
+
+        :BlockedBy: SAT-44554
         """
         ep = FLATPAK_ENDPOINTS[endpoint].format(module_capsule_configured.hostname)
         rq = requests.get(ep, verify=settings.server.verify_ca)
@@ -2252,28 +2254,12 @@ class TestPodman:
     :team: Artemis
     """
 
-    @pytest.fixture(scope='class')
-    def enable_podman_capsule(module_product, module_capsule_configured):
-        """Enable base_os and appstream repos on the sat through cdn registration and install podman."""
-        module_capsule_configured.register_to_cdn()
-        if module_capsule_configured.os_version.major > 7:
-            module_capsule_configured.enable_repo(module_capsule_configured.REPOS['rhel_bos']['id'])
-            module_capsule_configured.enable_repo(module_capsule_configured.REPOS['rhel_aps']['id'])
-        else:
-            module_capsule_configured.enable_repo(module_capsule_configured.REPOS['rhscl']['id'])
-            module_capsule_configured.enable_repo(module_capsule_configured.REPOS['rhel']['id'])
-        result = module_capsule_configured.execute(
-            'dnf install -y --disableplugin=foreman-protector podman'
-        )
-        assert result.status == 0
-
     def test_negative_podman_capsule_push(
         self,
         module_target_sat,
         module_product,
         module_org,
         module_lce,
-        enable_podman_capsule,
         module_capsule_configured,
     ):
         """Attempt to push a Podman image to a Capsule/Smart Proxy
@@ -2289,6 +2275,7 @@ class TestPodman:
 
         :CaseImportance: High
         """
+        module_capsule_configured.ensure_podman_installed(enable_ipv6_proxy=True)
         IMAGE_NAME_TAG = 'fedora:latest'
         image_pull = module_capsule_configured.execute(
             f'podman pull registry.fedoraproject.org/{IMAGE_NAME_TAG}'

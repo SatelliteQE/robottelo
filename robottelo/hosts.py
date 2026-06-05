@@ -10,6 +10,8 @@ import json
 from pathlib import Path, PurePath
 import random
 import re
+import subprocess
+import sys
 from tempfile import NamedTemporaryFile
 import time
 from urllib.parse import urljoin, urlparse, urlunsplit
@@ -17,6 +19,7 @@ from urllib.parse import urljoin, urlparse, urlunsplit
 import apypie
 from box import Box
 from broker import Broker
+from broker.helpers import FileLock
 from broker.hosts import Host
 from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha, gen_string
@@ -153,7 +156,11 @@ class ContentHost(Host, ContentHostMixins):
     @property
     def network_type(self):
         if not hasattr(self, '_net_type'):
-            self._net_type = NetworkType(settings.content_host.network_type)
+            broker_args = getattr(self, '_broker_args', None) or {}
+            if nt := broker_args.get('net_type'):
+                self._net_type = NetworkType(nt)
+            else:
+                self._net_type = NetworkType(settings.content_host.network_type)
         return self._net_type
 
     @classmethod
@@ -653,18 +660,18 @@ class ContentHost(Host, ContentHostMixins):
             'update-packages': str(update_packages).lower(),
         }
         if org is not None:
-            if isinstance(org, entities.Organization):
-                options['organization-id'] = org.id
-            elif isinstance(org, dict):
+            if isinstance(org, dict):
                 options['organization-id'] = org['id']
+            elif hasattr(org, 'id'):
+                options['organization-id'] = org.id
             else:
                 raise ValueError('org must be a dict or an Organization object')
 
         if loc is not None:
-            if isinstance(loc, entities.Location):
-                options['location-id'] = loc.id
-            elif isinstance(loc, dict):
+            if isinstance(loc, dict):
                 options['location-id'] = loc['id']
+            elif hasattr(loc, 'id'):
+                options['location-id'] = loc.id
             else:
                 raise ValueError('loc must be a dict or a Location object')
 
@@ -911,12 +918,14 @@ class ContentHost(Host, ContentHostMixins):
         """Execute procedures for enabling IPv6 HTTP Proxy on Podman engine"""
         if not self.network_type.has_ipv4:
             container_cfg = '/etc/containers/containers.conf'
-            assert (
-                self.execute(
-                    f'echo -e "[engine]\\nenv = [\'https_proxy={settings.http_proxy.http_proxy_ipv6_url}\']" >> {container_cfg}'
-                ).status
-                == 0
-            )
+            proxy_url = settings.http_proxy.http_proxy_ipv6_url
+            if self.execute(f'grep -q "https_proxy" {container_cfg}').status != 0:
+                assert (
+                    self.execute(
+                        f'echo -e "[engine]\\nenv = [\'https_proxy={proxy_url}\']" >> {container_cfg}'
+                    ).status
+                    == 0
+                )
 
     def disable_rhsm_proxy(self):
         """Disables HTTP proxy for subscription manager"""
@@ -1007,9 +1016,7 @@ class ContentHost(Host, ContentHostMixins):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_puppet(
-        self, proxy_hostname=None, run_puppet_agent=True, install_puppet_agent7=False
-    ):
+    def configure_puppet(self, proxy_hostname=None, run_agent=True, use_openvox=True):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
         :return: None.
@@ -1018,21 +1025,21 @@ class ContentHost(Host, ContentHostMixins):
         if proxy_hostname is None:
             proxy_hostname = settings.server.hostname
 
-        if install_puppet_agent7:
+        self.create_custom_repos(
+            sat_client=settings.repos.satclient_repo[f'RHEL{self.os_version.major}']
+        )
+        if use_openvox:
             self.create_custom_repos(
-                sat_client=settings.repos['SATCLIENT_REPO'][f'RHEL{self.os_version.major}']
-            )
-        else:
-            self.create_custom_repos(
-                sat_client=settings.repos['SATCLIENT2_REPO'][f'RHEL{self.os_version.major}']
+                openvox_agent=settings.repos.openvox_agent_repo[f'RHEL{self.os_version.major}']
             )
 
-        result = self.execute('yum install puppet-agent -y')
-        if result.status != 0:
-            raise ContentHostError('Failed to install the puppet-agent rpm')
+        rpm_name = 'openvox-agent' if use_openvox else 'puppet-agent'
+        if self.execute(f'yum -y install {rpm_name}').status != 0:
+            raise ContentHostError('Failed to install the puppet agent rpm')
 
-        rpm_version = self.execute('rpm -q --qf "%{VERSION}" puppet-agent').stdout
-        assert '7' in rpm_version if install_puppet_agent7 else '7' not in rpm_version
+        assert self.execute(f'rpm -q {rpm_name}').status == 0, (
+            'Puppet agent package is not installed'
+        )
 
         cert_name = self.hostname
         puppet_conf = (
@@ -1059,11 +1066,9 @@ class ContentHost(Host, ContentHostMixins):
         proxy_host = Host(hostname=proxy_hostname, ipv6=self.network_type == NetworkType.IPV6)
         proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
 
-        if run_puppet_agent:
-            # This particular puppet run would create the host entity under
-            # 'All Hosts' and let's redirect stderr to /dev/null as errors at
-            #  this stage can be ignored.
-            result = self.execute('/opt/puppetlabs/bin/puppet agent -t 2> /dev/null')
+        if run_agent:
+            # This particular puppet run would create the host entity under 'All Hosts'
+            result = self.execute('/opt/puppetlabs/bin/puppet agent -t')
             if result.status:
                 raise ContentHostError('Failed to configure puppet on the content host')
 
@@ -1577,12 +1582,6 @@ class ContentHost(Host, ContentHostMixins):
                 satellite_repo=settings.repos.satellite_repo,
                 satmaintenance_repo=settings.repos.satmaintenance_repo,
             )
-        elif settings.server.version.source == 'upstream':
-            self.create_custom_repos(
-                foreman='https://yum.theforeman.org/nightly/el9/x86_64/',
-                foreman_plugins='https://yum.theforeman.org/plugins/nightly/el9/x86_64/',
-                katello='https://yum.theforeman.org/katello/nightly/katello/el9/x86_64/',
-            )
         else:
             # get ohsnap repofile
             self.download_repofile(
@@ -1591,9 +1590,12 @@ class ContentHost(Host, ContentHostMixins):
                 snap=settings.server.version.snap,
             )
 
-    def setup_capsule_repos(self):
+    def setup_capsule_repos(self, release=None):
         """Setup Capsule repositories on host
         requires registered host if ga source has to be enabled
+
+        Args:
+            release: Override capsule version release (Default: settings.capsule.version.release)
         """
         if settings.capsule.version.source == "ga":
             # enable cdn repos
@@ -1606,24 +1608,25 @@ class ContentHost(Host, ContentHostMixins):
         else:
             self.download_repofile(
                 product='capsule',
-                release=settings.capsule.version.release,
-                snap=settings.capsule.version.snap,
+                release=release or settings.capsule.version.release,
+                snap='' if release else settings.capsule.version.snap,
             )
 
-    def ensure_podman_installed(self):
+    def ensure_podman_installed(self, enable_ipv6_proxy=False):
         """Ensure Podman is installed, registering temporarily if needed."""
-        if self.execute('rpm -q podman').status == 0:
-            return
-        was_registered = self.subscription_manager_status().status == 0
-        if not was_registered:
-            self.register_to_cdn()
-        try:
-            result = self.execute('dnf -y install podman --disableplugin=foreman-protector')
-            if result.status != 0:
-                raise ContentHostError(f'Podman installation failed: {result.stdout}')
-        finally:
+        if self.execute('rpm -q podman').status != 0:
+            was_registered = self.subscription_manager_status().status == 0
             if not was_registered:
-                self.unregister()
+                self.register_to_cdn()
+            try:
+                result = self.execute('dnf -y install podman --disableplugin=foreman-protector')
+                if result.status != 0:
+                    raise ContentHostError(f'Podman installation failed: {result.stdout}')
+            finally:
+                if not was_registered:
+                    self.unregister()
+        if enable_ipv6_proxy:
+            self.enable_ipv6_podman_proxy()
 
     def podman_login(self, username=None, password=None, registry=None):
         """Login to a podman registry."""
@@ -1827,12 +1830,21 @@ class Capsule(ContentHost, CapsuleMixins):
         """Get capsule features"""
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
-    def capsule_setup(self, sat_host=None, capsule_cert_opts=None, **installer_kwargs):
-        """Prepare the host and run the capsule installer"""
+    def capsule_setup(
+        self, sat_host=None, capsule_cert_opts=None, release=None, **installer_kwargs
+    ):
+        """Prepare the host and run the capsule installer
 
+        Args:
+            sat_host: Satellite host object
+            capsule_cert_opts: Certificate options for capsule
+            release: Override capsule version release for upgrade testing (Default: settings.capsule.version.release)
+        Kwargs:
+            installer_kwargs: Additional installer arguments
+        """
         self.register_to_cdn()
         self.setup_rhel_repos()
-        self.setup_capsule_repos()
+        self.setup_capsule_repos(release=release)
 
         # After capsule registration to cdn, it should be initialized with the Satellite.
         self._satellite = sat_host or Satellite()
@@ -1971,7 +1983,16 @@ class Capsule(ContentHost, CapsuleMixins):
         self.register_to_cdn()
         self.setup_rhel_repos()
         self.setup_satellite_repos()
-        assert self.execute('dnf copr enable -y @theforeman/foremanctl rhel-9-x86_64').status == 0
+
+        # Enable Packit repos
+        pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
+        if pull_requests:
+            Broker(
+                job_template='upstream-pr-install',
+                target_vm=self.name,
+                pull_requests=pull_requests,
+            ).execute()
+
         assert self.execute('dnf install -y foremanctl').status == 0
 
         if enable_fapolicyd:
@@ -2003,29 +2024,41 @@ class Capsule(ContentHost, CapsuleMixins):
         # Install Satellite and return result
 
         default_parameters = [
-            f'--foreman-initial-admin-username {settings.server.admin_username}',
-            f'--foreman-initial-admin-password {settings.server.admin_password}',
+            f'--initial-admin-username {settings.server.admin_username}',
+            f'--initial-admin-password {settings.server.admin_password}',
         ]
 
         parameters = [] if parameters is None else parameters
         if parameters:
             default_parameters.extend(parameters)
 
-        assert (
-            self.execute(
-                f'foremanctl deploy {" ".join(default_parameters)}',
-                timeout='30m',
-            ).status
-            == 0
+        deploy = self.execute(
+            f'foremanctl deploy {" ".join(default_parameters)}',
+            timeout='30m',
+        )
+        assert deploy.status == 0, f'foremanctl deploy failed:\n{deploy.stderr}'
+
+        deploy_features = self.execute(
+            'foremanctl deploy --add-feature foreman-proxy --add-feature hammer'
+        )
+        assert deploy_features.status == 0, (
+            f'foremanctl deploy --add-feature failed:\n{deploy_features.stderr}'
         )
 
-        assert (
-            self.execute(
-                'foremanctl deploy --add-feature foreman-proxy --add-feature hammer'
-            ).status
-            == 0
-        )
         return
+
+    def list_foremanctl_features(self, enabled=False):
+        """Get the list of features as a set of feature names"""
+        if enabled:
+            result = self.execute('foremanctl features --list-enabled')
+        else:
+            result = self.execute('foremanctl features')
+        assert result.status == 0, f'foremanctl features command failed: {result.stderr}'
+        return {
+            p[0]
+            for line in result.stdout.splitlines()
+            if (p := line.split()) and p[0].lower() != 'feature'
+        }
 
     def query_db(self, query, db='foreman', output_format='json'):
         """Execute a PostgreSQL query and return the result.
@@ -2082,15 +2115,51 @@ class Satellite(Capsule, SatelliteMixins):
 
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
-        import sys
 
-        from pip._internal import main as pip_main
+        logger.debug(f'Installing nailgun for new_version: {new_version}')
+        nailgun_ref = 'master' if new_version == 'stream' else f'{new_version}.z'
 
-        pip_main(['uninstall', '-y', 'nailgun'])
-        pip_main(['install', f'https://github.com/SatelliteQE/nailgun/archive/{new_version}.zip'])
+        # Use file locking to prevent race conditions when multiple xdist workers
+        # try to install/uninstall nailgun simultaneously
+        lock_file = Path('/tmp/nailgun-install')
+        with FileLock(lock_file, timeout=120):
+            logger.debug('Acquired nailgun install lock, running pip commands')
+
+            expected_url = f'https://github.com/SatelliteQE/nailgun/archive/{nailgun_ref}.zip'
+            # Check if correct version already installed
+            result = subprocess.run(
+                [sys.executable, '-m', 'pip', 'freeze'], capture_output=True, text=True, check=True
+            )
+            is_installed = any(
+                line.startswith('nailgun') and expected_url in line
+                for line in result.stdout.split('\n')
+            )
+            if is_installed:
+                logger.debug(f'Nailgun {new_version} already installed, skipping pip install')
+            else:
+                logger.debug(f'Nailgun {new_version} not already installed, running pip install')
+                subprocess.run(
+                    [sys.executable, '-m', 'pip', 'uninstall', '-y', 'nailgun'], check=True
+                )
+                subprocess.run(
+                    [
+                        sys.executable,
+                        '-m',
+                        'pip',
+                        'install',
+                        expected_url,
+                    ],
+                    check=True,
+                )
+            logger.debug('Nailgun pip commands complete, releasing lock')
+
+        # Clear module cache after lock is released (each worker clears its own cache).
+        # Run this even if the worker didn't need to reinstall nailgun,
+        # to make sure it has the correct api.
         self._api = type('api', (), {'_configured': False})
         to_clear = [k for k in sys.modules if 'nailgun' in k]
-        [sys.modules.pop(k) for k in to_clear]
+        for k in to_clear:
+            sys.modules.pop(k)
 
     @property
     def api(self):

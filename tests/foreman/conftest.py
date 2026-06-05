@@ -2,7 +2,6 @@
 
 import pytest
 
-from robottelo.config import settings
 from robottelo.hosts import Satellite
 from robottelo.logging import collection_logger
 
@@ -76,14 +75,3 @@ def ui_session_record_property(request, record_property):
             ):
                 sat = request.getfixturevalue(fixture)
                 sat.record_property = record_property
-
-
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_protocol(item, nextitem):
-    """Set version source to upstream for tests marked with foremanctl."""
-    if item.get_closest_marker('foremanctl'):
-        settings.set('server.version.source', 'upstream')
-        yield
-        settings.set('server.version.source', 'internal')
-    else:
-        yield

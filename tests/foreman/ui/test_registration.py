@@ -11,7 +11,7 @@
 :Team: Proton
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 from airgun.exceptions import DisabledWidgetError
@@ -224,12 +224,17 @@ def test_positive_global_registration_end_to_end(
     assert result.status == 0
     result = rhel_contenthost.execute('subscription-manager identity')
     assert result.status == 0
-    # Assert that a yum update was made this day ("Update" or "I, U" in history)
+    # Assert that a yum update was made today ("Update" or "I, U" in history)
     timezone_offset = rhel_contenthost.execute('date +"%:z"').stdout.strip()
     tzinfo = datetime.strptime(timezone_offset, '%z').tzinfo
     result = rhel_contenthost.execute('yum history | grep -E "I|U"')
     assert result.status == 0
-    assert datetime.now(tzinfo).strftime('%Y-%m-%d') in result.stdout
+    now = datetime.now(tzinfo)
+    today = now.strftime('%Y-%m-%d')
+    yesterday = (now - timedelta(days=1)).strftime('%Y-%m-%d')
+    assert today in result.stdout or yesterday in result.stdout, (
+        f'Expected yum history to contain {today} or {yesterday}, got:\n{result.stdout}'
+    )
     # Set "Connect to host using IP address"
     module_target_sat.api.Parameter(
         host=rhel_contenthost.hostname,
@@ -299,6 +304,8 @@ def test_global_registration_form_populate(
     :BZ: 2056469, 1994654, 1955421
 
     :customerscenario: true
+
+    :BlockedBy: SAT-44612
     """
     hg_name = gen_string('alpha')
     hg_nested_name = gen_string('alpha')

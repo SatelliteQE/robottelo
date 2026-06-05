@@ -340,6 +340,44 @@ def test_positive_update_counts(target_sat, module_capsule_configured):
     )
 
 
+def test_positive_orphan_cleanup_skips_content_counts(
+    target_sat,
+    module_capsule_configured,
+):
+    """Verify orphan cleanup does not trigger UpdateContentCounts
+    when automatic_content_count_updates is disabled.
+
+    :id: d167af46-bf99-45bd-a93b-075d9e373ca4
+
+    :Verifies: SAT-43062
+
+    :setup:
+        1. Satellite with registered external Capsule.
+
+    :steps:
+        1. Disable ``automatic_content_count_updates``.
+        2. Run orphan cleanup via ``foreman-rake katello:delete_orphaned_content``.
+        3. Wait for the ``RemoveOrphans`` task to complete.
+        4. Check that no ``UpdateContentCounts`` tasks were triggered after the timestamp.
+
+    :expectedresults:
+        1. Orphan cleanup completes successfully.
+        2. No ``UpdateContentCounts`` task is created for any capsule.
+    """
+    with target_sat.api_factory.satellite_setting('automatic_content_count_updates=false'):
+        timestamp = datetime.now(UTC).replace(microsecond=0)
+        target_sat.run_orphan_cleanup(module_capsule_configured.nailgun_smart_proxy.id)
+        with pytest.raises(AssertionError, match='No task was found'):
+            target_sat.wait_for_tasks(
+                search_query=(
+                    'label = Actions::Katello::CapsuleContent::UpdateContentCounts'
+                    f' and started_at >= "{timestamp}"'
+                ),
+                search_rate=2,
+                max_tries=5,
+            )
+
+
 @pytest.mark.parametrize('setting_update', ['automatic_content_count_updates=True'], indirect=True)
 def test_positive_content_counts_granularity(
     request,
@@ -824,6 +862,8 @@ def test_sync_consume_flatpak_repo_via_library(
         1. Entire workflow works and allows user to install a flatpak app at the registered
            contenthost.
 
+    :BlockedBy: SAT-44554
+
     """
     sat, caps, host = module_target_sat, module_capsule_configured, module_flatpak_contenthost
 
@@ -972,6 +1012,8 @@ def test_sync_consume_flatpak_repo_via_cv(
     :expectedresults:
         1. Flatpak repos published in a CV are installable on a host via the CV through Capsule.
         2. Other flatpak repos published in a different CV are isolated from the first CV.
+
+    :BlockedBy: SAT-44554
 
     """
     sat, caps, host = module_target_sat, module_capsule_configured, module_flatpak_contenthost

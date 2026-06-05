@@ -82,7 +82,8 @@ def setup_test_positive_service_restart(request, sat_maintain):
     )
     sat_maintain.execute(f'mv {HAMMER_CONFIG} /tmp/foreman.yml')
     sat_maintain.execute(f'mv {MAINTAIN_HAMMER_YML} /tmp/foreman-maintain-hammer.yml')
-    sat_maintain.cli.Admin.logging({'all': True, 'level-debug': True})
+    result = sat_maintain.execute("satellite-installer --foreman-logging-level debug")
+    assert result.status == 0, "satellite-installer failed to enable Foreman debug logging"
 
     @request.addfinalizer
     def _finalize():
@@ -92,7 +93,8 @@ def setup_test_positive_service_restart(request, sat_maintain):
         )
         sat_maintain.execute(f'mv /tmp/foreman.yml {HAMMER_CONFIG}')
         sat_maintain.execute(f'mv /tmp/foreman-maintain-hammer.yml {MAINTAIN_HAMMER_YML}')
-        sat_maintain.cli.Admin.logging({'all': True, 'level-production': True})
+        result = sat_maintain.execute("satellite-installer --reset-foreman-logging-level")
+        assert result.status == 0, "satellite-installer failed to reset Foreman logging level"
 
 
 @pytest.mark.include_satellite_iop

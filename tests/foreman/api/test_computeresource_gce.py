@@ -79,15 +79,17 @@ class TestGCEComputeResourceTestCases:
 
         """
         satgce_images = module_gce_compute.available_images()
-        googleclient_images = googleclient.list_templates(
-            include_public=True, public_projects=GCE_RHEL_CLOUD_PROJECTS
-        )
-        googleclient_image_names = [img.name for img in googleclient_images]
-        # Validating GCE_CR images in Google CR
-        sat_available_images = [satgce_images[i]['name'] for i in range(len(satgce_images))]
+        sat_available_images = [item['name'] for item in satgce_images]
         for image in sat_available_images:
-            assert image in googleclient_image_names
-            # Validate only rhel-images exist in GCE_CR
+            # list_templates() only returns the first page per project (~500 images); Satellite can
+            # list newer names that are not on that page. Resolve each name with a filtered lookup.
+            matches = googleclient.find_templates(
+                name=image,
+                include_public=True,
+                public_projects=GCE_RHEL_CLOUD_PROJECTS,
+            )
+            assert matches, f'Image {image!r} not found in GCP (service project + public RHEL)'
+            assert matches[0].name == image
             assert image.startswith('rhel-')
 
     def test_positive_check_available_networks(self, module_gce_compute, googleclient):

@@ -17,7 +17,7 @@ from math import ceil
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import LIBRARY_LCE
 from robottelo.exceptions import CLIReturnCodeError
 
 
@@ -109,7 +109,7 @@ def test_positive_lce_crud(module_org, module_target_sat):
         }
     )
 
-    assert lce['prior-lifecycle-environment'] == ENVIRONMENT
+    assert lce['prior-lifecycle-environment'] == LIBRARY_LCE
     assert lce['name'] == name
     assert lce['description'] == desc
     assert lce['label'] == label
@@ -187,7 +187,7 @@ class LifeCycleEnvironmentPaginationTestCase:
         self.lces_count = 25
         self.org = target_sat.cli_factory.make_org()
         env_base_name = gen_string('alpha')
-        last_env_name = ENVIRONMENT
+        last_env_name = LIBRARY_LCE
         self.env_names = [last_env_name]
         for env_index in range(self.lces_count):
             env_name = f'{env_base_name}-{env_index}'

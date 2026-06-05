@@ -5,7 +5,7 @@
 
 :CaseComponent: Reporting
 
-:team: Endeavour
+:team: Dragonfly
 
 :CaseImportance: High
 
@@ -32,7 +32,6 @@ from robottelo.constants import (
 )
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.hosts import ContentHost
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -391,6 +390,8 @@ def test_positive_clone_locked_report(module_target_sat):
     result_info = module_target_sat.cli.ReportTemplate.info({'id': report_template['id']})
     assert result_info['locked'] == 'yes'
     assert result_info['default'] == 'yes'
+    result_info = module_target_sat.cli.ReportTemplate.info({'name': new_name})
+    assert result_info['locked'] == 'no'
 
 
 def test_positive_generate_report_sanitized(module_target_sat):
@@ -409,6 +410,8 @@ def test_positive_generate_report_sanitized(module_target_sat):
     :expectedresults: Report is generated in proper CSV format (value with comma is quoted)
 
     :CaseImportance: Medium
+
+    :Verifies: SAT-42163
     """
     # create a name that has a comma in it, some randomized text, and no spaces.
     os_name = gen_alpha(start='test', separator=',').replace(' ', '')
@@ -1039,16 +1042,7 @@ def test_positive_clone_report_template(module_target_sat):
     cloned_template = module_target_sat.cli.ReportTemplate.info({'name': clone_name})
     assert cloned_template['name'] == clone_name
     assert cloned_template['cloned-from-id'] == template['id']
-    if is_open('SAT-42163'):
-        module_target_sat.cli.ReportTemplate.update(
-            {'id': cloned_template['id'], 'locked': 'false'}
-        )
-        assert (
-            module_target_sat.cli.ReportTemplate.info({'name': cloned_template['name']}).get(
-                'locked'
-            )
-            == 'no'
-        )
+    assert cloned_template['locked'] == 'no'
     module_target_sat.cli.ReportTemplate.delete({'name': clone_name})
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.ReportTemplate.info({'name': clone_name})

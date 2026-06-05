@@ -18,7 +18,7 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 
 import random
 
-from fauxfactory import gen_integer, gen_string
+from fauxfactory import gen_alpha, gen_integer, gen_string
 import pytest
 from requests.exceptions import HTTPError
 
@@ -221,3 +221,19 @@ class TestPartitionTable:
         ptable.layout = new_layout
         with pytest.raises(HTTPError):
             assert ptable.update(['layout']).layout != new_layout
+
+    def test_positive_clone_locked_ptable(self, target_sat, locked_partition_table):
+        """Clone a locked partition table. Verify the cloned ptable is not locked.
+
+        :id: 97d32564-5aa9-11f1-b7e0-000c29a0e355
+
+        :Verifies: SAT-43678
+
+        :expectedresults: User can clone a locked partition table. The cloned ptable is not locked.
+        """
+        name_cloned = gen_alpha()
+        ptable = target_sat.api.PartitionTable(id=locked_partition_table.id).clone(
+            data={'ptable': {'name': name_cloned}}
+        )
+        assert ptable['name'] == name_cloned
+        assert ptable['locked'] is False

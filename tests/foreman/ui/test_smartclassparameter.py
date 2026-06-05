@@ -17,7 +17,7 @@ from random import choice, uniform
 import pytest
 import yaml
 
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import LIBRARY_LCE
 from robottelo.utils.datafactory import gen_string
 
 PM_NAME = 'generic_1'
@@ -42,7 +42,7 @@ def module_host(
     module_puppet_classes,
 ):
     lce = session_puppet_enabled_sat.api.LifecycleEnvironment().search(
-        query={'search': f'organization_id="{module_puppet_org.id}" and name="{ENVIRONMENT}"'}
+        query={'search': f'organization_id="{module_puppet_org.id}" and name="{LIBRARY_LCE}"'}
     )[0]
     host = session_puppet_enabled_sat.api.Host(
         organization=module_puppet_org,

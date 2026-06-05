@@ -11,3 +11,10 @@ JIRA:
   ISSUE_STATUS: ["Testing", "Release Pending"]
   CACHE_FILE: jira_status_cache.json
   CACHE_TTL_DAYS: 7
+  SFDC_COUNTER_FIELD: "customfield_10978"
+  TEAM_FIELD: "customfield_10606"
+  STORY_POINTS_FIELD: "customfield_10028"
+  PROJECT: "SAT"
+  TEAM: "sat-jpl"
+  STORY_POINTS: 1
+

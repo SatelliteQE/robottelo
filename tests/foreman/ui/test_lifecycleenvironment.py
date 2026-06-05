@@ -18,13 +18,13 @@ from widgetastic_patternfly4.navigation import NavSelectionNotFound
 
 from robottelo.config import settings
 from robottelo.constants import (
-    ENVIRONMENT,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_3_CUSTOM_PACKAGE_NAME,
+    LIBRARY_LCE,
 )
 from robottelo.utils.datafactory import gen_string
 
@@ -128,7 +128,7 @@ def test_positive_search_lce_content_view_packages_by_full_name(session, module_
         for package in packages:
             for package_full_name in package['full_names']:
                 result = session.lifecycleenvironment.search_package(
-                    ENVIRONMENT, package_full_name, cv_name=content_view.name
+                    LIBRARY_LCE, package_full_name, cv_name=content_view.name
                 )
                 assert len(result) == 1
                 assert result[0]['Name'] == package['name']
@@ -174,7 +174,7 @@ def test_positive_search_lce_content_view_packages_by_name(session, module_org, 
     with session:
         for package in packages:
             result = session.lifecycleenvironment.search_package(
-                ENVIRONMENT, package['name'], cv_name=content_view.name
+                LIBRARY_LCE, package['name'], cv_name=content_view.name
             )
             assert len(result) == package['packages_count']
             for entry in result:
@@ -218,7 +218,7 @@ def test_positive_search_lce_content_view_module_streams_by_name(session, module
     with session:
         for module in module_streams:
             result = session.lifecycleenvironment.search_module_stream(
-                ENVIRONMENT, module['name'], cv_name=content_view.name
+                LIBRARY_LCE, module['name'], cv_name=content_view.name
             )
             assert len(result) == module['streams_count']
             for entry in result:

@@ -314,7 +314,7 @@ def test_positive_sync_yum_repo_and_verify_content_checksum(session, module_org,
         for sync_val in sync_values:
             if 'less than a minute ago' in sync_val['Finished']:
                 assert sync_val['Product'] == product.name
-                assert sync_val['Status'] == SYNC_COMPLETE
+                assert sync_val['Status'] == 'Syncing Complete.'
         result = session.product.verify_content_checksum([product.name])
         assert result['task']['result'] == 'success'
 
@@ -542,6 +542,50 @@ def test_positive_upstream_with_credentials(session, module_prod):
         )
         repo_values = session.repository.read(module_prod.name, repo_name)
         assert not repo_values['repo_content']['upstream_authorization']
+
+
+def test_positive_sync_custom_repo_username_only_no_password(target_sat, module_prod, module_org):
+    """Custom yum repository sync succeeds when upstream requires only a username (no password).
+
+    Pulp/Satellite must allow synchronizing a custom repository whose upstream uses HTTP basic auth
+    with a non-empty username and an empty password.
+
+    :id: 96005f4f-82f7-4a78-8ec7-a25d92831297
+
+    :customerscenario: true
+
+    :steps:
+        1. Create a product with a custom yum repository: set upstream URL and upstream username;
+           do not set an upstream password.
+        2. Synchronize the repository.
+
+    :expectedresults:
+        1. Repository is created without validation errors.
+        2. Repository sync completes successfully.
+
+    :CaseImportance: High
+
+    :Verifies: SAT-41022
+    """
+    repo_name = gen_string('alpha')
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        session.repository.create(
+            module_prod.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['yum'],
+                'repo_content.upstream_url': settings.repos.username_only_upstream_url,
+                'repo_content.upstream_username': settings.repos.username_only_upstream_username,
+            },
+        )
+        assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert (
+            repo_values['repo_content']['upstream_url'] == settings.repos.username_only_upstream_url
+        )
+        result = session.repository.synchronize(module_prod.name, repo_name)
+        assert result['result'] == 'success'
 
 
 # TODO: un-comment when OSTREE functionality is restored in Satellite 6.11
@@ -815,7 +859,7 @@ def test_positive_delete_rhel_repo(session, module_sca_manifest_org, target_sat)
     ],
     ids=['Kickstart', 'RPM'],
 )
-def test_recommended_repos(session, filter_type, expected_repos, module_sca_manifest_org):
+def test_recommended_repos(session, filter_type, expected_repos, module_sca_multiarch_manifest_org):
     """list recommended repositories using On/Off 'Recommended Repositories' toggle.
 
     :id: 1ae197d5-88ba-4bb1-8ecf-4da5013403d7
@@ -828,12 +872,14 @@ def test_recommended_repos(session, filter_type, expected_repos, module_sca_mani
     :Verifies: SAT-29446, SAT-29448, SAT-37160
     """
     with session:
-        session.organization.select(module_sca_manifest_org.name)
+        session.organization.select(module_sca_multiarch_manifest_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on', filter_type=filter_type)
         v = get_sat_version()
 
         displayed_repos = [repo['label'] for repo in rrepos_on]
-        assert all(repo in displayed_repos for repo in expected_repos)
+        assert len(displayed_repos) > len(expected_repos)
+        for repo in expected_repos:
+            assert repo in displayed_repos
         if filter_type == 'RPM':
             for repo in VERSIONED_REPOS:
                 assert repo.format(f'{v.major}.{v.minor}') in displayed_repos

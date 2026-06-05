@@ -36,11 +36,18 @@ def create_insights_vulnerability(host):
     assert result.status == 0
 
 
-def sync_recommendations(session):
+def sync_recommendations(session, satellite):
     timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     session.cloudinsights.sync_hits()
     wait_for(
-        lambda: session.task.search(f'Insights full sync and started_at >= "{timestamp}"'),
+        lambda: (
+            satellite.api.ForemanTask()
+            .search(
+                query={'search': f'Red Hat Lightspeed full sync and started_at >= "{timestamp}"'}
+            )[0]
+            .result
+            == 'success'
+        ),
         timeout=180,
         delay=15,
         handle_exception=True,
@@ -102,7 +109,7 @@ def test_rhcloud_insights_e2e(
         session.organization.select(org_name=org_name)
 
         # Sync the recommendations
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Verify that we can see the rule hit via insights-client
         result = rhel_insights_vm.execute('insights-client --diagnosis')
@@ -132,7 +139,7 @@ def test_rhcloud_insights_e2e(
         )
 
         # Re-sync the recommendations
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Verify that the recommendation is not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
@@ -188,7 +195,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
         session.organization.select(org_name=org_name)
 
         # Sync the recommendations
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Search for the recommendations
         results = session.cloudinsights.search(REC_QUERY)
@@ -217,7 +224,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
         )
 
         # Re-sync the recommendations
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Verify that the recommendations are not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
@@ -358,12 +365,15 @@ def test_host_details_page(
         )
 
         # Sync insights recommendations.
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Verify Insights status of host.
         result = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
         assert result['Red Hat Lightspeed']['Status'] == 'Reporting'
-        assert result['Inventory']['Status'] == 'Successfully uploaded to your RH cloud inventory'
+        assert (
+            result['Inventory']['Status']
+            == 'Host is uploaded and present on console.redhat.com Inventory service'
+        )
 
         # Verify recommendations exist for host.
         result = session.host_new.search(rhel_insights_vm.hostname)[0]
@@ -374,7 +384,6 @@ def test_host_details_page(
         insights_recommendations = session.host_new.get_insights(rhel_insights_vm.hostname)[
             'recommendations_table'
         ]
-
         # Verify
         for recommendation in insights_recommendations:
             if recommendation['Recommendation'] == DNF_RECOMMENDATION:
@@ -420,13 +429,15 @@ def test_insights_registration_with_capsule(
         3. Override Insights and Rex parameters.
         4. Check host is registered successfully with selected capsule.
         5. Test insights client connection & reporting status.
-        6. Run rh_cloud_insights:clean_statuses rake command
-        7. Verify that host properties doesn't contain insights status.
+        6. Verify Remote Execution is functional by running a job on the host.
+        7. Run rh_cloud_insights:clean_statuses rake command
+        8. Verify that host properties doesn't contain insights status.
 
     :expectedresults:
         1. Host is successfully registered with capsule host,
             having remote execution and insights.
-        2. rake command deletes insights reporting status of host.
+        2. Remote Execution job runs successfully on the host.
+        3. rake command deletes insights reporting status of host.
 
     :BZ: 2110222, 2112386, 1962930
 
@@ -463,6 +474,29 @@ def test_insights_registration_with_capsule(
         assert rhel_contenthost.execute('insights-client --test-connection').status == 0
         values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert values['Red Hat Lightspeed']['Status'] == 'Reporting'
+
+        # Verify Remote Execution is functional by running a simple job
+        template_id = (
+            module_target_sat_insights.api.JobTemplate()
+            .search(query={'search': 'name="Run Command - Ansible Default"'})[0]
+            .id
+        )
+        job = module_target_sat_insights.api.JobInvocation().run(
+            synchronous=False,
+            data={
+                'job_template_id': template_id,
+                'targeting_type': 'static_query',
+                'search_query': f'name = {rhel_contenthost.hostname}',
+                'inputs': {'command': 'id'},
+            },
+        )
+        module_target_sat_insights.wait_for_tasks(
+            f'resource_type = JobInvocation and resource_id = {job["id"]}',
+            poll_timeout=300,
+        )
+        job_result = module_target_sat_insights.api.JobInvocation(id=job['id']).read()
+        assert job_result.succeeded == 1, 'Remote Execution job failed on the host'
+
         # Clean insights status
         result = module_target_sat_insights.run(
             f'foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel_contenthost.hostname}"'
@@ -481,3 +515,111 @@ def test_insights_registration_with_capsule(
         # Verify that Insights status again.
         values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert values['Red Hat Lightspeed']['Status'] == 'Reporting'
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+def test_host_breadcrumb_switcher_updates_insights_tabs(
+    rhel_insights_vms,
+    rhcloud_manifest_org,
+    module_target_sat_insights,
+):
+    """Test that breadcrumb switcher properly updates Recommendations tab
+    when switching between hosts on the host details page.
+
+    :id: e9f3fde8-c56b-42de-921f-576c83efcec7
+
+    :steps:
+        1. Prepare one host with vulnerabilities (host1) and one without (host2).
+        2. Upload insights data and sync recommendations.
+        3. Navigate to host1's details page and verify Insights tab shows recommendations.
+        4. Use breadcrumb switcher to switch to host2 (without full page navigation).
+        5. Verify that Recommendations tab updates to show no recommendations for host2.
+        6. Switch back to host1 and verify recommendations are displayed again.
+
+    :expectedresults:
+        1. Host1 displays recommendations in the Insights tab.
+        2. After switching to host2 via breadcrumb, tab shows no recommendations.
+        3. After switching back to host1 via breadcrumb, recommendations are displayed again.
+        4. The tab content properly updates with each breadcrumb switch without requiring page reload.
+
+    :parametrized: yes
+
+    :Verifies: SAT-38703
+    """
+    org_name = rhcloud_manifest_org.name
+
+    # Ensure we have at least 2 hosts
+    assert len(rhel_insights_vms) >= 2, "Test requires at least 2 hosts"
+    host1, host2 = rhel_insights_vms[0], rhel_insights_vms[1]
+
+    # Only create vulnerabilities on host1 so that host1 and host2 have different data
+    # This allows us to verify that the tab actually updates when switching hosts
+    create_insights_vulnerability(host1)
+
+    with module_target_sat_insights.ui_session() as session:
+        session.organization.select(org_name=org_name)
+
+        # Sync insights recommendations
+        sync_recommendations(session, module_target_sat_insights)
+
+        # Get baseline recommendations for host1
+        insights_host1 = session.host_new.get_insights(host1.hostname)
+        recommendations_host1 = insights_host1.get('recommendations_table', [])
+        assert len(recommendations_host1) > 0, f"No recommendations found for {host1.hostname}"
+
+        # Get baseline recommendations for host2
+        insights_host2 = session.host_new.get_insights(host2.hostname)
+        recommendations_host2 = insights_host2.get('recommendations_table', [])
+
+        # Store recommendation counts and titles for comparison
+        host1_titles = {rec['Recommendation'] for rec in recommendations_host1}
+        host2_titles = {rec['Recommendation'] for rec in recommendations_host2}
+
+        # Verify that host1 has not same recommendations as host2
+        assert set(host1_titles) != set(host2_titles), (
+            "Host1 and Host2 should not have same recommendations"
+        )
+
+        # Navigate back to host1's details page
+        session.host_new.get_insights(host1.hostname)
+
+        # Use breadcrumb switcher to switch to host2
+        session.host_new.select_host_from_breadcrumb(host2.hostname)
+
+        # Read the Insights tab content after breadcrumb switch
+        insights_after_switch = session.host_new.read_current_insights_tab()
+        recommendations_after_switch = insights_after_switch.get('recommendations_table', [])
+
+        titles_after_switch = {rec['Recommendation'] for rec in recommendations_after_switch}
+
+        assert titles_after_switch == host2_titles, (
+            f"After breadcrumb switch to host2, expected host2 data. "
+            f"Expected: {host2_titles}, Got: {titles_after_switch}"
+        )
+
+        # Verify we're NOT showing host1's recommendations (the bug scenario)
+        assert titles_after_switch != host1_titles, (
+            f"BUG: Breadcrumb switcher did not update Recommendations tab. "
+            f"Still showing {len(recommendations_after_switch)} recommendations from host1 "
+            f"instead of host2's recommendations list."
+        )
+
+        # Switch back to host1 using breadcrumb
+        session.host_new.select_host_from_breadcrumb(host1.hostname)
+
+        # Verify the tab updates to show host1's recommendations again (not empty)
+        insights_back_to_host1 = session.host_new.read_current_insights_tab()
+        recommendations_back = insights_back_to_host1.get('recommendations_table', [])
+
+        # Verify we see host1's recommendations again
+        assert len(recommendations_back) > 0, (
+            f"After switching back to host1, expected to see recommendations again, "
+            f"but got {len(recommendations_back)} recommendations"
+        )
+
+        titles_back_to_host1 = {rec['Recommendation'] for rec in recommendations_back}
+        assert titles_back_to_host1 == host1_titles, (
+            f"After switching back to host1 via breadcrumb, expected host1 recommendations. "
+            f"Expected: {host1_titles}, Got: {titles_back_to_host1}"
+        )

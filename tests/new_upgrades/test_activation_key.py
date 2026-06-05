@@ -73,6 +73,7 @@ def ak_upgrade_setup(content_upgrade_shared_satellite, upgrade_action):
         ak = ak.update(['host_collection'])
         assert len(ak.host_collection) == 1
         sat_upgrade.ready()
+        target_sat._swap_nailgun(settings.upgrade.to_version)
         target_sat._session = None
         yield test_data
 
@@ -95,7 +96,6 @@ def test_ak_upgrade_scenario(ak_upgrade_setup):
     :BlockedBy: SAT-28048, SAT-28990
     """
     target_sat = ak_upgrade_setup.target_sat
-    target_sat._swap_nailgun(f"{settings.UPGRADE.TO_VERSION}.z")
     org = target_sat.api.Organization().search(
         query={'search': f'name={ak_upgrade_setup.org.name}'}
     )[0]

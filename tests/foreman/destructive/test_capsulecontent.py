@@ -87,7 +87,7 @@ def test_positive_sync_rpm_without_deadlock(
     # Add the Library environment to the Capsule.
     nailgun_capsule = large_capsule_configured.nailgun_capsule
     lce = target_sat.api.LifecycleEnvironment(organization=function_sca_manifest_org).search(
-        query={'search': f'name={constants.ENVIRONMENT}'}
+        query={'search': f'name={constants.LIBRARY_LCE}'}
     )[0]
     nailgun_capsule.content_add_lifecycle_environment(data={'environment_id': lce.id})
     result = nailgun_capsule.content_lifecycle_environments()
@@ -230,7 +230,9 @@ def test_sync_AC_without_deadlock(
 
     :customerscenario: true
 
-    :Verifies: SAT-34271
+    :Verifies: SAT-34271, SAT-44202
+
+    :BlockedBy: SAT-44202
 
     """
     # Set capsule to immediate download policy

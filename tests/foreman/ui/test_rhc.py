@@ -29,12 +29,18 @@ def fixture_enable_rhc_repos(module_target_sat):
     # subscribe rhc satellite to cdn.
     if settings.rh_cloud.crc_env == 'prod':
         module_target_sat.register_to_cdn()
-        if module_target_sat.os_version.major == 8:
-            module_target_sat.enable_repo(constants.REPOS['rhel8_bos']['id'])
-            module_target_sat.enable_repo(constants.REPOS['rhel8_aps']['id'])
+        major = module_target_sat.os_version.major
+        if major > 7:
+            module_target_sat.enable_repo(constants.REPOS[f'rhel{major}_bos']['id'])
+            module_target_sat.enable_repo(constants.REPOS[f'rhel{major}_aps']['id'])
         else:
             module_target_sat.enable_repo(constants.REPOS['rhscl7']['id'])
             module_target_sat.enable_repo(constants.REPOS['rhel7']['id'])
+        # yggdrasil-worker-forwarder is shipped in the Satellite repo, not RHEL.
+        sat_version = '.'.join(module_target_sat.version.split('.')[:2])
+        module_target_sat.enable_repo(
+            f'satellite-{sat_version}-for-rhel-{major}-x86_64-rpms', force=True
+        )
 
 
 @pytest.fixture(scope='module')
@@ -78,18 +84,25 @@ def fixture_setup_rhc_satellite(
     yield
     if request.node.report_call.passed:
         # Enable and sync required repos
-        repo1_id = module_target_sat.api_factory.enable_sync_redhat_repo(
-            constants.REPOS['rhel8_aps'], module_rhc_org.id
-        )
-        repo2_id = module_target_sat.api_factory.enable_sync_redhat_repo(
-            constants.REPOS['rhel7'], module_rhc_org.id
-        )
-        repo3_id = module_target_sat.api_factory.enable_sync_redhat_repo(
-            constants.REPOS['rhel8_bos'], module_rhc_org.id
-        )
+        major = module_target_sat.os_version.major
+        if major > 7:
+            repo_ids = [
+                module_target_sat.api_factory.enable_sync_redhat_repo(
+                    constants.REPOS[f'rhel{major}_bos'], module_rhc_org.id
+                ),
+                module_target_sat.api_factory.enable_sync_redhat_repo(
+                    constants.REPOS[f'rhel{major}_aps'], module_rhc_org.id
+                ),
+            ]
+        else:
+            repo_ids = [
+                module_target_sat.api_factory.enable_sync_redhat_repo(
+                    constants.REPOS['rhel7'], module_rhc_org.id
+                ),
+            ]
         # Add repos to Content view
         content_view = module_target_sat.api.ContentView(
-            organization=module_rhc_org, repository=[repo1_id, repo2_id, repo3_id]
+            organization=module_rhc_org, repository=repo_ids
         ).create()
         content_view.publish()
         # Create Activation key

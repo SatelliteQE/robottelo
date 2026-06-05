@@ -1,0 +1,4 @@
+ISS:
+  # Set to false to use the exporting Satellite as the import target (local debugging).
+  # When true (default), a separate Satellite instance is used for imports (CI behavior).
+  SEPARATE_IMPORT_SAT: true

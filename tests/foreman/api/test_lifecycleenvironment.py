@@ -20,7 +20,7 @@ from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.constants import ENVIRONMENT
+from robottelo.constants import LIBRARY_LCE
 from robottelo.utils.datafactory import (
     invalid_names_list,
     parametrized,
@@ -83,7 +83,7 @@ def test_positive_create_prior(module_org, module_target_sat):
     :CaseImportance: Critical
     """
     lc_env = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
-    assert lc_env.prior.read().name == ENVIRONMENT
+    assert lc_env.prior.read().name == LIBRARY_LCE
 
 
 @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))

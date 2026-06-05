@@ -132,7 +132,7 @@ class TestScenarioErrataCount(TestScenarioErrataAbstract):
         """
         rhel_contenthost._skip_context_checkin = True
         environment = target_sat.api.LifecycleEnvironment(organization=function_org).search(
-            query={'search': f'name={constants.ENVIRONMENT}'}
+            query={'search': f'name={constants.LIBRARY_LCE}'}
         )[0]
         product = target_sat.api.Product(organization=function_org).create()
         custom_yum_repo = target_sat.api.Repository(

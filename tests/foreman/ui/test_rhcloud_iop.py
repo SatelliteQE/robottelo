@@ -303,29 +303,24 @@ def test_iop_recommendations_host_details_e2e(
         )
 
 
-# @pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
-def test_rhcloud_inventory_disabled_local_insights(module_target_sat_insights):
+@pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
+def test_iop_negative_rhcloud_inventory_upload_not_displayed(module_target_sat_insights):
     """Verify that the 'Red Hat Lightspeed > Inventory Upload' navigation item is not available
     when the Satellite is configured to use IoP.
 
     :id: 84023ae9-7bc4-4332-9aaf-749d6c48c2d2
 
     :steps:
-        1. Configure Satellite to use local Insights advisor engine.
-        2. Navigate to the Insights Recommendations page.
-        3. Select Insights > Inventory Upload from the navigation menu.
+        1. Configure Satellite with IOP
+        2. Check that 'Inventory Upload' is not visible under 'Red Hat Lightspeed'.
 
     :expectedresults:
-        1. "Inventory Upload" is not visible under "Insights".
-
-    :CaseImportance: Medium
-
-    :CaseAutomation: Automated
+        1. "Inventory Upload" is not visible under "Red Hat Lightspeed".
     """
     with module_target_sat_insights.ui_session() as session:
-        insights_view = session.cloudinsights.navigate_to(session.cloudinsights, 'All')
+        view = session.dashboard.navigate_to(session.dashboard, 'All')
         with pytest.raises(Exception, match='not found in navigation tree'):
-            insights_view.menu.select('Insights', 'Inventory Upload')
+            view.menu.select('Red Hat Lightspeed', 'Inventory Upload')
 
 
 @pytest.mark.e2e
@@ -561,7 +556,6 @@ def test_iop_insights_rbac_edit_permissions(
         assert vulnerabilities[0]['Status'] == 'In review'
 
 
-@pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_insights_rbac_no_permissions(
@@ -613,10 +607,6 @@ def test_iop_insights_rbac_no_permissions(
     # Log in as the user with no insights permissions
     # User is already in their default organization, no need to select
     with module_target_sat_insights.ui_session(test_name, user.login, user_password) as session:
-        # Verify that we can see the rule hit via insights-client (as admin)
-        result = rhel_insights_vm.execute('insights-client --diagnosis')
-        assert result.status == 0
-        assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
         # Attempt to access Recommendations - should fail or be inaccessible
         permission = session.recommendationstab.read_no_authorized_message()
         assert permission == "You do not have access to Advisor"

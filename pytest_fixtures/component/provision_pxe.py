@@ -46,21 +46,35 @@ def module_provisioning_rhel_content(
     rh_repos = []
     tasks = []
     rh_repo_id = ""
-    content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
 
-    # Custom Content for Client repo
+    # Custom Content for Client repos
     custom_product = sat.api.Product(
         organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
     ).create()
-    client_repo = sat.api.Repository(
-        organization=module_sca_manifest_org,
-        product=custom_product,
-        content_type='yum',
-        url=settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
-    ).create()
-    task = client_repo.sync(synchronous=False)
-    tasks.append(task)
-    content_view.repository = [client_repo]
+    client_repos_urls = [settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}']]
+    if (
+        rhel_ver in (8, 9)  # only RHEL 8 and 9 openvox-agent repositories are available
+        or (
+            rhel_ver == 10 and not is_open('SAT-30237')
+        )  # openvox-agent for EL10 is still not delivered
+        or (
+            rhel_ver == 7 and not is_open('SAT-44580')
+        )  # openvox-agent for EL7 is still not delivered
+    ):
+        client_repos_urls.append(settings.repos.OPENVOX_AGENT_REPO[f'rhel{rhel_ver}'])
+    client_repos = [
+        sat.api.Repository(
+            organization=module_sca_manifest_org,
+            product=custom_product,
+            content_type='yum',
+            url=url,
+        ).create()
+        for url in client_repos_urls
+    ]
+    tasks.extend([repo.sync(synchronous=False) for repo in client_repos])
+
+    content_view = sat.api.ContentView(organization=module_sca_manifest_org).create()
+    content_view.repository = client_repos
 
     for name in repo_names:
         rh_kickstart_repo_id = sat.api_factory.enable_rhrepo_and_fetchid(
@@ -90,7 +104,9 @@ def module_provisioning_rhel_content(
                 tasks.append(task)
                 rh_repos.append(rh_repo)
                 content_view.repository.append(rh_repo)
-                content_view.update(['repository'])
+    content_view.update(['repository'])
+
+    # wait for all repo sync tasks to finish
     for task in tasks:
         sat.wait_for_tasks(
             search_query=(f'id = {task["id"]}'),
@@ -99,6 +115,7 @@ def module_provisioning_rhel_content(
         )
         task_status = sat.api.ForemanTask(id=task['id']).poll()
         assert task_status['result'] == 'success'
+
     rhel_xy = Version(
         constants.REPOS['kickstart'][f'rhel{rhel_ver}']['version']
         if rhel_ver == 7
@@ -111,6 +128,7 @@ def module_provisioning_rhel_content(
     os = o_systems[0].read()
     # return only the first kickstart repo - RHEL X KS or RHEL X BaseOS KS
     ksrepo = rh_repos[0]
+
     publish = content_view.publish()
     task_status = sat.wait_for_tasks(
         search_query=(f'Actions::Katello::ContentView::Publish and id = {publish["id"]}'),
@@ -118,21 +136,21 @@ def module_provisioning_rhel_content(
         max_tries=10,
     )
     assert task_status[0].result == 'success'
-    content_view = sat.api.ContentView(
-        organization=module_sca_manifest_org, name=content_view.name
-    ).search()[0]
+    # create new activation key for provisioning
     ak = sat.api.ActivationKey(
         organization=module_sca_manifest_org,
         content_view=content_view,
         environment=module_lce_library,
     ).create()
+    # enable all custom repos in the activation key
+    product_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
+    content_overrides = [
+        {'content_label': content['label'], 'value': '1'}
+        for content in product_content
+        if content['vendor'] == 'Custom'
+    ]
+    ak.content_override(data={'content_overrides': content_overrides})
 
-    # Ensure client repo is enabled in the activation key
-    content = ak.product_content(data={'content_access_mode_all': '1'})['results']
-    client_repo_label = [repo['label'] for repo in content if repo['name'] == client_repo.name][0]
-    ak.content_override(
-        data={'content_overrides': [{'content_label': client_repo_label, 'value': '1'}]}
-    )
     return Box(os=os, ak=ak, ksrepo=ksrepo, cv=content_view)
 
 
@@ -421,24 +439,29 @@ def configure_secureboot_provisioning(
     request, pxe_loader, module_provisioning_sat, module_provisioning_rhel_content
 ):
     """Fixture for configuring Secureboot pxe_loader for provisioning, when hosts RHEL version > Satellites RHEL version"""
-    rhel_ver = module_provisioning_rhel_content.os.major
+    rhel_ver_major = module_provisioning_rhel_content.os.major
+    rhel_ver_minor = module_provisioning_rhel_content.os.minor
     sat = module_provisioning_sat.sat
     if (
-        int(rhel_ver) > sat.os_version.major
-        and pxe_loader.vm_firmware == 'uefi_secure_boot'
+        pxe_loader.vm_firmware == 'uefi_secure_boot'
         and module_provisioning_sat.sat.network_type != NetworkType.IPV6
     ):
         # Set the path for the shim and GRUB2 binaries for the OS of host
-        bootloader_path = '/var/lib/tftpboot/bootloader-universe/pxegrub2/redhat/default/x86_64'
+        bootloader_path = f'/var/lib/tftpboot/bootloader-universe/pxegrub2/redhat/{rhel_ver_major}.{rhel_ver_minor}/x86_64'
 
         # Create the directory to store the shim and GRUB2 binaries for the OS of host
         sat.execute(f'install -o foreman-proxy -g foreman-proxy -d {bootloader_path}')
 
         # Fetch and Download SB packages, and extract Shim/Grub2 binaries
         for prefix in ['grub2-efi-x64', 'shim-x64']:
-            url = sat.get_secureboot_packages_with_version(
-                f'{settings.repos.get(f"rhel{rhel_ver}_os").baseos}/Packages', prefix
-            )
+            if int(rhel_ver_major) > 7:
+                url = sat.get_secureboot_packages_with_version(
+                    f'{settings.repos.get(f"rhel{rhel_ver_major}_os").baseos}/Packages', prefix
+                )
+            else:
+                url = sat.get_secureboot_packages_with_version(
+                    f'{settings.repos.get(f"rhel{rhel_ver_major}_os")}Packages', prefix
+                )
             sat.execute(f'curl -o /tmp/{prefix}.rpm {url}')
             sat.execute(f'rpm2cpio /tmp/{prefix}.rpm | cpio -idv --directory /tmp')
 
@@ -449,6 +472,13 @@ def configure_secureboot_provisioning(
         sat.execute(f'ln -sr {bootloader_path}/shimx64.efi {bootloader_path}/boot-sb.efi')
         sat.execute(f'chmod 644 {bootloader_path}/grubx64.efi {bootloader_path}/shimx64.efi')
         yield
-        sat.execute(f'rm -rf {bootloader_path}')
+        for _path in (
+            os.path.dirname(bootloader_path),
+            '/tmp/boot',
+            '/tmp/etc',
+            '/tmp/grub2-efi-x64.rpm',
+            '/tmp/shim-x64.rpm',
+        ):
+            sat.execute(f'if [ -e "{_path}" ]; then rm -rf "{_path}"; fi')
     else:
         yield None

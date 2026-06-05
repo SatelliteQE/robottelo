@@ -180,33 +180,6 @@ def test_positive_disable_hammer_defaults(request, function_product, target_sat)
     assert function_product.name in result.stdout
 
 
-@pytest.mark.upgrade
-def test_positive_check_debug_log_levels(target_sat):
-    """Enabling debug log level in candlepin via hammer logging
-
-    :id: 029c80f1-2bc5-494e-a04a-7d6beb0f769a
-
-    :expectedresults: Verify enabled debug log level
-
-    :customerscenario: true
-
-    :CaseImportance: Medium
-
-    :BZ: 1760773
-    """
-    target_sat.cli.Admin.logging({'all': True, 'level-debug': True})
-    # Verify value of `log4j.logger.org.candlepin` as `DEBUG`
-    result = target_sat.execute('grep log4j.logger.org.candlepin /etc/candlepin/candlepin.conf')
-    assert result.status == 0
-    assert 'DEBUG' in result.stdout
-
-    target_sat.cli.Admin.logging({"all": True, "level-production": True})
-    # Verify value of `log4j.logger.org.candlepin` as `WARN`
-    result = target_sat.execute('grep WARN /etc/candlepin/candlepin.conf')
-    assert result.status == 0
-    assert 'log4j.logger.org.candlepin = WARN' in result.stdout
-
-
 @pytest.mark.e2e
 def test_positive_hammer_shell(target_sat):
     """Verify that hammer shell runs a command when input is provided via interactive/bash

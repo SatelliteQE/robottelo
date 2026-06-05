@@ -9,13 +9,21 @@ import re
 
 import click
 
+from robottelo.config import settings
+from robottelo.constants import JIRA_COMMON_FIELDS
 from robottelo.utils.issue_handlers.jira import get_data_jira, jira_cache
 
-# Regex patterns to find Jira issues in docstrings
-JIRA_PATTERNS = [
-    r':BlockedBy:\s+(SAT-\d+)',
-    r':Verifies:\s+(SAT-\d+)',
-]
+blocked_by_regex = re.compile(
+    # To match :BlockedBy: SAT-32932
+    r'\s*:BlockedBy:\s*(?P<blocked_by>.*\S*)',
+    re.IGNORECASE,
+)
+
+verifies_regex = re.compile(
+    # To match :Verifies: SAT-32932
+    r'\s*:Verifies:\s*(?P<verifies>.*\S*)',
+    re.IGNORECASE,
+)
 
 
 @click.command()
@@ -29,9 +37,12 @@ def populate_jira_cache(tests_dir, fresh):
         content = Path(file_path).read_text()
 
         issues = []
-        for pattern in JIRA_PATTERNS:
-            issues.extend(re.findall(pattern, content))
-
+        blocked_by = blocked_by_regex.findall(content)
+        verifies = verifies_regex.findall(content)
+        if blocked_by:
+            issues.extend(issue.strip() for match in blocked_by for issue in match.split(','))
+        if verifies:
+            issues.extend(issue.strip() for match in verifies for issue in match.split(','))
         return issues
 
     def scan_test_directory(directory_path):
@@ -42,7 +53,6 @@ def populate_jira_cache(tests_dir, fresh):
         for file_path in directory.glob('**/test_*.py'):
             issues = extract_jira_issues_from_file(file_path)
             all_issues.update(issues)
-
         return all_issues
 
     click.echo(f"Scanning {tests_dir} for Jira issues...")
@@ -68,7 +78,8 @@ def populate_jira_cache(tests_dir, fresh):
             return
 
     click.echo(f"Fetching data for {len(new_issues)} issues...")
-    jira_data = get_data_jira(list(new_issues))
+    jira_fields_with_sfdc = JIRA_COMMON_FIELDS + [settings.jira.sfdc_counter_field]
+    jira_data = get_data_jira(list(new_issues), jira_fields=jira_fields_with_sfdc)
 
     # Update cache with new data
     for issue in jira_data:

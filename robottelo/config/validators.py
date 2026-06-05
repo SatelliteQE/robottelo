@@ -285,7 +285,9 @@ VALIDATORS = dict(
             'foreman_mcp.username',
             'foreman_mcp.password',
             'foreman_mcp.port',
-            'foreman_mcp.registry',
+            'foreman_mcp.upstream.registry_url',
+            'foreman_mcp.upstream.image_path',
+            'foreman_mcp.upstream.image_tag',
             must_exist=True,
         ),
     ],
@@ -331,6 +333,7 @@ VALIDATORS = dict(
             must_exist=True,
         ),
     ],
+    iss=[Validator('iss.separate_import_sat', default=True, is_type_of=bool)],
     performance=[Validator('performance.time_hammer', default=False)],
     report_portal=[
         Validator(
@@ -357,9 +360,6 @@ VALIDATORS = dict(
             'repos.sattools_repo.rhel7',
             'repos.sattools_repo.rhel8',
             'repos.satmaintenance_repo',
-            'repos.rhscl_repo',
-            'repos.ansible_repo',
-            'repos.swid_tools_repo',
             'repos.rpm_missing_filelists.url',
             must_exist=True,
             is_type_of=str,
@@ -429,6 +429,7 @@ VALIDATORS = dict(
     ],
     robottelo=[
         Validator('robottelo.stage_docs_url', default='https://docs.redhat.com'),
+        Validator('robottelo.custom_docs_url', default=''),
         Validator('robottelo.settings.ignore_validation_errors', is_type_of=bool, default=False),
         Validator('robottelo.rhel_source', default='ga', is_in=['ga', 'internal']),
         Validator(

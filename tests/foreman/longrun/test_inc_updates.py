@@ -19,8 +19,8 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    ENVIRONMENT,
     FAKE_4_CUSTOM_PACKAGE,
+    LIBRARY_LCE,
     PRDS,
     REAL_RHEL8_1_ERRATA_ID,
     REPOS,
@@ -37,7 +37,7 @@ def module_lce_library(module_target_sat, module_sca_manifest_org):
     return (
         module_target_sat.api.LifecycleEnvironment()
         .search(
-            query={'search': f'name={ENVIRONMENT} and organization_id={module_sca_manifest_org.id}'}
+            query={'search': f'name={LIBRARY_LCE} and organization_id={module_sca_manifest_org.id}'}
         )[0]
         .read()
     )

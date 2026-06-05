@@ -441,8 +441,8 @@ def test_positive_async_endpoint_for_manifest_refresh(target_sat, function_sca_m
     """
     sub = target_sat.api.Subscription(organization=function_sca_manifest_org)
     # set log level to 'debug' and restart services
-    target_sat.cli.Admin.logging({'all': True, 'level-debug': True})
-    target_sat.cli.Service.restart()
+    result = target_sat.execute("satellite-installer --foreman-logging-level debug")
+    assert result.status == 0, "satellite-installer failed to enable Foreman debug logging"
     # refresh manifest and assert new log message to confirm async endpoint
     sub.refresh_manifest(data={'organization_id': function_sca_manifest_org.id})
     results = target_sat.execute(
@@ -450,5 +450,5 @@ def test_positive_async_endpoint_for_manifest_refresh(target_sat, function_sca_m
     )
     assert 'Sending GET request to upstream Candlepin' in str(results)
     # set log level back to default
-    target_sat.cli.Admin.logging({'all': True, 'level-production': True})
-    target_sat.cli.Service.restart()
+    result = target_sat.execute("satellite-installer --reset-foreman-logging-level")
+    assert result.status == 0, "satellite-installer failed to reset Foreman logging level"
