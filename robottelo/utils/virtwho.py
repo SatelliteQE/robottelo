@@ -699,7 +699,7 @@ def hypervisor_guest_mapping_newcontent_ui(
     # Check guest overview
     guest_new_overview = org_session.host_new.get_details(guest_name, 'overview')
 
-    assert guest_new_overview['overview']['host_status']['status_success'] == '2'
+    assert guest_new_overview['overview']['host_status']['status_success'] == '3'
     # Check guest details
     virtualguest_new_detais = org_session.host_new.get_details(guest_name, 'details')
     assert (
