@@ -85,7 +85,7 @@ class BaseRepository:
         download_policy=None,
         synchronize=True,
     ):
-        if download_policy:
+        if not download_policy:
             download_policy = 'on_demand'
         """Create the repository for the supplied product id"""
         create_options = {
