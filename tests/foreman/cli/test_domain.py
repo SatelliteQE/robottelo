@@ -25,16 +25,26 @@ from robottelo.utils.datafactory import (
 
 @filtered_datapoint
 def valid_create_params():
-    """Returns a list of valid domain create parameters"""
+    """Returns a list of valid domain create parameters
+
+    Domain names must comply with RFC 1035/2181: only letters, numbers,
+    dashes and dots are allowed.
+    """
     return [
         {
-            'name': 'white spaces {}'.format(gen_string(str_type='utf8')),
+            'name': f'{gen_string(str_type="alpha").lower()}.example.com',
             'description': gen_string(str_type='alpha'),
         },
-        {'name': gen_string(str_type='utf8'), 'description': gen_string(str_type='utf8')},
+        {
+            'name': f'{gen_string(str_type="alphanumeric").lower()}.test.org',
+            'description': gen_string(str_type='utf8'),
+        },
         {'name': gen_string(str_type='numeric'), 'description': gen_string(str_type='numeric')},
         {
-            'name': gen_string(str_type='utf8', length=255),
+            'name': (
+                f'{gen_string(str_type="alpha", length=60).lower()}'
+                f'.{gen_string(str_type="alpha", length=60).lower()}.example.com'
+            ),
             'description': gen_string(str_type='utf8', length=255),
         },
     ]
@@ -48,16 +58,26 @@ def invalid_create_params():
 
 @filtered_datapoint
 def valid_update_params():
-    """Returns a list of valid domain update parameters"""
+    """Returns a list of valid domain update parameters
+
+    Domain names must comply with RFC 1035/2181: only letters, numbers,
+    dashes and dots are allowed.
+    """
     return [
         {
-            'name': 'white spaces {}'.format(gen_string(str_type='utf8')),
+            'name': f'{gen_string(str_type="alpha").lower()}.example.com',
             'description': gen_string(str_type='alpha'),
         },
-        {'name': gen_string(str_type='utf8'), 'description': gen_string(str_type='utf8')},
+        {
+            'name': f'{gen_string(str_type="alphanumeric").lower()}.test.org',
+            'description': gen_string(str_type='utf8'),
+        },
         {'name': gen_string(str_type='numeric'), 'description': gen_string(str_type='numeric')},
         {
-            'name': gen_string(str_type='utf8', length=255),
+            'name': (
+                f'{gen_string(str_type="alpha", length=60).lower()}'
+                f'.{gen_string(str_type="alpha", length=60).lower()}.example.com'
+            ),
             'description': gen_string(str_type='utf8', length=255),
         },
     ]
