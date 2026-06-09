@@ -29,32 +29,7 @@ from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
     indirect=True,
     ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
-@pytest.mark.parametrize(
-    'module_repos_collection_with_manifest',
-    [
-        {
-            'distro': 'rhel7',
-            'RHELAnsibleEngineRepository': {'cdn': True},
-            'YumRepository': {'url': settings.repos.module_stream_1.url},
-            'FileRepository': {'url': CUSTOM_FILE_REPO},
-            'DockerRepository': {
-                'url': settings.container.registry_hub,
-                'upstream_name': settings.container.upstream_name,
-            },
-            'AnsibleRepository': {
-                'url': ANSIBLE_GALAXY,
-                'requirements': [
-                    {'name': 'theforeman.foreman', 'version': '2.1.0'},
-                    {'name': 'theforeman.operations', 'version': '0.1.0'},
-                ],
-            },
-        }
-    ],
-    indirect=True,
-)
-def test_positive_end_to_end(
-    setup_http_proxy, module_target_sat, module_org, module_repos_collection_with_manifest
-):
+def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_sca_manifest_org):
     """End-to-end test for HTTP proxy related scenarios.
 
     :id: 38df5479-9127-49f3-a30e-26b33655971a
@@ -63,17 +38,17 @@ def test_positive_end_to_end(
 
     :setup:
         1. Create HTTP proxy entity at the Satellite.
-        2. Create RH yum repository.
-        3. Create custom repo of each content type (yum, file, docker, ansible collection).
 
     :steps:
-        1. Set immediate download policy where applicable for complete sync testing.
-        2. For each repo set global default HTTP proxy and sync it.
-        3. For each repo set specific HTTP proxy and sync it.
-        4. For each repo set no HTTP proxy and sync it.
-        5. Refresh manifest through HTTP proxy.
-        6. Discover yum type repo through HTTP proxy.
-        7. Discover docker type repo through HTTP proxy.
+        1. Create RH yum repository and custom repos of each content type
+           (yum, file, docker, ansible collection) via HTTP proxy.
+        2. Set immediate download policy where applicable for complete sync testing.
+        3. For each repo set global default HTTP proxy and sync it.
+        4. For each repo set specific HTTP proxy and sync it.
+        5. For each repo set no HTTP proxy and sync it.
+        6. Refresh manifest through HTTP proxy.
+        7. Discover yum type repo through HTTP proxy.
+        8. Discover docker type repo through HTTP proxy.
 
     :expectedresults:
         1. All repository updates and syncs succeed.
@@ -86,14 +61,34 @@ def test_positive_end_to_end(
 
     :CaseImportance: Critical
     """
-    # Set immediate download policy where applicable for complete sync testing
-    for repo in module_repos_collection_with_manifest.repos_info:
-        if repo['content-type'] in ['yum', 'docker']:
-            module_target_sat.api.Repository(id=repo['id'], download_policy='immediate').update()
+    # Create repos in the test body after HTTP proxy is configured so that all content
+    # operations go through the proxy and there is no async sync race on repo update.
+    repos_collection = module_target_sat.cli_factory.RepositoryCollection(
+        distro='rhel7',
+        repositories=[
+            module_target_sat.cli_factory.RHELAnsibleEngineRepository(cdn=True),
+            module_target_sat.cli_factory.YumRepository(url=settings.repos.module_stream_1.url),
+            module_target_sat.cli_factory.FileRepository(url=CUSTOM_FILE_REPO),
+            module_target_sat.cli_factory.DockerRepository(
+                url=settings.container.registry_hub,
+                upstream_name=settings.container.upstream_name,
+            ),
+            module_target_sat.cli_factory.AnsibleRepository(
+                url=ANSIBLE_GALAXY,
+                requirements=[
+                    {'name': 'theforeman.foreman', 'version': '2.1.0'},
+                    {'name': 'theforeman.operations', 'version': '0.1.0'},
+                ],
+            ),
+        ],
+    )
+    _, repos_info = repos_collection.setup(
+        org_id=module_sca_manifest_org.id, download_policy='immediate', synchronize=False
+    )
 
     # For each repo set global/specific/no HTTP proxy and sync it
     for policy in ['global_default_http_proxy', 'use_selected_http_proxy', 'none']:
-        for repo in module_repos_collection_with_manifest.repos_info:
+        for repo in repos_info:
             repo = module_target_sat.api.Repository(
                 id=repo['id'],
                 http_proxy_policy=policy,
@@ -113,15 +108,15 @@ def test_positive_end_to_end(
 
     # Refresh manifest through HTTP proxy
     res = module_target_sat.api.Subscription().refresh_manifest(
-        data={'organization_id': module_org.id}
+        data={'organization_id': module_sca_manifest_org.id}
     )
     assert 'success' in res['result']
 
     # Discover yum type repo through HTTP proxy
     repo_name = 'fakerepo01'
-    yum_repo = module_target_sat.api.Organization(id=module_org.id).repo_discover(
+    yum_repo = module_target_sat.api.Organization(id=module_sca_manifest_org.id).repo_discover(
         data={
-            "id": module_org.id,
+            "id": module_sca_manifest_org.id,
             "url": settings.repos.repo_discovery.url,
             "content_type": "yum",
         }
@@ -130,9 +125,9 @@ def test_positive_end_to_end(
     assert yum_repo['output'][0] == f'{settings.repos.repo_discovery.url}/{repo_name}/'
 
     # Discover docker type repo through HTTP proxy
-    docker_repo = module_target_sat.api.Organization(id=module_org.id).repo_discover(
+    docker_repo = module_target_sat.api.Organization(id=module_sca_manifest_org.id).repo_discover(
         data={
-            "id": module_org.id,
+            "id": module_sca_manifest_org.id,
             "url": 'quay.io',
             "content_type": "docker",
             "search": 'foreman/foreman',
