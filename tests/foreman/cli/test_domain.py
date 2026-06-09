@@ -25,40 +25,77 @@ from robottelo.utils.datafactory import (
 
 @filtered_datapoint
 def valid_create_params():
-    """Returns a list of valid domain create parameters"""
+    """Returns a list of valid domain create parameters
+
+    Domain names must comply with RFC 1035/2181: only letters, numbers,
+    dashes and dots are allowed.
+    """
     return [
         {
-            'name': 'white spaces {}'.format(gen_string(str_type='utf8')),
+            'name': f'{gen_string(str_type="alpha").lower()}.example.com',
             'description': gen_string(str_type='alpha'),
         },
-        {'name': gen_string(str_type='utf8'), 'description': gen_string(str_type='utf8')},
+        {
+            'name': f'{gen_string(str_type="alphanumeric").lower()}.test.org',
+            'description': gen_string(str_type='utf8'),
+        },
         {'name': gen_string(str_type='numeric'), 'description': gen_string(str_type='numeric')},
         {
-            'name': gen_string(str_type='utf8', length=255),
+            'name': (
+                f'{gen_string(str_type="alpha", length=60).lower()}'
+                f'.{gen_string(str_type="alpha", length=60).lower()}.example.com'
+            ),
             'description': gen_string(str_type='utf8', length=255),
+        },
+        {
+            'name': f'{gen_string(str_type="alpha").lower()}-{gen_string(str_type="alpha").lower()}.example.com',
+            'description': gen_string(str_type='alpha'),
         },
     ]
 
 
 @filtered_datapoint
 def invalid_create_params():
-    """Returns a list of invalid domain create parameters"""
-    return [{'name': gen_string(str_type='utf8', length=256)}]
+    """Returns a list of invalid domain create parameters
+
+    Domain names must comply with RFC 1035/2181: spaces, UTF-8 characters,
+    and special symbols are rejected.
+    """
+    return [
+        {'name': gen_string(str_type='utf8', length=256)},
+        {'name': f'white spaces {gen_string(str_type="alpha").lower()}.com'},
+        {'name': gen_string(str_type='utf8')},
+        {'name': f'{gen_string(str_type="alpha").lower()}!@#.com'},
+    ]
 
 
 @filtered_datapoint
 def valid_update_params():
-    """Returns a list of valid domain update parameters"""
+    """Returns a list of valid domain update parameters
+
+    Domain names must comply with RFC 1035/2181: only letters, numbers,
+    dashes and dots are allowed.
+    """
     return [
         {
-            'name': 'white spaces {}'.format(gen_string(str_type='utf8')),
+            'name': f'{gen_string(str_type="alpha").lower()}.example.com',
             'description': gen_string(str_type='alpha'),
         },
-        {'name': gen_string(str_type='utf8'), 'description': gen_string(str_type='utf8')},
+        {
+            'name': f'{gen_string(str_type="alphanumeric").lower()}.test.org',
+            'description': gen_string(str_type='utf8'),
+        },
         {'name': gen_string(str_type='numeric'), 'description': gen_string(str_type='numeric')},
         {
-            'name': gen_string(str_type='utf8', length=255),
+            'name': (
+                f'{gen_string(str_type="alpha", length=60).lower()}'
+                f'.{gen_string(str_type="alpha", length=60).lower()}.example.com'
+            ),
             'description': gen_string(str_type='utf8', length=255),
+        },
+        {
+            'name': f'{gen_string(str_type="alpha").lower()}-{gen_string(str_type="alpha").lower()}.example.com',
+            'description': gen_string(str_type='alpha'),
         },
     ]
 
