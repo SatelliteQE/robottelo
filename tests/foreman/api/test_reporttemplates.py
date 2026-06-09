@@ -74,8 +74,9 @@ def setup_content(module_sca_manifest_org, module_target_sat):
     cv.publish()
     cvv = cv.read().version[0].read()
     cvv.promote(data={'environment_ids': lce.id, 'force': False})
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(cv, lce)
     ak = module_target_sat.api.ActivationKey(
-        content_view=cv, max_hosts=100, organization=org, environment=lce
+        content_view_environment_ids=[cvenv_id], max_hosts=100, organization=org
     ).create()
     all_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
     content_label = [repo['label'] for repo in all_content if repo['name'] == custom_repo.name][0]
@@ -1066,8 +1067,9 @@ def test_positive_installed_products(
     }
     repo_id = target_sat.api_factory.enable_sync_redhat_repo(rh_repo, org.id)
     cv = target_sat.api_factory.cv_publish_promote(cv_name, lce_name, repo_id, org.id)
+    cvenv_id = target_sat.api_factory.get_cvenv_id(cv, cv.environment[-1])
     ak = target_sat.api.ActivationKey(
-        content_view=cv, organization=org, environment=cv.environment[-1]
+        content_view_environment_ids=[cvenv_id], organization=org
     ).create()
 
     rhel_contenthost.register(org, default_location, ak.name, target_sat)

@@ -388,8 +388,9 @@ def test_capsule_installation(
     # Create capsule certs and activation key
     file, _, cmd_args = sat_fapolicyd_install.capsule_certs_generate(cap_ready_rhel)
     sat_fapolicyd_install.session.remote_copy(file, cap_ready_rhel)
+    cvenv_id = sat_fapolicyd_install.api_factory.get_cvenv_id(org.default_content_view, org.library)
     ak = sat_fapolicyd_install.api.ActivationKey(
-        organization=org, environment=org.library, content_view=org.default_content_view
+        organization=org, content_view_environment_ids=[cvenv_id]
     ).create()
     sync_capsule_repos(sat_fapolicyd_install, cap_ready_rhel, org, ak)
 

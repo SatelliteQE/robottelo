@@ -102,9 +102,9 @@ def function_leapp_ak(
     module_leapp_lce,
     module_sca_manifest_org,
 ):
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(function_leapp_cv, module_leapp_lce)
     return module_target_sat.api.ActivationKey(
-        content_view=function_leapp_cv,
-        environment=module_leapp_lce,
+        content_view_environment_ids=[cvenv_id],
         organization=module_sca_manifest_org,
     ).create()
 

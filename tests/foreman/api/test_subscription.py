@@ -59,13 +59,14 @@ def custom_repo(rh_repo, module_sca_manifest_org, module_target_sat):
 @pytest.fixture(scope='module')
 def module_ak(module_sca_manifest_org, rh_repo, custom_repo, module_target_sat):
     """rh_repo and custom_repo are included here to ensure their execution before the AK"""
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+        module_sca_manifest_org.default_content_view,
+        module_sca_manifest_org.library,
+    )
     return module_target_sat.api.ActivationKey(
-        content_view=module_sca_manifest_org.default_content_view,
+        content_view_environment_ids=[cvenv_id],
         max_hosts=100,
         organization=module_sca_manifest_org,
-        environment=module_target_sat.api.LifecycleEnvironment(
-            id=module_sca_manifest_org.library.id
-        ),
     ).create()
 
 
@@ -228,9 +229,9 @@ def test_sca_end_to_end(
     content_view.publish()
     assert len(content_view.repository) == 2
     host = rhel_contenthost.nailgun_host
+    cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, module_ak.environment)
     host.content_facet_attributes = {
-        'content_view_id': content_view.id,
-        'lifecycle_environment_id': module_ak.environment.id,
+        'content_view_environment_ids': [cvenv_id],
     }
     host.update(['content_facet_attributes'])
     rhel_contenthost.run(r'subscription-manager repos --enable \*')
@@ -270,11 +271,14 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel_conten
 
     :CaseImportance: High
     """
+    cvenv_id = target_sat.api_factory.get_cvenv_id(
+        module_sca_manifest_org.default_content_view,
+        module_sca_manifest_org.library,
+    )
     ak = target_sat.api.ActivationKey(
-        content_view=module_sca_manifest_org.default_content_view,
+        content_view_environment_ids=[cvenv_id],
         max_hosts=100,
         organization=module_sca_manifest_org,
-        environment=target_sat.api.LifecycleEnvironment(id=module_sca_manifest_org.library.id),
     ).create()
     # registering the content host with no content enabled/synced in the org
     # should create a client SCA cert with no content

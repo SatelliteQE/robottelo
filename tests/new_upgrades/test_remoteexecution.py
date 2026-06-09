@@ -65,8 +65,9 @@ def remote_execution_external_capsule_setup(
         capsule.nailgun_capsule.content_add_lifecycle_environment(data={'environment_id': lce.id})
         content_view = target_sat.publish_content_view(org, [], f'{test_name}_cv')
         content_view.version[0].promote(data={'environment_ids': lce.id})
+        cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, lce)
         ak = target_sat.api.ActivationKey(
-            name=f'{test_name}_ak', organization=org.id, environment=lce, content_view=content_view
+            name=f'{test_name}_ak', organization=org.id, content_view_environment_ids=[cvenv_id]
         ).create()
         test_data = Box(
             {
@@ -181,8 +182,9 @@ def remote_execution_satellite_setup(
         ).create()
         content_view = target_sat.publish_content_view(org, [], f'{test_name}_cv')
         content_view.version[0].promote(data={'environment_ids': lce.id})
+        cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, lce)
         ak = target_sat.api.ActivationKey(
-            name=f'{test_name}_ak', organization=org.id, environment=lce, content_view=content_view
+            name=f'{test_name}_ak', organization=org.id, content_view_environment_ids=[cvenv_id]
         ).create()
         result = rhel_contenthost.api_register(
             target_sat,

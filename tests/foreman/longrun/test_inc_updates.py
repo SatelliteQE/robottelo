@@ -100,9 +100,9 @@ def module_ak(
     module_sca_manifest_org, module_cv, custom_repo, module_lce_library, module_target_sat
 ):
     """Create a module AK in Library LCE"""
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(module_cv, module_lce_library)
     ak = module_target_sat.api.ActivationKey(
-        content_view=module_cv,
-        environment=module_lce_library,
+        content_view_environment_ids=[cvenv_id],
         organization=module_sca_manifest_org,
     ).create()
     # Fetch available subscriptions

@@ -512,8 +512,9 @@ class TestDockerActivationKey:
             key
         """
         content_view = content_view_publish_promote
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(content_view, module_lce)
         ak = module_target_sat.api.ActivationKey(
-            content_view=content_view, environment=module_lce, organization=module_org
+            content_view_environment_ids=[cvenv_id], organization=module_org
         ).create()
         assert ak.content_view.id == content_view.id
         assert ak.content_view.read().repository[0].id == repo.id
@@ -531,12 +532,13 @@ class TestDockerActivationKey:
 
         """
         content_view = content_view_publish_promote
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(content_view, module_lce)
         ak = module_target_sat.api.ActivationKey(
-            content_view=content_view, environment=module_lce, organization=module_org
+            content_view_environment_ids=[cvenv_id], organization=module_org
         ).create()
         assert ak.content_view.id == content_view.id
-        ak.content_view_environments = None
-        assert ak.update(['content_view_environments']).content_view is None
+        ak.content_view_environment_ids = []
+        assert ak.update(['content_view_environment_ids']).content_view is None
 
     def test_positive_add_docker_repo_ccv(
         self, content_view_version, module_lce, module_org, module_target_sat
@@ -563,8 +565,9 @@ class TestDockerActivationKey:
         comp_cvv = comp_content_view.read().version[0].read()
         comp_cvv.promote(data={'environment_ids': module_lce.id, 'force': False})
 
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(comp_content_view, module_lce)
         ak = module_target_sat.api.ActivationKey(
-            content_view=comp_content_view, environment=module_lce, organization=module_org
+            content_view_environment_ids=[cvenv_id], organization=module_org
         ).create()
         assert ak.content_view.id == comp_content_view.id
 
@@ -594,12 +597,13 @@ class TestDockerActivationKey:
         comp_cvv = comp_content_view.read().version[0].read()
         comp_cvv.promote(data={'environment_ids': module_lce.id, 'force': False})
 
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(comp_content_view, module_lce)
         ak = module_target_sat.api.ActivationKey(
-            content_view=comp_content_view, environment=module_lce, organization=module_org
+            content_view_environment_ids=[cvenv_id], organization=module_org
         ).create()
         assert ak.content_view.id == comp_content_view.id
-        ak.content_view_environments = None
-        assert ak.update(['content_view_environments']).content_view is None
+        ak.content_view_environment_ids = []
+        assert ak.update(['content_view_environment_ids']).content_view is None
 
 
 class TestPodman:

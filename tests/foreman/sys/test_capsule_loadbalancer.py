@@ -61,9 +61,9 @@ def content_for_client(module_target_sat, module_sca_manifest_org, module_lce, m
     cvv = module_cv.version[0]
     cvv.promote(data={'environment_ids': module_lce.id})
     module_cv = module_cv.read()
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(module_cv, module_lce)
     ak = module_target_sat.api.ActivationKey(
-        content_view=module_cv,
-        environment=module_lce,
+        content_view_environment_ids=[cvenv_id],
         organization=module_sca_manifest_org,
     ).create()
 

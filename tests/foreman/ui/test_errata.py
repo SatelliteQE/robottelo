@@ -1084,9 +1084,9 @@ def test_positive_filter_by_environment(
         host = (
             target_sat.api.Host().search(query={'search': f'name={clients[0].hostname}'})[0].read()
         )
+        cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, new_lce)
         host.content_facet_attributes = {
-            'content_view_id': content_view.id,
-            'lifecycle_environment_id': new_lce.id,
+            'content_view_environment_ids': [cvenv_id],
         }
         host.update(['content_facet_attributes'])
 

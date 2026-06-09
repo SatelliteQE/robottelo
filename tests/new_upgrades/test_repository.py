@@ -77,8 +77,9 @@ def custom_repo_check_setup(sat_upgrade_chost, content_upgrade_shared_satellite,
         content_view = target_sat.publish_content_view(org, repo, test_name)
         test_data.content_view = content_view
         content_view.version[0].promote(data={'environment_ids': lce.id})
+        cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, lce)
         ak = target_sat.api.ActivationKey(
-            content_view=content_view, organization=org.id, environment=lce, name=test_name
+            content_view_environment_ids=[cvenv_id], organization=org.id, name=test_name
         ).create()
         sat_upgrade_chost.api_register(
             target_sat, organization=org, activation_keys=[ak.name], location=None

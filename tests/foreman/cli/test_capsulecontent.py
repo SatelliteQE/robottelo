@@ -1071,10 +1071,10 @@ def test_sync_consume_flatpak_repo_via_cv(
     module_capsule_configured.wait_for_sync(start_time=timestamp)
 
     # Create an AK assigned with one content view environment only.
+    cvenv_id = sat.api_factory.get_cvenv_id(cv1, function_lce)
     ak_cv = sat.api.ActivationKey(
         organization=function_org,
-        content_view=cv1,
-        environment=function_lce,
+        content_view_environment_ids=[cvenv_id],
     ).create()
 
     # Register a content host using the AK via Capsule.

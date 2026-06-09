@@ -322,9 +322,12 @@ def test_global_registration_form_populate(
     ).create()
     target_sat.api.HostGroup(name=hg_nested_name, parent=parent_hg).create()
     new_org = target_sat.api.Organization().create()
+    cvenv_id = target_sat.api_factory.get_cvenv_id(
+        new_org.default_content_view,
+        target_sat.api.LifecycleEnvironment(id=new_org.library.id),
+    )
     new_ak = target_sat.api.ActivationKey(
-        content_view=new_org.default_content_view,
-        environment=target_sat.api.LifecycleEnvironment(id=new_org.library.id),
+        content_view_environment_ids=[cvenv_id],
         organization=new_org,
     ).create()
     with target_sat.ui_session() as session:
@@ -693,8 +696,9 @@ def test_global_registration_with_capsule_host(
 
     assert len(cv.version) == 1
 
+    cvenv_id = target_sat.api_factory.get_cvenv_id(cv, module_lce_library)
     activation_key = target_sat.api.ActivationKey(
-        content_view=cv, environment=module_lce_library, organization=module_org
+        content_view_environment_ids=[cvenv_id], organization=module_org
     ).create()
 
     # Assert that a task to sync lifecycle environment to the capsule

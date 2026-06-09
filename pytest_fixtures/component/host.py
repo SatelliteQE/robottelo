@@ -27,7 +27,6 @@ def setup_rhst_repo(module_target_sat):
     cv = module_target_sat.api.ContentView(organization=org).create()
     lce = module_target_sat.api.LifecycleEnvironment(organization=org).create()
     ak = module_target_sat.api.ActivationKey(
-        environment=lce,
         organization=org,
     ).create()
     repo_name = 'rhst7'

@@ -344,10 +344,10 @@ def get_activation_key(org, target_sat):
         query={'search': f'name="Default Organization View" AND organization_id={org_obj.id}'}
     )[0]
     # Create activation key with lifecycle environment and content view
+    cvenv_id = target_sat.api_factory.get_cvenv_id(default_cv, library_env)
     ak = target_sat.api.ActivationKey(
         organization=org_obj,
-        environment=library_env,
-        content_view=default_cv,
+        content_view_environment_ids=[cvenv_id],
         name=f'virtwho_ak_{gen_string("alpha", 6)}',
     ).create()
     return ak.name

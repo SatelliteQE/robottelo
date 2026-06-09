@@ -143,8 +143,9 @@ class TestScenarioCustomRepoCheck:
         repo.sync()
         content_view = target_sat.publish_content_view(org, repo)
         content_view.version[0].promote(data={'environment_ids': lce.id})
+        cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, lce)
         ak = target_sat.api.ActivationKey(
-            content_view=content_view, organization=org.id, environment=lce
+            content_view_environment_ids=[cvenv_id], organization=org.id
         ).create()
         # Override/enable all AK repos (disabled by default since 6.15)
         c_labels = [

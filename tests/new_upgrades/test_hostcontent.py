@@ -54,10 +54,10 @@ def db_seed_host_mismatch_setup(
         default_location = target_sat.api.Location().search(
             query={'search': f'name="{DEFAULT_LOC}"'}
         )[0]
+        cvenv_id = target_sat.api_factory.get_cvenv_id(org.default_content_view, org.library)
         ak = target_sat.api.ActivationKey(
             name=f'{test_name}_ak',
-            content_view=org.default_content_view.id,
-            environment=org.library.id,
+            content_view_environment_ids=[cvenv_id],
             organization=org,
         ).create()
         rhel_contenthost.api_register(

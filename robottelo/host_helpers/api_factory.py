@@ -30,6 +30,25 @@ class APIFactory:
         self._satellite = satellite
         self.__dict__.update(initiate_repo_helpers(self._satellite))
 
+    def get_cvenv_id(self, content_view, lifecycle_environment):
+        """Look up a ContentViewEnvironment ID from a CV + LCE pair."""
+        cv_id = content_view.id if hasattr(content_view, 'id') else content_view
+        lce_id = (
+            lifecycle_environment.id
+            if hasattr(lifecycle_environment, 'id')
+            else lifecycle_environment
+        )
+        result = self._satellite.api.ContentViewEnvironment().list_content_view_environments(
+            params={'content_view_id': cv_id, 'lifecycle_environment_id': lce_id}
+        )
+        if not result['results']:
+            raise ValueError(
+                f'No ContentViewEnvironment found for content_view_id={cv_id}, '
+                f'lifecycle_environment_id={lce_id}. '
+                f'Has the content view been published and promoted to this environment?'
+            )
+        return result['results'][0]['id']
+
     def make_http_proxy(self, org, http_proxy_type, use_ip=False):
         """
         Creates HTTP proxy.
@@ -649,21 +668,20 @@ class APIFactory:
             # updated entities after promoting
             entities = {k: v.read() for k, v in entities.items()}
 
-        updates = []
-        if (  # assign env to ak if not present
-            entities['ActivationKey'].environment is None
-            or entities['ActivationKey'].environment.id != entities['LifecycleEnvironment'].id
+        ak = entities['ActivationKey']
+        ak_cv = ak.content_view
+        ak_lce = ak.environment
+        desired_cv = entities['ContentView']
+        desired_lce = entities['LifecycleEnvironment']
+        if (
+            ak_cv is None
+            or ak_lce is None
+            or ak_cv.id != desired_cv.id
+            or ak_lce.id != desired_lce.id
         ):
-            entities['ActivationKey'].environment = entities['LifecycleEnvironment']
-            updates.append('environment')
-        if (  # assign cv to ak if not present
-            entities['ActivationKey'].content_view is None
-            or entities['ActivationKey'].content_view.id != entities['ContentView'].id
-        ):
-            entities['ActivationKey'].content_view = entities['ContentView']
-            updates.append('content_view')
-        if updates:
-            entities['ActivationKey'].update(['content_view', 'environment'])  # both needed anyway
+            cvenv_id = self.get_cvenv_id(desired_cv, desired_lce)
+            ak.content_view_environment_ids = [cvenv_id]
+            ak.update(['content_view_environment_ids'])
 
         entities = {k: v.read() for k, v in entities.items()}
         if enable_repos:

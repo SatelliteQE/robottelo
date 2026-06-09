@@ -130,10 +130,10 @@ class TestContentView:
         # Check that no host associated to just created content view
         assert class_cv.content_host_count == 0
         assert len(class_promoted_cv.version) == 1
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(class_cv, module_lce)
         host = module_target_sat.api.Host(
             content_facet_attributes={
-                'content_view_id': class_cv.id,
-                'lifecycle_environment_id': module_lce.id,
+                'content_view_environment_ids': [cvenv_id],
             },
             organization=module_org.id,
         ).create()
@@ -688,17 +688,16 @@ class TestRollingContentView:
         rolling_cv.update(['environment'])
         library = module_org.library.read()
         # Create new activation key providing rolling CV
+        cvenv_id = target_sat.api_factory.get_cvenv_id(rolling_cv, library)
         ak = target_sat.api.ActivationKey(
             organization=module_org,
-            content_view=rolling_cv,
-            environment=library,
+            content_view_environment_ids=[cvenv_id],
         ).create()
         assert ak.content_view.read() == rolling_cv
         assert ak.environment.read() == library
         # Update an existing activation key with CVE
-        module_ak.content_view = rolling_cv
-        module_ak.environment = library
-        module_ak.update(['content_view', 'environment'])
+        module_ak.content_view_environment_ids = [cvenv_id]
+        module_ak.update(['content_view_environment_ids'])
         module_ak = module_ak.read()
         assert module_ak.content_view.read() == rolling_cv
         assert module_ak.environment.read() == library
@@ -708,8 +707,8 @@ class TestRollingContentView:
         with pytest.raises(HTTPError):
             rolling_cv.delete()
         ak.delete()
-        module_ak.content_view = module_ak.environment = None
-        module_ak.update(['content_view', 'environment'])
+        module_ak.content_view_environment_ids = []
+        module_ak.update(['content_view_environment_ids'])
         rolling_cv.delete_from_environment(library.id)
         rolling_cv.delete()
         with pytest.raises(HTTPError):
@@ -1171,10 +1170,11 @@ class TestRollingContentView:
         rolling_cv.update(['repository'])
         rolling_cv = rolling_cv.read()
         # create the AK with the rolling cv
+        lce_library = rolling_cv.environment[0].read()  # Library
+        cvenv_id = target_sat.api_factory.get_cvenv_id(rolling_cv, lce_library)
         ak = target_sat.api.ActivationKey(
             organization=org,
-            content_view=rolling_cv,
-            environment=rolling_cv.environment[0].read(),  # Library
+            content_view_environment_ids=[cvenv_id],
         ).create()
         # Hammer CLI: override the repos to enabled for AK
         override = target_sat.cli_factory.override_repos_for_activation_key(

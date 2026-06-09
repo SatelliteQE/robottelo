@@ -137,10 +137,10 @@ def module_provisioning_rhel_content(
     )
     assert task_status[0].result == 'success'
     # create new activation key for provisioning
+    cvenv_id = sat.api_factory.get_cvenv_id(content_view, module_lce_library)
     ak = sat.api.ActivationKey(
         organization=module_sca_manifest_org,
-        content_view=content_view,
-        environment=module_lce_library,
+        content_view_environment_ids=[cvenv_id],
     ).create()
     # enable all custom repos in the activation key
     product_content = ak.product_content(data={'content_access_mode_all': '1'})['results']
@@ -312,9 +312,10 @@ def provisioning_hostgroup(
         architecture=default_architecture,
         domain=module_provisioning_sat.domain,
         content_source=module_provisioning_capsule.id,
-        content_view=module_provisioning_rhel_content.cv,
+        content_view_environment_id=module_provisioning_sat.sat.api_factory.get_cvenv_id(
+            module_provisioning_rhel_content.cv, module_lce_library
+        ),
         kickstart_repository=module_provisioning_rhel_content.ksrepo,
-        lifecycle_environment=module_lce_library,
         root_pass=settings.provisioning.host_root_password,
         operatingsystem=module_provisioning_rhel_content.os,
         ptable=default_partitiontable,

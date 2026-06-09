@@ -670,9 +670,9 @@ def test_positive_config_on_sat_without_network_protocol(
         rh_repo.sync(timeout=2000)
 
     # Create an activation key for Satellite self-registration
+    cvenv_id = target_sat.api_factory.get_cvenv_id(cv, lce)
     ac_key = target_sat.api.ActivationKey(
-        content_view=cv,
-        environment=lce,
+        content_view_environment_ids=[cvenv_id],
         organization=function_org,
     ).create()
 

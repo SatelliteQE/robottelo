@@ -215,8 +215,11 @@ def test_infoblox_end_to_end(
         ptable=default_partitiontable,
         content_facet_attributes={
             'content_source_id': module_provisioning_capsule.id,
-            'content_view_id': module_default_org_view.id,
-            'lifecycle_environment_id': module_lce_library.id,
+            'content_view_environment_ids': [
+                module_target_sat.api_factory.get_cvenv_id(
+                    module_default_org_view, module_lce_library
+                )
+            ],
         },
     ).create()
     # check if A Record is created for the host IP on Infoblox

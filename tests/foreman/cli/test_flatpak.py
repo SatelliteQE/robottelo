@@ -501,10 +501,10 @@ def test_sync_consume_flatpak_repo_via_cv(
         cv.read().version[0].promote(data={'environment_ids': function_lce.id})
 
     # 3. Create an AK assigned with one content view environment only.
+    cvenv_id = sat.api_factory.get_cvenv_id(cv1, function_lce)
     ak = sat.api.ActivationKey(
         organization=function_org,
-        content_view=cv1,
-        environment=function_lce,
+        content_view_environment_ids=[cvenv_id],
     ).create()
 
     # 4. Register a content host using the AK.

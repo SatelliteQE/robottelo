@@ -79,10 +79,10 @@ def activation_key(module_sca_manifest_org, module_cv, module_lce, module_target
         module_cv,
         module_lce,
     )['content-view']
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(_cv, module_lce)
     return module_target_sat.api.ActivationKey(
         organization=module_sca_manifest_org,
-        environment=module_lce,
-        content_view=_cv,
+        content_view_environment_ids=[cvenv_id],
     ).create()
 
 
@@ -1494,10 +1494,10 @@ def test_positive_incremental_update_apply_to_envs_cvs(
 
     # Create AK with the CV and the last LCE.
     host_lce = lces[-1].read()
+    cvenv_id = target_sat.api_factory.get_cvenv_id(host_cv, host_lce)
     ak = target_sat.api.ActivationKey(
         organization=function_org,
-        environment=host_lce,
-        content_view=host_cv,
+        content_view_environment_ids=[cvenv_id],
     ).create()
 
     # Register the content host with the AK.
@@ -1823,10 +1823,12 @@ def test_positive_bulk_erratum_applicable_vs_installable(
     assert rhel_contenthost.subscribed
 
     # Register the second content host to the Library LCE
+    library_cvenv_id = target_sat.api_factory.get_cvenv_id(
+        function_org.default_content_view, function_lce_library
+    )
     library_ak = target_sat.api.ActivationKey(
         organization=function_org,
-        environment=function_lce_library,
-        content_view=function_org.default_content_view,
+        content_view_environment_ids=[library_cvenv_id],
     ).create()
     lbl = library_ak.product_content(data={'content_access_mode_all': '1'})['results'][0]['label']
     library_ak.content_override(data={'content_overrides': [{'content_label': lbl, 'value': '1'}]})
