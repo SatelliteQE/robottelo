@@ -35,7 +35,7 @@ def filtered_datapoint(func):
             if (
                 'ui' in args
                 or kwargs.get('interface') == 'ui'
-                and settings.ui.webdriver == 'chrome'
+                and settings.ui.webdriver in ('chrome', 'chromium')
             ):
                 # Chromedriver only supports BMP chars
                 utf8 = dataset.pop('utf8', None)

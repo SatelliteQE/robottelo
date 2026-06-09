@@ -51,7 +51,6 @@ def configure_third_party_logging():
         'nailgun',
         'requests.packages.urllib3.connectionpool',
         'robozilla',
-        'selenium.webdriver.remote.remote_connection',
         'widgetastic_null',
         'navmazing_null',
     )

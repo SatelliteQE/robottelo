@@ -1,42 +1,11 @@
 UI:
   SCREENSHOTS_PATH: '@format {env[ROBOTTELO_DIR]}/screenshots/'
-  # Webdriver logging options
-  LOG_DRIVER_COMMANDS:
-  - newSession
-  - windowMaximize
-  - get
-  - findElement
-  - sendKeysToElement
-  - clickElement
-  - mouseMoveTo
 
-  # browser tells robottelo which browser to use when testing UI. Valid values:
-  # * selenium
-  # * remote: to access the remote browser, the webdriver and command_executor
-  #   are required.
-  BROWSER: remote
-  # Webdriver to use. Valid values are chrome, firefox
-  WEBDRIVER: chrome
-  # Binary location for selected wedriver
-  WEBDRIVER_BINARY: /usr/bin/chromedriver
-  RECORD_VIDEO: false
-  GRID_URL: http://127.0.0.1:4444
-
-  # Web_Kaifuku Settings (checkout https://github.com/RonnyPfannschmidt/webdriver_kaifuku)
-  WEBKAIFUKU:
-    webdriver: '@jinja {{ this.ui.browser if this.ui.browser in ["remote"] else this.ui.webdriver}}'
-    webdriver_options:
-      command_executor: '@jinja {{ this.ui.grid_url }}'
-      desired_capabilities:
-        browserName: chrome
-        se:recordVideo: '@jinja {{ this.ui.record_video }}'
-        se:screenResolution: 1920x1080
-        se:maxduration: 5400
-        se:idleTimeout: 5000
-        chromeOptions:
-          args:
-            - disable-web-security
-            - ignore-certificate-errors
-          prefs:
-            download.prompt_for_download: false
-
+  # Browser to use for Playwright. Valid values: chromium, firefox
+  WEBDRIVER: chromium
+  # Run browser in headless mode (no visible window)
+  HEADLESS: true
+  # Slow down Playwright actions by this many milliseconds (useful for debugging)
+  SLOW_MO: 0
+  # Additional browser launch arguments (semicolon-separated)
+  BROWSEROPTIONS:

@@ -184,13 +184,12 @@ def configure_airgun():
                 'password': settings.server.admin_password,
                 'username': settings.server.admin_username,
             },
-            'selenium': {
-                'browser': settings.ui.browser,
+            'playwright': {
+                'browser': getattr(settings.ui, 'webdriver', 'chromium'),
                 'screenshots_path': settings.ui.screenshots_path,
-                'webdriver': settings.ui.webdriver,
-                'webdriver_binary': settings.ui.webdriver_binary,
+                'headless': getattr(settings.ui, 'headless', True),
+                'slow_mo': getattr(settings.ui, 'slow_mo', 0),
             },
-            'webkaifuku': {'config': settings.ui.webkaifuku},
         }
     )
 

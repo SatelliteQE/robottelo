@@ -1,0 +1,26 @@
+ARG BASE_IMAGE=quay.io/satelliteqe/robottelo
+ARG BASE_IMAGE_TAG=latest
+FROM ${BASE_IMAGE}:${BASE_IMAGE_TAG}
+
+ENV ROBOTTELO_DIR="${HOME}/robottelo" \
+    BROKER_DIRECTORY="${HOME}/robottelo" \
+    REQUESTS_CA_BUNDLE="/etc/pki/tls/certs/ca-bundle.crt"
+
+# Install Chromium system dependencies as root
+USER 0
+RUN dnf install -y --setopt=install_weak_deps=False \
+    nspr nss nss-util atk at-spi2-atk cups-libs libdrm \
+    libXcomposite libXdamage libXrandr mesa-libgbm pango \
+    alsa-lib libXfixes libXcursor libXi libXext libXtst \
+    libX11-xcb && \
+    dnf clean all && \
+    fix-permissions ${APP_ROOT} -P
+
+USER 1001
+WORKDIR "${ROBOTTELO_DIR}"
+
+# Install Playwright airgun and Chromium
+RUN uv pip uninstall airgun && \
+    uv pip install "git+https://github.com/zjhuntin/airgun.git@playwright-migration" && \
+    uv pip install playwright && \
+    playwright install chromium

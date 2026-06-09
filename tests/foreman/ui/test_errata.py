@@ -20,7 +20,7 @@ from dateutil import parser
 from dateutil.parser import parse
 from fauxfactory import gen_string
 import pytest
-from selenium.common.exceptions import NoSuchElementException
+from widgetastic.exceptions import NoSuchElementException
 from wait_for import wait_for
 
 from robottelo import constants

@@ -618,7 +618,8 @@ def test_positive_assign_taxonomies(
 
 
 @pytest.mark.skipif(
-    (settings.ui.webdriver != 'chrome'), reason='Currently only chrome is supported'
+    (settings.ui.webdriver not in ('chrome', 'chromium')),
+    reason='Currently only chrome/chromium is supported',
 )
 def test_positive_export_selected_columns(request, target_sat, current_sat_location):
     """Select certain columns in the hosts table and check that they are exported in the CSV file.

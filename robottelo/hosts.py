@@ -2280,11 +2280,7 @@ class Satellite(Capsule, SatelliteMixins):
             ) as ui_session:
                 yield ui_session
         finally:
-            if self.record_property is not None and settings.ui.record_video:
-                video_url = settings.ui.grid_url.replace(
-                    ':4444', f'/videos/{ui_session.ui_session_id}/video.mp4'
-                )
-                self.record_property('video_url', video_url)
+            if self.record_property is not None:
                 self.record_property('session_id', ui_session.ui_session_id)
 
     @property

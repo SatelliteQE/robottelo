@@ -13,7 +13,7 @@
 """
 
 import pytest
-from selenium.common.exceptions import NoSuchElementException
+from widgetastic.exceptions import NoSuchElementException
 
 from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION

@@ -14,7 +14,7 @@
 
 from navmazing import NavigationTriesExceeded
 import pytest
-from widgetastic_patternfly4.navigation import NavSelectionNotFound
+from widgetastic_patternfly5 import NavSelectionNotFound
 
 from robottelo.config import settings
 from robottelo.constants import (
