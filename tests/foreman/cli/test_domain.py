@@ -47,13 +47,26 @@ def valid_create_params():
             ),
             'description': gen_string(str_type='utf8', length=255),
         },
+        {
+            'name': f'{gen_string(str_type="alpha").lower()}-{gen_string(str_type="alpha").lower()}.example.com',
+            'description': gen_string(str_type='alpha'),
+        },
     ]
 
 
 @filtered_datapoint
 def invalid_create_params():
-    """Returns a list of invalid domain create parameters"""
-    return [{'name': gen_string(str_type='utf8', length=256)}]
+    """Returns a list of invalid domain create parameters
+
+    Domain names must comply with RFC 1035/2181: spaces, UTF-8 characters,
+    and special symbols are rejected.
+    """
+    return [
+        {'name': gen_string(str_type='utf8', length=256)},
+        {'name': f'white spaces {gen_string(str_type="alpha").lower()}.com'},
+        {'name': gen_string(str_type='utf8')},
+        {'name': f'{gen_string(str_type="alpha").lower()}!@#.com'},
+    ]
 
 
 @filtered_datapoint
@@ -79,6 +92,10 @@ def valid_update_params():
                 f'.{gen_string(str_type="alpha", length=60).lower()}.example.com'
             ),
             'description': gen_string(str_type='utf8', length=255),
+        },
+        {
+            'name': f'{gen_string(str_type="alpha").lower()}-{gen_string(str_type="alpha").lower()}.example.com',
+            'description': gen_string(str_type='alpha'),
         },
     ]
 
