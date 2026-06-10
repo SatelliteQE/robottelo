@@ -20,9 +20,9 @@ from robottelo.utils.shared_resource import SharedResource
 
 
 @pytest.fixture
-def puppet_upgrade_setup(puppet_upgrade_integrated_sat_cap, upgrade_action):
-    satellite = puppet_upgrade_integrated_sat_cap.satellite
-    capsule = puppet_upgrade_integrated_sat_cap.capsule
+def capsule_puppet_upgrade_setup(capsule_puppet_upgrade_integrated_sat_cap, upgrade_action):
+    satellite = capsule_puppet_upgrade_integrated_sat_cap.satellite
+    capsule = capsule_puppet_upgrade_integrated_sat_cap.capsule
     with (
         SharedResource(satellite.hostname, upgrade_action, target_sat=satellite) as sat_upgrade,
         SharedResource(capsule.hostname, upgrade_action, target_sat=capsule) as cap_upgrade,
@@ -43,7 +43,7 @@ def puppet_upgrade_setup(puppet_upgrade_integrated_sat_cap, upgrade_action):
 
 
 @pytest.mark.capsule_puppet_upgrades
-def test_post_puppet_active(puppet_upgrade_setup):
+def test_post_puppet_active(capsule_puppet_upgrade_setup):
     """Test that puppet remains active after the upgrade on both,
     Satellite and Capsule.
 
@@ -60,8 +60,8 @@ def test_post_puppet_active(puppet_upgrade_setup):
     :parametrized: yes
 
     """
-    satellite = puppet_upgrade_setup.satellite
-    capsule = puppet_upgrade_setup.capsule
+    satellite = capsule_puppet_upgrade_setup.satellite
+    capsule = capsule_puppet_upgrade_setup.capsule
     for server in satellite, capsule:
         result = server.get_features()
         assert 'puppet' in result
@@ -74,7 +74,7 @@ def test_post_puppet_active(puppet_upgrade_setup):
 
 
 @pytest.mark.capsule_puppet_upgrades
-def test_post_puppet_reporting(puppet_upgrade_setup):
+def test_post_puppet_reporting(capsule_puppet_upgrade_setup):
     """Test that puppet is reporting to Satellite after the upgrade.
 
     :id:   postupgrade-cdc4f6cc-23d8-4b4a-bd94-5c86b3072828
@@ -88,8 +88,8 @@ def test_post_puppet_reporting(puppet_upgrade_setup):
         2. At least one Config report exists (was created) for the Capsule.
 
     """
-    satellite = puppet_upgrade_setup.satellite
-    capsule = puppet_upgrade_setup.capsule
+    satellite = capsule_puppet_upgrade_setup.satellite
+    capsule = capsule_puppet_upgrade_setup.capsule
     assert capsule.execute('puppet agent -t').status == 0
 
     result = satellite.cli.ConfigReport.list({'search': f'host={capsule.hostname},origin=Puppet'})
