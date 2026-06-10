@@ -2333,7 +2333,15 @@ class Satellite(Capsule, SatelliteMixins):
             http_proxy_name = 'IPv6 HTTP Proxy for Content sync'
             http_proxy_url = settings.http_proxy.http_proxy_ipv6_url
         if not self.cli.HttpProxy.exists(search=('name', http_proxy_name)):
-            http_proxy = self.api.HTTPProxy(name=http_proxy_name, url=http_proxy_url).create()
+            try:
+                http_proxy = self.api.HTTPProxy(name=http_proxy_name, url=http_proxy_url).create()
+            except requests.exceptions.HTTPError as err:
+                if 'already been taken' not in str(err):
+                    raise
+                # Race between xdist workers: another worker created the proxy
+                # after our CLI check but before our API create call.
+                logger.info(f'HTTP Proxy "{http_proxy_name}" already exists, skipping creation.')
+                http_proxy = None
         else:
             logger.info('The HTTP Proxy is already enabled. Skipping the HTTP Proxy setup.')
             http_proxy = self.api.HTTPProxy().search(query={'search': f'name="{http_proxy_name}"'})[
