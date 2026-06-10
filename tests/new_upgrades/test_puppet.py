@@ -67,7 +67,7 @@ def test_post_puppet_active(capsule_puppet_upgrade_setup):
         assert 'puppet' in result
         assert 'puppetca' in result
 
-        assert server.execute('rpm -q openvox-server').status == 0
+        assert server.execute('rpm -q puppetserver').status == 0
 
         result = server.execute('systemctl status puppetserver')
         assert 'active (running)' in result.stdout
