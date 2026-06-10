@@ -516,10 +516,10 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
     :steps:
         1. Set the subscription_connection_enabled setting to true
         2. Check that all the RH inventory settings, auto_upload and manual_upload descriptions,
-            cloud_connector, uploading tab and sync_status buttons are displayed in the UI
+            uploading tab and sync_status buttons are displayed in the UI
         3. Set the subscription_connection_enabled setting to false
         4. Verify that auto_update switch, auto_upload and manual_upload descriptions, uploading tab,
-            configure_cloud_connector and sync_all buttons are NOT displayed in the UI
+            and sync_all buttons are NOT displayed in the UI
 
     :expectedresults:
         1. The subscription_connection_enabled setting is reflected in the UI
@@ -537,7 +537,6 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         subscription_setting = setting_update.value == 'true'
         # Verify settings visibility based on subscription connection
         assert displayed_settings_options['auto_update'] is subscription_setting
-        assert displayed_buttons['cloud_connector'] is subscription_setting
         assert displayed_buttons['sync_status'] is subscription_setting
         assert displayed_descriptions['auto_upload_desc'] is subscription_setting
         assert displayed_descriptions['manual_upload_desc'] is subscription_setting
@@ -547,7 +546,6 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
         assert displayed_buttons['generate_report'] is True
         assert displayed_buttons['generate_report_enabled'] is True
         if subscription_setting:
-            assert displayed_buttons['cloud_connector_text'] == 'Configure cloud connector'
             assert displayed_buttons['sync_status_text'] == 'Sync all inventory status'
 
 

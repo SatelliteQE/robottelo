@@ -139,7 +139,6 @@ tests/foreman/ui/test_hostgroup.py @SatelliteQE/team-proton
 tests/foreman/ui/test_media.py @SatelliteQE/team-proton
 tests/foreman/ui/test_partitiontable.py @SatelliteQE/team-proton
 tests/foreman/ui/test_registration.py @SatelliteQE/team-proton
-tests/foreman/ui/test_rhc.py @SatelliteQE/team-proton
 tests/foreman/ui/test_rhcloud_insights.py @SatelliteQE/team-proton
 tests/foreman/ui/test_rhcloud_insights_vulnerability.py @SatelliteQE/team-proton
 tests/foreman/ui/test_rhcloud_inventory.py @SatelliteQE/team-proton
