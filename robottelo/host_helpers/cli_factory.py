@@ -667,16 +667,16 @@ class CLIFactory:
             raise CLIFactoryError(
                 f'Failed to promote version to next environment\n{err.msg}'
             ) from err
-        # Build CVE label for activation key association
+        # Build CV Env label for activation key association
         lce_info = self._satellite.cli.LifecycleEnvironment.info(
             {'id': env_id, 'organization-id': org_id}
         )
-        cve_label = f'{lce_info["label"]}/{cv_info["label"]}'
+        cv_env_label = f'{lce_info["label"]}/{cv_info["label"]}'
         # Create activation key if needed and associate content view with it
         if options.get('activationkey-id') is None:
             activationkey_id = self.make_activation_key(
                 {
-                    'content-view-environments': cve_label,
+                    'content-view-environments': cv_env_label,
                     'organization-id': org_id,
                 }
             )['id']
@@ -689,7 +689,7 @@ class CLIFactory:
                     {
                         'id': activationkey_id,
                         'organization-id': org_id,
-                        'content-view-environments': cve_label,
+                        'content-view-environments': cv_env_label,
                     }
                 )
             except CLIReturnCodeError as err:
@@ -814,16 +814,16 @@ class CLIFactory:
             raise CLIFactoryError(
                 f'Failed to promote version to next environment\n{err.msg}'
             ) from err
-        # Build CVE label for activation key association
+        # Build CV Env label for activation key association
         lce_info = self._satellite.cli.LifecycleEnvironment.info(
             {'id': env_id, 'organization-id': org_id}
         )
-        cve_label = f'{lce_info["label"]}/{cv_info["label"]}'
+        cv_env_label = f'{lce_info["label"]}/{cv_info["label"]}'
         # Create activation key if needed and associate content view with it
         if options.get('activationkey-id') is None:
             activationkey_id = self.make_activation_key(
                 {
-                    'content-view-environments': cve_label,
+                    'content-view-environments': cv_env_label,
                     'organization-id': org_id,
                 }
             )['id']
@@ -836,7 +836,7 @@ class CLIFactory:
                     {
                         'id': activationkey_id,
                         'organization-id': org_id,
-                        'content-view-environments': cve_label,
+                        'content-view-environments': cv_env_label,
                     }
                 )
             except CLIReturnCodeError as err:
