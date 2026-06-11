@@ -252,7 +252,7 @@ def test_positive_clone_job_template(module_org, module_target_sat):
             'organizations': module_org.name,
             'name': template_name,
             'file': TEMPLATE_FILE,
-            'locked': "true",
+            'locked': "yes",
         }
     )
     template = module_target_sat.cli.JobTemplate.info({'name': template_name})
@@ -275,7 +275,7 @@ def test_positive_clone_job_template(module_org, module_target_sat):
     module_target_sat.cli.JobTemplate.update(
         {
             'id': template['id'],
-            'locked': "false",
+            'locked': "no",
         }
     )
     # Delete cloned job template
@@ -324,17 +324,17 @@ def test_positive_job_template_lock(module_org, module_target_sat):
 
     # Verify that template is unlocked
     assert 'locked' in template
-    assert template['locked'] == 'false'
+    assert template['locked'] == 'no'
 
     # Lock template
     module_target_sat.cli.JobTemplate.update(
         {
             'id': template['id'],
-            'locked': 'true',
+            'locked': 'yes',
         }
     )
     template = module_target_sat.cli.JobTemplate.info({'name': template_name})
-    assert template['locked'] == 'true'
+    assert template['locked'] == 'yes'
 
     # Verify that template cannot be updated when locked
     new_description = gen_string('alpha')
@@ -349,11 +349,11 @@ def test_positive_job_template_lock(module_org, module_target_sat):
     module_target_sat.cli.JobTemplate.update(
         {
             'id': template['id'],
-            'locked': 'false',
+            'locked': 'no',
         }
     )
     template = module_target_sat.cli.JobTemplate.info({'name': template_name})
-    assert template['locked'] == 'false'
+    assert template['locked'] == 'no'
 
     # Verify that template can be updated when unlocked
     module_target_sat.cli.JobTemplate.update({'id': template['id'], 'description': new_description})
