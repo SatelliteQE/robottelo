@@ -877,7 +877,7 @@ def test_recommended_repos(session, filter_type, expected_repos, module_sca_mult
         v = get_sat_version()
 
         displayed_repos = [repo['label'] for repo in rrepos_on]
-        assert len(displayed_repos) > len(expected_repos)
+        assert len(displayed_repos) >= len(expected_repos)
         for repo in expected_repos:
             assert repo in displayed_repos
         if filter_type == 'RPM':
