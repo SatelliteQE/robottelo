@@ -2336,12 +2336,17 @@ class Satellite(Capsule, SatelliteMixins):
             try:
                 http_proxy = self.api.HTTPProxy(name=http_proxy_name, url=http_proxy_url).create()
             except requests.exceptions.HTTPError as err:
-                if 'already been taken' not in str(err):
+                response = getattr(err, 'response', None)
+                if (
+                    response is None
+                    or response.status_code != 422
+                    or 'already been taken' not in (response.text or '')
+                ):
                     raise
                 # Race between xdist workers: another worker created the proxy
                 # after our CLI check but before our API create call.
-                logger.info(f'HTTP Proxy "{http_proxy_name}" already exists, skipping creation.')
-                http_proxy = None
+                logger.info(f'HTTP Proxy "{http_proxy_name}" already exists, using existing proxy.')
+                http_proxy = self.api.HTTPProxy().search(query={'search': f'name="{http_proxy_name}"'})[0]
         else:
             logger.info('The HTTP Proxy is already enabled. Skipping the HTTP Proxy setup.')
             http_proxy = self.api.HTTPProxy().search(query={'search': f'name="{http_proxy_name}"'})[
