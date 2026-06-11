@@ -43,7 +43,8 @@ def _setup_mcp_server(target_sat, image_settings):
     :param image_settings: The container image settings
     :return: String container_id
     """
-    if not target_sat.network_type.has_ipv4:
+    ipv6 = not target_sat.network_type.has_ipv4
+    if ipv6:
         target_sat.enable_ipv6_dnf_and_rhsm_proxy()
         target_sat.enable_ipv6_system_proxy()
     image_name = image_settings.image_path.split('/')[-1]
@@ -56,7 +57,7 @@ def _setup_mcp_server(target_sat, image_settings):
     assert target_sat.execute('firewall-cmd --reload').status == 0
     target_sat.ensure_podman_installed()
     authfile_arg = ''
-    network_arg = '--network ipv6' if not target_sat.network_type.has_ipv4 else ''
+    network_arg = '--network ipv6' if ipv6 else ''
     ca_mountpoint = '/app/ca.pem'
 
     if image_settings.get('registry_username') and image_settings.get('registry_password'):
@@ -67,18 +68,25 @@ def _setup_mcp_server(target_sat, image_settings):
         )
         authfile_arg = f'--authfile {PODMAN_AUTHFILE_PATH}'
 
-    if not target_sat.network_type.has_ipv4:
+    if ipv6:
         target_sat.execute('podman network create --ipv6 ipv6')
 
     pull_cmd = f'podman pull {authfile_arg} {image_settings.registry_url}/{image_settings.image_path}:{image_settings.image_tag}'
     assert target_sat.execute(pull_cmd).status == 0
 
+    port_bind = (
+        f'[::]:{settings.foreman_mcp.port}:8080' if ipv6 else f'{settings.foreman_mcp.port}:8080'
+    )
+    host_bind = '::' if ipv6 else '0.0.0.0'
+    curl_target = (
+        f'[::1]:{settings.foreman_mcp.port}' if ipv6 else f'localhost:{settings.foreman_mcp.port}'
+    )
     run_cmd = (
         f'podman run {network_arg} '
-        f'-d --pull=never -it -p {settings.foreman_mcp.port}:8080 '
+        f'-d --pull=never -it -p {port_bind} '
         f'-v /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:{ca_mountpoint}:ro,Z '
         f'{image_name}:{image_settings.image_tag} '
-        f'--foreman-url https://{target_sat.hostname} --host 0.0.0.0 '
+        f'--foreman-url https://{target_sat.hostname} --host {host_bind} '
         f'--allowed-rex-features "katello_errata_install,katello_package_install" '
         f'--allowed-cv-actions "publish,promote,incremental_update"'
     )
@@ -86,7 +94,7 @@ def _setup_mcp_server(target_sat, image_settings):
     assert run_result.status == 0
     container_id = run_result.stdout.strip()[:12]
     wait_for(
-        lambda: target_sat.execute(f'curl localhost:{settings.foreman_mcp.port}/mcp/').status == 0,
+        lambda: target_sat.execute(f'curl -g {curl_target}/mcp/').status == 0,
         timeout=60,
         delay=2,
     )
