@@ -235,7 +235,6 @@ def test_positive_custom_provision_pxe_host(
             module_org.name,
             module_location.name,
             quick=False,
-            host_values={'operating_system.root_password': new_root_pwd},
         )
         # Wait for provisioning to complete and report status back to Satellite
         pending_status = 'N/A' if is_open('SAT-22452') else 'Pending installation'
