@@ -2346,7 +2346,9 @@ class Satellite(Capsule, SatelliteMixins):
                 # Race between xdist workers: another worker created the proxy
                 # after our CLI check but before our API create call.
                 logger.info(f'HTTP Proxy "{http_proxy_name}" already exists, using existing proxy.')
-                http_proxy = self.api.HTTPProxy().search(query={'search': f'name="{http_proxy_name}"'})[0]
+                http_proxy = self.api.HTTPProxy().search(
+                    query={'search': f'name="{http_proxy_name}"'}
+                )[0]
         else:
             logger.info('The HTTP Proxy is already enabled. Skipping the HTTP Proxy setup.')
             http_proxy = self.api.HTTPProxy().search(query={'search': f'name="{http_proxy_name}"'})[
