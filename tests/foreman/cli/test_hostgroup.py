@@ -130,6 +130,7 @@ def test_positive_create_with_multiple_entities_and_delete(
         session_puppet_enabled_sat.cli.ContentView.version_promote(
             {'id': cv['versions'][0]['id'], 'to-lifecycle-environment-id': lce['id']}
         )
+        cvenv_id = session_puppet_enabled_sat.api_factory.get_cvenv_id(cv['id'], lce['id'])
         # Network
         domain = session_puppet_enabled_sat.cli_factory.make_domain(
             {'location-ids': loc['id'], 'organization-ids': org_2.id}
@@ -160,11 +161,10 @@ def test_positive_create_with_multiple_entities_and_delete(
             'organization-ids': [org.id for org in orgs],
             'locations': loc['name'],
             'puppet-environment': env['name'],
-            'lifecycle-environment-id': lce['id'],
+            'content-view-environment-id': cvenv_id,
             'puppet-proxy': puppet_content_source['name'],
             'puppet-ca-proxy': puppet_content_source['name'],
             'content-source-id': puppet_content_source['id'],
-            'content-view': cv['name'],
             'domain': domain['name'],
             'subnet': subnet['name'],
             'architecture': arch['name'],

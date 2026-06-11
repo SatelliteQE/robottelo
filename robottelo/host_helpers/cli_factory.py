@@ -667,12 +667,16 @@ class CLIFactory:
             raise CLIFactoryError(
                 f'Failed to promote version to next environment\n{err.msg}'
             ) from err
+        # Build CVE label for activation key association
+        lce_info = self._satellite.cli.LifecycleEnvironment.info(
+            {'id': env_id, 'organization-id': org_id}
+        )
+        cve_label = f'{lce_info["label"]}/{cv_info["label"]}'
         # Create activation key if needed and associate content view with it
         if options.get('activationkey-id') is None:
             activationkey_id = self.make_activation_key(
                 {
-                    'content-view-id': cv_id,
-                    'lifecycle-environment-id': env_id,
+                    'content-view-environments': cve_label,
                     'organization-id': org_id,
                 }
             )['id']
@@ -685,8 +689,7 @@ class CLIFactory:
                     {
                         'id': activationkey_id,
                         'organization-id': org_id,
-                        'content-view-id': cv_id,
-                        'lifecycle-environment-id': env_id,
+                        'content-view-environments': cve_label,
                     }
                 )
             except CLIReturnCodeError as err:
@@ -793,7 +796,8 @@ class CLIFactory:
             ) from err
         # Get the version id
         try:
-            cvv = self._satellite.cli.ContentView.info({'id': cv_id})['versions'][-1]
+            cv_info = self._satellite.cli.ContentView.info({'id': cv_id})
+            cvv = cv_info['versions'][-1]
         except CLIReturnCodeError as err:
             raise CLIFactoryError(f'Failed to fetch content view info\n{err.msg}') from err
         # Promote version1 to next env
@@ -810,12 +814,16 @@ class CLIFactory:
             raise CLIFactoryError(
                 f'Failed to promote version to next environment\n{err.msg}'
             ) from err
+        # Build CVE label for activation key association
+        lce_info = self._satellite.cli.LifecycleEnvironment.info(
+            {'id': env_id, 'organization-id': org_id}
+        )
+        cve_label = f'{lce_info["label"]}/{cv_info["label"]}'
         # Create activation key if needed and associate content view with it
         if options.get('activationkey-id') is None:
             activationkey_id = self.make_activation_key(
                 {
-                    'content-view-id': cv_id,
-                    'lifecycle-environment-id': env_id,
+                    'content-view-environments': cve_label,
                     'organization-id': org_id,
                 }
             )['id']
@@ -828,8 +836,7 @@ class CLIFactory:
                     {
                         'id': activationkey_id,
                         'organization-id': org_id,
-                        'content-view-id': cv_id,
-                        'lifecycle-environment-id': env_id,
+                        'content-view-environments': cve_label,
                     }
                 )
             except CLIReturnCodeError as err:
@@ -1062,11 +1069,13 @@ class CLIFactory:
                 }
             )
             content_view = self._satellite.cli.ContentView.info({'id': content_view['id']})
+            lce_info = self._satellite.cli.LifecycleEnvironment.info(
+                {'id': lce_id, 'organization-id': org_id}
+            )
             activation_key = self.make_activation_key(
                 {
                     'organization-id': org_id,
-                    'lifecycle-environment-id': lce_id,
-                    'content-view-id': content_view['id'],
+                    'content-view-environments': f'{lce_info["label"]}/{content_view["label"]}',
                 }
             )
         data = dict(

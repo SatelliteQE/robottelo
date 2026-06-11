@@ -86,8 +86,7 @@ def test_positive_create_with_default_lce_by_id(
     new_ak_env = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
-            'lifecycle-environment-id': lce['id'],
-            'content-view': module_promoted_cv.name,
+            'content-view-environments': f'{lce["label"]}/{module_promoted_cv.label}',
         }
     )
     assert new_ak_env.content_view_environments[0].name == lce['name']
@@ -109,8 +108,7 @@ def test_positive_create_with_non_default_lce(
     new_ak_env = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
-            'lifecycle-environment-id': module_lce.id,
-            'content-view': module_promoted_cv.name,
+            'content-view-environments': f'{module_lce.label}/{module_promoted_cv.label}',
         }
     )
     assert new_ak_env.content_view_environments[0].name == module_lce.name
@@ -131,8 +129,7 @@ def test_positive_create_with_default_lce_by_name(
     new_ak_env = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
-            'lifecycle-environment': lce['name'],
-            'content-view': module_promoted_cv.name,
+            'content-view-environments': f'{lce["label"]}/{module_promoted_cv.label}',
         }
     )
     assert new_ak_env.content_view_environments[0].name == lce['name']
@@ -155,8 +152,7 @@ def test_positive_create_with_cv(name, module_org, get_default_env, module_targe
     module_target_sat.cli.ContentView.publish({'id': new_cv['id']})
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {
-            'content-view': new_cv['name'],
-            'lifecycle-environment': get_default_env['name'],
+            'content-view-environments': f'{get_default_env["label"]}/{new_cv["label"]}',
             'organization-id': module_org.id,
         }
     )
@@ -362,8 +358,7 @@ def test_positive_delete_with_cv(
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
-            'lifecycle-environment-id': lce['id'],
-            'content-view': module_promoted_cv.name,
+            'content-view-environments': f'{lce["label"]}/{module_promoted_cv.label}',
         }
     )
     module_target_sat.cli.ActivationKey.delete({'id': new_ak['id']})
@@ -384,8 +379,7 @@ def test_positive_delete_with_lce(
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
-            'lifecycle-environment': get_default_env['name'],
-            'content-view': module_promoted_cv.name,
+            'content-view-environments': f'{get_default_env["label"]}/{module_promoted_cv.label}',
         }
     )
     module_target_sat.cli.ActivationKey.delete({'id': new_ak['id']})
@@ -472,8 +466,7 @@ def test_positive_update_lce(module_org, get_default_env, module_target_sat, mod
     ak_env = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
-            'lifecycle-environment-id': get_default_env['id'],
-            'content-view': module_promoted_cv.name,
+            'content-view-environments': f'{get_default_env["label"]}/{module_promoted_cv.label}',
         }
     )
 
@@ -489,8 +482,7 @@ def test_positive_update_lce(module_org, get_default_env, module_target_sat, mod
     module_target_sat.cli.ActivationKey.update(
         {
             'id': ak_env['id'],
-            'lifecycle-environment-id': env['id'],
-            'content-view': new_cv['name'],
+            'content-view-environments': f'{env["label"]}/{new_cv["label"]}',
             'organization-id': module_org.id,
         }
     )
@@ -512,8 +504,7 @@ def test_positive_update_cv(
     ak_cv = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
-            'lifecycle-environment-id': lce['id'],
-            'content-view': module_promoted_cv.name,
+            'content-view-environments': f'{lce["label"]}/{module_promoted_cv.label}',
         }
     )
 
@@ -525,8 +516,7 @@ def test_positive_update_cv(
 
     module_target_sat.cli.ActivationKey.update(
         {
-            'content-view': new_cv.name,
-            'lifecycle-environment-id': module_lce.id,
+            'content-view-environments': f'{module_lce.label}/{new_cv.label}',
             'name': ak_cv['name'],
             'organization-id': module_org.id,
         }
@@ -645,8 +635,7 @@ def test_positive_usage_limit(module_org, module_location, target_sat, content_h
     )
     new_ak = target_sat.cli_factory.make_activation_key(
         {
-            'lifecycle-environment-id': env['id'],
-            'content-view': new_cv['name'],
+            'content-view-environments': f'{env["label"]}/{new_cv["label"]}',
             'organization-id': module_org.id,
             'max-hosts': max_hosts,
         }
@@ -842,8 +831,7 @@ def test_positive_update_aks_to_chost(
     new_aks = [
         module_target_sat.cli_factory.make_activation_key(
             {
-                'lifecycle-environment-id': env['id'],
-                'content-view': new_cv['name'],
+                'content-view-environments': f'{env["label"]}/{new_cv["label"]}',
                 'organization-id': module_org.id,
             }
         )
@@ -918,8 +906,7 @@ def test_positive_list_by_cv_id(module_org, module_target_sat, get_default_env, 
     activation_key = module_target_sat.cli_factory.make_activation_key(
         {
             'organization-id': module_org.id,
-            'lifecycle-environment-id': lce['id'],
-            'content-view-id': module_promoted_cv.id,
+            'content-view-environments': f'{lce["label"]}/{module_promoted_cv.label}',
         }
     )
     result = module_target_sat.cli.ActivationKey.list(

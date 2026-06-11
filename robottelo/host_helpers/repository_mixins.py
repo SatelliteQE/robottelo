@@ -698,11 +698,14 @@ class RepositoryCollection:
         lifecycle environment and subscriptions"""
         if subscription_names is None:
             subscription_names = []
+        lce_info = self.satellite.cli.LifecycleEnvironment.info(
+            {'id': lce_id, 'organization-id': org_id}
+        )
+        cv_info = self.satellite.cli.ContentView.info({'id': content_view_id})
         activation_key = self.satellite.cli_factory.make_activation_key(
             {
                 'organization-id': org_id,
-                'lifecycle-environment-id': lce_id,
-                'content-view-id': content_view_id,
+                'content-view-environments': f'{lce_info["label"]}/{cv_info["label"]}',
             }
         )
         if override is not None:

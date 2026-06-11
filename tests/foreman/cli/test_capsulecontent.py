@@ -906,8 +906,7 @@ def test_sync_consume_flatpak_repo_via_library(
         {
             'name': gen_string('alpha'),
             'organization-id': function_org.id,
-            'lifecycle-environment': 'Library',
-            'content-view': 'Default Organization View',
+            'content-view-environments': 'Library',
         }
     )
 

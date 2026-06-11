@@ -73,8 +73,7 @@ def local_ak(module_sca_manifest_org, local_environment, local_content_view, mod
     )
     return module_target_sat.cli_factory.make_activation_key(
         {
-            'lifecycle-environment-id': local_environment['id'],
-            'content-view': local_content_view['name'],
+            'content-view-environments': f'{local_environment["label"]}/{local_content_view["label"]}',
             'organization-id': module_sca_manifest_org.id,
         }
     )

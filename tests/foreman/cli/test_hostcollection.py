@@ -31,10 +31,10 @@ def _make_fake_host_helper(module_org, sat):
         {'organization-id': module_org.id, 'name': LIBRARY_LCE}
     )
     default_cv = sat.cli.ContentView.info({'organization-id': module_org.id, 'name': DEFAULT_CV})
+    cvenv_id = sat.api_factory.get_cvenv_id(default_cv['id'], library['id'])
     return sat.cli_factory.make_fake_host(
         {
-            'content-view-id': default_cv['id'],
-            'lifecycle-environment-id': library['id'],
+            'content-view-environment-ids': cvenv_id,
             'name': gen_string('alpha', 15),
             'organization-id': module_org.id,
         }
