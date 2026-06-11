@@ -698,11 +698,11 @@ class RepositoryCollection:
         lifecycle environment and subscriptions"""
         if subscription_names is None:
             subscription_names = []
+        cv_env_id = self.satellite.api_factory.get_cvenv_id(content_view_id, lce_id)
         activation_key = self.satellite.cli_factory.make_activation_key(
             {
                 'organization-id': org_id,
-                'lifecycle-environment-id': lce_id,
-                'content-view-id': content_view_id,
+                'content-view-environment-ids': cv_env_id,
             }
         )
         if override is not None:

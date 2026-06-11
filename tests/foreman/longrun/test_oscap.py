@@ -210,13 +210,16 @@ def prepare_scap_client_and_prerequisites(
     # Create a hostgroup
     hgrp_name = gen_string('alpha')
     policy_name = gen_string('alpha')
+    content_view = target_sat.api.ContentView(
+        organization=module_org, name=cv_name[distro]
+    ).search()[0]
+    cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, lifecycle_env)
     hostgroup = target_sat.cli_factory.hostgroup(
         {
             'content-source-id': default_proxy,
             'name': hgrp_name,
             'organization': module_org.name,
-            'lifecycle-environment': lifecycle_env.name,
-            'content-view': cv_name[distro],
+            'content-view-environment-id': cvenv_id,
             'ansible-role-ids': role_id,
             'openscap-proxy-id': default_proxy,
         }
