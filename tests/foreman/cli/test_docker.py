@@ -842,8 +842,9 @@ class TestDockerActivationKey:
         """
         activation_key = module_target_sat.cli_factory.make_activation_key(
             {
-                'content-view-id': content_view_promote['content-view-id'],
-                'lifecycle-environment-id': module_lce.id,
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    content_view_promote['content-view-id'], module_lce
+                ),
                 'organization-id': module_org.id,
             }
         )
@@ -867,8 +868,9 @@ class TestDockerActivationKey:
         """
         activation_key = module_target_sat.cli_factory.make_activation_key(
             {
-                'content-view-id': content_view_promote['content-view-id'],
-                'lifecycle-environment-id': module_lce.id,
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    content_view_promote['content-view-id'], module_lce
+                ),
                 'organization-id': module_org.id,
             }
         )
@@ -891,8 +893,9 @@ class TestDockerActivationKey:
             {
                 'id': activation_key['id'],
                 'organization-id': module_org.id,
-                'content-view-id': another_cv['id'],
-                'lifecycle-environment-id': module_lce.id,
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    another_cv['id'], module_lce
+                ),
             }
         )
         activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
@@ -940,8 +943,9 @@ class TestDockerActivationKey:
         )
         activation_key = module_target_sat.cli_factory.make_activation_key(
             {
-                'content-view-id': comp_content_view['id'],
-                'lifecycle-environment-id': module_lce.id,
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    comp_content_view['id'], module_lce
+                ),
                 'organization-id': module_org.id,
             }
         )
@@ -990,8 +994,9 @@ class TestDockerActivationKey:
         )
         activation_key = module_target_sat.cli_factory.make_activation_key(
             {
-                'content-view-id': comp_content_view['id'],
-                'lifecycle-environment-id': module_lce.id,
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    comp_content_view['id'], module_lce
+                ),
                 'organization-id': module_org.id,
             }
         )
@@ -1014,8 +1019,9 @@ class TestDockerActivationKey:
             {
                 'id': activation_key['id'],
                 'organization-id': module_org.id,
-                'content-view-id': another_cv['id'],
-                'lifecycle-environment-id': module_lce.id,
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    another_cv['id'], module_lce
+                ),
             }
         )
         activation_key = module_target_sat.cli.ActivationKey.info({'id': activation_key['id']})
