@@ -79,10 +79,11 @@ def module_sca_manifest_org(module_org, module_sca_manifest, module_target_sat):
 
 
 @pytest.fixture(scope='module')
-def module_sca_multiarch_manifest_org(module_org, module_sca_multiarch_manifest, module_target_sat):
+def module_sca_multiarch_manifest_org(module_sca_multiarch_manifest, module_target_sat):
     """Creates an organization and uploads an SCA mode multiarch manifest generated with manifester"""
-    module_target_sat.upload_manifest(module_org.id, module_sca_multiarch_manifest.content)
-    return module_org
+    org = module_target_sat.api.Organization().create()
+    module_target_sat.upload_manifest(org.id, module_sca_multiarch_manifest.content)
+    return org
 
 
 @pytest.fixture(scope='class')
