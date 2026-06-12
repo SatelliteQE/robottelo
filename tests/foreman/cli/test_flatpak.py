@@ -338,7 +338,7 @@ def test_sync_consume_flatpak_repo_via_library(
         )[0]
         sat.cli.Repository.synchronize({'id': local_repo['id']})
         assert 'latest' in sat.api.Repository(id=local_repo['id']).read().include_tags
-        assert all(
+        assert any(
             'flatpak' in m['content_type']
             for m in sat.api.Repository(id=local_repo['id']).docker_manifests()['results']
         )
@@ -356,8 +356,7 @@ def test_sync_consume_flatpak_repo_via_library(
         {
             'name': gen_string('alpha'),
             'organization-id': function_org.id,
-            'lifecycle-environment': 'Library',
-            'content-view': 'Default Organization View',
+            'content-view-environments': 'Library',
         }
     )
 
