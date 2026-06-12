@@ -3772,66 +3772,77 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
 def test_positive_all_hosts_check_status_icon(
     target_sat,
     content_hosts,
+    rhel_contenthost,
     module_repos_collection_with_setup,
     module_org,
     module_ak_with_cv,
 ):
     """
-    Verify that host status icons in All Hosts table correctly reflect the host's actual status.
+    Verify that host status icons in All Hosts table correctly reflect the host's actual
+    dynamically recalculated status for all three states: success, warning, and danger.
 
     :id: 42089feb-5e3a-4d72-be4f-809c6042abce
 
     :steps:
-        1. Create/register three different hosts with different statuses:
-           - Satellite host (success/OK status)
-           - Content host with applicable security errata (error/danger status)
-           - Content host with no package profile reported (warning status)
-        2. For the errata host, install and then downgrade a package to create applicable errata
-        3. Navigate to All Hosts page
-        4. Read the status icon for each host
-        5. Verify the status icon matches the expected state
+        1. Create/register three content hosts with different statuses:
+           - Host with content and latest packages installed (success status)
+           - Host with applicable security errata (danger status)
+           - Host with no package profile reported (warning status)
+        2. For the success host, register with content and install latest packages
+        3. For the errata host, install and then downgrade a package to create applicable errata
+        4. Navigate to All Hosts page
+        5. Read the status icon for each host
+        6. Verify the status icon matches the expected state
 
     :expectedresults:
-        1. Satellite host shows 'success' status with 'Build: Installed' details
-        2. Host with security errata shows 'danger' status with 'Errata: Security errata applicable' details
-        3. Host without package profile shows 'warning' status with appropriate message about missing packages/repos
-        4. Status icons accurately represent each host's actual state via both UI and API
+        1. Host with security errata shows 'danger' status with
+           'Errata: Security errata applicable' details
+        2. Host without package profile shows 'warning' status with appropriate message
+        3. Host with content and latest packages shows 'success' status
+        4. Status icons accurately represent each host's actual dynamically recalculated state
 
-    :Verifies: SAT-36330
+    :Verifies: SAT-36330, SAT-42220
     """
+    success_host = rhel_contenthost
+    errata_host = content_hosts[0]
+    no_profile_host = content_hosts[1]
 
-    success_host = target_sat
-    warning_host = content_hosts[0]
-    error_host = content_hosts[1]
+    # Setup errata host: register, install package, downgrade to create applicable errata
+    errata_host.add_rex_key(target_sat)
+    module_repos_collection_with_setup.setup_virtual_machine(errata_host, enable_custom_repos=True)
+    assert errata_host.execute(f'yum install -y {FAKE_8_CUSTOM_PACKAGE}').status == 0
+    assert errata_host.execute(f'yum downgrade -y {FAKE_8_CUSTOM_PACKAGE_NAME}').status == 0
 
-    # Setup host that will have applicable security errata (error status icon)
-    warning_host.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(warning_host, enable_custom_repos=True)
-    # Install the newer package version first
-    assert warning_host.execute(f'yum install -y {FAKE_8_CUSTOM_PACKAGE}').status == 0
-    # Downgrade to create applicable security errata
-    assert warning_host.execute(f'yum downgrade -y {FAKE_8_CUSTOM_PACKAGE_NAME}').status == 0
+    # Register no-profile host without package setup
+    assert (
+        no_profile_host.register(module_org, None, module_ak_with_cv.name, target_sat).status == 0
+    )
 
-    assert error_host.register(module_org, None, module_ak_with_cv.name, success_host).status == 0
+    # Setup success host: register with content, install latest packages, no applicable errata
+    module_repos_collection_with_setup.setup_virtual_machine(success_host, enable_custom_repos=True)
+    assert success_host.execute(f'yum install -y {FAKE_8_CUSTOM_PACKAGE}').status == 0
 
     with target_sat.ui_session() as session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
         session.location.select(loc_name=ANY_CONTEXT['location'])
 
-        result = session.all_hosts.read_host_status_icon(host_name=success_host.hostname)
-        assert result['status'] == 'success'
-        assert 'Build: Installed' in result['status_details']
-
-        result = session.all_hosts.read_host_status_icon(host_name=warning_host.hostname)
+        result = session.all_hosts.read_host_status_icon(host_name=errata_host.hostname)
         assert result['status'] == 'danger'
         assert 'Errata: Security errata applicable' in result['status_details']
 
-        result = session.all_hosts.read_host_status_icon(host_name=error_host.hostname)
+        result = session.all_hosts.read_host_status_icon(host_name=no_profile_host.hostname)
         assert result['status'] == 'warning'
         assert (
             'Errata: No installed packages and/or enabled repositories have been reported by subscription-manager.'
             in result['status_details']
         )
+
+        result = session.all_hosts.read_host_status_icon(host_name=success_host.hostname)
+        assert result['status'] == 'success', (
+            f'Expected success but got {result["status"]} for {success_host.hostname}. '
+            f'Details: {result["status_details"]}'
+        )
+        assert 'Build: Installed' in result['status_details']
 
 
 @pytest.mark.parametrize(
