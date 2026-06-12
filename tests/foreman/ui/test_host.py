@@ -1342,8 +1342,7 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
     )
     hostgroup = target_sat.cli_factory.hostgroup(
         {
-            'content-view-id': cv.id,
-            'lifecycle-environment-id': lce.id,
+            'content-view-environment': f'{lce.label}/{cv.label}',
             'organization-ids': module_host_template.organization.id,
         }
     )

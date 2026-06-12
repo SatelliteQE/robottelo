@@ -330,7 +330,7 @@ def test_positive_host_list_with_cve(
 @pytest.mark.e2e
 @pytest.mark.cli_host_create
 @pytest.mark.upgrade
-def test_positive_create_and_delete(target_sat, module_lce_library, module_published_cv):
+def test_positive_create_and_delete(target_sat):
     """A host can be created and deleted
 
     :id: 59fcbe50-9c6b-4c3c-87b3-272b4b584fb3
@@ -348,13 +348,19 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
         'type=interface,mac={},identifier=eth0,name={},domain_id={},'
         'ip={},primary=true,provision=true'
     ).format(host.mac, gen_string('alpha'), host.domain.id, gen_ipaddr())
+    library = target_sat.api.LifecycleEnvironment().search(
+        query={'search': f'name=Library and organization_id={host.organization.id}'}
+    )[0]
+    default_cv = target_sat.api.ContentView(organization=host.organization).search(
+        query={'search': 'name="Default Organization View"'}
+    )[0]
+    cvenv_id = target_sat.api_factory.get_cvenv_id(default_cv, library)
     new_host = target_sat.cli_factory.make_host(
         {
             'architecture-id': host.architecture.id,
-            'content-view-id': module_published_cv.id,
+            'content-view-environment-ids': cvenv_id,
             'domain-id': host.domain.id,
             'interface': interface,
-            'lifecycle-environment-id': module_lce_library.id,
             'location-id': host.location.id,
             'mac': host.mac,
             'medium-id': host.medium.id,
@@ -369,13 +375,13 @@ def test_positive_create_and_delete(target_sat, module_lce_library, module_publi
     assert new_host['organization']['name'] == host.organization.name
     assert (
         new_host['content-information']['content-view-environments']['1']['content-view-name']
-        == module_published_cv.name
+        == default_cv.name
     )
     assert (
         new_host['content-information']['content-view-environments']['1'][
             'lifecycle-environment-name'
         ]
-        == module_lce_library.name
+        == library.name
     )
     host_interface = target_sat.cli.HostInterface.info(
         {'host-id': new_host['id'], 'id': new_host['network-interfaces']['1']['id']}
@@ -469,8 +475,7 @@ def test_negative_create_with_content_source(
         module_target_sat.cli_factory.make_fake_host(
             {
                 'content-source-id': gen_integer(10000, 99999),
-                'content-view-id': module_published_cv.id,
-                'lifecycle-environment-id': module_lce_library.id,
+                'content-view-environments': f'{module_lce_library.label}/{module_published_cv.label}',
                 'organization': module_org.name,
             }
         )
@@ -496,8 +501,7 @@ def test_negative_update_content_source(
     host = module_target_sat.cli_factory.make_fake_host(
         {
             'content-source-id': module_default_proxy['id'],
-            'content-view-id': module_published_cv.id,
-            'lifecycle-environment-id': module_lce_library.id,
+            'content-view-environments': f'{module_lce_library.label}/{module_published_cv.label}',
             'organization': module_org.name,
         }
     )
@@ -527,8 +531,7 @@ def test_positive_create_with_lce_and_cv(
     """
     new_host = module_target_sat.cli_factory.make_fake_host(
         {
-            'content-view-id': module_promoted_cv.id,
-            'lifecycle-environment-id': module_lce.id,
+            'content-view-environments': f'{module_lce.label}/{module_promoted_cv.label}',
             'organization-id': module_org.id,
         }
     )
@@ -580,8 +583,7 @@ def test_negative_create_with_name(
             {
                 'name': name,
                 'organization-id': module_org.id,
-                'content-view-id': module_published_cv.id,
-                'lifecycle-environment-id': module_lce_library.id,
+                'content-view-environments': f'{module_lce_library.label}/{module_published_cv.label}',
             }
         )
 
@@ -601,8 +603,7 @@ def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv, 
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.make_fake_host(
             {
-                'content-view-id': module_cv.id,
-                'lifecycle-environment-id': module_lce.id,
+                'content-view-environments': f'{module_lce.label}/{module_cv.label}',
                 'organization-id': module_org.id,
             }
         )
@@ -628,7 +629,7 @@ def test_positive_katello_and_openscap_loaded(target_sat):
     :BZ: 1671148
     """
     help_output = target_sat.cli.Host.execute('host update --help')
-    for arg in ['lifecycle-environment[-id]', 'openscap-proxy-id']:
+    for arg in ['content-view-environment-ids', 'openscap-proxy-id']:
         assert any(f'--{arg}' in line for line in help_output.split('\n')), (
             f'--{arg} not supported by update subcommand'
         )
@@ -729,9 +730,9 @@ def test_positive_create_inherit_lce_cv(
 
     :BZ: 1391656
     """
+    cvenv_id = target_sat.api_factory.get_cvenv_id(module_published_cv, module_lce_library)
     hostgroup = target_sat.api.HostGroup(
-        content_view=module_published_cv,
-        lifecycle_environment=module_lce_library,
+        content_view_environment_id=cvenv_id,
         organization=[module_org],
     ).create()
     host = target_sat.cli_factory.make_fake_host(
@@ -770,6 +771,7 @@ def test_positive_create_inherit_nested_hostgroup(target_sat):
     content_view = target_sat.api.ContentView(organization=options.organization).create()
     content_view.publish()
     content_view.read().version[0].promote(data={'environment_ids': lce.id, 'force': False})
+    cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, lce)
     host_name = gen_string('alpha').lower()
     nested_hg_name = gen_string('alpha')
     parent_hostgroups = []
@@ -782,9 +784,8 @@ def test_positive_create_inherit_nested_hostgroup(target_sat):
         parent_hostgroups.append(parent_hg)
         nested_hg = target_sat.api.HostGroup(
             architecture=options.architecture,
-            content_view=content_view,
+            content_view_environment_id=cvenv_id,
             domain=options.domain,
-            lifecycle_environment=lce,
             location=[options.location],
             medium=options.medium,
             name=nested_hg_name,
@@ -829,11 +830,11 @@ def test_positive_list_with_nested_hostgroup(target_sat):
     content_view = target_sat.api.ContentView(organization=options.organization).create()
     content_view.publish()
     content_view.read().version[0].promote(data={'environment_ids': lce.id, 'force': False})
+    cvenv_id = target_sat.api_factory.get_cvenv_id(content_view, lce)
     parent_hg = target_sat.api.HostGroup(
         name=parent_hg_name,
         organization=[options.organization],
-        content_view=content_view,
-        lifecycle_environment=lce,
+        content_view_environment_id=cvenv_id,
         ptable=options.ptable,
     ).create()
     nested_hg = target_sat.api.HostGroup(
@@ -2188,12 +2189,18 @@ def test_positive_host_with_puppet(
     :CaseImportance: Critical
     """
     update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
+    default_cv = session_puppet_enabled_sat.api.ContentView(organization=module_puppet_org).search(
+        query={'search': 'name="Default Organization View"'}
+    )[0]
+    cvenv_id = session_puppet_enabled_sat.api_factory.get_cvenv_id(
+        default_cv, module_puppet_lce_library
+    )
     host = session_puppet_enabled_sat.cli_factory.make_fake_host(
         {
             'puppet-environment-id': module_puppet_environment.id,
             'organization-id': module_puppet_org.id,
             'location-id': module_puppet_loc.id,
-            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'content-view-environment-ids': cvenv_id,
             'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
             'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
@@ -2269,7 +2276,12 @@ def test_positive_list_scparams(
             'puppet-environment': module_env_search.name,
             'organization-id': module_puppet_org.id,
             'location-id': module_puppet_loc.id,
-            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'content-view-environment-ids': session_puppet_enabled_sat.api_factory.get_cvenv_id(
+                session_puppet_enabled_sat.api.ContentView(organization=module_puppet_org).search(
+                    query={'search': 'name="Default Organization View"'}
+                )[0],
+                module_puppet_lce_library,
+            ),
             'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
             'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
@@ -2314,7 +2326,12 @@ def test_positive_create_with_puppet_class_name(
             'puppet-environment': module_env_search.name,
             'organization-id': module_puppet_org.id,
             'location-id': module_puppet_loc.id,
-            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'content-view-environment-ids': session_puppet_enabled_sat.api_factory.get_cvenv_id(
+                session_puppet_enabled_sat.api.ContentView(organization=module_puppet_org).search(
+                    query={'search': 'name="Default Organization View"'}
+                )[0],
+                module_puppet_lce_library,
+            ),
             'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
             'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
@@ -2354,7 +2371,12 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
             'puppet-environment': module_env_search.name,
             'organization-id': module_puppet_org.id,
             'location-id': module_puppet_loc.id,
-            'lifecycle-environment-id': module_puppet_lce_library.id,
+            'content-view-environment-ids': session_puppet_enabled_sat.api_factory.get_cvenv_id(
+                session_puppet_enabled_sat.api.ContentView(organization=module_puppet_org).search(
+                    query={'search': 'name="Default Organization View"'}
+                )[0],
+                module_puppet_lce_library,
+            ),
             'puppet-ca-proxy-id': session_puppet_enabled_proxy.id,
             'puppet-proxy-id': session_puppet_enabled_proxy.id,
         }
@@ -2464,8 +2486,7 @@ def test_positive_create_host_with_lifecycle_environment_name(
     found_host = False
     new_host = module_target_sat.cli_factory.make_fake_host(
         {
-            'content-view-id': module_promoted_cv.id,
-            'lifecycle-environment': module_lce.name,
+            'content-view-environments': f'{module_lce.label}/{module_promoted_cv.label}',
             'organization-id': module_org.id,
         }
     )
