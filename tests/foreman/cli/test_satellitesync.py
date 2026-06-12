@@ -1991,7 +1991,7 @@ class TestExportImport:
         )
         timestamp = datetime.now(UTC)
         target_sat.cli.Service.restart()
-        sleep(30)
+        sleep(10)
         # Assert that the initial import task did not succeed and CVV was removed
         assert (
             target_sat.api.ForemanTask()
@@ -2001,6 +2001,7 @@ class TestExportImport:
             .result
             != 'success'
         )
+        sleep(10)
         target_sat.wait_for_tasks(
             search_query=f'label = Actions::Katello::ContentView::Remove and started_at >= "{timestamp}"',
             search_rate=10,
