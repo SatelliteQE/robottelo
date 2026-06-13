@@ -1211,6 +1211,24 @@ class TestRexUsers:
 class TestPullProviderRex:
     """Tests related to remote execution via pull provider (mqtt)"""
 
+    def test_reproduce_capsule_mismatch(
+        self,
+        module_org,
+        smart_proxy_location,
+        module_target_sat,
+        module_capsule_configured_mqtt,
+    ):
+        """Run custom template on host converted to mqtt"""
+        # Update module_capsule_configured_mqtt to include module_org/smart_proxy_location
+        module_target_sat.cli.Capsule.update(
+            {
+                'name': module_capsule_configured_mqtt.hostname,
+                'organization-ids': module_org.id,
+                'location-ids': smart_proxy_location.id,
+            }
+        )
+        breakpoint()  # noqa
+
     @pytest.mark.upgrade
     @pytest.mark.no_containers
     @pytest.mark.client_release
