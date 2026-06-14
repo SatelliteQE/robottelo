@@ -13,6 +13,8 @@
 """
 
 from broker import Broker
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes
 from fauxfactory import gen_string
 import pytest
 
@@ -317,6 +319,12 @@ def get_cert_fingerprint(sat, cert_path):
     return result.stdout.strip()
 
 
+def cert_fingerprint_openssl_sha256(cert):
+    """SHA256 fingerprint line matching ``openssl x509 -noout -fingerprint -sha256``."""
+    digest = cert.fingerprint(hashes.SHA256())
+    return 'sha256 Fingerprint=' + ':'.join(f'{b:02X}' for b in digest)
+
+
 custom_ca_days = 3650
 custom_cert_days = 365
 
@@ -447,6 +455,13 @@ def test_positive_foremanctl_certificate_custom_validity_and_renewal(module_sat_
         'CA fingerprint changed after --certificate-renew; CA should not be regenerated'
     )
 
+    foreman_ca_pem = sat.get_foreman_raw_ca(verify=False)
+    foreman_ca_certs = x509.load_pem_x509_certificates(foreman_ca_pem.encode())
+    foreman_ca_fps = {cert_fingerprint_openssl_sha256(c) for c in foreman_ca_certs}
+    assert ca_fp_after in foreman_ca_fps, (
+        'CA from GET /unattended/public/foreman_raw_ca does not match on-disk foremanctl CA'
+    )
+
     # Server/client fingerprints must differ (force: certificates_renew | bool)
     server_fp_after = get_cert_fingerprint(sat, server_cert)
     client_fp_after = get_cert_fingerprint(sat, client_cert)
@@ -455,6 +470,13 @@ def test_positive_foremanctl_certificate_custom_validity_and_renewal(module_sat_
     )
     assert client_fp_after != client_fp_before, (
         'Client cert fingerprint unchanged — renewal did not regenerate it'
+    )
+
+    # Verify the server certificate presented by the TLS socket matches the on-disk server certificate
+    presented_server_pem = sat.get_server_certificate_from_ssl_socket()
+    presented_server_cert = x509.load_pem_x509_certificate(presented_server_pem.encode())
+    assert cert_fingerprint_openssl_sha256(presented_server_cert) == server_fp_after, (
+        'TLS-presented server certificate fingerprint does not match on-disk server cert'
     )
 
     # Renewed certs must still chain to the same CA
