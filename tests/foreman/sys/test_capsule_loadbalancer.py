@@ -24,6 +24,7 @@ from robottelo.constants import CLIENT_PORT, FLATPAK_REMOTES, FLATPAK_RHEL_RELEA
 from robottelo.exceptions import CLIFactoryError
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.no_containers]
 
@@ -149,10 +150,10 @@ def flatpak_content_for_lb(module_target_sat, module_org, setup_capsules):
     for capsule in setup_capsules:
         capsule.wait_for_sync(start_time=timestamp)
 
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(cv1, lce)
     ak = sat.api.ActivationKey(
+        content_view_environment_ids=[cvenv_id],
         organization=module_org,
-        content_view=cv1,
-        environment=lce,
     ).create()
 
     return {
@@ -567,6 +568,9 @@ def test_loadbalancer_flatpak(
         timeout=30,
         delay=5,
     )
+    # workaround for flatpak caching
+    if is_open('SAT-46580'):
+        host.execute(f'rm -f /var/lib/flatpak/oci/{remote_name}.index.gz')
     job = sat.cli_factory.job_invocation(
         opts
         | {
@@ -588,6 +592,9 @@ def test_loadbalancer_flatpak(
         delay=5,
     )
     host.execute(f'flatpak uninstall {cv1_app} com.redhat.Platform -y')
+    # workaround for flatpak caching
+    if is_open('SAT-46580'):
+        host.execute(f'rm -f /var/lib/flatpak/oci/{remote_name}.index.gz')
     job = sat.cli_factory.job_invocation(
         opts
         | {
