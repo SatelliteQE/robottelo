@@ -195,7 +195,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
         session.organization.select(org_name=org_name)
 
         # Sync the recommendations
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Search for the recommendations
         results = session.cloudinsights.search(REC_QUERY)
@@ -224,7 +224,7 @@ def test_rhcloud_insights_remediate_multiple_hosts(
         )
 
         # Re-sync the recommendations
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Verify that the recommendations are not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
@@ -365,7 +365,7 @@ def test_host_details_page(
         )
 
         # Sync insights recommendations.
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Verify Insights status of host.
         result = session.host_new.get_host_statuses(rhel_insights_vm.hostname)
@@ -561,7 +561,7 @@ def test_host_breadcrumb_switcher_updates_insights_tabs(
         session.organization.select(org_name=org_name)
 
         # Sync insights recommendations
-        sync_recommendations(session)
+        sync_recommendations(session, module_target_sat_insights)
 
         # Get baseline recommendations for host1
         insights_host1 = session.host_new.get_insights(host1.hostname)
