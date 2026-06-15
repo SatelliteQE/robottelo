@@ -30,7 +30,6 @@ from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_ARCHITECTURE,
-    DEFAULT_CV,
     DEFAULT_LOC,
     DEFAULT_ORG,
     FAKE_1_CUSTOM_PACKAGE,
@@ -1009,16 +1008,9 @@ def test_positive_check_permissions_affect_create_procedure(
     host_fields = [
         {'name': 'host.hostgroup', 'unexpected_value': hg.name, 'expected_value': filter_hg.name},
         {
-            'name': 'host.lce',
-            'unexpected_value': lc_env.name,
-            'expected_value': filter_lc_env.name,
-        },
-        {
-            'name': 'host.content_view',
-            'unexpected_value': cv.name,
-            'expected_value': filter_cv.name,
-            # content view selection needs the right lce to be selected
-            'other_fields_values': {'host.lce': filter_lc_env.name},
+            'name': 'host.content_view_environment',
+            'unexpected_value': f'{lc_env.name}/{cv.name}',
+            'expected_value': f'{filter_lc_env.name}/{filter_cv.name}',
         },
     ]
     with target_sat.ui_session(test_name, user=user.login, password=user_password) as session:
@@ -1340,9 +1332,10 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
     target_sat.cli.Ansible.roles_sync(
         {'role-names': SELECTED_ROLE, 'proxy-id': target_sat.nailgun_smart_proxy.id}
     )
+    cv_env_id = target_sat.api_factory.get_cvenv_id(cv, lce)
     hostgroup = target_sat.cli_factory.hostgroup(
         {
-            'content-view-environment': f'{lce.label}/{cv.label}',
+            'content-view-environment-id': cv_env_id,
             'organization-ids': module_host_template.organization.id,
         }
     )
@@ -1852,8 +1845,7 @@ def test_positive_create_with_puppet_class(
         'host.name': host_template.name,
         'host.organization': host_template.organization.name,
         'host.location': host_template.location.name,
-        'host.lce': LIBRARY_LCE,
-        'host.content_view': DEFAULT_CV,
+        'host.content_view_environment': LIBRARY_LCE,
         'operating_system.architecture': host_template.architecture.name,
         'operating_system.operating_system': os_name,
         'operating_system.media_type': 'All Media',
@@ -4428,9 +4420,9 @@ def test_positive_only_single_library_option_in_create_form(target_sat):
         session.organization.select(org_name=DEFAULT_ORG)
         session.location.select(loc_name=ANY_CONTEXT['location'])
         create_form = session.host.get_create_form()
-        create_form.host.lce.open_filter.click()
+        create_form.host.content_view_environment.open_filter.click()
         # Check that 'Library' appears just once
-        assert create_form.host.lce.filter_content.read().count('Library') == 1
+        assert create_form.host.content_view_environment.filter_content.read().count('Library') == 1
 
 
 def test_positive_search_by_report_origin_shows_all_hosts(target_sat):
