@@ -2529,12 +2529,12 @@ def test_host_status_honors_taxonomies(
 
     # default_org != function_org
     default_org_ak_name = gen_string('alpha')
+    cv_env_id = target_sat.api_factory.get_cvenv_id(published_cv, lce)
     target_sat.cli_factory.make_activation_key(
         {
             'name': default_org_ak_name,
             'organization-id': default_org.id,
-            'lifecycle-environment-id': lce.id,
-            'content-view-id': published_cv.id,
+            'content-view-environment-ids': cv_env_id,
         }
     )['name']
     # register the host to default_org
