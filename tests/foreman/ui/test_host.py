@@ -1332,9 +1332,10 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
     target_sat.cli.Ansible.roles_sync(
         {'role-names': SELECTED_ROLE, 'proxy-id': target_sat.nailgun_smart_proxy.id}
     )
+    cv_env_id = target_sat.api_factory.get_cvenv_id(cv, lce)
     hostgroup = target_sat.cli_factory.hostgroup(
         {
-            'content-view-environment': f'{lce.label}/{cv.label}',
+            'content-view-environment-id': cv_env_id,
             'organization-ids': module_host_template.organization.id,
         }
     )
