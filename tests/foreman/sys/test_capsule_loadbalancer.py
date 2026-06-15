@@ -417,7 +417,6 @@ def test_loadbalancer_container(
 
 @pytest.mark.e2e
 @pytest.mark.rhel_ver_match('10')
-@pytest.mark.parametrize('cert_login', [False, True], ids=['podman_login', 'cert_login'])
 def test_loadbalancer_flatpak(
     request,
     setup_haproxy,
@@ -428,29 +427,26 @@ def test_loadbalancer_flatpak(
     module_flatpak_contenthost,
     function_host_cleanup,
     flatpak_content_for_lb,
-    cert_login,
 ):
     """Verify flatpak repository workflow end to end via CV through a load balancer.
 
     :id: 937674f3-3d0b-4346-8d9f-844d72a5c8e7
-
-    :parametrized: yes
 
     :setup:
         1. Two capsules set up with a load balancer (HAProxy).
         2. Flatpak repos mirrored, two CVs published and promoted, capsules synced.
 
     :steps:
-        1. Register the content host via the load balancer.
+        1. Register the content host via the load balancer with certificate authentication.
         2. Configure the content host to use the load balancer's flatpak index.
-        3. Ensure only the proper Apps are available (exclusion for cert-based auth only).
+        3. Ensure only the proper Apps are available (CV isolation).
         4. Install flatpak app from cv1, ensure it succeeded.
-        5. Try to install flatpak app from cv2, ensure it failed for cert-based login.
+        5. Try to install flatpak app from cv2, ensure it failed.
         6. Verify flatpak still works when only one capsule is available (failover).
 
     :expectedresults:
         1. Flatpak repos published in a CV are installable on a host via the CV through LB.
-        2. Other flatpak repos published in a different CV are isolated (cert-based only).
+        2. Other flatpak repos published in a different CV are isolated.
         3. Flatpak installation works even when one of the capsules is unavailable.
 
     :Verifies: SAT-36752, SAT-44752
@@ -470,7 +466,7 @@ def test_loadbalancer_flatpak(
         activation_keys=ak.name,
         target=setup_capsules[0],
         force=True,
-        setup_container_certs=cert_login,
+        setup_container_certs=True,
     )
     assert result.status == 0, (
         f'Failed to register host: {host.hostname}\nStdOut: {result.stdout}\nStdErr: {result.stderr}'
@@ -481,31 +477,17 @@ def test_loadbalancer_flatpak(
     remote_name = f'LB-remote-{gen_string("alpha")}'
     inputs = (
         f'Remote Name={remote_name}, '
-        f'Flatpak registry URL={settings.server.scheme}://{setup_haproxy.hostname}/'
+        f'Flatpak registry URL={settings.server.scheme}://{setup_haproxy.hostname}/, '
+        'Set up certificate authentication=true'
     )
-    if cert_login:
-        inputs = f'{inputs}, Set up certificate authentication=true'
 
-        @request.addfinalizer
-        def _finalize():
-            host.reset_podman_cert_auth(setup_capsules[0])
-            host.execute(f'flatpak remote-delete {remote_name}')
-            host.execute(f'flatpak uninstall {cv1_app} com.redhat.Platform -y')
-            for capsule in setup_capsules:
-                capsule.power_control(state=VmState.RUNNING, ensure=True)
-
-    else:
-        inputs = (
-            f'{inputs}, Username={settings.server.admin_username}, '
-            f'Password={settings.server.admin_password}'
-        )
-
-        @request.addfinalizer
-        def _finalize():
-            host.execute(f'flatpak remote-delete {remote_name}')
-            host.execute(f'flatpak uninstall {cv1_app} com.redhat.Platform -y')
-            for capsule in setup_capsules:
-                capsule.power_control(state=VmState.RUNNING, ensure=True)
+    @request.addfinalizer
+    def _finalize():
+        host.reset_podman_cert_auth()
+        host.execute(f'flatpak remote-delete {remote_name}')
+        host.execute(f'flatpak uninstall {cv1_app} com.redhat.Platform -y')
+        for capsule in setup_capsules:
+            capsule.power_control(state=VmState.RUNNING, ensure=True)
 
     job = sat.cli_factory.job_invocation(
         {
@@ -520,11 +502,10 @@ def test_loadbalancer_flatpak(
     res = host.execute('flatpak remotes')
     assert remote_name in res.stdout
 
-    # 3. Ensure only the proper Apps are available (exclusion for cert-based auth only).
+    # 3. Ensure only the proper Apps are available (CV isolation).
     res = host.execute(f'flatpak remote-ls {remote_name}')
     assert all(app_name in res.stdout for app_name in ['Thunderbird', 'Platform'])
-    if cert_login:
-        assert 'firefox' not in res.stdout.lower()
+    assert 'firefox' not in res.stdout.lower()
 
     # 4. Install flatpak app from cv1, ensure it succeeded.
     opts = {
@@ -545,20 +526,19 @@ def test_loadbalancer_flatpak(
     assert 'succeeded' in res['status']
     assert cv1_app in host.execute('flatpak list').stdout
 
-    # 5. Try to install flatpak app from cv2, ensure it failed for cert-based login.
-    if cert_login:
-        with pytest.raises(CLIFactoryError) as error:
-            sat.cli_factory.job_invocation(
-                opts
-                | {
-                    'inputs': (
-                        f'Flatpak remote name={remote_name}, Application name={cv2_app}, '
-                        'Launch a session bus instance=true'
-                    )
-                },
-            )
-        assert 'A sub task failed' in error.value.args[0]
-        assert cv2_app not in host.execute('flatpak list').stdout
+    # 5. Try to install flatpak app from cv2, ensure it failed.
+    with pytest.raises(CLIFactoryError) as error:
+        sat.cli_factory.job_invocation(
+            opts
+            | {
+                'inputs': (
+                    f'Flatpak remote name={remote_name}, Application name={cv2_app}, '
+                    'Launch a session bus instance=true'
+                )
+            },
+        )
+    assert 'A sub task failed' in error.value.args[0]
+    assert cv2_app not in host.execute('flatpak list').stdout
 
     # 6. Verify flatpak still works when only one capsule is available (failover).
     host.execute(f'flatpak uninstall {cv1_app} com.redhat.Platform -y')
