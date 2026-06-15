@@ -277,7 +277,7 @@ def test_positive_nested_host_groups(
             f'{parent_hg_name}/{child_hg_name}',
             {
                 'host_group.content_view_environment': (
-                    f'{module_lce.name} / {module_published_cv.name}'
+                    f'{module_lce.name}/{module_published_cv.name}'
                 ),
                 'activation_keys.activation_keys': module_ak_cv_lce.name,
             },
@@ -328,7 +328,7 @@ def test_positive_clone_host_groups(
                 'host_group.name': parent_hg_name,
                 'host_group.description': description,
                 'host_group.content_view_environment': (
-                    f'{module_lce.name} / {module_published_cv.name}'
+                    f'{module_lce.name}/{module_published_cv.name}'
                 ),
                 'operating_system.architecture': architecture.name,
                 'operating_system.operating_system': os_name,
