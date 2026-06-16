@@ -3,6 +3,8 @@
 **Project**: SatelliteQE Robottelo
 **Repository**: https://github.com/SatelliteQE/robottelo
 
+> **Note for contributors**: `CLAUDE.md` in this repository is a symlink pointing to this file (`AGENTS.md`). It exists so that Claude Code picks up the same instructions. Do not edit `CLAUDE.md` directly — edit `AGENTS.md` instead.
+
 ---
 
 ## Project Overview
