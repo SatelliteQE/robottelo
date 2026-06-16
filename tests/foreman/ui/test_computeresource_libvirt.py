@@ -24,6 +24,7 @@ from robottelo.constants import (
     FOREMAN_PROVIDERS,
 )
 from robottelo.hosts import ContentHost
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
 
@@ -396,7 +397,9 @@ def test_positive_associate_with_custom_profile_with_template():
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.rhel_ver_list('[10]')
-@pytest.mark.parametrize('libvirt', ['libvirt9', 'libvirt10'], indirect=True)
+@pytest.mark.parametrize(
+    'libvirt', ['libvirt9'] if is_open('SAT-45703') else ['libvirt9', 'libvirt10'], indirect=True
+)
 def test_positive_image_provision_end_to_end(
     request,
     session,
@@ -453,15 +456,17 @@ def test_positive_image_provision_end_to_end(
         uuid=settings.libvirt.libvirt_image_path,
     ).create()
 
+    host_fqdn = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
+
     @request.addfinalizer
     def _finalize():
         sat.provisioning_cleanup(host_fqdn)
         cr = sat.api.LibvirtComputeResource().search(
             query={'search': f'name={module_cr_libvirt.name}'}
         )
-        if cr:
-            sat.api.Image(id=image.id, compute_resource=cr[0].id).delete()
+        if libvirt == "libvirt10":
             sat.api.LibvirtComputeResource(id=cr[0].id).delete()
+        sat.api.Image(id=image.id, compute_resource=cr[0].id).delete()
 
     # Begin UI session to create and manage the host
     with sat.ui_session() as session:
@@ -494,7 +499,6 @@ def test_positive_image_provision_end_to_end(
 
         # Monitor the build status until provisioning completes
         # The host should transition from 'Pending installation' to 'Installed'
-        host_fqdn = f'{hostname}.{module_libvirt_provisioning_sat.domain.name}'
         wait_for(
             lambda: (
                 session.host_new.get_host_statuses(host_fqdn)['Build']['Status']
