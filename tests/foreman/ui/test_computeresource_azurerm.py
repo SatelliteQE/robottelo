@@ -196,11 +196,10 @@ def test_positive_azurerm_host_provision_ud(
     fqdn = f'{hostname}.{sat_azure_domain.name}'.lower()
     cloudimg_image = module_azurerm_cloudimg.name
 
-    with sat_azure.ui_session() as session:
-        session.organization.select(org_name=sat_azure_org.name)
-        session.location.select(loc_name=sat_azure_loc.name)
-        # Provision Host
-        try:
+    try:
+        with sat_azure.ui_session() as session:
+            session.organization.select(org_name=sat_azure_org.name)
+            session.location.select(loc_name=sat_azure_loc.name)
             with sat_azure.skip_yum_update_during_provisioning(
                 template='Kickstart default user data'
             ):
@@ -221,21 +220,21 @@ def test_positive_azurerm_host_provision_ud(
                     == module_azure_hg.name
                 )
 
-                # AzureRm Cloud assertion
-                azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
-                assert azurecloud_vm
-                assert azurecloud_vm.is_running
-                assert azurecloud_vm.name == hostname.lower()
-                assert (
-                    azurecloud_vm.ip
-                    == host_page['overview']['details']['details'][
-                        f'{settings.server.NETWORK_TYPE}_address'
-                    ]
-                )
-                assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
+        # After ui_session: Azure SDK does not use WebDriver (avoids Grid idle-session teardown).
+        azurecloud_vm = azurermclient.get_vm(name=hostname.lower())
+        assert azurecloud_vm
+        assert azurecloud_vm.is_running
+        assert azurecloud_vm.name == hostname.lower()
+        assert (
+            azurecloud_vm.ip
+            == host_page['overview']['details']['details'][
+                f'{settings.server.NETWORK_TYPE}_address'
+            ]
+        )
+        assert azurecloud_vm.type == AZURERM_VM_SIZE_DEFAULT
 
-        finally:
-            azure_vm = sat_azure.api.Host().search(query={'search': f'name={fqdn}'})
-            if azure_vm:
-                with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
-                    azure_vm[0].delete(synchronous=False)
+    finally:
+        azure_vm = sat_azure.api.Host().search(query={'search': f'name={fqdn}'})
+        if azure_vm:
+            with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
+                azure_vm[0].delete(synchronous=False)
