@@ -20,10 +20,12 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import HAMMER_CONFIG
 from robottelo.exceptions import CLIReturnCodeError
+from robottelo.utils.issue_handlers import is_open
 
 LOGEDIN_MSG = "Session exists, currently logged in as '{0}'"
 NOTCONF_MSG = "Credentials are not configured."
 ACCESS_DENIED_MSG = "Access denied"
+SESSION_EXPIRED_MSG = "Unable to authenticate user"
 password = gen_string('alpha')
 
 
@@ -72,8 +74,6 @@ def test_positive_create_session(admin_user, target_sat, setting_update):
 
         1. Set short session idle timeout
 
-    :BlockedBy: SAT-42049
-
     :steps:
 
         1. Enable sessions in hammer config file
@@ -97,9 +97,13 @@ def test_positive_create_session(admin_user, target_sat, setting_update):
     sleep(70)
     with pytest.raises(CLIReturnCodeError) as err:
         target_sat.cli.Org.with_user().list()
-    assert ACCESS_DENIED_MSG in str(err.value)
     result = target_sat.cli.Auth.with_user().status()
-    assert LOGEDIN_MSG.format('') in result[0]['message']
+    if is_open('SAT-42049'):
+        assert ACCESS_DENIED_MSG in str(err.value)
+        assert LOGEDIN_MSG.format('') in result[0]['message']
+    else:
+        assert SESSION_EXPIRED_MSG in str(err.value)
+        assert NOTCONF_MSG in result[0]['message']
 
 
 @pytest.mark.upgrade
