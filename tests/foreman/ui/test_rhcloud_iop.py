@@ -12,12 +12,20 @@
 
 """
 
-import pytest
+from datetime import UTC, datetime, timedelta
+import os
+import tempfile
 
-from robottelo.constants import OPENSSH_RECOMMENDATION
+import pytest
+from wait_for import wait_for
+
+from robottelo.constants import DEFAULT_LOC, OPENSSH_RECOMMENDATION
+from robottelo.enums import NetworkType
+from robottelo.utils.io import get_report_data
 from tests.foreman.ui.test_rhcloud_insights import (
     create_insights_vulnerability as create_insights_recommendation,
 )
+from tests.foreman.ui.test_rhcloud_inventory import common_assertion
 
 
 @pytest.mark.e2e
@@ -105,6 +113,111 @@ def test_iop_recommendations_e2e(
         assert 'Successfully unregistered from the Red Hat Insights Service' in result.stdout
         result = rhel_insights_vm.execute('insights-client --status')
         assert 'System is NOT registered locally' in result.stdout
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('10')
+@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
+@pytest.mark.usefixtures('setting_update')
+@pytest.mark.parametrize(
+    'setting_update',
+    ['subscription_connection_enabled=false'],
+    indirect=True,
+)
+def test_iop_rhcloud_inventory_e2e(
+    module_target_sat_insights,
+    rhcloud_manifest_org,
+    rhel_insights_vm,
+):
+    """Generate inventory report and verify its basic properties. Since this is an on-prem scenario,
+    set subscription_connection_enabled to false.
+
+    :id: 7041b3d2-c639-4ae1-97db-94a735bf8c49
+
+    :parametrized: yes
+
+    :customerscenario: true
+
+    :expectedresults:
+
+        1. Report can be generated.
+        2. Report can be downloaded.
+        3. Report has non-zero size.
+        4. Report can be extracted.
+        5. JSON files inside report can be parsed.
+        6. metadata.json lists all and only slice JSON files in tar.
+        7. Host counts in metadata matches host counts in slices.
+        8. Assert hostname, IP address, and installed packages are present in the report.
+
+    :CaseImportance: Critical
+
+    :BZ: 1807829
+
+    :Verifies: SAT-44052
+    """
+    org = rhcloud_manifest_org
+    host = rhel_insights_vm
+    satellite = module_target_sat_insights
+
+    with satellite.ui_session() as session:
+        session.organization.select(org_name=org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
+        session.iopcloudinventory.generate_report_only(org.name)
+        wait_for(
+            lambda: (
+                satellite.api.ForemanTask()
+                .search(
+                    query={
+                        'search': f'label = ForemanInventoryUpload::Async::HostInventoryReportJob '
+                        f'and started_at >= "{timestamp}"'
+                    }
+                )[0]
+                .result
+                == 'success'
+            ),
+            timeout=400,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        remote_report_path = (
+            f'/var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+        )
+
+        # Verify file exists on Satellite
+        result = satellite.execute(f'test -f {remote_report_path}')
+        assert result.status == 0, f"Report file not found at {remote_report_path}"
+
+        # Copy report from Satellite to local temp location
+        temp_dir = tempfile.mkdtemp()
+        local_report_name = f'report_for_{org.id}.tar.xz'
+        report_path = os.path.join(temp_dir, local_report_name)
+
+        # Download the file from satellite
+        satellite.get(remote_path=remote_report_path, local_path=report_path)
+        inventory_data = session.iopcloudinventory.read(org.name)
+
+    # Verify that the generated archive is valid
+    common_assertion(
+        report_path, inventory_data, org, satellite, subscription_connection_enabled=False
+    )
+
+    # Get report data for assertion
+    host_json_data = get_report_data(report_path)['hosts'][0]
+
+    # Verify that hostname in report matches hostname of host object
+    assert host.hostname == host_json_data['fqdn']
+
+    # Verify that ip_addresses are present report
+    is_ipv6 = satellite.network_type == NetworkType.IPV6
+    key = 'ipv6_addresses' if is_ipv6 else 'ipv4_addresses'
+    ip_address = host_json_data['system_profile']['network_interfaces'][0][key]
+    assert host.ip_addr in ip_address
+
+    # Verify that packages are included in report
+    assert 'installed_packages' in host_json_data['system_profile']
+    assert len(host_json_data['system_profile']['installed_packages']) > 1
 
 
 @pytest.mark.e2e
