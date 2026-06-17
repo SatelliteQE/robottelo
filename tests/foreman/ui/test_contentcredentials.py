@@ -12,6 +12,7 @@
 
 """
 
+from airgun.exceptions import DisabledWidgetError
 import pytest
 
 from robottelo.config import settings
@@ -43,61 +44,6 @@ def gpg_path():
     return DataFile.VALID_GPG_KEY_FILE
 
 
-@pytest.mark.e2e
-@pytest.mark.upgrade
-@pytest.mark.stubbed
-def test_positive_end_to_end(session, target_sat, module_org, gpg_content):
-    """Perform end to end testing for gpg key component
-
-    :id: d1a8cc1b-a072-465b-887d-5bca0acd21c3
-
-    :expectedresults: All expected CRUD actions finished successfully
-
-    :CaseAutomation: NotAutomated
-
-    Note: create() is not yet implemented in the React UI.
-    """
-    name = gen_string('alpha')
-    new_name = gen_string('alpha')
-    with session:
-        # Create new gpg key with valid content
-        session.contentcredential.create(
-            {
-                'name': name,
-                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-                'content': gpg_content,
-            }
-        )
-        assert session.contentcredential.search(name)[0]['Name'] == name
-        gpg_key = target_sat.api.ContentCredential(organization=module_org).search(
-            query={'search': f'name="{name}"'}
-        )[0]
-        product = target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
-        repo = target_sat.api.Repository(product=product).create()
-        values = session.contentcredential.read(name)
-        assert values['details']['name'] == name
-        assert values['details']['content_type'] == CONTENT_CREDENTIALS_TYPES['gpg']
-        # transform string for comparison
-        transformed_string = gpg_content.replace('\n', ' ')
-        transformed_string = transformed_string.replace('  ', ' ')
-        transformed_string = transformed_string.rstrip()
-        assert values['details']['content'] == transformed_string
-        assert values['details']['products'] == '1'
-        assert values['details']['repos'] == '1'
-        assert values['products']['table'][0]['Name'] == product.name
-        assert values['repositories']['table'][0]['Name'] == repo.name
-        # Update gpg key with new name
-        session.contentcredential.update(name, {'details.name': new_name})
-        assert session.contentcredential.search(new_name)[0]['Name'] == new_name
-        # Delete repo and product dependent on the gpg key
-        repo.delete()
-        product.delete()
-        # Delete gpg key
-        session.contentcredential.delete(new_name)
-        assert session.contentcredential.search(new_name)[0]['Name'] != new_name
-
-
-@pytest.mark.stubbed
 def test_positive_search_scoped(session, target_sat, gpg_content, module_org):
     """Search for gpgkey by organization id parameter
 
@@ -108,10 +54,6 @@ def test_positive_search_scoped(session, target_sat, gpg_content, module_org):
     :expectedresults: correct gpg key is found
 
     :BZ: 1259374
-
-    :CaseAutomation: NotAutomated
-
-    Note: create() is not yet implemented in the React UI.
     """
     name = gen_string('alpha')
     with session:
@@ -303,8 +245,7 @@ def test_positive_add_product_and_search(session, target_sat, module_org, gpg_co
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('allow_repo_discovery')
-@pytest.mark.stubbed
-def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path):
+def test_positive_update_key_for_product_using_repo_discovery(session, module_org, gpg_path):
     """Create gpg key with valid name and valid content then associate it with custom product
     using Repo discovery method then update the key
 
@@ -314,21 +255,18 @@ def test_positive_update_key_for_product_using_repo_discovery(session, gpg_path)
         repository before/after update
 
     :BZ: 1210180, 1461804
-
-    :CaseAutomation: NotAutomated
-
-    Note: create() is not yet implemented in the React UI.
     """
     name = gen_string('alpha')
     new_name = gen_string('alpha')
     product_name = gen_string('alpha')
     repo_name = 'fakerepo01'
     with session:
+        session.organization.select(module_org.name)
         session.contentcredential.create(
             {
                 'name': name,
                 'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
-                'upload_file': gpg_path,
+                'content': gpg_path.read_text(),
             }
         )
         assert session.contentcredential.search(name)[0]['Name'] == name
@@ -808,3 +746,213 @@ def test_positive_breadcrumb_navigation(session, target_sat, module_org, gpg_con
 
         assert view.page_breadcrumb.is_displayed
         assert view.is_displayed
+
+
+@pytest.mark.e2e
+@pytest.mark.upgrade
+def test_positive_end_to_end_gpg_key(session, target_sat, module_org, gpg_content):
+    """Perform end-to-end CRUD operations on GPG key with product/repo integration.
+
+    :id: bff7035e-dfc9-428d-ae0f-10fc85154e6c
+
+    :steps:
+        1. Create a GPG key via the create modal
+        2. Read and verify the credential details
+        3. Create product and repository which utilize the GPG key
+        4. Verify product and repository appear in GPG key table entry, details page
+        5. Update the credential name
+        6. Verify the renamed credential is still assigned to the product and repository
+        7. Delete repository, product, and credential in order
+
+    :expectedresults: All CRUD operations complete successfully with product/repo integration
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    prod_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    with session:
+        session.organization.select(module_org.name)
+        # Create
+        session.contentcredential.create(
+            {
+                'name': name,
+                'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
+                'content': gpg_content,
+            }
+        )
+        assert session.contentcredential.search(name)[0]['Name'] == name
+
+        # Read + assert initial details
+        values = session.contentcredential.read(name)
+        assert values['details']['name'] == name
+        assert values['details']['content_type'] == CONTENT_CREDENTIALS_TYPES['gpg']
+        assert values['details']['products'] == '0'
+        assert values['details']['repositories'] == '0'
+        assert (
+            values['details']['content']
+            == gpg_content.replace('\n', ' ').replace('  ', ' ').rstrip()
+        )
+
+        # Create product and repository which utilize the GPG key
+        session.product.create({'name': prod_name, 'gpg_key': name})
+        session.repository.create(
+            prod_name,
+            {
+                'name': repo_name,
+                'repo_type': 'yum',
+            },
+        )
+
+        # Read + assert updated product/repo counts and details
+        values = session.contentcredential.read(name)
+        assert values['details']['products'] == '1'
+        assert values['details']['repositories'] == '1'
+        assert len(values['products']['table']) == 1
+        assert values['products']['table'][0]['Name'] == prod_name
+        assert values['products']['table'][0]['Used as'] == CONTENT_CREDENTIALS_TYPES['gpg']
+        assert len(values['repositories']['table']) == 1
+        assert values['repositories']['table'][0]['Name'] == repo_name
+
+        # Update GPG key name
+        session.contentcredential.update(name, {'details.name': new_name})
+
+        # Read + assert  new name, product and repo remain after rename
+        assert session.contentcredential.search(new_name)[0]['Name'] == new_name
+        values = session.contentcredential.read(new_name)
+        assert values['details']['products'] == '1'
+        assert values['details']['repositories'] == '1'
+
+        # Delete
+        session.repository.delete(prod_name, repo_name)
+        session.product.delete(prod_name)
+        session.contentcredential.delete(new_name)
+        search_results = session.contentcredential.search(new_name)
+        assert not any(r['Name'] == new_name for r in search_results)
+
+
+@pytest.mark.e2e
+@pytest.mark.upgrade
+def test_positive_end_to_end_ssl_certificate(session, target_sat, module_org):
+    """Perform end-to-end CRUD operations on SSL certificate with product/repo integration.
+
+    :id: d85044e8-af26-4b2c-9d7a-589755cd9bff
+
+    :steps:
+        1. Create an SSL certificate via the create modal
+        2. Read and verify the credential details
+        3. Create product and repository which utilize the SSL certificate
+        4. Verify product and repository appear in certificate table entry, details page
+        5. Update the credential name
+        6. Verify the renamed credential is still assigned to the product and repository
+        7. Delete repository, product, and credential in order
+
+    :expectedresults: All CRUD operations complete successfully with product/repo integration
+    """
+    name = gen_string('alpha')
+    new_name = gen_string('alpha')
+    prod_name = gen_string('alpha')
+    repo_name = gen_string('alpha')
+    cert_content = DataFile.VALID_CERT_FILE.read_text()
+    with session:
+        session.organization.select(module_org.name)
+        # Create
+        session.contentcredential.create(
+            {
+                'name': name,
+                'content_type': CONTENT_CREDENTIALS_TYPES['ssl'],
+                'content': cert_content,
+            }
+        )
+        assert session.contentcredential.search(name)[0]['Name'] == name
+
+        # Read + assert initial details
+        values = session.contentcredential.read(name)
+        assert values['details']['name'] == name
+        assert values['details']['content_type'] == CONTENT_CREDENTIALS_TYPES['ssl']
+        assert values['details']['products'] == '0'
+        assert values['details']['repositories'] == '0'
+
+        # Create product and repository which utilize the SSL certificate
+        session.product.create({'name': prod_name, 'ssl_ca_cert': name})
+        session.repository.create(
+            prod_name,
+            {
+                'name': repo_name,
+                'repo_type': 'yum',
+                'repo_content.ssl_ca_cert': name,
+            },
+        )
+
+        # Read + assert updated product/repo counts and details
+        values = session.contentcredential.read(name)
+        assert values['details']['products'] == '1'
+        assert values['details']['repositories'] == '1'
+        assert len(values['products']['table']) == 1
+        assert values['products']['table'][0]['Name'] == prod_name
+        assert values['products']['table'][0]['Used as'] == 'SSL CA Certificate'
+        assert len(values['repositories']['table']) == 1
+        assert values['repositories']['table'][0]['Name'] == repo_name
+
+        # Update SSL certificate name
+        session.contentcredential.update(name, {'details.name': new_name})
+
+        # Read + assert  new name, product and repo remain after rename
+        assert session.contentcredential.search(new_name)[0]['Name'] == new_name
+        values = session.contentcredential.read(new_name)
+        assert values['details']['products'] == '1'
+        assert values['details']['repositories'] == '1'
+
+        # Delete
+        session.repository.delete(prod_name, repo_name)
+        session.product.delete(prod_name)
+        session.contentcredential.delete(new_name)
+        search_results = session.contentcredential.search(new_name)
+        assert not any(r['Name'] == new_name for r in search_results)
+
+
+def test_negative_create(session, module_org, gpg_content):
+    """Create modal for GPG key or SSL certificate disables button without required fields
+
+    :id: 12102bea-d504-42d6-b13b-3f8727598f11
+
+    :steps:
+        1. Navigate to Content Credentials page
+        2. Attempt to create content credential with empty form
+        3. Attempt to create with name only (missing content)
+        4. Attempt to create with content only (missing name)
+
+    :expectedresults: DisabledWidgetError is raised when required fields are missing
+    """
+    name = gen_string('alpha')
+    with session:
+        session.organization.select(module_org.name)
+
+        # Verify create fails with empty form
+        with pytest.raises(DisabledWidgetError, match='Create button is disabled'):
+            session.contentcredential.create(
+                {
+                    'name': '',
+                    'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
+                    'content': '',
+                }
+            )
+
+        # Verify create fails with name only (missing content)
+        with pytest.raises(DisabledWidgetError, match='Create button is disabled'):
+            session.contentcredential.create(
+                {
+                    'name': name,
+                    'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
+                    'content': '',
+                }
+            )
+
+        # Verify create fails with content only (missing name)
+        with pytest.raises(DisabledWidgetError, match='Create button is disabled'):
+            session.contentcredential.create(
+                {
+                    'name': '',
+                    'content_type': CONTENT_CREDENTIALS_TYPES['gpg'],
+                    'content': gpg_content,
+                }
+            )
