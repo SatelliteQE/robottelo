@@ -450,29 +450,7 @@ def deploy_configure_by_command_check(script_or_command):
     virtwho_cleanup()
 
     # Handle script dict (API)
-    if isinstance(script_or_command, dict) and 'virt_who_config_script' in script_or_command:
-        script_content = script_or_command['virt_who_config_script']
-    # Handle script string (UI) - detect if it's a bash script
-    elif isinstance(script_or_command, str) and (
-        script_or_command.startswith('#!/bin/bash') or 'heading()' in script_or_command[:200]
-    ):
-        script_content = script_or_command
-    # Handle hammer command string (deprecated CLI)
-    elif isinstance(script_or_command, str) and script_or_command.startswith('hammer'):
-        try:
-            ret, stdout = runcmd(script_or_command)
-        except Exception as err:
-            raise VirtWhoError("Failed to deploy configure by hammer command") from err
-        else:
-            if ret != 0 or 'Finished successfully' not in stdout:
-                raise VirtWhoError(f"Failed to deploy configure by hammer command")
-            return 'Finished successfully'
-    else:
-        raise VirtWhoError(
-            f"Invalid argument: expected dict with 'virt_who_config_script', "
-            f"bash script string, or hammer command"
-        )
-
+    script_content = script_or_command['virt_who_config_script']
     # Deploy the script (common for dict and string script)
     deploy_script_path = '/tmp/deploy_script.sh'
 

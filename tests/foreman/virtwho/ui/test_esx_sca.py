@@ -24,7 +24,6 @@ from robottelo.utils.virtwho import (
     ETC_VIRTWHO_CONFIG,
     add_configure_option,
     delete_configure_option,
-    deploy_configure_by_command_check,
     deploy_configure_by_script,
     get_configure_file,
     get_configure_id,
