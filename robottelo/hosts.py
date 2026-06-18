@@ -1390,10 +1390,9 @@ class ContentHost(Host, ContentHostMixins):
         # Fetch script via API instead of CLI
         config = satellite.api.VirtWhoConfig(id=config_id).read()
         script_content = config.deploy_script()['virt_who_config_script']
-        # Write script to file on satellite
-        satellite.execute(
-            f"cat > {virt_who_deploy_file} << 'EOFSCRIPT'\n{script_content}\nEOFSCRIPT"
-        )
+        # Write script to file on satellite via base64 to avoid here-doc delimiter issues
+        script_b64 = base64.b64encode(script_content.encode('utf-8')).decode('ascii')
+        satellite.execute(f"printf '%s' '{script_b64}' | base64 -d > {virt_who_deploy_file}")
         # remote_copy from satellite to self
         satellite.session.remote_copy(virt_who_deploy_file, self)
 

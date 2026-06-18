@@ -1,5 +1,6 @@
 """Utility module to handle the virtwho configure UI/CLI/API testing"""
 
+import base64
 import json
 import re
 import uuid
@@ -451,8 +452,9 @@ def deploy_configure_by_command_check(script_or_command):
         script_content = script_or_command['virt_who_config_script']
         deploy_script_path = '/tmp/deploy_script.sh'
 
-        # Write script to file
-        runcmd(f"cat > {deploy_script_path} << 'EOFSCRIPT'\n{script_content}\nEOFSCRIPT")
+        # Write script to file via base64 to avoid here-doc delimiter issues
+        script_b64 = base64.b64encode(script_content.encode('utf-8')).decode('ascii')
+        runcmd(f"printf '%s' '{script_b64}' | base64 -d > {deploy_script_path}")
         runcmd(f"chmod +x {deploy_script_path}")
 
         # Execute script
