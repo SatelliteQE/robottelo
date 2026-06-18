@@ -16,9 +16,7 @@ import pytest
 
 from robottelo.utils.virtwho import (
     check_message_in_rhsm_log,
-    deploy_configure_by_command,
     deploy_configure_by_script,
-    get_configure_command,
     get_configure_file,
     get_configure_id,
     get_configure_option,
@@ -28,16 +26,16 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtwhoConfigforNutanix:
-    @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
-    def test_positive_deploy_configure_by_id_script(
+    @pytest.mark.parametrize('deploy_type_ui', ['script'], indirect=True)
+    def test_positive_deploy_configure_by_script(
         self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, default_location
     ):
-        """Verify configure created and deployed with id.
+        """Verify configure created and deployed with script.
 
         :id: 7ab8aa6a-1cdb-4b3b-859a-6fe8051d6568
 
         :expectedresults:
-            1. Config can be created and deployed by command or script
+            1. Config can be created and deployed by script
             2. No error msg in /var/log/rhsm/rhsm.log
             3. Report is sent to satellite
             4. Subscription Status set to 'Simple Content Access', and generate mapping in Legacy UI
@@ -69,16 +67,15 @@ class TestVirtwhoConfigforNutanix:
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
-        values = org_session.virtwho_configure.read(name)
-        config_id = get_configure_id(name)
-        command = values['deploy']['command']
+        config_id = get_configure_id(name, target_sat)
         config_file = get_configure_file(config_id)
         for value in ['uuid', 'hostname']:
             org_session.virtwho_configure.edit(name, {'hypervisor_id': value})
             results = org_session.virtwho_configure.read(name)
             assert results['overview']['hypervisor_id'] == value
-            deploy_configure_by_command(
-                command,
+            script = results['deploy']['script']
+            deploy_configure_by_script(
+                script,
                 form_data_ui['hypervisor_type'],
                 debug=True,
                 org=module_sca_manifest_org.label,
@@ -86,22 +83,20 @@ class TestVirtwhoConfigforNutanix:
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
-    @pytest.mark.parametrize('deploy_type', ['id', 'script'])
-    def test_positive_prism_central_deploy_configure_by_id_script(
+    def test_positive_prism_central_deploy_configure_by_script(
         self,
         module_sca_manifest_org,
         org_session,
         form_data_ui,
-        deploy_type,
         target_sat,
         register_sat_and_enable_aps_repo,
     ):
-        """Verify configure created and deployed with id on nutanix prism central mode
+        """Verify configure created and deployed with script on nutanix prism central mode
 
         :id: 2e2cc394-b637-4bd5-8a52-9162638b1b4e
 
         :expectedresults:
-            1. Config can be created and deployed by command or script
+            1. Config can be created and deployed by script
             2. No error msg in /var/log/rhsm/rhsm.log
             3. Report is sent to satellite
             4. The prism_central has been set true in /etc/virt-who.d/vir-who.conf file
@@ -118,26 +113,16 @@ class TestVirtwhoConfigforNutanix:
         with org_session:
             org_session.virtwho_configure.create(form_data_ui)
             values = org_session.virtwho_configure.read(name)
-            if deploy_type == "id":
-                command = values['deploy']['command']
-                deploy_configure_by_command(
-                    command,
-                    form_data_ui['hypervisor_type'],
-                    debug=True,
-                    org=module_sca_manifest_org.label,
-                    target_sat=target_sat,
-                )
-            elif deploy_type == "script":
-                script = values['deploy']['script']
-                deploy_configure_by_script(
-                    script,
-                    form_data_ui['hypervisor_type'],
-                    debug=True,
-                    org=module_sca_manifest_org.label,
-                    target_sat=target_sat,
+            script = values['deploy']['script']
+            deploy_configure_by_script(
+                script,
+                form_data_ui['hypervisor_type'],
+                debug=True,
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
                 )
             # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
-            config_id = get_configure_id(name)
+            config_id = get_configure_id(name, target_sat)
             config_file = get_configure_file(config_id)
             assert get_configure_option("prism_central", config_file) == 'true'
             assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
@@ -160,16 +145,16 @@ class TestVirtwhoConfigforNutanix:
         name = form_data_ui['name']
         results = org_session.virtwho_configure.read(name)
         assert results['overview']['prism_flavor'] == "element"
-        config_id = get_configure_id(name)
-        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
+        config_id = get_configure_id(name, target_sat)
         config_file = get_configure_file(config_id)
         org_session.virtwho_configure.edit(
             name, {'hypervisor_content.prism_flavor': "Prism Central"}
         )
         results = org_session.virtwho_configure.read(name)
         assert results['overview']['prism_flavor'] == "central"
-        deploy_configure_by_command(
-            config_command,
+        script = results['deploy']['script']
+        deploy_configure_by_script(
+            script,
             form_data_ui['hypervisor_type'],
             org=module_sca_manifest_org.label,
             target_sat=target_sat,
@@ -199,12 +184,12 @@ class TestVirtwhoConfigforNutanix:
         :customerscenario: true
         """
         name = form_data_ui['name']
-        config_id = get_configure_id(name)
+        config_id = get_configure_id(name, target_sat)
         values = org_session.virtwho_configure.read(name)
-        command = values['deploy']['command']
+        script = values['deploy']['script']
         config_file = get_configure_file(config_id)
-        deploy_configure_by_command(
-            command,
+        deploy_configure_by_script(
+            script,
             form_data_ui['hypervisor_type'],
             debug=True,
             org=module_sca_manifest_org.label,
@@ -225,10 +210,10 @@ class TestVirtwhoConfigforNutanix:
         # Update ahv_internal_debug option to true
         org_session.virtwho_configure.edit(name, {'ahv_internal_debug': True})
         results = org_session.virtwho_configure.read(name)
-        command = results['deploy']['command']
+        script = results['deploy']['script']
         assert str(results['overview']['ahv_internal_debug']) == 'True'
-        deploy_configure_by_command(
-            command,
+        deploy_configure_by_script(
+            script,
             form_data_ui['hypervisor_type'],
             debug=True,
             org=module_sca_manifest_org.label,

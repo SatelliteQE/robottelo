@@ -14,8 +14,6 @@
 import pytest
 
 from robottelo.utils.virtwho import (
-    deploy_configure_by_command,
-    get_configure_command,
     get_configure_file,
     get_configure_id,
     get_configure_option,
@@ -24,8 +22,8 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtwhoConfigforHyperv:
-    @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
-    def test_positive_deploy_configure_by_id_script(
+    @pytest.mark.parametrize('deploy_type_ui', ['script'], indirect=True)
+    def test_positive_deploy_configure_by_script(
         self,
         module_sca_manifest_org,
         org_session,
@@ -33,12 +31,12 @@ class TestVirtwhoConfigforHyperv:
         deploy_type_ui,
         default_location,
     ):
-        """Verify configure created and deployed with id.
+        """Verify configure created and deployed with script.
 
         :id: b7620f1b-8fef-4e5e-a3cb-447cf914d0e6
 
         :expectedresults:
-            1. Config can be created and deployed by command or script
+            1. Config can be created and deployed by script
             2. No error msg in /var/log/rhsm/rhsm.log
             3. Report is sent to satellite
             4. Subscription Status set to 'Simple Content Access', and generate mapping in Legacy UI
@@ -70,16 +68,16 @@ class TestVirtwhoConfigforHyperv:
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
-        config_id = get_configure_id(name)
-        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
+        config_id = get_configure_id(name, target_sat)
         config_file = get_configure_file(config_id)
         values = ['uuid', 'hostname']
         for value in values:
             org_session.virtwho_configure.edit(name, {'hypervisor_id': value})
             results = org_session.virtwho_configure.read(name)
             assert results['overview']['hypervisor_id'] == value
-            deploy_configure_by_command(
-                config_command,
+            script = results['deploy']['script']
+            deploy_configure_by_script(
+                script,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,

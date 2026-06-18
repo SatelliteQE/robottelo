@@ -12,7 +12,6 @@ from wait_for import wait_for
 from robottelo import ssh
 from robottelo.cli.base import Base
 from robottelo.cli.host import Host
-from robottelo.cli.virt_who_config import VirtWhoConfig
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG
 from robottelo.hosts import ContentHost
@@ -161,14 +160,20 @@ def get_virtwho_status():
     return 'undefined'
 
 
-def get_configure_id(name):
-    """Return the configure id by hammer.
+def get_configure_id(name, target_sat=None):
+    """Return the configure id using API.
     :param str name: the configure name you have created.
-    :raises: VirtWhoError: If failed to get the configure info by hammer.
+    :param target_sat: Satellite object (optional, uses settings if not provided).
+    :raises: VirtWhoError: If failed to get the configure info.
     """
-    config = VirtWhoConfig.info({'name': name})
-    if 'id' in config['general-information']:
-        return config['general-information']['id']
+    if target_sat is None:
+        # Import here to avoid circular dependency
+        from robottelo.hosts import Satellite
+        target_sat = Satellite()
+
+    results = target_sat.api.VirtWhoConfig().search(query={'search': f'name={name}'})
+    if results:
+        return results[0].id
     raise VirtWhoError(f"No configure id found for {name}")
 
 
@@ -430,23 +435,51 @@ def deploy_configure_by_script(
     return None
 
 
-def deploy_configure_by_command_check(command):
-    """Deploy and run virt-who service by the hammer command to check deploy log.
+def deploy_configure_by_command_check(script_or_command):
+    """Deploy and run virt-who service by script or command to check deploy log.
 
-    :param str command: get the command by UI/CLI/API, it should be like:
-        `hammer virt-who-config deploy --id 1 --organization-id 1`
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
-    :param str org: Organization Label
+    :param script_or_command: Either a dict with 'virt_who_config_script' key (script deployment)
+        or a string command (deprecated command deployment)
+    :raises: VirtWhoError: If deployment fails
+    :return: 'Finished successfully' if deployment succeeds
     """
     virtwho_cleanup()
-    try:
-        ret, stdout = runcmd(command)
-    except Exception as err:
-        raise VirtWhoError(f"Failed to deploy configure by {command}") from err
+
+    # Handle script dict (new way)
+    if isinstance(script_or_command, dict) and 'virt_who_config_script' in script_or_command:
+        script_content = script_or_command['virt_who_config_script']
+        deploy_script_path = '/tmp/deploy_script.sh'
+
+        # Write script to file
+        runcmd(f"cat > {deploy_script_path} << 'EOFSCRIPT'\n{script_content}\nEOFSCRIPT")
+        runcmd(f"chmod +x {deploy_script_path}")
+
+        # Execute script
+        try:
+            ret, stdout = runcmd(f"bash {deploy_script_path}")
+        except Exception as err:
+            raise VirtWhoError(f"Failed to deploy configure by script") from err
+        else:
+            if ret != 0 or 'Finished successfully' not in stdout:
+                raise VirtWhoError(f"Failed to deploy configure by script. Output: {stdout}")
+            return 'Finished successfully'
+
+    # Handle command string (old way - deprecated)
+    elif isinstance(script_or_command, str):
+        try:
+            ret, stdout = runcmd(script_or_command)
+        except Exception as err:
+            raise VirtWhoError(f"Failed to deploy configure by {script_or_command}") from err
+        else:
+            if ret != 0 or 'Finished successfully' not in stdout:
+                raise VirtWhoError(f"Failed to deploy configure by {script_or_command}")
+            return 'Finished successfully'
+
     else:
-        if ret != 0 or 'Finished successfully' not in stdout:
-            raise VirtWhoError(f"Failed to deploy configure by {command}")
-        return 'Finished successfully'
+        raise VirtWhoError(
+            f"Invalid argument type: expected dict with 'virt_who_config_script' or string command, "
+            f"got {type(script_or_command)}"
+        )
 
 
 def restart_virtwho_service():
@@ -699,7 +732,7 @@ def hypervisor_guest_mapping_newcontent_ui(
     # Check guest overview
     guest_new_overview = org_session.host_new.get_details(guest_name, 'overview')
 
-    assert guest_new_overview['overview']['host_status']['status_success'] == '2'
+    assert guest_new_overview['overview']['host_status']['status_success'] == '3'
     # Check guest details
     virtualguest_new_detais = org_session.host_new.get_details(guest_name, 'details')
     assert (

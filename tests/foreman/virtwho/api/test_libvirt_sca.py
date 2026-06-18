@@ -14,16 +14,15 @@
 import pytest
 
 from robottelo.utils.virtwho import (
-    deploy_configure_by_command,
-    get_configure_command,
+    deploy_configure_by_script,
     get_configure_file,
     get_configure_option,
 )
 
 
 class TestVirtWhoConfigforLibvirt:
-    @pytest.mark.parametrize('deploy_type_api', ['id', 'script'], indirect=True)
-    def test_positive_deploy_configure_by_id_script(
+    @pytest.mark.parametrize('deploy_type_api', ['script'], indirect=True)
+    def test_positive_deploy_configure_by_script(
         self,
         module_sca_manifest_org,
         virtwho_config_api,
@@ -34,7 +33,7 @@ class TestVirtWhoConfigforLibvirt:
 
         :id: be6563e7-f714-4189-a8f5-9e99b0522a02
 
-        :expectedresults: Config can be created and deployed
+        :expectedresults: Config can be created and deployed by script
 
         :CaseImportance: High
         """
@@ -61,9 +60,9 @@ class TestVirtWhoConfigforLibvirt:
             virtwho_config_api.hypervisor_id = value
             virtwho_config_api.update(['hypervisor_id'])
             config_file = get_configure_file(virtwho_config_api.id)
-            command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
-            deploy_configure_by_command(
-                command,
+            script = virtwho_config_api.deploy_script()
+            deploy_configure_by_script(
+                script['virt_who_config_script'],
                 form_data_api['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
