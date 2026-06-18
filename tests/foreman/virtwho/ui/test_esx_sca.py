@@ -605,8 +605,12 @@ class TestVirtwhoConfigforEsx:
             values = org_session.virtwho_configure.read(name)
             script = values['deploy']['script']
             config_id = get_configure_id(name, target_sat)
-            deploy_status = deploy_configure_by_command_check(script)
-            assert deploy_status == 'Finished successfully'
+            deploy_configure_by_script(
+                script,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
+            )
             config_file = get_configure_file(config_id)
             assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
             assert (
@@ -621,8 +625,12 @@ class TestVirtwhoConfigforEsx:
             values = org_session.virtwho_configure.read(name)
             script = values['deploy']['script']
             config_id = get_configure_id(name, target_sat)
-            deploy_status = deploy_configure_by_command_check(script)
-            assert deploy_status == 'Finished successfully'
+            deploy_configure_by_script(
+                script,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
+            )
             config_file = get_configure_file(config_id)
             assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
             assert (

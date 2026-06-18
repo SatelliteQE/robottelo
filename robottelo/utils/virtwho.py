@@ -440,49 +440,56 @@ def deploy_configure_by_script(
 def deploy_configure_by_command_check(script_or_command):
     """Deploy and run virt-who service by script or command to check deploy log.
 
-    :param script_or_command: Either a dict with 'virt_who_config_script' key (script deployment)
-        or a string command (deprecated command deployment)
+    :param script_or_command: Either:
+        - A dict with 'virt_who_config_script' key (API script deployment)
+        - A string containing bash script starting with #!/bin/bash (UI script deployment)
+        - A string command starting with 'hammer' (deprecated command deployment)
     :raises: VirtWhoError: If deployment fails
     :return: 'Finished successfully' if deployment succeeds
     """
     virtwho_cleanup()
 
-    # Handle script dict (new way)
+    # Handle script dict (API)
     if isinstance(script_or_command, dict) and 'virt_who_config_script' in script_or_command:
         script_content = script_or_command['virt_who_config_script']
-        deploy_script_path = '/tmp/deploy_script.sh'
-
-        # Write script to file via base64 to avoid here-doc delimiter issues
-        script_b64 = base64.b64encode(script_content.encode('utf-8')).decode('ascii')
-        runcmd(f"printf '%s' '{script_b64}' | base64 -d > {deploy_script_path}")
-        runcmd(f"chmod +x {deploy_script_path}")
-
-        # Execute script
-        try:
-            ret, stdout = runcmd(f"bash {deploy_script_path}")
-        except Exception as err:
-            raise VirtWhoError("Failed to deploy configure by script") from err
-        else:
-            if ret != 0 or 'Finished successfully' not in stdout:
-                raise VirtWhoError(f"Failed to deploy configure by script. Output: {stdout}")
-            return 'Finished successfully'
-
-    # Handle command string (old way - deprecated)
-    elif isinstance(script_or_command, str):
+    # Handle script string (UI) - detect if it's a bash script
+    elif isinstance(script_or_command, str) and (
+        script_or_command.startswith('#!/bin/bash') or 'heading()' in script_or_command[:200]
+    ):
+        script_content = script_or_command
+    # Handle hammer command string (deprecated CLI)
+    elif isinstance(script_or_command, str) and script_or_command.startswith('hammer'):
         try:
             ret, stdout = runcmd(script_or_command)
         except Exception as err:
-            raise VirtWhoError("Failed to deploy configure by provided command") from err
+            raise VirtWhoError("Failed to deploy configure by hammer command") from err
         else:
             if ret != 0 or 'Finished successfully' not in stdout:
-                raise VirtWhoError(f"Failed to deploy configure by {script_or_command}")
+                raise VirtWhoError(f"Failed to deploy configure by hammer command")
             return 'Finished successfully'
-
     else:
         raise VirtWhoError(
-            f"Invalid argument type: expected dict with 'virt_who_config_script' or string command, "
-            f"got {type(script_or_command)}"
+            f"Invalid argument: expected dict with 'virt_who_config_script', "
+            f"bash script string, or hammer command"
         )
+
+    # Deploy the script (common for dict and string script)
+    deploy_script_path = '/tmp/deploy_script.sh'
+
+    # Write script to file via base64 to avoid here-doc delimiter issues
+    script_b64 = base64.b64encode(script_content.encode('utf-8')).decode('ascii')
+    runcmd(f"printf '%s' '{script_b64}' | base64 -d > {deploy_script_path}")
+    runcmd(f"chmod +x {deploy_script_path}")
+
+    # Execute script
+    try:
+        ret, stdout = runcmd(f"bash {deploy_script_path}")
+    except Exception as err:
+        raise VirtWhoError("Failed to deploy configure by script") from err
+    else:
+        if ret != 0 or 'Finished successfully' not in stdout:
+            raise VirtWhoError(f"Failed to deploy configure by script. Output: {stdout}")
+        return 'Finished successfully'
 
 
 def restart_virtwho_service():
