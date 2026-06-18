@@ -16,8 +16,8 @@ from robottelo.config import settings
 from robottelo.utils.virtwho import (
     ETC_VIRTWHO_CONFIG,
     create_http_proxy,
-    deploy_configure_by_script,
     deploy_configure_by_command_check,
+    deploy_configure_by_script,
     get_configure_file,
     get_configure_option,
 )

@@ -154,7 +154,11 @@ class TestScenarioPositiveVirtWho:
         # Verify Report is sent to satellite.
         script = vhd.deploy_script()
         deploy_configure_by_script(
-            script['virt_who_config_script'], form_data['hypervisor_type'], debug=True, org=org_label, target_sat=target_sat
+            script['virt_who_config_script'],
+            form_data['hypervisor_type'],
+            debug=True,
+            org=org_label,
+            target_sat=target_sat,
         )
         virt_who_instance = (
             target_sat.api.VirtWhoConfig(organization_id=org_id)

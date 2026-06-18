@@ -169,6 +169,7 @@ def get_configure_id(name, target_sat=None):
     if target_sat is None:
         # Import here to avoid circular dependency
         from robottelo.hosts import Satellite
+
         target_sat = Satellite()
 
     results = target_sat.api.VirtWhoConfig().search(query={'search': f'name={name}'})
@@ -458,7 +459,7 @@ def deploy_configure_by_command_check(script_or_command):
         try:
             ret, stdout = runcmd(f"bash {deploy_script_path}")
         except Exception as err:
-            raise VirtWhoError(f"Failed to deploy configure by script") from err
+            raise VirtWhoError("Failed to deploy configure by script") from err
         else:
             if ret != 0 or 'Finished successfully' not in stdout:
                 raise VirtWhoError(f"Failed to deploy configure by script. Output: {stdout}")

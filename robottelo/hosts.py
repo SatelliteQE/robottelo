@@ -1391,7 +1391,9 @@ class ContentHost(Host, ContentHostMixins):
         config = satellite.api.VirtWhoConfig(id=config_id).read()
         script_content = config.deploy_script()['virt_who_config_script']
         # Write script to file on satellite
-        satellite.execute(f"cat > {virt_who_deploy_file} << 'EOFSCRIPT'\n{script_content}\nEOFSCRIPT")
+        satellite.execute(
+            f"cat > {virt_who_deploy_file} << 'EOFSCRIPT'\n{script_content}\nEOFSCRIPT"
+        )
         # remote_copy from satellite to self
         satellite.session.remote_copy(virt_who_deploy_file, self)
 

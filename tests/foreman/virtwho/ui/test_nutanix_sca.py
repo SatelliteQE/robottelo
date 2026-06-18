@@ -120,7 +120,7 @@ class TestVirtwhoConfigforNutanix:
                 debug=True,
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
-                )
+            )
             # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
             config_id = get_configure_id(name, target_sat)
             config_file = get_configure_file(config_id)

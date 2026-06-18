@@ -155,7 +155,11 @@ def test_post_crud_virt_who_configuration(create_virt_who_configuration_setup, f
     # Verify Report is sent to satellite.
     script = vhd.deploy_script()
     deploy_configure_by_script(
-        script['virt_who_config_script'], form_data['hypervisor_type'], debug=True, org=org.label, target_sat=target_sat
+        script['virt_who_config_script'],
+        form_data['hypervisor_type'],
+        debug=True,
+        org=org.label,
+        target_sat=target_sat,
     )
     virt_who_instance = (
         target_sat.api.VirtWhoConfig(organization_id=org.id)

@@ -25,13 +25,14 @@ from robottelo.utils.virtwho import (
     add_configure_option,
     delete_configure_option,
     deploy_configure_by_command_check,
+    deploy_configure_by_script,
     get_configure_file,
     get_configure_id,
     get_configure_option,
     get_virtwho_status,
     hypervisor_guest_mapping_newcontent_ui,
     restart_virtwho_service,
-    update_configure_option, deploy_configure_by_script,
+    update_configure_option,
 )
 
 
@@ -419,7 +420,7 @@ class TestVirtwhoConfigforEsx:
             values = org_session.virtwho_configure.read(config_name)
             script = values['deploy']['script']
             deploy_configure_by_script(
-            script,
+                script,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
@@ -479,7 +480,7 @@ class TestVirtwhoConfigforEsx:
             values = org_session.virtwho_configure.read(config_name)
             script = values['deploy']['script']
             deploy_configure_by_script(
-            script,
+                script,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
@@ -544,7 +545,7 @@ class TestVirtwhoConfigforEsx:
             values = org_session.virtwho_configure.read(config_name)
             script = values['deploy']['script']
             deploy_configure_by_script(
-            script,
+                script,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
@@ -563,7 +564,7 @@ class TestVirtwhoConfigforEsx:
                 values = newsession.virtwho_configure.read(new_virt_who_name)
                 script = values['deploy']['script']
                 deploy_configure_by_script(
-            script,
+                    script,
                     form_data_ui['hypervisor_type'],
                     org=module_sca_manifest_org.label,
                     target_sat=target_sat,
