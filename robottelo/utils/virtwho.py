@@ -470,7 +470,7 @@ def deploy_configure_by_command_check(script_or_command):
         try:
             ret, stdout = runcmd(script_or_command)
         except Exception as err:
-            raise VirtWhoError(f"Failed to deploy configure by {script_or_command}") from err
+            raise VirtWhoError("Failed to deploy configure by provided command") from err
         else:
             if ret != 0 or 'Finished successfully' not in stdout:
                 raise VirtWhoError(f"Failed to deploy configure by {script_or_command}")
