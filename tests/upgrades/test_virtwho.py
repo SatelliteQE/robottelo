@@ -118,7 +118,6 @@ class TestScenarioPositiveVirtWho:
             4. virt-who config should update and delete successfully.
         """
         org_id = pre_upgrade_data.get('org_id')
-        org_name = pre_upgrade_data.get('org_name')
         org_label = pre_upgrade_data.get('org_label')
         name = pre_upgrade_data.get('name')
 

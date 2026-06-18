@@ -14,6 +14,7 @@
 import pytest
 
 from robottelo.utils.virtwho import (
+    deploy_configure_by_script,
     get_configure_file,
     get_configure_id,
     get_configure_option,
