@@ -24,6 +24,7 @@ from robottelo.utils.datafactory import (
 )
 
 DOCKER_PROVIDER = 'Docker'
+FEDORA_REGISTRY = 'registry.fedoraproject.org'
 
 
 def _create_repository(module_target_sat, product, name=None, upstream_name=None):
@@ -637,20 +638,20 @@ class TestPodman:
         SMALL_REPO_NAME = 'arianna'
         LARGE_REPO_NAME = 'fedora'
         assert (
-            module_target_sat.execute(
-                f'podman pull registry.fedoraproject.org/{SMALL_REPO_NAME}'
-            ).status
+            module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{SMALL_REPO_NAME}').status
             == 0
         )
         assert (
-            module_target_sat.execute(
-                f'podman pull registry.fedoraproject.org/{LARGE_REPO_NAME}'
-            ).status
+            module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{LARGE_REPO_NAME}').status
             == 0
         )
-        small_image_id = module_target_sat.execute(f'podman images {SMALL_REPO_NAME} -q')
+        small_image_id = module_target_sat.execute(
+            f'podman images {FEDORA_REGISTRY}/{SMALL_REPO_NAME}:latest -q'
+        )
         assert small_image_id
-        large_image_id = module_target_sat.execute(f'podman images {LARGE_REPO_NAME} -q')
+        large_image_id = module_target_sat.execute(
+            f'podman images {FEDORA_REGISTRY}/{LARGE_REPO_NAME}:latest -q'
+        )
         assert large_image_id
         # Podman pushes require lowercase org and product labels
         small_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{SMALL_REPO_NAME}'.lower()
@@ -702,11 +703,10 @@ class TestPodman:
         :CaseImportance: High
         """
         REPO_NAME = 'fedora'
-        assert (
-            module_target_sat.execute(f'podman pull registry.fedoraproject.org/{REPO_NAME}').status
-            == 0
+        assert module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{REPO_NAME}').status == 0
+        large_image_id = module_target_sat.execute(
+            f'podman images {FEDORA_REGISTRY}/{REPO_NAME}:latest -q'
         )
-        large_image_id = module_target_sat.execute(f'podman images {REPO_NAME} -q')
         assert large_image_id
         large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{REPO_NAME}'.lower()
 
@@ -774,14 +774,8 @@ class TestPodman:
         image_tag = 'test_tag'
         image_1 = f'{image_name}:latest'
         image_2 = f'{image_name}:41'
-        assert (
-            module_target_sat.execute(f'podman pull registry.fedoraproject.org/{image_1}').status
-            == 0
-        )
-        assert (
-            module_target_sat.execute(f'podman pull registry.fedoraproject.org/{image_2}').status
-            == 0
-        )
+        assert module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{image_1}').status == 0
+        assert module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{image_2}').status == 0
         image_1_id = module_target_sat.execute(f'podman images {image_1} -q')
         assert image_1_id
         image_2_id = module_target_sat.execute(f'podman images {image_2} -q')
@@ -800,11 +794,16 @@ class TestPodman:
             f'podman push --creds {creds} {image_2_id.stdout.strip()} {module_target_sat.hostname}/{distribution_path}'
         )
         assert result.status == 0, result.stderr
-        repo = module_product.read().repository
-        repo_data = module_target_sat.api.Repository(id=repo[0].id).docker_manifests()['results']
-        # Verify the repository has two docker manifests, one manifest has the test tag, and one manifest has no tags.
-        assert repo_data[0]['tags'][0]['name'] == 'test_tag'
-        assert not repo_data[1]['tags']
+        repos = {
+            module_target_sat.api.Repository(id=r.id).read().name: r
+            for r in module_product.read().repository
+        }
+        repo_data = module_target_sat.api.Repository(id=repos[image_name].id).docker_manifests()[
+            'results'
+        ]
+        # Verify the new manifest has the test tag and the old manifest no longer does.
+        assert repo_data[0]['tags'][0]['name'] == image_tag
+        assert not any(t['name'] == image_tag for t in repo_data[1]['tags'])
         # Check that the appropriate message is logged
         log_message = f"Removing 1 duplicate docker tag associations in repository '{image_name}'"
         assert (
