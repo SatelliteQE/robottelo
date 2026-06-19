@@ -24,6 +24,7 @@ from robottelo.utils.datafactory import (
 )
 
 DOCKER_PROVIDER = 'Docker'
+FEDORA_REGISTRY = 'registry.fedoraproject.org'
 
 
 def _create_repository(module_target_sat, product, name=None, upstream_name=None):
@@ -643,20 +644,20 @@ class TestPodman:
         SMALL_REPO_NAME = 'arianna'
         LARGE_REPO_NAME = 'fedora'
         assert (
-            module_target_sat.execute(
-                f'podman pull registry.fedoraproject.org/{SMALL_REPO_NAME}'
-            ).status
+            module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{SMALL_REPO_NAME}').status
             == 0
         )
         assert (
-            module_target_sat.execute(
-                f'podman pull registry.fedoraproject.org/{LARGE_REPO_NAME}'
-            ).status
+            module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{LARGE_REPO_NAME}').status
             == 0
         )
-        small_image_id = module_target_sat.execute(f'podman images {SMALL_REPO_NAME} -q')
+        small_image_id = module_target_sat.execute(
+            f'podman images {FEDORA_REGISTRY}/{SMALL_REPO_NAME}:latest -q'
+        )
         assert small_image_id
-        large_image_id = module_target_sat.execute(f'podman images {LARGE_REPO_NAME} -q')
+        large_image_id = module_target_sat.execute(
+            f'podman images {FEDORA_REGISTRY}/{LARGE_REPO_NAME}:latest -q'
+        )
         assert large_image_id
         # Podman pushes require lowercase org and product labels
         small_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{SMALL_REPO_NAME}'.lower()
@@ -708,11 +709,10 @@ class TestPodman:
         :CaseImportance: High
         """
         REPO_NAME = 'fedora'
-        assert (
-            module_target_sat.execute(f'podman pull registry.fedoraproject.org/{REPO_NAME}').status
-            == 0
+        assert module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{REPO_NAME}').status == 0
+        large_image_id = module_target_sat.execute(
+            f'podman images {FEDORA_REGISTRY}/{REPO_NAME}:latest -q'
         )
-        large_image_id = module_target_sat.execute(f'podman images {REPO_NAME} -q')
         assert large_image_id
         large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{REPO_NAME}'.lower()
 
