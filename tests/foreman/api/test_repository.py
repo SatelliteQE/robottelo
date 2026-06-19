@@ -2463,7 +2463,12 @@ class TestTokenAuthContainerRepository:
 
         :parametrized: yes
 
-        :expectedresults: multiple products and repos are created
+        :expectedresults:
+            1. Repos are created with correct fields.
+            2. After sync, at least one docker manifest is present.
+            3. The whitelisted 'latest' tag is synced.
+            4. No unexpected tags are synced beyond 'latest' and its cosign sig companions
+               (sha256-<hash>.sig), which may be present when 'latest' is a manifest list.
         """
         container_repo = getattr(settings.container_repo.registries, repo_key)
 
@@ -2498,7 +2503,21 @@ class TestTokenAuthContainerRepository:
             repo.sync(timeout=600)
             synced_repo = repo.read()
             assert synced_repo.content_counts['docker_manifest'] >= 1
-            assert synced_repo.content_counts['docker_tag'] == 1
+            synced_tags = [
+                t.name
+                for t in module_target_sat.api.DockerTag().search(
+                    query={'repository_id': repo.id, 'per_page': '999'}
+                )
+            ]
+            assert 'latest' in synced_tags, f"'latest' tag missing from synced tags: {synced_tags}"
+            # Since pulp-container 2.27.9, companion cosign sig tags may be correctly synced
+            # alongside the whitelisted manifest list tags (pulp#2096). Any tag beyond 'latest'
+            # must be a sig companion (sha256-<hash>.sig); other sources may have none.
+            assert all(
+                re.match(r'^sha256-[a-f0-9]+\.sig$', name)
+                for name in synced_tags
+                if name != 'latest'
+            ), f"Unexpected non-sig tags synced alongside 'latest': {synced_tags}"
 
 
 class TestPythonRepository:
