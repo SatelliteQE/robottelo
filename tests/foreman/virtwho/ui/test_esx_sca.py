@@ -383,6 +383,13 @@ class TestVirtwhoConfigforEsx:
             org_session.virtwho_configure.delete(name)
             assert not org_session.virtwho_configure.search(name)
             restart_virtwho_service()
+            # Wait for virt-who to attempt connection and log errors after config deletion
+            wait_for(
+                lambda: get_virtwho_status() == 'logerror',
+                timeout=60,
+                delay=5,
+                logger=None,
+            )
             assert get_virtwho_status() == 'logerror'
 
     def test_positive_virtwho_reporter_role(
