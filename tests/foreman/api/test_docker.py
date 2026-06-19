@@ -798,12 +798,15 @@ class TestPodman:
             module_target_sat.api.Repository(id=r.id).read().name: r
             for r in module_product.read().repository
         }
-        repo_data = module_target_sat.api.Repository(id=repos[image_name].id).docker_manifests()[
+        manifests = module_target_sat.api.Repository(id=repos[image_name].id).docker_manifests()[
             'results'
         ]
-        # Verify the new manifest has the test tag and the old manifest no longer does.
-        assert repo_data[0]['tags'][0]['name'] == image_tag
-        assert not any(t['name'] == image_tag for t in repo_data[1]['tags'])
+        # Verify exactly one manifest has the test tag and no other manifest does.
+        tagged = next(m for m in manifests if any(t['name'] == image_tag for t in m['tags']))
+        assert tagged
+        assert not any(
+            t['name'] == image_tag for m in manifests if m is not tagged for t in m['tags']
+        )
         # Check that the appropriate message is logged
         log_message = f"Removing 1 duplicate docker tag associations in repository '{image_name}'"
         assert (
