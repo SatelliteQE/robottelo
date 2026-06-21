@@ -12,7 +12,7 @@ def enable_insights(host, satellite, org, activation_key):
         satellite=satellite,
         activation_key=activation_key,
         org=org,
-        rhel_distro=f"rhel{host.os_version.major}",
+        rhel_distro=f'rhel{host.os_version.major}',
     )
     result = host.execute('insights-client --status')
     # Accept either API confirmation (hosted Insights) or local registration (IoP)
