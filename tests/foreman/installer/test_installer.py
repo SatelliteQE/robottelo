@@ -619,15 +619,23 @@ def test_positive_check_installer_service_running(target_sat, service):
     :id: 5389c174-7ab1-4e9d-b2aa-66d80fd6dc5f
 
     :steps:
-        1. Verify a service is active with systemctl is-active
+        1. Verify a service is active using unified service API
 
     :expectedresults: The service is active
 
     :CaseImportance: Medium
     """
-    is_active = target_sat.execute(f'systemctl is-active {service}')
-    status = target_sat.execute(f'systemctl status {service}')
-    assert is_active.status == 0, status.stdout
+    # Get installation-method-aware service list
+    actual_services = target_sat.get_service_names()
+
+    # Skip if service doesn't apply to this installation method
+    if service not in actual_services:
+        pytest.skip(f'Service {service} not applicable for {target_sat.install_method.value}')
+
+    # Use unified service API instead of calling systemctl directly
+    assert target_sat.is_service_running(service), (
+        f'Service {service} is not running (install method: {target_sat.install_method.value})'
+    )
 
 
 @pytest.mark.upgrade
@@ -752,18 +760,20 @@ def test_satellite_installation(pytestconfig, installer_satellite):
         2. Configure satellite repos
         3. Enable satellite module
         4. Install satellite
-        5. Run satellite-installer
+        5. Run installation (satellite-installer or foremanctl deploy)
 
     :expectedresults:
         1. Correct satellite packaged is installed
-        2. satellite-installer runs successfully
+        2. Installation runs successfully
         3. no unexpected errors in logs
         4. satellite-maintain health check runs successfully
         5. redis is set as default foreman cache
-        6. Parse satellite installer modules
+        6. Parse satellite installer modules (installer method only)
 
     :CaseImportance: Critical
     """
+    from robottelo.enums import InstallMethod
+
     common_sat_install_assertions(installer_satellite)
 
     # Verify foreman-redis is installed and set as default cache for rails
@@ -771,8 +781,11 @@ def test_satellite_installation(pytestconfig, installer_satellite):
     settings_file = installer_satellite.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
     assert settings_file.rails_cache_store.type == 'redis'
 
-    # Do not test DOWNSTREAM_MODULES at sanity time
-    if 'build_sanity' not in pytestconfig.option.markexpr:
+    # DOWNSTREAM_MODULES check only applies to satellite-installer method
+    if (
+        'build_sanity' not in pytestconfig.option.markexpr
+        and installer_satellite.install_method == InstallMethod.INSTALLER
+    ):
         # Parse satellite installer modules
         cat_cmd = installer_satellite.execute(
             'cat /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
@@ -809,3 +822,42 @@ def test_weak_dependency(sat_non_default_install, package):
         'No packages marked for removal.' in result.stderr
         or 'Transaction test succeeded.' in result.stdout
     )
+
+
+@pytest.mark.parametrize(
+    'satellite_with_install_method',
+    ['installer', 'foremanctl'],
+    indirect=True,
+    ids=['installer-method', 'foremanctl-method'],
+)
+def test_installation_with_both_methods(satellite_with_install_method):
+    """Verify Satellite installation works with both methods.
+
+    :id: 7b2f8a9c-3e1d-4f5a-9b8c-1d2e3f4a5b6c
+
+    :steps:
+        1. Install Satellite using specified method
+        2. Verify all services are running
+        3. Verify hammer ping is successful
+
+    :expectedresults:
+        1. Installation completes successfully
+        2. All services are active
+        3. Hammer ping reports all services as ok
+
+    :parametrized: yes
+    """
+    from tests.foreman.installer.test_installer_common import (
+        assert_hammer_ping_ok,
+        common_sat_install_assertions,
+    )
+
+    sat = satellite_with_install_method
+
+    common_sat_install_assertions(sat)
+
+    failed = sat.get_failed_services()
+    assert not failed, f'Services not running: {failed}'
+
+    result = sat.execute('hammer ping')
+    assert_hammer_ping_ok(result)

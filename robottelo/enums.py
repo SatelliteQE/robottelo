@@ -40,3 +40,26 @@ class NetworkType(StrEnum):
     def from_yaml(cls, constructor, node):
         value = constructor.construct_scalar(node)
         return cls(value)
+
+
+@yaml.register_class
+class InstallMethod(StrEnum):
+    """
+    Enumeration of Satellite installation methods.
+
+    This enum represents the different methods that can be used to install
+    Satellite/Foreman on a system.
+    """
+
+    INSTALLER = 'installer'  # Traditional satellite-installer
+    FOREMANCTL = 'foremanctl'  # New foremanctl deploy
+    AUTO = 'auto'  # Auto-detect based on system state
+
+    @classmethod
+    def to_yaml(cls, representer, node):
+        return representer.represent_scalar('!InstallMethod', node.value)
+
+    @classmethod
+    def from_yaml(cls, constructor, node):
+        value = constructor.construct_scalar(node)
+        return cls(value)

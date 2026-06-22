@@ -1772,6 +1772,90 @@ class Capsule(ContentHost, CapsuleMixins):
     def rex_pub_key(self):
         return self.execute(f'cat {self.rex_key_path}').stdout.strip()
 
+    def is_foremanctl_available(self):
+        """Check if foremanctl is installed on the system.
+
+        Only checks if the command exists, not if the package is available in repos.
+        This ensures auto-detection defaults to satellite-installer on clean systems.
+
+        :return: True if foremanctl command is installed
+        :rtype: bool
+        """
+        # Check if foremanctl command exists (already installed)
+        result = self.execute('which foremanctl')
+        return result.status == 0
+
+    def detect_install_method(self):
+        """Auto-detect which installation method to use.
+
+        Detection priority:
+        1. Settings/environment override (INSTALL_METHOD in conf/server.yaml)
+        2. Already installed (checks for foremanctl or installer marker files)
+        3. Command availability (checks if foremanctl is already installed)
+        4. Default to satellite-installer
+
+        On a clean RHEL system, auto-detection defaults to satellite-installer.
+        Use settings override to force foremanctl method.
+
+        :return: InstallMethod enum value
+        :rtype: InstallMethod
+        """
+        from robottelo.enums import InstallMethod
+
+        # Runtime override
+        if hasattr(self, '_install_method_override'):
+            return self._install_method_override
+
+        # Settings override
+        install_method = settings.server.get('install_method', 'auto')
+        if install_method != 'auto':
+            logger.info(f'Using configured install method: {install_method}')
+            return InstallMethod(install_method)
+
+        # Already installed detection
+        foremanctl_marker = self.execute('test -f /var/lib/foremanctl/parameters.yaml')
+        installer_marker = self.execute('test -f /etc/foreman-installer/scenarios.d/satellite.yaml')
+
+        if foremanctl_marker.status == 0:
+            logger.info('Detected existing foremanctl installation')
+            return InstallMethod.FOREMANCTL
+
+        if installer_marker.status == 0:
+            logger.info('Detected existing satellite-installer installation')
+            return InstallMethod.INSTALLER
+
+        # Availability detection
+        if self.is_foremanctl_available():
+            logger.info('foremanctl available, using foremanctl method')
+            return InstallMethod.FOREMANCTL
+
+        logger.info('Defaulting to satellite-installer method')
+        return InstallMethod.INSTALLER
+
+    @cached_property
+    def install_method(self):
+        """Get the installation method used or to be used on this system.
+
+        Cached property that determines the installation method.
+
+        :return: InstallMethod enum value
+        :rtype: InstallMethod
+        """
+        return self.detect_install_method()
+
+    def get_service_names(self):
+        """Get the appropriate service names based on installation method.
+
+        :return: List of service names for current installation method
+        :rtype: list
+        """
+        from robottelo.constants import InstallationServices
+        from robottelo.enums import InstallMethod
+
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return InstallationServices.FOREMANCTL_SERVICES
+        return InstallationServices.INSTALLER_SERVICES
+
     def setup(self):
         logger.debug('START: setting up Capsule host %s', self)
         # Call parent setup method FIRST
@@ -1802,20 +1886,77 @@ class Capsule(ContentHost, CapsuleMixins):
         super().teardown()
         logger.debug('END: tearing down Capsule host %s', self)
 
+    def is_service_running(self, service_name):
+        """Check if a specific service is running.
+
+        Works with both traditional systemd services and quadlet containers.
+        Handles template units with wildcards (e.g., pulpcore-worker@*) by
+        checking if any matching instance is running.
+
+        :param service_name: Name of the service (may include wildcards like @*)
+        :return: True if service is active
+        :rtype: bool
+        """
+        # Handle template units with wildcards
+        if '@*' in service_name:
+            # List all instances of the template unit
+            pattern = service_name.replace('@*', '@*.service')
+            result = self.execute(
+                f"systemctl list-units '{pattern}' --state=active --no-pager --no-legend"
+            )
+            # If any instances are active, command succeeds and returns output
+            return result.status == 0 and bool(result.stdout.strip())
+        # Regular service check
+        result = self.execute(f'systemctl is-active {service_name}')
+        return result.status == 0
+
+    def verify_services_running(self, service_list=None):
+        """Verify all expected services are running.
+
+        :param service_list: Optional list. If None, uses services for detected method.
+        :return: Dict with service names as keys and status as values
+        :rtype: dict
+        """
+        if service_list is None:
+            service_list = self.get_service_names()
+
+        results = {}
+        for service in service_list:
+            results[service] = self.is_service_running(service)
+
+        return results
+
+    def get_failed_services(self):
+        """Get list of services that are not running.
+
+        :return: List of service names that are not active
+        :rtype: list
+        """
+        service_status = self.verify_services_running()
+        return [svc for svc, running in service_status.items() if not running]
+
     def restart_services(self):
         """Restart services, returning True if passed and stdout if not"""
         result = self.execute('satellite-maintain service restart')
         return True if result.status == 0 else result.stdout
 
     def check_services(self):
-        error_msg = 'Some services are not running'
+        """Check services using installation-method-aware approach.
+
+        :return: True if all services running, error message otherwise
+        :rtype: bool or str
+        """
+        # Try satellite-maintain first
         result = self.execute('satellite-maintain service status')
         if result.status == 0:
             return True
-        for line in result.stdout.splitlines():
-            if error_msg in line:
-                return line.replace(error_msg, '').strip()
-        return None
+
+        # Fallback to direct systemctl checks
+        failed = self.get_failed_services()
+        if not failed:
+            return True
+
+        return f'Services not running: {", ".join(failed)}'
 
     def install(self, installer_obj=None, cmd_args=None, cmd_kwargs=None):
         """General purpose installer"""
@@ -1976,6 +2117,19 @@ class Capsule(ContentHost, CapsuleMixins):
     def install_satellite_foremanctl(
         self, enable_fapolicyd=False, enable_fips=False, parameters=None
     ):
+        """Install Satellite using foremanctl deploy method.
+
+        Handles full installation path including:
+        - Container runtime (podman) installation
+        - Container registry authentication
+        - foremanctl package installation
+        - Satellite deployment via foremanctl
+
+        :param enable_fapolicyd: Enable fapolicyd
+        :param enable_fips: Enable FIPS mode
+        :param parameters: Additional parameters for foremanctl deploy
+        :return: Result of final foremanctl deploy command
+        """
         # Add IPv6 proxy for IPv6 communication
         self.enable_ipv6_dnf_and_rhsm_proxy()
         self.enable_ipv6_system_proxy()
@@ -1993,7 +2147,34 @@ class Capsule(ContentHost, CapsuleMixins):
                 pull_requests=pull_requests,
             ).execute()
 
-        assert self.execute('dnf install -y foremanctl').status == 0
+        # Install podman (required for foremanctl container operations)
+        assert self.execute('dnf install -y podman').status == 0, 'Failed to install podman'
+
+        # Authenticate to container registry
+        registry_config = settings.server.get('container_registry', {})
+        registry_url = registry_config.get('url', 'registry.stage.redhat.io')
+        registry_user = registry_config.get('username')
+        registry_pass = registry_config.get('password')
+
+        if registry_user and registry_pass:
+            logger.info(f'Authenticating to container registry: {registry_url}')
+            auth_result = self.execute(
+                f'podman login {registry_url} '
+                f'--authfile=/etc/foreman/registry-auth.json '
+                f'--username "{registry_user}" '
+                f'--password "{registry_pass}"'
+            )
+            assert auth_result.status == 0, (
+                f'Container registry authentication failed:\n{auth_result.stderr}'
+            )
+        else:
+            logger.warning(
+                'Container registry credentials not configured. '
+                'Set CONTAINER_REGISTRY.USERNAME and CONTAINER_REGISTRY.PASSWORD in conf/server.yaml'
+            )
+
+        # Install foremanctl
+        assert self.execute('dnf install -y foremanctl').status == 0, 'Failed to install foremanctl'
 
         if enable_fapolicyd:
             assert self.execute('dnf -y install fapolicyd').status == 0
@@ -2045,7 +2226,7 @@ class Capsule(ContentHost, CapsuleMixins):
             f'foremanctl deploy --add-feature failed:\n{deploy_features.stderr}'
         )
 
-        return
+        return deploy_features
 
     def list_foremanctl_features(self, enabled=False):
         """Get the list of features as a set of feature names"""
@@ -2059,6 +2240,81 @@ class Capsule(ContentHost, CapsuleMixins):
             for line in result.stdout.splitlines()
             if (p := line.split()) and p[0].lower() != 'feature'
         }
+
+    def install_satellite(
+        self,
+        installer_method=None,
+        enable_fapolicyd=False,
+        enable_fips=False,
+        installer_args=None,
+        installer_opts=None,
+        foremanctl_parameters=None,
+    ):
+        """Unified method to install Satellite using detected or specified method.
+
+        Auto-detects or uses specified installation method. Tracks which method
+        was used for later service verification.
+
+        :param installer_method: Override auto-detection (InstallMethod enum or string)
+        :param enable_fapolicyd: Enable fapolicyd (foremanctl only)
+        :param enable_fips: Enable FIPS mode (foremanctl only)
+        :param installer_args: Arguments for satellite-installer
+        :param installer_opts: Options dict for satellite-installer
+        :param foremanctl_parameters: Parameters list for foremanctl deploy
+        :return: Installation result
+        """
+        from robottelo.enums import InstallMethod
+        from robottelo.utils.installer import InstallerCommand
+
+        # Determine method
+        if installer_method:
+            method = (
+                InstallMethod(installer_method)
+                if isinstance(installer_method, str)
+                else installer_method
+            )
+            if method != InstallMethod.AUTO:
+                # Clear cached property and set override
+                if 'install_method' in self.__dict__:
+                    del self.__dict__['install_method']
+                self._install_method_override = method
+            else:
+                # AUTO requested explicitly - use detection
+                method = self.install_method
+        else:
+            # No override - use detection
+            method = self.install_method
+
+        logger.info(f'Installing Satellite using {method.value} method')
+
+        # Execute installation
+        if method == InstallMethod.FOREMANCTL:
+            result = self.install_satellite_foremanctl(
+                enable_fapolicyd=enable_fapolicyd,
+                enable_fips=enable_fips,
+                parameters=foremanctl_parameters,
+            )
+        else:  # InstallMethod.INSTALLER
+            self.register_to_cdn()
+            self.setup_rhel_repos()
+            self.setup_satellite_repos()
+            self.setup_firewall()
+            self.install_satellite_or_capsule_package()
+
+            default_args = installer_args or [
+                'scenario satellite',
+                f'foreman-initial-admin-password {settings.server.admin_password}',
+            ]
+            installer_obj = InstallerCommand(
+                installer_args=default_args, installer_opts=installer_opts or {}
+            )
+
+            result = self.execute(installer_obj.get_command(), timeout='30m')
+            assert result.status in (0, 2), (
+                f'satellite-installer failed:\n{result.stdout}\n{result.stderr}'
+            )
+
+        return result
 
     def query_db(self, query, db='foreman', output_format='json'):
         """Execute a PostgreSQL query and return the result.
