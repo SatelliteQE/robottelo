@@ -133,7 +133,7 @@ class APIFactory:
             if (
                 not strict
                 and e.response.status_code == 409
-                and 'repository is already enabled' in e.response.json()['displayMessage']
+                and 'repository is already enabled' in e.response.json().get('message', '')
             ):
                 pass
             else:
