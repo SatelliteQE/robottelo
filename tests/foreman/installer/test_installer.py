@@ -50,7 +50,6 @@ DOWNSTREAM_MODULES = {
     'foreman::cli::kubevirt',
     'foreman::cli::puppet',
     'foreman::cli::remote_execution',
-    'foreman::cli::virt_who_configure',
     'foreman::cli::webhooks',
     'foreman::compute::ec2',
     'foreman::compute::libvirt',
