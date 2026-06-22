@@ -451,12 +451,12 @@ class TestDockerClient:
         module_capsule_configured.wait_for_sync(start_time=timestamp)
 
         # 4. Create activation key for the LCE/CV.
+        cvenv_id = sat.api_factory.get_cvenv_id(cv['id'], module_lce)
         ak = sat.cli.ActivationKey.create(
             {
                 'name': gen_string('alpha'),
                 'organization-id': module_org.id,
-                'lifecycle-environment-id': module_lce.id,
-                'content-view-id': cv['id'],
+                'content-view-environment-ids': cvenv_id,
             }
         )
         return Box(repo=repo, cv=cv, ak=ak)

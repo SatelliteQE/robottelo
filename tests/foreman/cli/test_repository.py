@@ -2597,11 +2597,11 @@ def test_positive_install_uploaded_rpm_on_host(
     target_sat.cli.ContentView.version_promote(
         {'id': content_view['versions'][0]['id'], 'to-lifecycle-environment-id': function_lce.id}
     )
+    cvenv_id = target_sat.api_factory.get_cvenv_id(content_view['id'], function_lce)
     activation_key = target_sat.cli_factory.make_activation_key(
         {
             'organization-id': function_org.id,
-            'lifecycle-environment-id': function_lce.id,
-            'content-view-id': content_view['id'],
+            'content-view-environment-ids': cvenv_id,
         }
     )
     target_sat.cli.ActivationKey.content_override(
