@@ -27,7 +27,6 @@ from robottelo.constants import (
     DEFAULT_CV,
     EXPORT_LIBRARY_NAME,
     FLATPAK_RHEL_RELEASE_VER,
-    LIBRARY_LCE,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     REPO_TYPE,
@@ -1621,12 +1620,14 @@ class TestExportImport:
                 )
 
         # Register a content host using AK.
+        cvenv_id = module_import_sat.api_factory.get_cvenv_id(
+            importing_cv['id'], function_import_org_at_isat.library
+        )
         ak = module_import_sat.cli.ActivationKey.create(
             {
                 'name': gen_string('alpha'),
                 'organization-id': function_import_org_at_isat.id,
-                'lifecycle-environment': 'Library',
-                'content-view': importing_cv['name'],
+                'content-view-environment-ids': cvenv_id,
             }
         )
         module_import_sat.cli.ActivationKey.content_override(
@@ -3096,10 +3097,10 @@ class TestExportImport:
 
         # Create an AK with the imported CV, register the content host and check
         # the package count available to install. Filtered package should be missing.
+        cvenv_id = target_sat.api_factory.get_cvenv_id(imp_cv['id'], function_import_org.library)
         ak = target_sat.cli_factory.make_activation_key(
             {
-                'content-view': exp_cv['name'],
-                'lifecycle-environment': LIBRARY_LCE,
+                'content-view-environment-ids': cvenv_id,
                 'organization-id': function_import_org.id,
             }
         )
