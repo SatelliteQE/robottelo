@@ -370,28 +370,16 @@
           "name": "create",
           "options": [
             {
-              "help": "Array of content view environment ids to be associated with the activation key. Ignored if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
+              "help": "Array of content view environment ids to be associated with the activation key. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environment-ids",
               "shortname": null,
               "value": "LIST"
             },
             {
-              "help": "Comma-separated list of content view environment labels to be associated with the activation key, in the format of 'lifecycle_environment_label/content_view_label'. Ignored if content_view_environment_ids is specified, or if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
+              "help": "Comma-separated list of content view environment labels to be associated with the activation key, in the format of 'lifecycle_environment_label/content_view_label'. Ignored if content_view_environment_ids is specified. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environments",
               "shortname": null,
               "value": "LIST"
-            },
-            {
-              "help": "VALUE/NUMBER               Name/id of the single content view to be associated with the activation key.",
-              "name": "content-view",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER               Name/id of the single content view to be associated with the activation key.",
-              "name": "content-view-id",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "Description",
@@ -408,18 +396,6 @@
             {
               "help": "VALUE/NUMBER                (--environment-id is deprecated: Use --lifecycle-environment-id instead)",
               "name": "environment-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER      Name/id of the single lifecycle environment to be associated with the activation key.",
-              "name": "lifecycle-environment",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER      Name/id of the single lifecycle environment to be associated with the activation key.",
-              "name": "lifecycle-environment-id",
               "shortname": null,
               "value": null
             },
@@ -698,13 +674,13 @@
           "name": "list",
           "options": [
             {
-              "help": "Array of content view environment ids associated with the activation key. Ignored if content_view_id and lifecycle_environment_id are specified.Requires allow_multiple_content_views setting to be on.",
+              "help": "Array of content view environment ids associated with the activation key. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environment-ids",
               "shortname": null,
               "value": "LIST"
             },
             {
-              "help": "Comma-separated list of content view environment labels associated with the activation key, in the format of 'lifecycle_environment_label/content_view_label'. Ignored if content_view_environment_ids is specified, or if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
+              "help": "Comma-separated list of content view environment labels associated with the activation key, in the format of 'lifecycle_environment_label/content_view_label'. Ignored if content_view_environment_ids is specified. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environments",
               "shortname": null,
               "value": "LIST"
@@ -812,7 +788,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x limit                     | x   | x       | view environments      | x   | x       | content view environment | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string integer text string integer string integer string string string string",
+              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x limit                     | x   | x       | view environments      | x   | x       | content view environment | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string integer text string integer string integer string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -977,28 +953,16 @@
           "name": "update",
           "options": [
             {
-              "help": "Array of content view environment ids to be associated with the activation key. Ignored if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
+              "help": "Array of content view environment ids to be associated with the activation key. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environment-ids",
               "shortname": null,
               "value": "LIST"
             },
             {
-              "help": "Comma-separated list of content view environment labels to be associated with the activation key, in the format of 'lifecycle_environment_label/content_view_label'. Ignored if content_view_environment_ids is specified, or if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
+              "help": "Comma-separated list of content view environment labels to be associated with the activation key, in the format of 'lifecycle_environment_label/content_view_label'. Ignored if content_view_environment_ids is specified. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environments",
               "shortname": null,
               "value": "LIST"
-            },
-            {
-              "help": "VALUE/NUMBER               Name/id of the single content view to be associated with the activation key.",
-              "name": "content-view",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER               Name/id of the single content view to be associated with the activation key.",
-              "name": "content-view-id",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "Description",
@@ -1023,18 +987,6 @@
               "name": "id",
               "shortname": null,
               "value": "NUMBER"
-            },
-            {
-              "help": "VALUE/NUMBER      Name/id of the single lifecycle environment to be associated with the activation key.",
-              "name": "lifecycle-environment",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER      Name/id of the single lifecycle environment to be associated with the activation key.",
-              "name": "lifecycle-environment-id",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "Maximum number of registered content hosts",
@@ -21785,28 +21737,16 @@
               "value": null
             },
             {
-              "help": "Array of content view environment ids to be associated with the host. Ignored if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
+              "help": "Array of content view environment ids to be associated with the host. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environment-ids",
               "shortname": null,
               "value": "LIST"
             },
             {
-              "help": "Comma-separated list of content view environment labels to be associated with the host, in the format of 'lifecycle_environment_label/content_view_label'. Ignored if content_view_environment_ids is specified, or if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
+              "help": "Comma-separated list of content view environment labels to be associated with the host, in the format of 'lifecycle_environment_label/content_view_label'. Ignored if content_view_environment_ids is specified. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environments",
               "shortname": null,
               "value": "LIST"
-            },
-            {
-              "help": "VALUE/NUMBER          Name/id of the single content view to be associated with the host.",
-              "name": "content-view",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER          Name/id of the single content view to be associated with the host.",
-              "name": "content-view-id",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "VALUE/NUMBER                Required if host is managed and value is not inherited from host group",
@@ -21889,18 +21829,6 @@
             {
               "help": "VALUE/NUMBER  Repository name/id associated with the kickstart repo used for provisioning",
               "name": "kickstart-repository-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Name/id of the single lifecycle environment to be associated with the host.",
-              "name": "lifecycle-environment",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Name/id of the single lifecycle environment to be associated with the host.",
-              "name": "lifecycle-environment-id",
               "shortname": null,
               "value": null
             },
@@ -23031,7 +22959,7 @@
                   "value": null
                 },
                 {
-                  "help": "Interface provider, e.g. IPMI. Only for BMC interfaces. Possible value(s): 'IPMI', 'Redfish', 'SSH'",
+                  "help": "Interface provider, e.g. IPMI. Only for BMC interfaces. Possible value(s): 'IPMI', 'Redfish'",
                   "name": "provider",
                   "shortname": null,
                   "value": "ENUM"
@@ -23497,7 +23425,7 @@
                   "value": null
                 },
                 {
-                  "help": "Interface provider, e.g. IPMI. Only for BMC interfaces. Possible value(s): 'IPMI', 'Redfish', 'SSH'",
+                  "help": "Interface provider, e.g. IPMI. Only for BMC interfaces. Possible value(s): 'IPMI', 'Redfish'",
                   "name": "provider",
                   "shortname": null,
                   "value": "ENUM"
@@ -23656,7 +23584,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | checkin                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.aws_account_id reported.aws_instance_id reported.aws_region reported.azure_instance_id reported.azure_subscription_id reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cloud_provider reported.cores reported.disks_total reported.gcp_instance_id reported.gcp_project_id reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
+              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | checkin                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report, user_omitted Values: disconnect, sync, user_omitted integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.aws_account_id reported.aws_instance_id reported.aws_region reported.azure_instance_id reported.azure_subscription_id reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cloud_provider reported.cores reported.disks_total reported.gcp_instance_id reported.gcp_project_id reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -24085,7 +24013,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Limit rebuild steps, valid steps are DHCP, DNS, TFTP, Content_Host_Status, Refresh_Content_Host_Status",
+              "help": "Limit rebuild steps, valid steps are DHCP, DNS, TFTP, Content_Host_Status, Refresh_Content_Host_Status, Clear_Errata_Applications",
               "name": "only",
               "shortname": null,
               "value": "LIST"
@@ -25033,28 +24961,16 @@
               "value": null
             },
             {
-              "help": "Array of content view environment ids to be associated with the host. Ignored if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
+              "help": "Array of content view environment ids to be associated with the host. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environment-ids",
               "shortname": null,
               "value": "LIST"
             },
             {
-              "help": "Comma-separated list of content view environment labels to be associated with the host, in the format of 'lifecycle_environment_label/content_view_label'. Ignored if content_view_environment_ids is specified, or if content_view_id and lifecycle_environment_id are specified. Requires allow_multiple_content_views setting to be on.",
+              "help": "Comma-separated list of content view environment labels to be associated with the host, in the format of 'lifecycle_environment_label/content_view_label'. Ignored if content_view_environment_ids is specified. Requires allow_multiple_content_views setting to be on.",
               "name": "content-view-environments",
               "shortname": null,
               "value": "LIST"
-            },
-            {
-              "help": "VALUE/NUMBER            Name/id of the single content view to be associated with the host.",
-              "name": "content-view",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER            Name/id of the single content view to be associated with the host.",
-              "name": "content-view-id",
-              "shortname": null,
-              "value": null
             },
             {
               "help": "VALUE/NUMBER                  Required if host is managed and value is not inherited from host group",
@@ -25143,18 +25059,6 @@
             {
               "help": "VALUE/NUMBER    Repository name/id associated with the kickstart repo used for provisioning",
               "name": "kickstart-repository-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER   Name/id of the single lifecycle environment to be associated with the host.",
-              "name": "lifecycle-environment",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER   Name/id of the single lifecycle environment to be associated with the host.",
-              "name": "lifecycle-environment-id",
               "shortname": null,
               "value": null
             },
@@ -25859,7 +25763,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   |         | | x   |         | | x   |         | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.aws_account_id reported.aws_instance_id reported.aws_region reported.azure_instance_id reported.azure_subscription_id reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cloud_provider reported.cores reported.disks_total reported.gcp_instance_id reported.gcp_project_id reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
+              "help": "Print help ------------|-----|---------|----- | ALL | DEFAULT | THIN ------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   |         | | x   |         | | x   |         | ------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report, user_omitted Values: disconnect, sync, user_omitted integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.aws_account_id reported.aws_instance_id reported.aws_region reported.azure_instance_id reported.azure_subscription_id reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cloud_provider reported.cores reported.disks_total reported.gcp_instance_id reported.gcp_project_id reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -26863,13 +26767,13 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "VALUE/NUMBER       Compute profile name/id",
+              "help": "VALUE/NUMBER          Compute profile name/id",
               "name": "compute-profile",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER       Compute profile name/id",
+              "help": "VALUE/NUMBER          Compute profile name/id",
               "name": "compute-profile-id",
               "shortname": null,
               "value": null
@@ -26887,7 +26791,7 @@
               "value": null
             },
             {
-              "help": "VALUE/NUMBER        Content source name/id",
+              "help": "VALUE/NUMBER           Content source name/id",
               "name": "content-source",
               "shortname": null,
               "value": null
@@ -26911,31 +26815,19 @@
               "value": null
             },
             {
-              "help": "VALUE/NUMBER          Content view name/id",
-              "name": "content-view",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER          Content view name/id",
-              "name": "content-view-id",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Host group description",
               "name": "description",
               "shortname": null,
               "value": "VALUE"
             },
             {
-              "help": "VALUE/NUMBER                Domain name/id",
+              "help": "VALUE/NUMBER                   Domain name/id",
               "name": "domain",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER                Domain name/id",
+              "help": "VALUE/NUMBER                   Domain name/id",
               "name": "domain-id",
               "shortname": null,
               "value": null
@@ -26947,26 +26839,14 @@
               "value": "SCHEMA"
             },
             {
-              "help": "VALUE/NUMBER  Kickstart repository name/id",
+              "help": "VALUE/NUMBER     Kickstart repository name/id",
               "name": "kickstart-repository",
               "shortname": null,
               "value": null
             },
             {
-              "help": "VALUE/NUMBER  Kickstart repository name/id",
+              "help": "VALUE/NUMBER     Kickstart repository name/id",
               "name": "kickstart-repository-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Lifecycle environment name/id",
-              "name": "lifecycle-environment",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Lifecycle environment name/id",
-              "name": "lifecycle-environment-id",
               "shortname": null,
               "value": null
             },
@@ -27498,7 +27378,7 @@
               "value": "VALUE"
             },
             {
-              "help": "Limit rebuild steps, valid steps are DHCP, DNS, TFTP, Content_Host_Status, Refresh_Content_Host_Status",
+              "help": "Limit rebuild steps, valid steps are DHCP, DNS, TFTP, Content_Host_Status, Refresh_Content_Host_Status, Clear_Errata_Applications",
               "name": "only",
               "shortname": null,
               "value": "LIST"
@@ -27674,18 +27554,6 @@
               "value": null
             },
             {
-              "help": "VALUE/NUMBER          Content view name/id",
-              "name": "content-view",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER          Content view name/id",
-              "name": "content-view-id",
-              "shortname": null,
-              "value": null
-            },
-            {
               "help": "Host group description",
               "name": "description",
               "shortname": null,
@@ -27724,18 +27592,6 @@
             {
               "help": "VALUE/NUMBER  Kickstart repository name/id",
               "name": "kickstart-repository-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Lifecycle environment name/id",
-              "name": "lifecycle-environment",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Lifecycle environment name/id",
-              "name": "lifecycle-environment-id",
               "shortname": null,
               "value": null
             },
@@ -37912,7 +37768,7 @@
               "value": "BOOLEAN"
             },
             {
-              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | checkin                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report Values: disconnect, sync integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.aws_account_id reported.aws_instance_id reported.aws_region reported.azure_instance_id reported.azure_subscription_id reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cloud_provider reported.cores reported.disks_total reported.gcp_instance_id reported.gcp_project_id reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string string string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
+              "help": "Print help -------------------------------|-----|---------|----- | ALL | DEFAULT | THIN -------------------------------|-----|---------|----- | x   | x       | x | x   | x       | x system               | x   | x       | group                     | x   | x       | | x   | x       | | x   | x       | status                  | x   | x       | | x   |         | | x   |         | information         | x   |         | view environments      | x   | x       | content view environment | x   | x       | | x   |         | | x   |         | | x   |         | image                  | x   |         | image digest           | x   |         | image                   | x   |         | image digest            | x   |         | image                | x   |         | image digest         | x   |         | image                 | x   |         | image digest          | x   |         | status                   | x   | x       | checkin                   | x   | x       | -------------------------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string string string string string date string string boot_time string string string string string string string string Values: true, false Values: built, pending, token_expired, build_failed text string integer configuration_status.applied          integer configuration_status.enabled          Values: true, false configuration_status.failed           integer configuration_status.failed_restarts  integer configuration_status.interesting      Values: true, false configuration_status.pending          integer configuration_status.restarted        integer configuration_status.skipped          integer string string integer datetime string integer Values: security_needed, errata_needed, updated, unknown Values: ok, error string Values: ok, warning, error string string string string string integer string string boolean string integer string Values: true, false infrastructure_facet.foreman          Values: true, false infrastructure_facet.smart_proxy_id Values: reporting, no_report, user_omitted Values: disconnect, sync, user_omitted integer string string datetime string string job_invocation.id                     string job_invocation.result                 Values: cancelled, failed, pending, success datetime datetime string string integer string Values: true, false string string string integer string string string integer string string string string integer string string string string string integer string Values: PXELinux_BIOS, PXELinux_UEFI, Grub2_BIOS, Grub2_ELF, Grub2_UEFI, Grub2_UEFI_SecureBoot, Grub2_UEFI_HTTP, Grub2_UEFI_HTTPS, Grub2_UEFI_HTTPS_SecureBoot, iPXE_Embedded, iPXE_UEFI_HTTP, iPXE_Chain_BIOS, iPXE_Chain_UEFI string integer datetime string string reported.aws_account_id reported.aws_instance_id reported.aws_region reported.azure_instance_id reported.azure_subscription_id reported.bios_release_date reported.bios_vendor reported.bios_version reported.boot_time reported.cloud_provider reported.cores reported.disks_total reported.gcp_instance_id reported.gcp_project_id reported.kernel_version reported.ram reported.sockets reported.virtual                      Values: true, false string string Values: full_support, maintenance_support, approaching_end_of_maintenance, extended_support, approaching_end_of_support, support_ended text string string status.applied                        integer status.enabled                        Values: true, false status.failed                         integer status.failed_restarts                integer status.interesting                    Values: true, false status.pending                        integer status.restarted                      integer status.skipped                        integer string subnet.name                           text string subnet6.name                          text string Values: reboot_needed, process_restart_needed, updated string string text user.firstname                        string user.lastname                         string user.login                            string user.mail                             string string usergroup.name                        string string",
               "name": "help",
               "shortname": "h",
               "value": null
@@ -53333,705 +53189,6 @@
               "name": "user-ids",
               "shortname": null,
               "value": "LIST"
-            },
-            {
-              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        }
-      ]
-    },
-    {
-      "description": "Manage Virt Who configurations",
-      "name": "virt-who-config",
-      "options": [
-        {
-          "help": "Print help",
-          "name": "help",
-          "shortname": "h",
-          "value": null
-        }
-      ],
-      "subcommands": [
-        {
-          "description": "Create a virt-who configuration",
-          "name": "create",
-          "options": [
-            {
-              "help": "Option Enable debugging output is required to enable AHV internal debug. It provides extra AHV debug information when both options are enabled",
-              "name": "ahv-internal-debug",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
-              "help": "Hypervisor blacklist, applicable only when filtering mode is set to 2. Wildcards and regular expressions are supported, multiple records must be separated by comma.",
-              "name": "blacklist",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Enable debugging output",
-              "name": "debug",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
-              "help": "Applicable only for esx provider type. Hosts which parent (usually ComputeResource) name is specified in comma-separated list in this option will NOT be reported. Wildcards and regular expressions are supported, multiple records must be separated by comma. Put the value into the double-quotes if it contains special characters like comma. All new line characters will be removed in resulting configuration file, white spaces are removed from beginning and end.",
-              "name": "exclude-host-parents",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Applicable only for esx provider type. Only hosts which parent (usually ComputeResource) name is specified in comma-separated list in this option will be reported. Wildcards and regular expressions are supported, multiple records must be separated by comma. Put the value into the double-quotes if it contains special characters like comma. All new line characters will be removed in resulting configuration file, white spaces are removed from beginning and end.",
-              "name": "filter-host-parents",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Hypervisor filtering mode Possible value(s): 'none', 'whitelist', 'blacklist'",
-              "name": "filtering-mode",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
-              "help": "VALUE/NUMBER          HTTP proxy that should be used for communication between the server on which virt-who is running and the hypervisors and virtualization managers.",
-              "name": "http-proxy",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER          HTTP proxy that should be used for communication between the server on which virt-who is running and the hypervisors and virtualization managers.",
-              "name": "http-proxy-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Specifies how the hypervisor will be identified. Possible value(s): 'hostname', 'uuid', 'hwuuid'",
-              "name": "hypervisor-id",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
-              "help": "Hypervisor password, required for all hypervisor types except for libvirt/OpenShift Virtualization.",
-              "name": "hypervisor-password",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Fully qualified host name or IP address of the hypervisor",
-              "name": "hypervisor-server",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Hypervisor type Possible value(s): 'esx', 'hyperv', 'libvirt', 'kubevirt', 'ahv'",
-              "name": "hypervisor-type",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
-              "help": "Account name by which virt-who is to connect to the hypervisor.",
-              "name": "hypervisor-username",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Configuration interval in minutes Possible value(s): '60', '120', '240', '480', '720', '1440', '2880', '4320'",
-              "name": "interval",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
-              "help": "Configuration file containing details about how to connect to the cluster and authentication details.",
-              "name": "kubeconfig-path",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Configuration name",
-              "name": "name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Ignore Proxy. A comma-separated list of hostnames or domains or ip addresses to ignore Capsule settings for. Optionally this may be set to * to bypass proxy settings for all hostnames domains or ip addresses.",
-              "name": "no-proxy",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Select the Prism flavor you are connecting to Possible value(s): 'central', 'element'",
-              "name": "prism-flavor",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
-              "help": "Satellite server FQDN",
-              "name": "satellite-url",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Hypervisor whitelist, applicable only when filtering mode is set to 1. Wildcards and regular expressions are supported, multiple records must be separated by comma.",
-              "name": "whitelist",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
-          "description": "Delete a virt-who configuration",
-          "name": "delete",
-          "options": [
-            {
-              "help": "Configuration numeric identifier",
-              "name": "id",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Name to search by",
-              "name": "name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
-          "description": "Download and execute script for the specified virt-who configuration",
-          "name": "deploy",
-          "options": [
-            {
-              "help": "",
-              "name": "id",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Name to search by",
-              "name": "name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
-          "description": "Renders a deploy script for the specified virt-who configuration",
-          "name": "fetch",
-          "options": [
-            {
-              "help": "",
-              "name": "id",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Name to search by",
-              "name": "name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            },
-            {
-              "help": "File where the script will be written you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-              "name": "output",
-              "shortname": "o",
-              "value": "VALUE"
-            }
-          ],
-          "subcommands": []
-        },
-        {
-          "description": "Show a virt-who configuration",
-          "name": "info",
-          "options": [
-            {
-              "help": "Show specified fields or predefined field sets only. (See below)",
-              "name": "fields",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "",
-              "name": "id",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Name to search by",
-              "name": "name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Print help ----------------------------------------|-----|-------- | ALL | DEFAULT ----------------------------------------|-----|-------- information/id                  | x   | x information/name                | x   | x information/hypervisor type     | x   | x information/hypervisor server   | x   | x information/hypervisor username | x   | x information/configuration file  | x   | x information/ahv prism flavor    | x   | x information/enable ahv debug    | x   | x information/status              | x   | x Schedule/interval                       | x   | x Schedule/last report at                 | x   | x Connection/satellite server             | x   | x Connection/hypervisor id                | x   | x Connection/filtering                    | x   | x Connection/excluded hosts               | x   | x Connection/filtered hosts               | x   | x Connection/filter host parents          | x   | x Connection/exclude host parents         | x   | x Connection/debug mode                   | x   | x Connection/ignore proxy                 | x   | x proxy/http proxy id                | x   | x proxy/http proxy name              | x   | x proxy/http proxy url               | x   | x Locations/                              | x   | x Organizations/                          | x   | x ----------------------------------------|-----|-------- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
-          "description": "List of virt-who configurations",
-          "name": "list",
-          "options": [
-            {
-              "help": "Show specified fields or predefined field sets only. (See below)",
-              "name": "fields",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Sort and order by a searchable field, e.g. '<field> DESC'",
-              "name": "order",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Page number, starting at 1",
-              "name": "page",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
-              "help": "Number of results per page to return, 'all' to return all results",
-              "name": "per-page",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Filter results",
-              "name": "search",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Print help ---------------|-----|---------|----- | ALL | DEFAULT | THIN ---------------|-----|---------|----- | x   | x       | x | x   | x       | x | x   | x       | | x   | x       | report at | x   | x       | ---------------|-----|---------|----- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
-          "description": "Update a virt-who configuration",
-          "name": "update",
-          "options": [
-            {
-              "help": "Option Enable debugging output is required to enable AHV internal debug. It provides extra AHV debug information when both options are enabled",
-              "name": "ahv-internal-debug",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
-              "help": "Hypervisor blacklist, applicable only when filtering mode is set to 2. Wildcards and regular expressions are supported, multiple records must be separated by comma.",
-              "name": "blacklist",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Enable debugging output",
-              "name": "debug",
-              "shortname": null,
-              "value": "BOOLEAN"
-            },
-            {
-              "help": "Applicable only for esx provider type. Hosts which parent (usually ComputeResource) name is specified in comma-separated list in this option will NOT be reported. Wildcards and regular expressions are supported, multiple records must be separated by comma. Put the value into the double-quotes if it contains special characters like comma. All new line characters will be removed in resulting configuration file, white spaces are removed from beginning and end.",
-              "name": "exclude-host-parents",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Applicable only for esx provider type. Only hosts which parent (usually ComputeResource) name is specified in comma-separated list in this option will be reported. Wildcards and regular expressions are supported, multiple records must be separated by comma. Put the value into the double-quotes if it contains special characters like comma. All new line characters will be removed in resulting configuration file, white spaces are removed from beginning and end.",
-              "name": "filter-host-parents",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Hypervisor filtering mode Possible value(s): 'none', 'whitelist', 'blacklist'",
-              "name": "filtering-mode",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
-              "help": "VALUE/NUMBER          HTTP proxy that should be used for communication between the server on which virt-who is running and the hypervisors and virtualization managers.",
-              "name": "http-proxy",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER          HTTP proxy that should be used for communication between the server on which virt-who is running and the hypervisors and virtualization managers.",
-              "name": "http-proxy-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Specifies how the hypervisor will be identified. Possible value(s): 'hostname', 'uuid', 'hwuuid'",
-              "name": "hypervisor-id",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
-              "help": "Hypervisor password, required for all hypervisor types except for libvirt/OpenShift Virtualization.",
-              "name": "hypervisor-password",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Fully qualified host name or IP address of the hypervisor",
-              "name": "hypervisor-server",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Hypervisor type Possible value(s): 'esx', 'hyperv', 'libvirt', 'kubevirt', 'ahv'",
-              "name": "hypervisor-type",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
-              "help": "Account name by which virt-who is to connect to the hypervisor.",
-              "name": "hypervisor-username",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Configuration numeric identifier",
-              "name": "id",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
-              "help": "Configuration interval in minutes Possible value(s): '60', '120', '240', '480', '720', '1440', '2880', '4320'",
-              "name": "interval",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
-              "help": "Configuration file containing details about how to connect to the cluster and authentication details.",
-              "name": "kubeconfig-path",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Configuration name",
-              "name": "name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Configuration name",
-              "name": "new-name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Ignore Proxy. A comma-separated list of hostnames or domains or ip addresses to ignore Capsule settings for. Optionally this may be set to * to bypass proxy settings for all hostnames domains or ip addresses.",
-              "name": "no-proxy",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Select the Prism flavor you are connecting to Possible value(s): 'central', 'element'",
-              "name": "prism-flavor",
-              "shortname": null,
-              "value": "ENUM"
-            },
-            {
-              "help": "Satellite server FQDN",
-              "name": "satellite-url",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "Hypervisor whitelist, applicable only when filtering mode is set to 1. Wildcards and regular expressions are supported, multiple records must be separated by comma.",
-              "name": "whitelist",
-              "shortname": null,
-              "value": "VALUE"
             },
             {
               "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
