@@ -2115,7 +2115,8 @@ def test_positive_dump_enc_yaml(target_sat):
     assert f'fqdn: {target_sat.hostname}' in enc_dump
     ip_prefix = 'ip6' if target_sat.network_type == NetworkType.IPV6 else 'ip'
     assert f'{ip_prefix}: {target_sat.ip_addr}' in enc_dump
-    assert 'ssh-rsa' in enc_dump
+    # Check for SSH key (either RSA or Ed25519)
+    assert 'ssh-rsa' in enc_dump or 'ssh-ed25519' in enc_dump
 
 
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
