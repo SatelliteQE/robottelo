@@ -20,7 +20,7 @@ pytest-asyncio==1.4.0
 pytest-order==1.5.0
 pytest-services==2.2.2
 pytest-mock==3.15.1
-pytest-reportportal==5.6.8
+pytest-reportportal==5.6.9
 pytest-reportlog==1.0.0
 pytest-xdist==3.6.1
 pytest-fixturecollection==0.1.2
