@@ -5,6 +5,22 @@ from robottelo.config import settings
 from robottelo.constants import CAPSULE_REGISTRATION_OPTS
 
 
+def _activation_key_content_payload(module_target_sat_insights, organization):
+    """Build ActivationKey content payload compatible with Nailgun schema."""
+    content_view = organization.default_content_view
+    environment = module_target_sat_insights.api.LifecycleEnvironment(id=organization.library.id)
+    activation_key_fields = module_target_sat_insights.api.ActivationKey()._fields
+
+    if {'content_view', 'environment'}.issubset(activation_key_fields):
+        return {'content_view': content_view, 'environment': environment}
+
+    if 'content_view_environment_ids' in activation_key_fields:
+        cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(content_view, environment)
+        return {'content_view_environment_ids': [cvenv_id]}
+
+    raise RuntimeError(f'Unsupported ActivationKey schema fields: {list(activation_key_fields)}')
+
+
 def enable_insights(host, satellite, org, activation_key):
     """Configure remote execution and insights-client on a host"""
     host.configure_rex(satellite=satellite, org=org, register=False)
@@ -72,13 +88,8 @@ def rhcloud_manifest_org(module_target_sat_insights, module_sca_manifest):
 @pytest.fixture(scope='module')
 def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
     """A module-level fixture to create an Activation key in rhcloud_manifest_org"""
-    content_view = rhcloud_manifest_org.default_content_view
-    environment = module_target_sat_insights.api.LifecycleEnvironment(
-        id=rhcloud_manifest_org.library.id
-    )
     return module_target_sat_insights.api.ActivationKey(
-        content_view=content_view,
-        environment=environment,
+        **_activation_key_content_payload(module_target_sat_insights, rhcloud_manifest_org),
         organization=rhcloud_manifest_org,
         service_level='Self-Support',
         purpose_usage='test-usage',
@@ -89,13 +100,8 @@ def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
 @pytest.fixture(scope='module')
 def activation_key_with_els_manifest_org(module_target_sat_insights, module_els_manifest_org):
     """A module-level fixture to create an Activation key in module_els_manifest_org"""
-    content_view = module_els_manifest_org.default_content_view
-    environment = module_target_sat_insights.api.LifecycleEnvironment(
-        id=module_els_manifest_org.library.id
-    )
     return module_target_sat_insights.api.ActivationKey(
-        content_view=content_view,
-        environment=environment,
+        **_activation_key_content_payload(module_target_sat_insights, module_els_manifest_org),
         organization=module_els_manifest_org,
     ).create()
 
