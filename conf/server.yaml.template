@@ -35,8 +35,10 @@ SERVER:
     UNCONFIGURED: deploy-unconfigured-satellite # workflow to deploy unconfigured sat
     IOP: deploy-satellite-iop # workflow to deploy Satellite with IoP enabled
   # Dictionary of arguments which should be passed along to the deploy workflow
-  # DEPLOY_ARGUMENTS:
+  DEPLOY_ARGUMENTS:
   #  deploy_network_type: '@format { this.server.network_type }'
+  # Set to true when Satellite is deployed from container images instead of RPMs
+    DEPLOY_CONTAINER: False
   # HTTP scheme when building the server URL
   # Suggested values for "scheme" are "http" and "https".
   SCHEME: https
