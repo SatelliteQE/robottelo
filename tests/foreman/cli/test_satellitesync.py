@@ -3331,8 +3331,10 @@ class TestExportImport:
     @pytest.mark.pqc
     @pytest.mark.rhel_ver_match('N-0')
     @pytest.mark.no_containers
+    @pytest.mark.parametrize('export_format', ['importable', 'syncable'])
     def test_positive_export_import_mldsa_content(
         self,
+        export_format,
         target_sat,
         module_import_sat,
         rhel_contenthost,
@@ -3346,6 +3348,8 @@ class TestExportImport:
 
         :id: 17640f0e-0d7c-46de-aee4-a05e73a04d3a
 
+        :parametrized: yes
+
         :setup:
             1. Satellite with SCA manifest and import Satellite (separate instance
                or same, per settings.iss).
@@ -3355,7 +3359,7 @@ class TestExportImport:
             1. Enable the latest RHEL BaseOS repository on the export Satellite,
                set download policy to immediate, then sync.
             2. Create a content view, add the repository, publish it.
-            3. Export the content view version.
+            3. Export the content view version in exportable or syncable format.
             4. Transfer the export archive to the import Satellite and import it.
             5. Create an activation key on the import Satellite and register the
                content host against it.
@@ -3366,7 +3370,7 @@ class TestExportImport:
 
         :expectedresults:
             1. Repository syncs with immediate policy (all RPMs physically downloaded).
-            2. Content view export succeeds.
+            2. Content view export succeeds in both exportable and syncable formats.
             3. Content view import succeeds on the import Satellite.
             4. Host registers against the import Satellite and can consume content.
             5. dnf install succeeds for all ML-DSA-signed packages.
@@ -3406,7 +3410,8 @@ class TestExportImport:
 
         assert target_sat.validate_pulp_filepath(eorg, PULP_EXPORT_DIR) == ''
         export = target_sat.cli.ContentExport.completeVersion(
-            {'id': cv['versions'][0]['id'], 'organization-id': eorg.id}, timeout='30m'
+            {'id': cv['versions'][0]['id'], 'organization-id': eorg.id, 'format': export_format},
+            timeout='30m',
         )
         assert target_sat.validate_pulp_filepath(eorg, PULP_EXPORT_DIR) != ''
 
