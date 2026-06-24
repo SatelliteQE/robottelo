@@ -208,6 +208,8 @@ ZOO_CUSTOM_GPG_KEY = "zoo_custom_gpgkey.txt"
 
 VALID_GPG_KEY_BETA_FILE = "valid_gpg_key_beta.txt"
 
+REDHAT_MLDSA_KEY_FILE = "RPM-GPG-KEY-redhat-mldsa.txt"
+
 KEY_CLOAK_CLI = "/opt/rh/rh-sso7/root/usr/share/keycloak/bin/kcadm.sh"
 # this symlink needs to be created manually on the RHBK instance; default path is something version-specific like /opt/rhbk-24.0.6/bin/kcadm.sh
 RHBK_CLI = "/bin/kcadm.sh"
@@ -2568,6 +2570,7 @@ class DataFile(Box):
     REPORT_TEMPLATE_FILE = DATA_DIR.joinpath(REPORT_TEMPLATE_FILE)
     VALID_GPG_KEY_FILE = DATA_DIR.joinpath(VALID_GPG_KEY_FILE)
     VALID_GPG_KEY_BETA_FILE = DATA_DIR.joinpath(VALID_GPG_KEY_BETA_FILE)
+    REDHAT_MLDSA_KEY_FILE = DATA_DIR.joinpath(REDHAT_MLDSA_KEY_FILE)
     VALID_CERT_FILE = DATA_DIR.joinpath('valid_cert.crt')
     RPM_TO_UPLOAD = DATA_DIR.joinpath(RPM_TO_UPLOAD)
     SRPM_TO_UPLOAD = DATA_DIR.joinpath(SRPM_TO_UPLOAD)
