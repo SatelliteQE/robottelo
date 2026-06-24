@@ -18,7 +18,11 @@ import pytest
 
 from robottelo.cli import hammer
 from robottelo.config import settings
-from robottelo.constants import FOREMANCTL_PARAMETERS_FILE, FOREMANCTL_POSTGRESQL_TUNING_PROFILES
+from robottelo.constants import (
+    FOREMANCTL_PARAMETERS_FILE,
+    FOREMANCTL_POSTGRESQL_TUNING_PROFILES,
+    InstallationServices,
+)
 from robottelo.hosts import Satellite
 from robottelo.utils.issue_handlers import is_open
 
@@ -26,26 +30,11 @@ pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
 
 FOREMANCTL_CERTS_DIR = '/var/lib/foremanctl/certs/certs'
 
-SATELLITE_SERVICES = [
-    'candlepin',
-    'dynflow-sidekiq@orchestrator',
-    'dynflow-sidekiq@worker',
-    'dynflow-sidekiq@worker-hosts-queue',
-    'foreman-proxy',
-    'foreman',
-    'httpd',
-    'postgresql',
-    'pulp-api',
-    'pulp-content',
-    'pulp-worker@*',
-    'redis',
-]
-
 
 def common_sat_install_assertions(satellite):
     # no errors/failures in journald
     result = satellite.execute(
-        r'journalctl --quiet --no-pager --boot --grep ERROR -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulp-api" -u "pulp-content" -u "pulp-worker*" -u "redis" -u "candlepin"'
+        r'journalctl --quiet --no-pager --boot --grep ERROR -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulp-api" -u "pulp-content" -u "pulp-worker*" -u "valkey" -u "candlepin"'
     )
     if is_open('SAT-21086'):
         assert not list(filter(lambda x: 'PG::' not in x, result.stdout.splitlines()))
@@ -135,7 +124,7 @@ def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
-@pytest.mark.parametrize('service', SATELLITE_SERVICES)
+@pytest.mark.parametrize('service', InstallationServices.FOREMANCTL_SERVICES)
 def test_positive_check_installer_service_running(service, module_sat_ready_rhel):
     """Check if all Satellite services is running
 
