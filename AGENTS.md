@@ -258,34 +258,33 @@ Examples:
 
 Use **reStructuredText** format with required fields, Reference `testimony.yaml` for complete field definitions:
 
-```python
-def test_positive_create_activation_key(module_org, module_target_sat):
-    """Create activation key with valid name
-
-    :id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d <generated uuid>
-
-    :steps:
-        1. Create organization
-        2. Create activation key with valid name
-        3. Verify activation key exists
-
-    :expectedresults: Activation key is created successfully
-
-    :CaseAutomation: Automated
-    """
-    ak = module_target_sat.api.ActivationKey(
-        organization=module_org,
-        name=gen_string('alpha')
-    ).create()
-```
-
 **Required Fields**:
-- `:id:` - Unique test UUID. Use `python -c 'import uuid; print(uuid.uuid4())'` to generate it
+- `:id:` - Unique test UUID (see [UUID Generation](#uuid-generation) below)
 - `:steps:` - Test execution steps
 - `:expectedresults:` - Expected outcome
 
 **Optional fields**:
 - `:Verifies:` - When the test verifies a Bug (Use as :Verifies: SAT-12345) (Formerly there was :BZ: tag, don't use that anymore)
+
+### UUID Generation
+
+> **MANDATORY RULE: Never invent, type, or generate UUIDs yourself.**
+>
+> LLMs produce UUIDs with obvious patterns (e.g. `1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d`,
+> sequential hex like `bcde`, `defa`) that are immediately recognizable during code review.
+> These will be rejected.
+
+**How to generate a UUID:**
+```bash
+python -c 'import uuid; print(uuid.uuid4())'
+```
+
+Run this command in a shell for **each** test that needs an `:id:`. Copy and paste the output
+directly into the docstring. Do not modify it.
+
+**Validation:** Run `make uuid-check` to detect empty, duplicate, or malformatted `:id:` tags.
+Run `make uuid-fix` to auto-fill empty `:id:` tags or replace duplicates.
+
 ---
 
 ## Testing Patterns
@@ -870,7 +869,7 @@ repo_url = settings.repos.yum_3.url
     - Action: `create`, `update`, `delete`, `list`
 
 *   **Test Documentation:** Every test must have:
-    - Unique `:id:` UUID (use `python -c 'import uuid; print(uuid.uuid4())'`)
+    - Unique `:id:` UUID (see [UUID Generation](#uuid-generation) — **never generate UUIDs yourself, always use the shell command**)
     - Clear `:steps:`
     - Expected `:expectedresults:`
 
@@ -918,5 +917,5 @@ repo_url = settings.repos.yum_3.url
 
 ---
 
-**Last Updated**: 2026-04-28
-**Maintainers**: Cole Higgins
+**Last Updated**: 2026-06-25
+**Maintainers**: Cole Higgins, Ian Ballou
