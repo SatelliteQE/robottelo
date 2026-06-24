@@ -205,13 +205,13 @@ def test_positive_cli_end_to_end(function_sca_manifest, target_sat, rhel_content
     assert len(cv_version['lifecycle-environments']) == 2
     assert cv_version['lifecycle-environments'][-1]['id'] == lifecycle_environment['id']
 
+    cv_env_id = target_sat.api_factory.get_cvenv_id(content_view['id'], lifecycle_environment['id'])
     # step 2.12: Create a new activation key
     activation_key = _create(
         user,
         target_sat.cli.ActivationKey,
         {
-            'content-view-id': content_view['id'],
-            'lifecycle-environment-id': lifecycle_environment['id'],
+            'content-view-environment-ids': cv_env_id,
             'name': gen_alphanumeric(),
             'organization-id': org['id'],
         },
@@ -299,8 +299,7 @@ def test_positive_cli_end_to_end(function_sca_manifest, target_sat, rhel_content
         {
             'id': host_group['id'],
             'organization-ids': org['id'],
-            'content-view-id': content_view['id'],
-            'lifecycle-environment-id': lifecycle_environment['id'],
+            'content-view-environment-id': cv_env_id,
         }
     )
 
