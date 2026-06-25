@@ -792,9 +792,11 @@ def test_weak_dependency(sat_non_default_install, package):
 
 @pytest.mark.parametrize(
     'satellite_with_install_method',
-    ['installer', 'foremanctl'],
+    [
+        pytest.param('installer', id='installer-method'),
+        pytest.param('foremanctl', marks=pytest.mark.foremanctl, id='foremanctl-method'),
+    ],
     indirect=True,
-    ids=['installer-method', 'foremanctl-method'],
 )
 def test_installation_with_both_methods(satellite_with_install_method):
     """Verify Satellite installation works with both methods.
