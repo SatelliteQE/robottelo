@@ -436,14 +436,12 @@ def satellite_with_install_method(request):
 
     if 'sanity' in request.config.option.markexpr:
         sat = Satellite(settings.server.hostname)
+        configure_nailgun()
+        configure_airgun()
     else:
         sat = lru_sat_ready_rhel(None)
         sat.install_satellite(installer_method=install_method)
         sat.enable_satellite_ipv6_http_proxy()
-
-    if 'sanity' in request.config.option.markexpr:
-        configure_nailgun()
-        configure_airgun()
 
     yield sat
 

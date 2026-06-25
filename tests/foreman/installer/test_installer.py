@@ -20,7 +20,6 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.ohsnap import dogfood_repository
 
 SATELLITE_SERVICES = [
@@ -105,39 +104,6 @@ def extract_help(filter='params'):
             for token in first_2_tokens:
                 if token[0] == '-':
                     yield token.replace(',', '')
-
-
-def common_sat_install_assertions(satellite):
-    sat_version = 'stream' if satellite.is_stream else satellite.version
-    if settings.server.version.source != 'nightly':
-        assert settings.server.version.release == sat_version
-
-    # no errors/failures in journald
-    result = satellite.execute(
-        r'journalctl --quiet --no-pager --boot --priority err -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-content" -u "pulpcore-worker*" -u "redis" -u "tomcat"'
-    )
-    assert not result.stdout
-    # no errors in /var/log/foreman/production.log
-    result = satellite.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
-    if not is_open('SAT-21086'):
-        assert not result.stdout
-    # no errors/failures in /var/log/foreman-installer/satellite.log
-    result = satellite.execute(
-        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
-    )
-    assert not result.stdout
-    # no errors/failures in /var/log/httpd/*
-    result = satellite.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert not result.stdout
-    # no errors/failures in /var/log/candlepin/*
-    result = satellite.execute(r'grep -iR "error" /var/log/candlepin/*')
-    assert not result.stdout
-
-    httpd_log = satellite.execute('journalctl --unit=httpd')
-    assert "WARNING" not in httpd_log.stdout
-
-    result = satellite.cli.Health.check()
-    assert 'FAIL' not in result.stdout
 
 
 def install_satellite(satellite, installer_args, enable_fapolicyd=False):
@@ -774,7 +740,7 @@ def test_satellite_installation(pytestconfig, installer_satellite):
     """
     from robottelo.enums import InstallMethod
 
-    common_sat_install_assertions(installer_satellite)
+    installer_satellite.assert_install_assertions()
 
     # Verify foreman-redis is installed and set as default cache for rails
     assert installer_satellite.execute('rpm -q foreman-redis').status == 0
@@ -847,17 +813,12 @@ def test_installation_with_both_methods(satellite_with_install_method):
 
     :parametrized: yes
     """
-    from tests.foreman.installer.test_installer_common import (
-        assert_hammer_ping_ok,
-        common_sat_install_assertions,
-    )
-
     sat = satellite_with_install_method
 
-    common_sat_install_assertions(sat)
+    sat.assert_install_assertions()
 
     failed = sat.get_failed_services()
     assert not failed, f'Services not running: {failed}'
 
     result = sat.execute('hammer ping')
-    assert_hammer_ping_ok(result)
+    sat.assert_hammer_ping_ok(result)
