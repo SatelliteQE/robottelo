@@ -65,6 +65,20 @@ def class_target_sat(request, _default_sat, satellite_factory):
 
 
 @pytest.fixture(scope='module')
+def foremanctl_sat():
+    """Provision a RHEL VM and deploy Satellite via foremanctl."""
+    with Broker(
+        workflow=settings.server.deploy_workflows.os,
+        deploy_rhel_version=settings.server.version.rhel_version,
+        deploy_flavor=settings.flavors.default,
+        deploy_network_type=settings.server.network_type,
+        host_class=Satellite,
+    ) as sat:
+        sat.install_satellite_foremanctl()
+        yield sat
+
+
+@pytest.fixture(scope='module')
 def module_discovery_sat(
     module_provisioning_sat,
     module_sca_manifest_org,
