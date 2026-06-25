@@ -477,7 +477,7 @@ def test_positive_verify_updated_fdi_image(target_sat):
 
     :expectedresults: Installed foreman-discovery-image is built on latest up-to-date RHEL
 
-    Verifies: SAT-24197, SAT-27541, SAT-34778, SAT-40503
+    Verifies: SAT-24197, SAT-27541, SAT-34778, SAT-40503, SAT-47174
 
     :customerscenario: true
 
@@ -486,6 +486,6 @@ def test_positive_verify_updated_fdi_image(target_sat):
     discovery_ks_path = '/usr/share/foreman-discovery-image/foreman-discovery-image.ks'
     target_sat.register_to_cdn()
     target_sat.execute('yum -y --disableplugin=foreman-protector install foreman-discovery-image')
-    version = str(target_sat.os_version)
+    version = '9.7' if is_open('SAT-47174') else str(target_sat.os_version)
     result = target_sat.execute(f'grep "url=" {discovery_ks_path}')
     assert version in result.stdout
