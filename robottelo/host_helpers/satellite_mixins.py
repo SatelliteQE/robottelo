@@ -515,3 +515,77 @@ class IoPSetup:
             raise SatelliteHostError(f'Failed to disable IoP: {result.stdout}')
         if self.iop_enabled:
             raise SatelliteHostError('IoP is not disabled')
+
+
+class InstallationVerification:
+    """Installation verification helper methods for Satellite hosts."""
+
+    @staticmethod
+    def assert_hammer_ping_ok(result):
+        """Assert that 'hammer ping' output shows all services as ok.
+
+        :param result: Command result from executing 'hammer ping'
+        """
+        from robottelo.cli import hammer
+
+        assert result.status == 0, 'hammer ping failed'
+        services = hammer.parse_ping(result.stdout)
+        for service_name, status in services.items():
+            assert status == 'ok', f'Service {service_name} status is {status}, expected ok'
+
+    def assert_install_assertions(self):
+        """Assert common post-installation health checks.
+
+        Works with both satellite-installer and foremanctl installation methods.
+        Checks logs, services, and overall system health.
+        """
+        from robottelo.config import settings
+        from robottelo.enums import InstallMethod
+        from robottelo.utils.issue_handlers import is_open
+
+        sat_version = 'stream' if self.is_stream else self.version
+        if settings.server.version.source != 'nightly':
+            assert settings.server.version.release == sat_version
+
+        # Check journald for errors using installation-method-aware service list
+        services = self.get_service_names()
+        service_units = ' '.join([f'-u "{svc}"' for svc in services])
+        result = self.execute(
+            f'journalctl --quiet --no-pager --boot --priority err {service_units}'
+        )
+        assert not result.stdout
+
+        # Check foreman production log
+        result = self.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
+        if not is_open('SAT-21086'):
+            assert not result.stdout
+
+        # Check foreman-installer log (only relevant for satellite-installer method)
+        if self.install_method == InstallMethod.INSTALLER:
+            result = self.execute(
+                r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
+            )
+            assert not result.stdout
+
+        # Check httpd logs, filtering expected transient startup errors
+        # (httpd may start before Foreman/containers are ready, causing brief "Connection refused")
+        result = self.execute(r'grep -iR "error" /var/log/httpd/*')
+        if result.stdout:
+            filtered_errors = [
+                line
+                for line in result.stdout.splitlines()
+                if 'Connection refused' not in line
+                and 'attempt to connect to 127.0.0.1:3000' not in line
+                and 'failed to make connection to backend: localhost' not in line
+            ]
+            assert not filtered_errors, f'Unexpected httpd errors:\n{chr(10).join(filtered_errors)}'
+
+        # Check candlepin logs
+        result = self.execute(r'grep -iR "error" /var/log/candlepin/*')
+        assert not result.stdout
+
+        httpd_log = self.execute('journalctl --unit=httpd')
+        assert 'WARNING' not in httpd_log.stdout
+
+        result = self.cli.Health.check()
+        assert 'FAIL' not in result.stdout

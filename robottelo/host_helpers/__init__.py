@@ -8,6 +8,7 @@ from robottelo.host_helpers.satellite_mixins import (
     ContentInfo,
     EnablePluginsSatellite,
     Factories,
+    InstallationVerification,
     IoPSetup,
     ProvisioningSetup,
     SystemInfo,
@@ -23,6 +24,12 @@ class CapsuleMixins(CapsuleInfo, EnablePluginsCapsule):
 
 
 class SatelliteMixins(
-    ContentInfo, Factories, SystemInfo, EnablePluginsSatellite, ProvisioningSetup, IoPSetup
+    ContentInfo,
+    Factories,
+    SystemInfo,
+    EnablePluginsSatellite,
+    ProvisioningSetup,
+    IoPSetup,
+    InstallationVerification,
 ):
     pass
