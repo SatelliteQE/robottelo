@@ -1,12 +1,12 @@
 # Version updates managed by dependabot
 
 apypie==0.8.0
-broker[satlab,docker,ssh2_python]==0.8.7
+broker[satlab,docker,ssh2_python]==0.8.8
 cryptography==49.0.0
 deepdiff==9.1.0
 dynaconf[vault]==3.2.13
 fastmcp-slim[client]==3.4.2
-fauxfactory==4.2.1
+fauxfactory==4.2.2
 jira==3.10.5
 jinja2==3.1.6
 manifester==0.2.14
@@ -15,12 +15,12 @@ productmd==1.50
 PyGithub==2.9.1
 pyotp==2.10.0
 python-box==7.4.1
-pytest==9.0.3
+pytest==9.1.1
 pytest-asyncio==1.4.0
 pytest-order==1.5.0
 pytest-services==2.2.2
 pytest-mock==3.15.1
-pytest-reportportal==5.6.8
+pytest-reportportal==5.6.9
 pytest-reportlog==1.0.0
 pytest-xdist==3.6.1
 pytest-fixturecollection==0.1.2
