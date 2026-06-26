@@ -12,6 +12,8 @@
 
 """
 
+from urllib.parse import urlsplit
+
 import pytest
 import requests
 
@@ -143,10 +145,11 @@ def test_positive_documentation_links(module_target_sat, session, custom_docs_ur
             broken_links.append(link)
             logger.info(f"Following link on {page} page seems broken: \n {link}")
         # If Custom URL is configured, check if it is applied, allow pre-defined exceptions
+        link_base = urlsplit(link)._replace(query='', fragment='').geturl()
         if (
             custom_docs_url_setting
             and custom_docs_url_setting not in link
-            and not (page in exceptions and link in exceptions[page])
+            and not (page in exceptions and link_base in exceptions[page])
         ):
             broken_links.append(link)
             logger.info(
