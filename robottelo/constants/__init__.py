@@ -2591,7 +2591,7 @@ class InstallationServices:
         'pulp-api',
         'pulp-content',
         'pulp-worker@*',
-        'redis',
+        'valkey',
     ]
 
 
