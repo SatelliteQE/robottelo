@@ -19,6 +19,7 @@ import pytest
 from requests import HTTPError
 
 from robottelo.constants import DataFile
+from robottelo.constants.repos import RHEL10_BASEOS_MLDSA
 from robottelo.utils.datafactory import (
     invalid_values_list,
     parametrized,
@@ -260,3 +261,62 @@ def test_positive_block_delete_key_in_use(module_org, target_sat):
     assert product.gpg_key.id == repo.gpg_key.id
     assert product.gpg_key.id == gpg_key.id
     assert repo.gpg_key.id == gpg_key.id
+
+
+@pytest.mark.pqc
+def test_positive_CRUD_mldsa_gpg_key(module_org, module_target_sat):
+    """Create, associate, update and delete an ML-DSA (PQC) GPG key.
+
+    Verifies Satellite correctly handles the V6 ML-DSA-87+Ed448 key format
+    used by Red Hat for post-quantum cryptography package signing.
+
+    :id: ae2dc387-e3f6-47ba-8089-c3fe2944a15e
+
+    :steps:
+        1. Create a GPG key using the Red Hat ML-DSA public key content.
+        2. Verify the stored content matches the source file exactly.
+        3. Associate the key with a new product and repository.
+        4. Verify the associations are set correctly on both entities.
+        5. Update the key content to a standard RSA key.
+        6. Verify the update succeeded and ML-DSA signature type is no longer
+           present in the stored content.
+        7. Delete the GPG key.
+        8. Verify the key no longer exists.
+
+    :expectedresults:
+        1. ML-DSA GPG key is created and its content is stored correctly.
+        2. The stored content contains the expected ML-DSA signature type string
+           and key ID, proving the V6 key format survived the API round-trip.
+        3. The key can be associated with products and repositories.
+        4. Content update from ML-DSA to RSA succeeds and no ML-DSA strings
+           remain in the stored content.
+        5. The key can be deleted after disassociation.
+    """
+    mldsa_content = DataFile.REDHAT_MLDSA_KEY_FILE.read_text()
+
+    gpg_key = module_target_sat.api.GPGKey(
+        organization=module_org,
+        name=gen_string('alpha'),
+        content=mldsa_content,
+    ).create()
+    assert gpg_key.content == mldsa_content
+    assert RHEL10_BASEOS_MLDSA['signature_type'] in gpg_key.content
+    assert RHEL10_BASEOS_MLDSA['key_id'].upper() in gpg_key.content
+
+    product = module_target_sat.api.Product(gpg_key=gpg_key, organization=module_org).create()
+    repo = module_target_sat.api.Repository(product=product, gpg_key=gpg_key).create()
+    assert product.read().gpg_key.id == gpg_key.id
+    assert repo.read().gpg_key.id == gpg_key.id
+
+    gpg_key.content = key_content
+    gpg_key = gpg_key.update(['content'])
+    assert gpg_key.content == key_content
+    assert RHEL10_BASEOS_MLDSA['signature_type'] not in gpg_key.content
+
+    repo.gpg_key = None
+    repo.update(['gpg_key'])
+    product.gpg_key = None
+    product.update(['gpg_key'])
+    gpg_key.delete()
+    with pytest.raises(HTTPError):
+        gpg_key.read()

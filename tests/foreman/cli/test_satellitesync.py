@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 import os
 from time import sleep
 
+from broker import Broker
 from fauxfactory import gen_string
 from manifester import Manifester
 import pytest
@@ -33,53 +34,23 @@ from robottelo.constants import (
     REPOS,
     DataFile,
 )
-from robottelo.constants.repos import ANSIBLE_GALAXY
+from robottelo.constants.repos import ANSIBLE_GALAXY, RHEL10_BASEOS_MLDSA
 from robottelo.exceptions import CLIReturnCodeError
 
 
 @pytest.fixture(scope='class')
-def config_export_import_settings(module_target_sat):
-    """Check settings and set download policy for export.  Reset to original state after import"""
-    download_policy_value = module_target_sat.cli.Settings.info(
-        {'name': 'default_download_policy'}
-    )['value']
-    rh_download_policy_value = module_target_sat.cli.Settings.info(
-        {'name': 'default_redhat_download_policy'}
-    )['value']
-    subs_conn_enabled_value = module_target_sat.cli.Settings.info(
-        {'name': 'subscription_connection_enabled'}
-    )['value']
-    module_target_sat.cli.Settings.set(
-        {'name': 'default_redhat_download_policy', 'value': 'immediate'}
-    )
+def class_immediate_rh_download_policy(class_target_sat):
+    """Set RH default download policy to immediate for export. Reset to original after."""
+    original = class_target_sat.update_setting('default_redhat_download_policy', 'immediate')
     yield
-    module_target_sat.cli.Settings.set(
-        {'name': 'default_download_policy', 'value': download_policy_value}
-    )
-    module_target_sat.cli.Settings.set(
-        {'name': 'default_redhat_download_policy', 'value': rh_download_policy_value}
-    )
-    module_target_sat.cli.Settings.set(
-        {'name': 'subscription_connection_enabled', 'value': subs_conn_enabled_value}
-    )
+    class_target_sat.update_setting('default_redhat_download_policy', original)
 
 
 @pytest.fixture
-def export_import_cleanup_function(target_sat, function_org):
-    """Deletes export/import dirs of function org"""
+def complete_export_cleanup(target_sat):
+    """Deletes all org export dirs after each test."""
     yield
-    target_sat.execute(
-        f'rm -rf {PULP_EXPORT_DIR}/{function_org.name} {PULP_IMPORT_DIR}/{function_org.name}'
-    )
-
-
-@pytest.fixture  # perform the cleanup after each testcase of a module
-def export_import_cleanup_module(target_sat, module_org):
-    """Deletes export/import dirs of module_org"""
-    yield
-    target_sat.execute(
-        f'rm -rf {PULP_EXPORT_DIR}/{module_org.name} {PULP_IMPORT_DIR}/{module_org.name}'
-    )
+    target_sat.execute(f'rm -rf {PULP_EXPORT_DIR}*')
 
 
 @pytest.fixture
@@ -276,18 +247,23 @@ def function_exporter_user(target_sat, function_org):
 
 
 @pytest.fixture(scope='module')
-def module_import_sat(request, module_target_sat):
+def module_import_sat(module_target_sat, satellite_factory):
     """Provides a Satellite instance for imports.
 
-    Returns a separate Satellite when settings.iss.separate_import_sat is True,
-    or the exporting Satellite when False (for local debugging).
+    Returns a separate large-flavored Satellite (500 GB disk) when
+    settings.iss.separate_import_sat is True, or the exporting Satellite
+    when False (for local debugging).
     An air-gapped import Satellite has subscription_connection_enabled set to No.
     """
     if settings.iss.separate_import_sat:
-        sat = request.getfixturevalue('module_satellite_host')
+        sat = satellite_factory(deploy_flavor=settings.flavors.upgrade)
+        sat.enable_satellite_ipv6_http_proxy()
         sat.cli.Settings.set({'name': 'subscription_connection_enabled', 'value': 'No'})
-        return sat
-    return module_target_sat
+        yield sat
+        sat.teardown()
+        Broker(hosts=[sat]).checkin()
+    else:
+        yield module_target_sat
 
 
 @pytest.fixture
@@ -314,11 +290,12 @@ def complete_export_import_cleanup(target_sat, module_import_sat):
 
 
 @pytest.mark.run_in_one_thread
+@pytest.mark.usefixtures('complete_export_cleanup')
 class TestExport:
     """Tests for content export via CLI"""
 
     def test_positive_export_version_custom_repo(
-        self, target_sat, export_import_cleanup_module, module_org, module_synced_custom_repo
+        self, target_sat, module_org, module_synced_custom_repo
     ):
         """Export custom repo via complete and incremental CV version export.
 
@@ -377,7 +354,6 @@ class TestExport:
     def test_positive_export_library_custom_repo(
         self,
         target_sat,
-        export_import_cleanup_function,
         function_org,
         function_synced_custom_repo,
         function_exporter_user,
@@ -439,7 +415,6 @@ class TestExport:
     def test_positive_export_complete_library_rh_repo(
         self,
         target_sat,
-        export_import_cleanup_function,
         function_sca_manifest_org,
         function_synced_rh_repo,
     ):
@@ -484,7 +459,7 @@ class TestExport:
 
     @pytest.mark.upgrade
     def test_positive_export_repository_docker(
-        self, target_sat, export_import_cleanup_function, function_org, function_synced_docker_repo
+        self, target_sat, function_org, function_synced_docker_repo
     ):
         """Export docker repo via complete and incremental repository.
 
@@ -518,7 +493,7 @@ class TestExport:
 
     @pytest.mark.upgrade
     def test_positive_export_version_docker(
-        self, target_sat, export_import_cleanup_function, function_org, function_synced_docker_repo
+        self, target_sat, function_org, function_synced_docker_repo
     ):
         """Export CV with docker repo via complete and incremental version.
 
@@ -587,7 +562,6 @@ class TestExport:
     def test_positive_export_format_inheritance(
         self,
         target_sat,
-        export_import_cleanup_function,
         function_org,
         function_synced_custom_repo,
         subject,
@@ -680,9 +654,7 @@ class TestExport:
         history = target_sat.cli.ContentExport.list({'organization-id': function_org.id})
         assert importable_msg in history[-1]['path']
 
-    def test_positive_export_cv_with_on_demand_repo(
-        self, export_import_cleanup_module, target_sat, module_org
-    ):
+    def test_positive_export_cv_with_on_demand_repo(self, target_sat, module_org):
         """Exporting CV version skips on_demand repo
 
         :id: c366ace5-1fde-4ae7-9e84-afe58c06c0ca
@@ -773,7 +745,6 @@ class TestExport:
     def test_postive_export_cv_syncable_with_permissions(
         self,
         request,
-        export_import_cleanup_function,
         target_sat,
         function_restrictive_umask,
         function_org,
@@ -841,6 +812,7 @@ class TestExport:
         ), 'Unexpected permission for one or more exported files'
 
 
+@pytest.mark.usefixtures('class_immediate_rh_download_policy', 'complete_export_import_cleanup')
 class TestExportImport:
     """Implements content export and import tests in CLI"""
 
@@ -849,8 +821,6 @@ class TestExportImport:
         self,
         target_sat,
         module_synced_custom_repo,
-        config_export_import_settings,
-        export_import_cleanup_module,
         module_org,
         function_import_org,
     ):
@@ -945,8 +915,6 @@ class TestExportImport:
     def test_positive_export_import_default_org_view(
         self,
         target_sat,
-        complete_export_import_cleanup,
-        config_export_import_settings,
         function_sca_manifest_org,
         function_synced_custom_repo,
         function_synced_rh_repo,
@@ -1037,8 +1005,6 @@ class TestExportImport:
     def test_positive_export_import_filtered_cvv(
         self,
         module_synced_custom_repo,
-        complete_export_import_cleanup,
-        config_export_import_settings,
         target_sat,
         module_org,
         module_import_sat,
@@ -1125,8 +1091,6 @@ class TestExportImport:
         self,
         target_sat,
         module_synced_custom_repo,
-        export_import_cleanup_module,
-        config_export_import_settings,
         module_org,
         function_import_org,
     ):
@@ -1209,8 +1173,6 @@ class TestExportImport:
     def test_positive_export_import_redhat_cv(
         self,
         target_sat,
-        complete_export_import_cleanup,
-        config_export_import_settings,
         function_sca_manifest_org,
         function_synced_rh_repo,
         module_import_sat,
@@ -1301,8 +1263,6 @@ class TestExportImport:
         self,
         target_sat,
         module_synced_custom_repo,
-        export_import_cleanup_module,
-        config_export_import_settings,
         module_org,
         function_import_org,
     ):
@@ -1391,8 +1351,6 @@ class TestExportImport:
     def test_negative_import_incomplete_archive(
         self,
         target_sat,
-        config_export_import_settings,
-        export_import_cleanup_function,
         function_synced_rh_repo,
         function_sca_manifest_org,
         function_import_org_with_manifest,
@@ -1481,7 +1439,6 @@ class TestExportImport:
     def test_postive_export_import_cv_with_mixed_content_repos(
         self,
         request,
-        complete_export_import_cleanup,
         target_sat,
         function_org,
         function_product,
@@ -1743,7 +1700,6 @@ class TestExportImport:
 
     def test_postive_export_import_cv_with_mixed_content_syncable(
         self,
-        complete_export_import_cleanup,
         target_sat,
         function_org,
         function_synced_custom_repo,
@@ -1862,8 +1818,6 @@ class TestExportImport:
     def test_postive_export_import_cv_with_file_content(
         self,
         target_sat,
-        config_export_import_settings,
-        export_import_cleanup_function,
         function_org,
         function_synced_file_repo,
         function_import_org,
@@ -1938,8 +1892,6 @@ class TestExportImport:
     def test_positive_export_rerun_failed_import(
         self,
         target_sat,
-        config_export_import_settings,
-        export_import_cleanup_function,
         function_synced_rh_repo,
         function_sca_manifest_org,
         function_import_org_with_manifest,
@@ -2040,8 +1992,6 @@ class TestExportImport:
     def test_postive_export_import_ansible_collection_repo(
         self,
         target_sat,
-        config_export_import_settings,
-        complete_export_import_cleanup,
         function_org,
         module_import_sat,
         function_import_org_at_isat,
@@ -2107,8 +2057,6 @@ class TestExportImport:
     def test_postive_export_import_repo_with_GPG(
         self,
         target_sat,
-        config_export_import_settings,
-        complete_export_import_cleanup,
         function_org,
         function_synced_custom_repo,
         module_import_sat,
@@ -2176,8 +2124,6 @@ class TestExportImport:
     def test_postive_export_import_chunked_repo(
         self,
         target_sat,
-        config_export_import_settings,
-        complete_export_import_cleanup,
         function_org,
         function_synced_custom_repo,
         module_import_sat,
@@ -2243,8 +2189,6 @@ class TestExportImport:
     def test_negative_import_redhat_cv_without_manifest(
         self,
         target_sat,
-        complete_export_import_cleanup,
-        config_export_import_settings,
         function_sca_manifest_org,
         function_synced_rh_repo,
         module_import_sat,
@@ -2307,7 +2251,6 @@ class TestExportImport:
         self,
         target_sat,
         module_synced_custom_repo,
-        config_export_import_settings,
         module_org,
         function_import_org,
     ):
@@ -2397,8 +2340,6 @@ class TestExportImport:
     def test_positive_export_incremental_syncable_check_content(
         self,
         target_sat,
-        export_import_cleanup_function,
-        config_export_import_settings,
         function_sca_manifest_org,
         function_synced_rh_repo,
     ):
@@ -2480,8 +2421,6 @@ class TestExportImport:
     def test_postive_export_import_with_long_name(
         self,
         target_sat,
-        config_export_import_settings,
-        export_import_cleanup_module,
         module_org,
         function_import_org,
     ):
@@ -2513,7 +2452,6 @@ class TestExportImport:
             {
                 'name': gen_string('alpha', 128),
                 'content-type': 'yum',
-                'download-policy': 'immediate',
                 'organization-id': module_org.id,
                 'product-id': product.id,
             }
@@ -2594,7 +2532,6 @@ class TestExportImport:
     def test_postive_export_import_large_cv(
         self,
         request,
-        complete_export_import_cleanup,
         target_sat,
         function_org,
         function_synced_large_file_repo,
@@ -2687,8 +2624,6 @@ class TestExportImport:
     def test_export_repo_incremental_with_history_id(
         self,
         target_sat,
-        export_import_cleanup_function,
-        config_export_import_settings,
         function_sca_manifest_org,
         function_synced_rh_repo,
     ):
@@ -2757,8 +2692,6 @@ class TestExportImport:
     def test_positive_export_import_incremental_yum_repo(
         self,
         target_sat,
-        complete_export_import_cleanup,
-        config_export_import_settings,
         function_org,
         function_synced_custom_repo,
         module_import_sat,
@@ -2850,8 +2783,6 @@ class TestExportImport:
     def test_positive_export_import_mismatch_label(
         self,
         target_sat,
-        export_import_cleanup_function,
-        config_export_import_settings,
         function_sca_manifest_org,
         function_import_org_with_manifest,
         function_synced_rh_repo,
@@ -2941,8 +2872,6 @@ class TestExportImport:
         self,
         request,
         target_sat,
-        export_import_cleanup_function,
-        config_export_import_settings,
         function_sca_manifest_org,
         function_synced_rh_repo,
         satellite_host,
@@ -3068,8 +2997,6 @@ class TestExportImport:
     def test_positive_export_import_consume_incremental_yum_repo(
         self,
         target_sat,
-        complete_export_import_cleanup,
-        config_export_import_settings,
         function_org,
         function_synced_custom_repo,
         module_import_sat,
@@ -3246,8 +3173,6 @@ class TestExportImport:
     def test_postive_export_import_podman_repo(
         self,
         target_sat,
-        config_export_import_settings,
-        complete_export_import_cleanup,
         function_org,
         function_product,
         module_import_sat,
@@ -3321,6 +3246,136 @@ class TestExportImport:
             import_repo['content-counts']['container-manifests']
             == repo['content-counts']['container-manifests']
         )
+
+    @pytest.mark.pqc
+    @pytest.mark.rhel_ver_match('N-0')
+    @pytest.mark.no_containers
+    @pytest.mark.parametrize('export_format', ['importable', 'syncable'])
+    def test_positive_export_import_mldsa_content(
+        self,
+        export_format,
+        target_sat,
+        module_import_sat,
+        rhel_contenthost,
+        function_sca_manifest_org,
+        function_import_org_at_isat_with_manifest,
+    ):
+        """Export and import the latest RHEL BaseOS repository with ML-DSA signed
+        packages, then consume content from the import Satellite and verify the
+        V6 ML-DSA-87+Ed448 signatures are intact end-to-end.
+
+        :id: 17640f0e-0d7c-46de-aee4-a05e73a04d3a
+
+        :parametrized: yes
+
+        :setup:
+            1. Satellite with SCA manifest and import Satellite (separate instance
+               or same, per settings.iss).
+            2. Latest RHEL content host.
+
+        :steps:
+            1. Enable the latest RHEL BaseOS repository on the export Satellite and sync.
+            2. Create a content view, add the repository, publish it.
+            3. Export the content view version in exportable or syncable format.
+            4. Transfer the export archive to the import Satellite and import it.
+            5. Create an activation key on the import Satellite and register the
+               content host against it.
+            6. Install ML-DSA-signed packages (tuna, strace) via dnf.
+            7. Download additional ML-DSA-signed packages (chrony, jq) via dnf.
+            8. Verify each downloaded RPM carries exactly one V6 ML-DSA-87+Ed448
+               signature with the correct key ID, and that rpm -Kv exits successfully.
+
+        :expectedresults:
+            1. Repository syncs with immediate policy (all RPMs physically downloaded).
+            2. Content view export succeeds in both exportable and syncable formats.
+            3. Content view import succeeds on the import Satellite.
+            4. Host registers against the import Satellite and can consume content.
+            5. dnf install succeeds for all ML-DSA-signed packages.
+            6. rpm -Kv exits 0 and each downloaded RPM contains exactly one
+               'V6 ML-DSA-87+Ed448/SHA512 Signature, key ID 05707a62' line.
+        """
+        eorg, iorg = function_sca_manifest_org, function_import_org_at_isat_with_manifest
+        rhel_major = rhel_contenthost.os_version.major
+        repo_dict = REPOS[f'rhel{rhel_major}_bos']
+
+        target_sat.cli.RepositorySet.enable(
+            {
+                'organization-id': eorg.id,
+                'name': repo_dict['reposet'],
+                'product': repo_dict['product'],
+                'releasever': repo_dict['releasever'],
+                'basearch': DEFAULT_ARCHITECTURE,
+            }
+        )
+        repo = target_sat.cli.Repository.info(
+            {
+                'organization-id': eorg.id,
+                'name': repo_dict['name'],
+                'product': repo_dict['product'],
+            }
+        )
+        target_sat.cli.Repository.synchronize({'id': repo['id']}, timeout='30m')
+
+        cv = target_sat.cli_factory.make_content_view({'organization-id': eorg.id})
+        target_sat.cli.ContentView.add_repository(
+            {'id': cv['id'], 'organization-id': eorg.id, 'repository-id': repo['id']}
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1
+
+        assert target_sat.validate_pulp_filepath(eorg, PULP_EXPORT_DIR) == ''
+        export = target_sat.cli.ContentExport.completeVersion(
+            {'id': cv['versions'][0]['id'], 'organization-id': eorg.id, 'format': export_format},
+            timeout='30m',
+        )
+        assert target_sat.validate_pulp_filepath(eorg, PULP_EXPORT_DIR) != ''
+
+        import_path = target_sat.move_pulp_archive(
+            eorg, export['message'], target=module_import_sat
+        )
+        module_import_sat.cli.ContentImport.version(
+            {'organization-id': iorg.id, 'path': import_path},
+            timeout='30m',
+        )
+        imp_cv = module_import_sat.cli.ContentView.info(
+            {'name': cv['name'], 'organization-id': iorg.id}
+        )
+        assert imp_cv['name'] == cv['name']
+        assert len(imp_cv['versions']) == 1
+
+        cvenv_id = module_import_sat.api_factory.get_cvenv_id(imp_cv['id'], iorg.library)
+        ak = module_import_sat.cli_factory.make_activation_key(
+            {
+                'content-view-environment-ids': cvenv_id,
+                'organization-id': iorg.id,
+            }
+        )
+        result = rhel_contenthost.register(
+            org=iorg,
+            loc=None,
+            activation_keys=ak['name'],
+            target=module_import_sat,
+        )
+        assert result.status == 0, f'Host registration failed: {result.stderr}'
+
+        for pkg in RHEL10_BASEOS_MLDSA['install_packages']:
+            result = rhel_contenthost.execute(f'dnf install -y {pkg}')
+            assert result.status == 0, f'dnf install {pkg} failed:\n{result.stdout}'
+
+        download_dir = '/tmp/mldsa-iss-verify'
+        rhel_contenthost.execute(f'mkdir -p {download_dir}')
+        pkgs = ' '.join(RHEL10_BASEOS_MLDSA['download_packages'])
+        result = rhel_contenthost.execute(f'dnf download --downloaddir {download_dir} {pkgs}')
+        assert result.status == 0, f'dnf download failed:\n{result.stdout}'
+
+        result = rhel_contenthost.execute(f'rpm -Kv {download_dir}/*.rpm')
+        assert result.status == 0, f'rpm -Kv failed:\n{result.stdout}'
+        sig_line = (
+            f'V6 {RHEL10_BASEOS_MLDSA["signature_type"]}/SHA512 Signature, '
+            f'key ID {RHEL10_BASEOS_MLDSA["key_id"]}'
+        )
+        assert result.stdout.count(sig_line) == len(RHEL10_BASEOS_MLDSA['download_packages'])
 
 
 @pytest.fixture(scope='module')

@@ -28,3 +28,10 @@ FAKE_0_YUM_REPO_STRING_BASED_VERSIONS = (
 FAKE_ZST_REPO = 'https://fixtures.pulpproject.org/rpm-zstd-metadata'
 ANSIBLE_GALAXY = 'https://galaxy.ansible.com/'
 ANSIBLE_HUB = 'https://cloud.redhat.com/api/automation-hub/'
+
+RHEL10_BASEOS_MLDSA = {
+    'signature_type': 'ML-DSA-87+Ed448',
+    'key_id': '05707a62',
+    'install_packages': ['tuna', 'strace'],
+    'download_packages': ['chrony', 'jq'],
+}
