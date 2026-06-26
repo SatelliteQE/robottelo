@@ -16,24 +16,22 @@
 import pytest
 
 from robottelo.utils.virtwho import (
-    deploy_configure_by_command,
     deploy_configure_by_script,
-    get_configure_command,
     get_configure_file,
     get_configure_option,
 )
 
 
 class TestVirtWhoConfigforNutanix:
-    @pytest.mark.parametrize('deploy_type_api', ['id', 'script'], indirect=True)
-    def test_positive_deploy_configure_by_id_script(
+    @pytest.mark.parametrize('deploy_type_api', ['script'], indirect=True)
+    def test_positive_deploy_configure_by_script(
         self, default_org, virtwho_config_api, target_sat, deploy_type_api
     ):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs"
 
         :id: 81731df9-9bfc-411b-9836-ff298fd5228d
 
-        :expectedresults: Config can be created and deployed
+        :expectedresults: Config can be created and deployed by script
 
         :CaseImportance: High
         """
@@ -62,22 +60,20 @@ class TestVirtWhoConfigforNutanix:
             virtwho_config_api.hypervisor_id = value
             virtwho_config_api.update(['hypervisor_id'])
             config_file = get_configure_file(virtwho_config_api.id)
-            command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
-            deploy_configure_by_command(
-                command,
+            script = virtwho_config_api.deploy_script()
+            deploy_configure_by_script(
+                script['virt_who_config_script'],
                 form_data_api['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
             )
             assert get_configure_option('hypervisor_id', config_file) == value
 
-    @pytest.mark.parametrize('deploy_type', ['id', 'script'])
-    def test_positive_prism_central_deploy_configure_by_id_script(
+    def test_positive_prism_central_deploy_configure_by_script(
         self,
         module_sca_manifest_org,
         form_data_api,
         target_sat,
-        deploy_type,
         register_sat_and_enable_aps_repo,
     ):
         """Verify "POST /foreman_virt_who_configure/api/v2/configs" on nutanix prism central mode
@@ -85,7 +81,7 @@ class TestVirtWhoConfigforNutanix:
         :id: 14b87abb-9355-4669-929a-20e656cdf446
 
         :expectedresults:
-            Config can be created and deployed
+            Config can be created and deployed by script
             The prism_central has been set in /etc/virt-who.d/vir-who.conf file
 
         :CaseImportance: High
@@ -95,24 +91,14 @@ class TestVirtWhoConfigforNutanix:
         form_data_api['hypervisor_id'] = "uuid"
         virtwho_config = target_sat.api.VirtWhoConfig(**form_data_api).create()
         assert virtwho_config.status == 'unknown'
-        if deploy_type == "id":
-            command = get_configure_command(virtwho_config.id, module_sca_manifest_org.name)
-            deploy_configure_by_command(
-                command,
-                form_data_api['hypervisor_type'],
-                debug=True,
-                org=module_sca_manifest_org.label,
-                target_sat=target_sat,
-            )
-        elif deploy_type == "script":
-            script = virtwho_config.deploy_script()
-            deploy_configure_by_script(
-                script['virt_who_config_script'],
-                form_data_api['hypervisor_type'],
-                debug=True,
-                org=module_sca_manifest_org.label,
-                target_sat=target_sat,
-            )
+        script = virtwho_config.deploy_script()
+        deploy_configure_by_script(
+            script['virt_who_config_script'],
+            form_data_api['hypervisor_type'],
+            debug=True,
+            org=module_sca_manifest_org.label,
+            target_sat=target_sat,
+        )
         # Check the option "prism_central=true" should be set in etc/virt-who.d/virt-who.conf
         config_file = get_configure_file(virtwho_config.id)
         assert get_configure_option("prism_central", config_file) == 'true'
@@ -140,9 +126,9 @@ class TestVirtWhoConfigforNutanix:
         virtwho_config_api.prism_flavor = value
         virtwho_config_api.update(['prism_flavor'])
         config_file = get_configure_file(virtwho_config_api.id)
-        command = get_configure_command(virtwho_config_api.id, module_sca_manifest_org.name)
-        deploy_configure_by_command(
-            command,
+        script = virtwho_config_api.deploy_script()
+        deploy_configure_by_script(
+            script['virt_who_config_script'],
             form_data_api['hypervisor_type'],
             org=module_sca_manifest_org.label,
             target_sat=target_sat,
