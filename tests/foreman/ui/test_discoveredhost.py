@@ -136,12 +136,15 @@ def test_positive_provision_pxe_host(
 
 @pytest.mark.upgrade
 @pytest.mark.on_premises_provisioning
+@pytest.mark.parametrize('setting_update', ['remote_execution_connect_by_ip=True'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
 @pytest.mark.rhel_ver_match('8')
 def test_positive_custom_provision_pxe_host(
     request,
+    setting_update,
     module_location,
     module_org,
+    module_ssh_key_file,
     module_provisioning_rhel_content,
     module_discovery_sat,
     provisioning_host,
@@ -176,10 +179,28 @@ def test_positive_custom_provision_pxe_host(
         delay=20,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
-    discovered_host.hostgroup = provisioning_hostgroup
-    discovered_host.location = provisioning_hostgroup.location[0]
-    discovered_host.organization = provisioning_hostgroup.organization[0]
-    discovered_host.build = True
+    if is_open('SAT-33477') and (
+        sat.cli.DiscoveredHost.list(
+            {
+                'organization-id': module_org.id,
+                'location-id': module_location.id,
+            }
+        )
+        == []
+    ):
+        with sat.ui_session() as temp_session:
+            temp_session.organization.select(org_name='Any organization')
+            temp_session.location.select(loc_name='Any location')
+            temp_session.discoveredhosts.apply_action(
+                'Assign Organization',
+                discovered_host.name,
+                values=dict(organization=module_org.name),
+            )
+            temp_session.discoveredhosts.apply_action(
+                'Assign Location',
+                discovered_host.name,
+                values=dict(location=module_location.name),
+            )
 
     discovered_host_name = discovered_host.name
     domain_name = provisioning_hostgroup.domain.read().name
@@ -217,7 +238,6 @@ def test_positive_custom_provision_pxe_host(
             module_org.name,
             module_location.name,
             quick=False,
-            host_values={'operating_system.root_password': new_root_pwd},
         )
         # Wait for provisioning to complete and report status back to Satellite
         pending_status = 'N/A' if is_open('SAT-22452') else 'Pending installation'
@@ -247,8 +267,8 @@ def test_positive_custom_provision_pxe_host(
         assert values['Execution']['Status'] == 'Last execution succeeded'
 
         # Verify if assigned role is executed on the host, and correct host passwd is set
-        host = ContentHost(discovered_host.ip)
-        assert host.execute('yum list installed rubygem-foreman_scap_client').status == 0
+        host = ContentHost(discovered_host.ip, auth=module_ssh_key_file)
+        assert host.execute('yum list installed foreman_scap_client_bash').status == 0
 
         # Verify entry from discovered host is auto removed
         assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
