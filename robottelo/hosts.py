@@ -537,11 +537,15 @@ class ContentHost(Host, ContentHostMixins):
         cp.read_file(io.StringIO(config))
         return cp
 
-    def create_custom_repos(self, **kwargs):
+    def create_custom_repos(self, proxy=None, enabled=1, gpgcheck=0, **kwargs):
         """Create custom repofiles.
         Each ``kwargs`` item will result in one repository file created. Where
         the key is the repository filename and repository name, and the value
         is the repository URL.
+
+        :param proxy: Optional proxy URL to set per-repo (default: None).
+        :param enabled: Value for the ``enabled`` field (default 1).
+        :param gpgcheck: Value for the ``gpgcheck`` field (default 0).
 
         For example::
 
@@ -558,7 +562,19 @@ class ContentHost(Host, ContentHostMixins):
 
         """
         for name, url in kwargs.items():
-            content = f'[{name}]\nname={name}\nbaseurl={url}\nenabled=1\ngpgcheck=0'
+            # auto-detect ipv6to4 proxy for ipv6 host and ipv4 urls
+            repo_proxy = proxy
+            if repo_proxy is None and not self.network_type.has_ipv4:
+                for pattern in settings.repos.ipv4_url_regexps:
+                    if re.search(pattern, url):
+                        repo_proxy = settings.http_proxy.http_proxy_ipv6_url
+                        break
+
+            content = (
+                f'[{name}]\nname={name}\nbaseurl={url}\nenabled={enabled}\ngpgcheck={gpgcheck}'
+            )
+            if repo_proxy:
+                content += f'\nproxy={repo_proxy}'
             self.execute(f'echo "{content}" > /etc/yum.repos.d/{name}.repo')
 
     def get_base_url_for_older_rhel_minor(self):

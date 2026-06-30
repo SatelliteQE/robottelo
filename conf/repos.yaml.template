@@ -207,3 +207,7 @@ REPOS:
 
   RPM_MISSING_FILELISTS:
     URL: ''
+
+  IPV4_URL_REGEXPS:
+  - '^(http|https)://ipv4_only_host'
+  - '^(http|https)://ipv6_unroutable_host'
