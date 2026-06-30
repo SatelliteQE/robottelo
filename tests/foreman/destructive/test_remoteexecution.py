@@ -169,10 +169,11 @@ def test_positive_use_alternate_directory(
     :parametrized: yes
     """
     client = rhel_contenthost
+    org = default_org.read()
+    cvenv_id = target_sat.api_factory.get_cvenv_id(org.default_content_view, org.library)
     ak = target_sat.cli_factory.make_activation_key(
         {
-            'lifecycle-environment': 'Library',
-            'content-view': 'Default Organization View',
+            'content-view-environment-ids': cvenv_id,
             'organization-id': default_org.id,
         }
     )

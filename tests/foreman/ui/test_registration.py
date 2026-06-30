@@ -320,7 +320,11 @@ def test_global_registration_form_populate(
         content_view=function_sca_manifest_org.default_content_view.id,
         group_parameters_attributes=[group_params],
     ).create()
-    target_sat.api.HostGroup(name=hg_nested_name, parent=parent_hg).create()
+    target_sat.api.HostGroup(
+        name=hg_nested_name,
+        parent=parent_hg,
+        organization=[function_sca_manifest_org],
+    ).create()
     new_org = target_sat.api.Organization().create()
     cvenv_id = target_sat.api_factory.get_cvenv_id(
         new_org.default_content_view,

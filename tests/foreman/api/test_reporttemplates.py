@@ -427,6 +427,209 @@ def test_positive_applied_errata(
     assert res[0]['issued']
 
 
+@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.no_containers
+def test_positive_applied_errata_persists_after_task_deletion(
+    rhel_contenthost, target_sat, function_location, function_org, function_lce
+):
+    """Generate an Applied Errata report after the Apply Errata task is deleted
+
+    :id: 7486881c-320c-42cb-a35b-5a2e0dd4d2da
+
+    :setup: A host with some applied errata.
+
+    :steps:
+        1. Apply errata to a content host via Remote Execution.
+        2. Generate the 'Host - Applied Errata' report and verify the errata appears.
+        3. Delete the Foreman tasks associated with the errata application
+           (both the RunHostsJob parent and the RunHostJob per-host sub-task).
+        4. Generate the 'Host - Applied Errata' report again.
+
+    :expectedresults: Applied errata are still listed in the report after the tasks are
+        deleted, because errata applications are tracked in a dedicated database table
+        (katello_errata_applications) independently of the task history.
+
+    :Verifies: SAT-42767
+
+    :customerscenario: true
+    """
+    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
+    created_vals = target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_9.url,
+            'organization-id': function_org.id,
+            'lifecycle-environment-id': function_lce.id,
+        }
+    )
+    activation_key = target_sat.api.ActivationKey(id=created_vals['activationkey-id']).read()
+    result = rhel_contenthost.register(
+        function_org, function_location, activation_key.name, target_sat
+    )
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    task_id = target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': ERRATUM_ID},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'organization_id': function_org.id,
+        },
+    )['id']
+    tasks = target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    rt = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+    )
+    report_data = {
+        'organization_id': function_org.id,
+        'report_format': 'json',
+        'input_values': {
+            'Hosts filter': rhel_contenthost.hostname,
+            'Filter Errata Type': 'all',
+            'Include Last Reboot': 'no',
+            'Status': 'all',
+        },
+    }
+    res = rt.generate(data=report_data)
+    assert res, 'Report returned no errata before task deletion'
+    assert res[0]['erratum_id'] == ERRATUM_ID
+    assert res[0]['issued']
+    assert res[0]['still_applicable'] is False
+
+    # Delete the parent RunHostsJob task
+    parent_task_uuid = tasks[0].id
+    assert (
+        target_sat.execute(
+            f"""echo "ForemanTasks::Task.find('{parent_task_uuid}').destroy!" | foreman-rake console"""
+        ).status
+        == 0
+    )
+    # Delete the per-host RunHostJob sub-task (what the legacy report method queries)
+    sub_tasks = target_sat.api.ForemanTask().search(
+        query={'search': f'action ~ "Install errata on {rhel_contenthost.hostname}"'}
+    )
+    for sub_task in sub_tasks:
+        assert (
+            target_sat.execute(
+                f"""echo "ForemanTasks::Task.find('{sub_task.id}').destroy!" | foreman-rake console"""
+            ).status
+            == 0
+        )
+
+    # Report should still list the applied errata despite the tasks being deleted,
+    # because the new implementation reads from katello_errata_applications table.
+    res = rt.generate(data=report_data)
+    assert res, 'Report returned no errata after task deletion'
+    assert res[0]['erratum_id'] == ERRATUM_ID
+    assert res[0]['issued']
+    assert res[0]['still_applicable'] is False
+
+
+@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.no_containers
+def test_positive_applied_errata_migration_populates_from_tasks(
+    rhel_contenthost, target_sat, function_location, function_org, function_lce
+):
+    """Verify the migration rake task backfills errata application records from task history
+
+    :id: 29d5fae2-1d10-406a-b27a-fc9bd77b7dfd
+
+    :setup: A host with some applied errata.
+
+    :steps:
+        1. Apply errata to a content host via Remote Execution.
+        2. Generate the 'Host - Applied Errata' report and capture the result.
+        3. Delete the katello_errata_applications record from the database, simulating
+           a pre-migration state where the table exists but is empty.
+        4. Generate the report again - verify it returns no results.
+        5. Run the migration rake task (katello:upgrades:4.21:populate_errata_applications).
+        6. Generate the report again.
+
+    :expectedresults: The report after migration is identical to the one generated before
+        the record was deleted, confirming the rake task faithfully reconstructs
+        katello_errata_applications from the Foreman task history.
+
+    :Verifies: SAT-42767
+
+    :customerscenario: true
+    """
+    ERRATUM_ID = str(settings.repos.yum_6.errata[2])
+    created_vals = target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_9.url,
+            'organization-id': function_org.id,
+            'lifecycle-environment-id': function_lce.id,
+        }
+    )
+    activation_key = target_sat.api.ActivationKey(id=created_vals['activationkey-id']).read()
+    result = rhel_contenthost.register(
+        function_org, function_location, activation_key.name, target_sat
+    )
+    assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+    assert rhel_contenthost.subscribed
+    rhel_contenthost.execute(r'subscription-manager repos --enable \*')
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    task_id = target_sat.api.JobInvocation().run(
+        data={
+            'feature': 'katello_errata_install',
+            'inputs': {'errata': ERRATUM_ID},
+            'targeting_type': 'static_query',
+            'search_query': f'name = {rhel_contenthost.hostname}',
+            'organization_id': function_org.id,
+        },
+    )['id']
+    target_sat.wait_for_tasks(
+        search_query=(f'label = Actions::RemoteExecution::RunHostsJob and id = {task_id}'),
+        search_rate=15,
+        max_tries=10,
+    )
+    rt = (
+        target_sat.api.ReportTemplate()
+        .search(query={'search': 'name="Host - Applied Errata"'})[0]
+        .read()
+    )
+    report_data = {
+        'organization_id': function_org.id,
+        'report_format': 'json',
+        'input_values': {
+            'Hosts filter': rhel_contenthost.hostname,
+            'Filter Errata Type': 'all',
+            'Include Last Reboot': 'no',
+            'Status': 'all',
+        },
+    }
+    res_before = rt.generate(data=report_data)
+    assert res_before, 'Report returned no errata before migration test'
+    assert res_before[0]['erratum_id'] == ERRATUM_ID
+
+    # Delete the katello_errata_applications record, simulating pre-migration state
+    target_sat.query_db(
+        f"DELETE FROM katello_errata_applications WHERE host_id = "
+        f"(SELECT id FROM hosts WHERE name = '{rhel_contenthost.hostname}')",
+        output_format='raw',
+    )
+    assert not rt.generate(data=report_data), 'katello_errata_applications record was not deleted'
+
+    # Run the migration rake task to backfill records from task history
+    assert (
+        target_sat.execute('foreman-rake katello:upgrades:4.21:populate_errata_applications').status
+        == 0
+    )
+    res_after = rt.generate(data=report_data)
+    assert res_after, 'Report returned no errata after migration rake task'
+    assert res_after == res_before
+
+
 @pytest.mark.rhel_ver_match('N-2')
 @pytest.mark.no_containers
 def test_positive_applied_errata_report_with_invalid_errata(

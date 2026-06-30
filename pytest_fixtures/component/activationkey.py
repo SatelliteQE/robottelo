@@ -74,10 +74,13 @@ def module_ak_with_synced_repo(module_sca_manifest_org, module_target_sat):
         {'product-id': new_product['id'], 'content-type': 'yum'}
     )
     Repository.synchronize({'id': new_repo['id']})
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+        module_sca_manifest_org.default_content_view,
+        module_sca_manifest_org.library,
+    )
     return module_target_sat.cli_factory.make_activation_key(
         {
-            'lifecycle-environment': 'Library',
-            'content-view': 'Default Organization View',
+            'content-view-environment-ids': cvenv_id,
             'organization-id': module_sca_manifest_org.id,
         }
     )

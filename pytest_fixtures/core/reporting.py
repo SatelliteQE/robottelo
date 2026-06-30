@@ -5,6 +5,8 @@ import pytest
 from xdist import get_xdist_worker_id
 
 from robottelo.config import setting_is_set, settings
+from robottelo.hosts import get_sat_rhel_version
+from robottelo.utils.ohsnap import container_image_properties
 
 FMT_XUNIT_TIME = '%Y-%m-%dT%H:%M:%S'
 
@@ -42,6 +44,20 @@ def pytest_sessionstart(session):
             xml.add_global_property(
                 'start_time', datetime.datetime.now(datetime.UTC).strftime(FMT_XUNIT_TIME)
             )
+            rhel_version = get_sat_rhel_version().base_version
+            sat_version = settings.server.version.get('release')
+            snap_version = settings.server.version.get('snap', '')
+            xml.add_global_property("SatelliteNetworkType", str(settings.server.network_type))
+            xml.add_global_property("SatelliteVersion", sat_version)
+            xml.add_global_property("SnapVersion", snap_version)
+            xml.add_global_property("BaseOS", rhel_version)
+            if settings.server.deploy_arguments.deploy_container:
+                for name, value in container_image_properties(
+                    settings.ohsnap,
+                    sat_version,
+                    snap_version,
+                ):
+                    xml.add_global_property(name, value)
 
 
 @pytest.fixture(autouse=False, scope='session')

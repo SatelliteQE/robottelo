@@ -497,6 +497,7 @@ class TestAnsibleCfgMgmt:
             2. Verify that any task failures are listed as errors in the config report
         """
         SELECTED_ROLE = 'theforeman.foreman_scap_client'
+        rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
         nc = module_target_sat.nailgun_smart_proxy
         nc.location = [module_location]
         nc.organization = [module_org]

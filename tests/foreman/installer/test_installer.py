@@ -20,7 +20,6 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ARCHITECTURE, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.ohsnap import dogfood_repository
 
 SATELLITE_SERVICES = [
@@ -50,7 +49,6 @@ DOWNSTREAM_MODULES = {
     'foreman::cli::kubevirt',
     'foreman::cli::puppet',
     'foreman::cli::remote_execution',
-    'foreman::cli::virt_who_configure',
     'foreman::cli::webhooks',
     'foreman::compute::ec2',
     'foreman::compute::libvirt',
@@ -106,39 +104,6 @@ def extract_help(filter='params'):
             for token in first_2_tokens:
                 if token[0] == '-':
                     yield token.replace(',', '')
-
-
-def common_sat_install_assertions(satellite):
-    sat_version = 'stream' if satellite.is_stream else satellite.version
-    if settings.server.version.source != 'nightly':
-        assert settings.server.version.release == sat_version
-
-    # no errors/failures in journald
-    result = satellite.execute(
-        r'journalctl --quiet --no-pager --boot --priority err -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulpcore-api" -u "pulpcore-content" -u "pulpcore-worker*" -u "redis" -u "tomcat"'
-    )
-    assert not result.stdout
-    # no errors in /var/log/foreman/production.log
-    result = satellite.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
-    if not is_open('SAT-21086'):
-        assert not result.stdout
-    # no errors/failures in /var/log/foreman-installer/satellite.log
-    result = satellite.execute(
-        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
-    )
-    assert not result.stdout
-    # no errors/failures in /var/log/httpd/*
-    result = satellite.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert not result.stdout
-    # no errors/failures in /var/log/candlepin/*
-    result = satellite.execute(r'grep -iR "error" /var/log/candlepin/*')
-    assert not result.stdout
-
-    httpd_log = satellite.execute('journalctl --unit=httpd')
-    assert "WARNING" not in httpd_log.stdout
-
-    result = satellite.cli.Health.check()
-    assert 'FAIL' not in result.stdout
 
 
 def install_satellite(satellite, installer_args, enable_fapolicyd=False):
@@ -620,15 +585,23 @@ def test_positive_check_installer_service_running(target_sat, service):
     :id: 5389c174-7ab1-4e9d-b2aa-66d80fd6dc5f
 
     :steps:
-        1. Verify a service is active with systemctl is-active
+        1. Verify a service is active using unified service API
 
     :expectedresults: The service is active
 
     :CaseImportance: Medium
     """
-    is_active = target_sat.execute(f'systemctl is-active {service}')
-    status = target_sat.execute(f'systemctl status {service}')
-    assert is_active.status == 0, status.stdout
+    # Get installation-method-aware service list
+    actual_services = target_sat.get_service_names()
+
+    # Skip if service doesn't apply to this installation method
+    if service not in actual_services:
+        pytest.skip(f'Service {service} not applicable for {target_sat.install_method.value}')
+
+    # Use unified service API instead of calling systemctl directly
+    assert target_sat.is_service_running(service), (
+        f'Service {service} is not running (install method: {target_sat.install_method.value})'
+    )
 
 
 @pytest.mark.upgrade
@@ -753,27 +726,32 @@ def test_satellite_installation(pytestconfig, installer_satellite):
         2. Configure satellite repos
         3. Enable satellite module
         4. Install satellite
-        5. Run satellite-installer
+        5. Run installation (satellite-installer or foremanctl deploy)
 
     :expectedresults:
         1. Correct satellite packaged is installed
-        2. satellite-installer runs successfully
+        2. Installation runs successfully
         3. no unexpected errors in logs
         4. satellite-maintain health check runs successfully
         5. redis is set as default foreman cache
-        6. Parse satellite installer modules
+        6. Parse satellite installer modules (installer method only)
 
     :CaseImportance: Critical
     """
-    common_sat_install_assertions(installer_satellite)
+    from robottelo.enums import InstallMethod
+
+    installer_satellite.assert_install_assertions()
 
     # Verify foreman-redis is installed and set as default cache for rails
     assert installer_satellite.execute('rpm -q foreman-redis').status == 0
     settings_file = installer_satellite.load_remote_yaml_file(FOREMAN_SETTINGS_YML)
     assert settings_file.rails_cache_store.type == 'redis'
 
-    # Do not test DOWNSTREAM_MODULES at sanity time
-    if 'build_sanity' not in pytestconfig.option.markexpr:
+    # DOWNSTREAM_MODULES check only applies to satellite-installer method
+    if (
+        'build_sanity' not in pytestconfig.option.markexpr
+        and installer_satellite.install_method == InstallMethod.INSTALLER
+    ):
         # Parse satellite installer modules
         cat_cmd = installer_satellite.execute(
             'cat /etc/foreman-installer/scenarios.d/satellite-answers.yaml'
@@ -810,3 +788,39 @@ def test_weak_dependency(sat_non_default_install, package):
         'No packages marked for removal.' in result.stderr
         or 'Transaction test succeeded.' in result.stdout
     )
+
+
+@pytest.mark.parametrize(
+    'satellite_with_install_method',
+    [
+        pytest.param('installer', id='installer-method'),
+        pytest.param('foremanctl', marks=pytest.mark.foremanctl, id='foremanctl-method'),
+    ],
+    indirect=True,
+)
+def test_installation_with_both_methods(satellite_with_install_method):
+    """Verify Satellite installation works with both methods.
+
+    :id: 7b2f8a9c-3e1d-4f5a-9b8c-1d2e3f4a5b6c
+
+    :steps:
+        1. Install Satellite using specified method
+        2. Verify all services are running
+        3. Verify hammer ping is successful
+
+    :expectedresults:
+        1. Installation completes successfully
+        2. All services are active
+        3. Hammer ping reports all services as ok
+
+    :parametrized: yes
+    """
+    sat = satellite_with_install_method
+
+    sat.assert_install_assertions()
+
+    failed = sat.get_failed_services()
+    assert not failed, f'Services not running: {failed}'
+
+    result = sat.execute('hammer ping')
+    sat.assert_hammer_ping_ok(result)

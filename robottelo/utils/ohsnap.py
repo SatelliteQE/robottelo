@@ -103,6 +103,85 @@ def dogfood_repository(
     return Box(**repository)
 
 
+def parse_container_image_ref(image_ref):
+    """Parse a container image reference into registry, image name, and tag/digest."""
+    registry, _, remainder = image_ref.partition('/')
+    if not remainder:
+        return '', image_ref, ''
+    name_with_tag = remainder.split('/')[-1]
+    if '@' in name_with_tag:
+        name, tag = name_with_tag.split('@', 1)
+    elif ':' in name_with_tag:
+        name, tag = name_with_tag.rsplit(':', 1)
+    else:
+        name, tag = name_with_tag, ''
+    return registry, name, tag
+
+
+def ohsnap_container_images(ohsnap, release, snap_version, is_all=True):
+    """Return container image metadata from Ohsnap for a release and snap version."""
+    url = f'{ohsnap.host}/api/releases/{release}/snaps/{snap_version}/container_images'
+    if is_all:
+        url += '?all=true'
+    try:
+        res, _ = wait_for(
+            lambda: requests.get(url, hooks={'response': ohsnap_response_hook}),
+            handle_exception=True,
+            raise_original=True,
+            timeout=ohsnap.request_retry.timeout,
+            delay=ohsnap.request_retry.delay,
+        )
+        if res.status_code != 200:
+            logger.warning(
+                'Ohsnap container images request failed: url=%s status=%s',
+                url,
+                res.status_code,
+            )
+            return []
+        container_images = res.json().get('container_images', [])
+        logger.info(
+            'Fetched %s container images from Ohsnap for release=%s snap=%s',
+            len(container_images),
+            release,
+            snap_version,
+        )
+        for image_data in container_images:
+            image_ref = image_data.get('image', '')
+            registry, name, tag = parse_container_image_ref(image_ref)
+            logger.info(
+                'Ohsnap container image metadata: name=%s image=%s registry=%s tag=%s vcs_ref=%s '
+                'source_url=%s build_date=%s',
+                name,
+                image_ref,
+                registry,
+                tag,
+                image_data.get('vcs_ref', ''),
+                image_data.get('source_url', ''),
+                image_data.get('build_date', ''),
+            )
+        return container_images
+    except Exception as err:
+        logger.warning(
+            'Failed to fetch Ohsnap container images for release=%s snap=%s: %s',
+            release,
+            snap_version,
+            err,
+        )
+        return []
+
+
+def container_image_properties(ohsnap, release, snap_version):
+    """Build property name/value pairs for Ohsnap container image metadata."""
+    properties = []
+    for image_data in ohsnap_container_images(ohsnap, release, snap_version):
+        image_ref = image_data['image']
+        _, name, _ = parse_container_image_ref(image_ref)
+        prefix = f'Container_{name}'
+        properties.append((f'{prefix}_Image', image_ref))
+        properties.append((f'{prefix}_VCS', image_data.get('vcs_ref', '')))
+    return properties
+
+
 def ohsnap_snap_rpms(ohsnap, sat_version, snap_version, os_major, is_all=True):
     sat_xy = '.'.join(sat_version.split('.')[:2])
     url = f'{ohsnap.host}/api/releases/{sat_version}/snaps/{snap_version}/rpms'

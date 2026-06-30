@@ -2559,6 +2559,42 @@ FOREMANCTL_POSTGRESQL_TUNING_PROFILES = {
 REGIONAL_RED_HAT_CDN_URLS = ['https://cdn-us.redhat.com', 'https://cdn-eu.redhat.com']
 
 
+# Installation service name mappings
+class InstallationServices:
+    """Service name mappings for different installation methods"""
+
+    # Traditional satellite-installer services
+    INSTALLER_SERVICES = [
+        'dynflow-sidekiq@orchestrator',
+        'dynflow-sidekiq@worker-1',
+        'dynflow-sidekiq@worker-hosts-queue-1',
+        'foreman-proxy',
+        'foreman',
+        'httpd',
+        'postgresql',
+        'pulpcore-api',
+        'pulpcore-content',
+        'pulpcore-worker@*',
+        'tomcat',
+    ]
+
+    # foremanctl quadlet container services
+    FOREMANCTL_SERVICES = [
+        'candlepin',
+        'dynflow-sidekiq@orchestrator',
+        'dynflow-sidekiq@worker',
+        'dynflow-sidekiq@worker-hosts-queue',
+        'foreman-proxy',
+        'foreman',
+        'httpd',
+        'postgresql',
+        'pulp-api',
+        'pulp-content',
+        'pulp-worker@*',
+        'valkey',
+    ]
+
+
 # Data File Paths
 class DataFile(Box):
     """The boxed Data directory class with its attributes pointing to the Data directory files"""

@@ -35,6 +35,7 @@ VALIDATORS = dict(
         Validator('server.deploy_workflows.product', must_exist=True),
         Validator('server.deploy_workflows.os', must_exist=True),
         Validator('server.deploy_arguments', must_exist=True, is_type_of=dict, default={}),
+        Validator('server.deploy_arguments.deploy_container', default=False, is_type_of=bool),
         Validator('server.scheme', default='https'),
         Validator('server.port', default=443),
         Validator('server.ssh_username', default='root'),

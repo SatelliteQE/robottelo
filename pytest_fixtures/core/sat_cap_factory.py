@@ -15,7 +15,6 @@ from robottelo.hosts import (
     lru_sat_ready_rhel,
 )
 from robottelo.logging import logger
-from robottelo.utils.installer import InstallerCommand
 
 
 def resolve_deploy_args(args_dict):
@@ -232,13 +231,21 @@ def get_iop_deploy_args():
 
 @pytest.fixture(scope='module')
 def module_satellite_iop(module_target_sat):
-    """Configure Red Hat Lightspeed in Satellite"""
+    """Provide a Satellite with Red Hat Lightspeed (IoP) enabled.
+
+    If IoP is already enabled on the Satellite, use it as-is without modification.
+    If IoP is not enabled, configure it and uninstall during teardown.
+    """
     satellite = module_target_sat
-    satellite.configure_iop()
+    was_already_enabled = satellite.iop_enabled
+
+    if not was_already_enabled:
+        satellite.configure_iop()
 
     yield satellite
 
-    satellite.uninstall_iop()
+    if not was_already_enabled:
+        satellite.uninstall_iop()
 
 
 @pytest.fixture(scope='module')
@@ -387,9 +394,10 @@ def cap_ready_rhel():
 
 @pytest.fixture(scope='session')
 def installer_satellite(request):
-    """A fixture to freshly install the satellite using installer on RHEL machine
+    """A fixture to freshly install Satellite using auto-detected installation method
 
-    This is a pure / virgin / nontemplate based satellite
+    This is a pure / virgin / nontemplate based satellite.
+    Uses install_satellite() which auto-detects between satellite-installer and foremanctl.
 
     :params request: A pytest request object and this fixture is looking for
         broker object of class satellite
@@ -399,32 +407,44 @@ def installer_satellite(request):
     else:
         sat = lru_sat_ready_rhel(getattr(request, 'param', None))
 
-    # register to cdn (also enables rhel repos from cdn)
-    sat.register_to_cdn()
-
-    sat.setup_rhel_repos()
-    sat.setup_satellite_repos()
-
-    sat.setup_firewall()
-    sat.install_satellite_or_capsule_package()
-    # Install Satellite
-    installer_result = sat.execute(
-        InstallerCommand(
-            installer_args=[
-                'scenario satellite',
-                f'foreman-initial-admin-password {settings.server.admin_password}',
-            ]
-        ).get_command(),
-        timeout='30m',
-    )
-    # exit code 0 means no changes, 2 means changes were applied successfully
-    assert installer_result.status in (0, 2), installer_result.stdout
+    # Use unified installation method with auto-detection
+    sat.install_satellite()
 
     sat.enable_satellite_ipv6_http_proxy()
     if 'sanity' in request.config.option.markexpr:
         configure_nailgun()
         configure_airgun()
     yield sat
+    if 'sanity' not in request.config.option.markexpr:
+        sat = Satellite.get_host_by_hostname(sat.hostname)
+        sat.unregister()
+        Broker(hosts=[sat]).checkin()
+
+
+@pytest.fixture(scope='session')
+def satellite_with_install_method(request):
+    """Install Satellite using specified or auto-detected method.
+
+    Can be parameterized:
+    @pytest.mark.parametrize('satellite_with_install_method',
+                             ['installer', 'foremanctl', 'auto'],
+                             indirect=True)
+
+    :param request: pytest request object with optional param for install method
+    """
+    install_method = getattr(request, 'param', 'auto')
+
+    if 'sanity' in request.config.option.markexpr:
+        sat = Satellite(settings.server.hostname)
+        configure_nailgun()
+        configure_airgun()
+    else:
+        sat = lru_sat_ready_rhel(None)
+        sat.install_satellite(installer_method=install_method)
+        sat.enable_satellite_ipv6_http_proxy()
+
+    yield sat
+
     if 'sanity' not in request.config.option.markexpr:
         sat = Satellite.get_host_by_hostname(sat.hostname)
         sat.unregister()

@@ -35,8 +35,10 @@ SERVER:
     UNCONFIGURED: deploy-unconfigured-satellite # workflow to deploy unconfigured sat
     IOP: deploy-satellite-iop # workflow to deploy Satellite with IoP enabled
   # Dictionary of arguments which should be passed along to the deploy workflow
-  # DEPLOY_ARGUMENTS:
+  DEPLOY_ARGUMENTS:
   #  deploy_network_type: '@format { this.server.network_type }'
+  # Set to true when Satellite is deployed from container images instead of RPMs
+    DEPLOY_CONTAINER: False
   # HTTP scheme when building the server URL
   # Suggested values for "scheme" are "http" and "https".
   SCHEME: https
@@ -67,3 +69,21 @@ SERVER:
     COMMAND_TIMEOUT: 300000
     # Time to wait for establishing the ssh connection, in seconds
     CONNECTION_TIMEOUT: 60
+
+  # Installation method to use for Satellite deployment
+  # Options: auto (default), installer, foremanctl
+  # auto: Auto-detect based on package availability and existing installation
+  # installer: Force use of satellite-installer
+  # foremanctl: Force use of foremanctl deploy
+  # Can also be set via environment variable: ROBOTTELO_SERVER_INSTALL_METHOD
+  INSTALL_METHOD: auto
+
+  # Container registry credentials for foremanctl installations
+  # These are required when using foremanctl deploy method
+  CONTAINER_REGISTRY:
+    # Registry URL (default: registry.stage.redhat.io for stage environments)
+    URL: registry.stage.redhat.io
+    # Username for container registry authentication
+    USERNAME:
+    # Password for container registry authentication
+    PASSWORD:

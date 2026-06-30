@@ -64,6 +64,9 @@ def test_positive_bootdisk_download_https(
             'os-family': 'Redhat',
         }
     )
+    cv_env_id = module_target_sat.api_factory.get_cvenv_id(
+        module_default_org_view.id, module_lce_library.id
+    )
     host = module_target_sat.cli_factory.make_host(
         {
             'organization-id': module_sca_manifest_org.id,
@@ -78,8 +81,7 @@ def test_positive_bootdisk_download_https(
             'root-password': settings.provisioning.host_root_password,
             'partition-table-id': default_partitiontable.id,
             'content-source-id': capsule.id,
-            'content-view-id': module_default_org_view.id,
-            'lifecycle-environment-id': module_lce_library.id,
+            'content-view-environment-ids': cv_env_id,
         }
     )
 

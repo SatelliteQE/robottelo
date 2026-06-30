@@ -5,6 +5,22 @@ from robottelo.config import settings
 from robottelo.constants import CAPSULE_REGISTRATION_OPTS
 
 
+def _activation_key_content_payload(module_target_sat_insights, organization):
+    """Build ActivationKey content payload compatible with Nailgun schema."""
+    content_view = organization.default_content_view
+    environment = module_target_sat_insights.api.LifecycleEnvironment(id=organization.library.id)
+    activation_key_fields = module_target_sat_insights.api.ActivationKey()._fields
+
+    if {'content_view', 'environment'}.issubset(activation_key_fields):
+        return {'content_view': content_view, 'environment': environment}
+
+    if 'content_view_environment_ids' in activation_key_fields:
+        cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(content_view, environment)
+        return {'content_view_environment_ids': [cvenv_id]}
+
+    raise RuntimeError(f'Unsupported ActivationKey schema fields: {list(activation_key_fields)}')
+
+
 def enable_insights(host, satellite, org, activation_key):
     """Configure remote execution and insights-client on a host"""
     host.configure_rex(satellite=satellite, org=org, register=False)
@@ -12,11 +28,16 @@ def enable_insights(host, satellite, org, activation_key):
         satellite=satellite,
         activation_key=activation_key,
         org=org,
-        rhel_distro=f"rhel{host.os_version.major}",
+        rhel_distro=f'rhel{host.os_version.major}',
     )
     result = host.execute('insights-client --status')
-    assert result.status == 0, f'insights-client not registered on {host.hostname}: {result.stdout}'
-    assert "Insights API confirms registration" in result.stdout
+    # Accept either API confirmation (hosted Insights) or local registration (IoP)
+    got_api_confirmation = (
+        result.status == 0 and 'Insights API confirms registration' in result.stdout
+    )
+    local_registered = 'System is registered locally via .registered file' in result.stdout
+    is_registered = got_api_confirmation or local_registered
+    assert is_registered, f'insights-client not registered on {host.hostname}: {result.stdout}'
     # Sync inventory if using hosted Insights
     if not satellite.iop_enabled:
         satellite.generate_inventory_report(org)
@@ -67,12 +88,8 @@ def rhcloud_manifest_org(module_target_sat_insights, module_sca_manifest):
 @pytest.fixture(scope='module')
 def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
     """A module-level fixture to create an Activation key in rhcloud_manifest_org"""
-    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
-        rhcloud_manifest_org.default_content_view,
-        module_target_sat_insights.api.LifecycleEnvironment(id=rhcloud_manifest_org.library.id),
-    )
     return module_target_sat_insights.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
+        **_activation_key_content_payload(module_target_sat_insights, rhcloud_manifest_org),
         organization=rhcloud_manifest_org,
         service_level='Self-Support',
         purpose_usage='test-usage',
@@ -83,12 +100,8 @@ def rhcloud_activation_key(module_target_sat_insights, rhcloud_manifest_org):
 @pytest.fixture(scope='module')
 def activation_key_with_els_manifest_org(module_target_sat_insights, module_els_manifest_org):
     """A module-level fixture to create an Activation key in module_els_manifest_org"""
-    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
-        module_els_manifest_org.default_content_view,
-        module_target_sat_insights.api.LifecycleEnvironment(id=module_els_manifest_org.library.id),
-    )
     return module_target_sat_insights.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
+        **_activation_key_content_payload(module_target_sat_insights, module_els_manifest_org),
         organization=module_els_manifest_org,
     ).create()
 
