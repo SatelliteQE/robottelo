@@ -1312,6 +1312,8 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
     :customerscenario: true
 
     :BZ: 1391656, 2094912
+
+    :BlockedBy: SAT-46639
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
     cv_name = gen_string('alpha')
