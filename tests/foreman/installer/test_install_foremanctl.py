@@ -29,6 +29,7 @@ from robottelo.utils.issue_handlers import is_open
 pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
 
 FOREMANCTL_CERTS_DIR = '/var/lib/foremanctl/certs/certs'
+CAPSULE_CERTS_DIR = '/var/lib/foremanctl/certs/hosts'
 
 
 def common_sat_install_assertions(satellite):
@@ -550,3 +551,98 @@ def test_positive_foremanctl_tuning_profile(module_sat_foremanctl_tuning):
     parameters_file = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
     assert 'tuning' not in parameters_file
     assert_postgresql_tuning(sat, 'default')
+
+
+def assert_cert_validity_days(host, cert_paths, expected_days):
+    """Assert each certificate has the expected validity period in days."""
+    for cert_path in cert_paths:
+        assert get_cert_validity_days(host, cert_path) == expected_days
+
+
+def foremanctl_host_cert_paths(hostname):
+    """Return server and client certificate paths for a foremanctl host."""
+    return [
+        f'{FOREMANCTL_CERTS_DIR}/{hostname}.crt',
+        f'{FOREMANCTL_CERTS_DIR}/{hostname}-client.crt',
+    ]
+
+
+def foremanctl_capsule_cert_paths(hostname):
+    """Return server and client certificate paths for a foremanctl capsule bundle."""
+    return [
+        f'{CAPSULE_CERTS_DIR}/{hostname}/certs/{hostname}.crt',
+        f'{CAPSULE_CERTS_DIR}/{hostname}/certs/{hostname}-client.crt',
+    ]
+
+
+DEFAULT_CERT_DAYS = 7300
+RENEWED_CERT_DAYS = 730
+
+
+@pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
+@pytest.mark.rhel_ver_match('9')
+def test_positive_foremanctl_certificate_bundle(module_sat_ready_rhel, rhel_contenthost):
+    """Verify foremanctl certificate-bundle generation and renewal for a capsule.
+
+    :id: 9bd1d8d8-a22a-4917-9522-22b7165d224c
+
+    :steps:
+        1. Deploy Satellite with foremanctl using default certs
+        2. Generate a certificate bundle for the capsule host via foremanctl certificate-bundle
+        3. Verify Satellite and capsule server/client certs have default validity (7300 days)
+        4. Renew Satellite certificates with foremanctl deploy --certificate-renew
+        5. Verify Satellite cert validity is updated and capsule certs are unchanged
+        6. Renew capsule certificates with foremanctl certificate-bundle --certificate-renew
+        7. Verify capsule cert validity is updated
+
+    :expectedresults:
+        1. foremanctl certificate-bundle succeeds for certificate
+        2. Satellite renewal updates only Satellite server and client certificates
+        3. Capsule bundle renewal updates only capsule server and client certificates
+        4. Certificate validity periods reflect the expected days after renewal
+
+    :verifies: SAT-43475
+    """
+    sat = module_sat_ready_rhel
+    capsule = rhel_contenthost
+    foremanctl_cert_bundle_tarball = f'/var/lib/foremanctl/certs/bundles/{capsule.hostname}.tar.gz'
+    sat_certs = foremanctl_host_cert_paths(sat.hostname)
+    capsule_certs = foremanctl_capsule_cert_paths(capsule.hostname)
+
+    # Generate bundle
+    deploy = sat.execute(f'foremanctl certificate-bundle {capsule.hostname}', timeout='10m')
+    assert deploy.status == 0, f'foremanctl certificate-bundle failed:\n{deploy.stderr}'
+    # verify tarball
+    result = sat.execute(f'tar tzf {foremanctl_cert_bundle_tarball}')
+    assert result.status == 0, (
+        f'Certificate bundle tarball not found at {foremanctl_cert_bundle_tarball}: {result.stderr}'
+    )
+    assert f'{capsule.hostname}.crt' in result.stdout, (
+        f'{capsule.hostname}.crt is missing in certificate bundle tarball'
+    )
+    assert f'{capsule.hostname}-client.crt' in result.stdout, (
+        f'{capsule.hostname}-client.crt is missing in certificate bundle tarball'
+    )
+
+    # Phase 1: initial Satellite validity
+    assert_cert_validity_days(sat, sat_certs, DEFAULT_CERT_DAYS)
+    assert_cert_validity_days(sat, capsule_certs, DEFAULT_CERT_DAYS)
+
+    # Phase 2: renew Satellite certs — capsule should be unchanged
+    result = sat.execute(
+        f'foremanctl deploy --certificate-validity-days {RENEWED_CERT_DAYS}',
+        timeout='30m',
+    )
+    assert result.status == 0, f'Satellite certificate renewal failed: {result.stderr}'
+
+    assert_cert_validity_days(sat, sat_certs, RENEWED_CERT_DAYS)
+    assert_cert_validity_days(sat, capsule_certs, DEFAULT_CERT_DAYS)
+
+    # Phase 3: renew capsule bundle — capsule certs should change
+    result = sat.execute(
+        f'foremanctl certificate-bundle --certificate-renew {capsule.hostname}',
+        timeout='5m',
+    )
+    assert result.status == 0, f'Capsule certificate renewal failed: {result.stderr}'
+
+    assert_cert_validity_days(sat, capsule_certs, RENEWED_CERT_DAYS)
