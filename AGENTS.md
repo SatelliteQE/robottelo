@@ -527,6 +527,12 @@ Content hosts are deployed in containers by default. If the host needs to run as
 @pytest.mark.no_containers    # Cannot run in containers
 ```
 
+Tests that require a specific Satellite install method should use `foreman_installer` or `foremanctl` markers. Collection automatically deselects incompatible tests based on `server.install_method` in `conf/server.yaml` (or `ROBOTTELO_SERVER__INSTALL_METHOD`). When `install_method` is `auto`, `server.deploy_arguments.deploy_container` is used as a fallback.
+```python
+@pytest.mark.foreman_installer    # Requires satellite-installer
+@pytest.mark.foremanctl        # Requires foremanctl
+```
+
 ### RHEL Version Markers
 
 **`@pytest.mark.rhel_ver_match()`**: Match RHEL versions based on versions defined in conf/supportability.yaml using regex, or by the N-x convention.
