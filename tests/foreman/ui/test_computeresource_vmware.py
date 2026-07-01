@@ -104,13 +104,17 @@ def get_vmware_storagepod_summary_string(vmware, vmwareclient):
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-def test_positive_cr_end_to_end(session, module_org, module_location, vmware, module_target_sat):
+def test_positive_cr_end_to_end(
+    request, session, module_org, module_location, vmware, module_target_sat
+):
     """Perform end-to-end testing for compute resource VMware component.
 
     :id: 47fc9e77-5b22-46b4-a76c-3217434fde2f
 
     :expectedresults: All expected CRUD actions finished successfully.
     """
+    if 'vmware7' in request.node.callspec.id and module_target_sat.is_fips_enabled():
+        pytest.skip('VMware 7 is not supported in FIPS mode')
     cr_name = gen_string('alpha')
     new_cr_name = gen_string('alpha')
     description = gen_string('alpha')
@@ -210,13 +214,15 @@ def test_positive_retrieve_virtual_machine_list(session, vmware):
 
 @pytest.mark.e2e
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-def test_positive_image_end_to_end(session, target_sat, vmware):
+def test_positive_image_end_to_end(request, session, target_sat, vmware):
     """Perform end to end testing for compute resource VMware component image.
 
     :id: 6b7949ef-c684-40aa-b181-11f8d4cd39c6
 
     :expectedresults: All expected CRUD actions finished successfully.
     """
+    if 'vmware7' in request.node.callspec.id and target_sat.is_fips_enabled():
+        pytest.skip('VMware 7 is not supported in FIPS mode')
     cr_name = gen_string('alpha')
     image_name = gen_string('alpha')
     new_image_name = gen_string('alpha')
@@ -334,6 +340,8 @@ def test_positive_vmware_custom_profile_end_to_end(
 
     :verifies: SAT-31447
     """
+    if 'vmware7' in request.node.callspec.id and target_sat.is_fips_enabled():
+        pytest.skip('VMware 7 is not supported in FIPS mode')
     cr_name = gen_string('alpha')
     guest_os_names = [
         'Red Hat Enterprise Linux 7 (64-bit)',
