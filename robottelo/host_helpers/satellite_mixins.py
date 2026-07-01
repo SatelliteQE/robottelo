@@ -545,7 +545,7 @@ class InstallationVerification:
 
         sat_version = 'stream' if self.is_stream else self.version
         if settings.server.version.source != 'nightly':
-            assert settings.server.version.release == sat_version
+            assert settings.server.version.release == sat_version, f'sat_version: {sat_version}'
 
         # Check journald for errors using installation-method-aware service list
         services = self.get_service_names()
