@@ -17,8 +17,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.utils.virtwho import (
-    deploy_configure_by_command,
-    get_configure_command,
+    deploy_configure_by_script,
     get_configure_file,
     get_configure_option,
 )
@@ -73,9 +72,9 @@ class TestScenarioPositiveVirtWho:
         form_data.update({'organization_id': module_sca_manifest_org.id})
         vhd = target_sat.api.VirtWhoConfig(**form_data).create()
         assert vhd.status == 'unknown'
-        command = get_configure_command(vhd.id, org=module_sca_manifest_org.name)
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command,
+        script = vhd.deploy_script()
+        hypervisor_name, guest_name = deploy_configure_by_script(
+            script['virt_who_config_script'],
             form_data['hypervisor_type'],
             debug=True,
             org=module_sca_manifest_org.label,
@@ -119,7 +118,6 @@ class TestScenarioPositiveVirtWho:
             4. virt-who config should update and delete successfully.
         """
         org_id = pre_upgrade_data.get('org_id')
-        org_name = pre_upgrade_data.get('org_name')
         org_label = pre_upgrade_data.get('org_label')
         name = pre_upgrade_data.get('name')
 
@@ -128,14 +126,9 @@ class TestScenarioPositiveVirtWho:
             query={'search': f'name={name}'}
         )[0]
         assert vhd.status == 'ok'
-        # Verify virt-who status via CLI as we cannot check it via API now
-        vhd_cli = target_sat.cli.VirtWhoConfig.exists(search=('name', name))
-        assert (
-            target_sat.cli.VirtWhoConfig.info({'id': vhd_cli['id']})['general-information'][
-                'status'
-            ]
-            == 'OK'
-        )
+        # Verify virt-who status via API
+        vhd_api = target_sat.api.VirtWhoConfig().search(query={'search': f'name={name}'})[0]
+        assert vhd_api.status == 'ok'
 
         # Vefify the connection of the guest on Content host
         hypervisor_name = pre_upgrade_data.get('hypervisor_name')
@@ -158,9 +151,13 @@ class TestScenarioPositiveVirtWho:
         get_configure_option('hypervisor_id', config_file)
 
         # Verify Report is sent to satellite.
-        command = get_configure_command(vhd.id, org=org_name)
-        deploy_configure_by_command(
-            command, form_data['hypervisor_type'], debug=True, org=org_label, target_sat=target_sat
+        script = vhd.deploy_script()
+        deploy_configure_by_script(
+            script['virt_who_config_script'],
+            form_data['hypervisor_type'],
+            debug=True,
+            org=org_label,
+            target_sat=target_sat,
         )
         virt_who_instance = (
             target_sat.api.VirtWhoConfig(organization_id=org_id)
