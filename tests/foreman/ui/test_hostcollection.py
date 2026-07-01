@@ -682,9 +682,8 @@ def test_negative_hosts_limit(module_target_sat, module_org_with_parameter, smar
         session.hostcollection.associate_host(hc_name, hosts[0].name)
         with pytest.raises(AssertionError) as context:
             session.hostcollection.associate_host(hc_name, hosts[1].name)
-        assert (
-            f"cannot have more than 1 host(s) associated with host collection '{hc_name}'"
-            in str(context.value)
+        assert f'cannot have more than 1 host(s) associated with host collection {hc_name}' in str(
+            context.value
         )
 
 
