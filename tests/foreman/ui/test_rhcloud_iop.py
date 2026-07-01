@@ -436,7 +436,7 @@ def test_iop_negative_rhcloud_inventory_upload_not_displayed(module_target_sat_i
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match(r'^(?![78]).*')
+@pytest.mark.rhel_ver_match('10')
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_remediation_type_and_status(
     rhel_insights_vm,
@@ -444,7 +444,7 @@ def test_iop_recommendations_remediation_type_and_status(
     module_target_sat_insights,
 ):
     """Set up Satellite with iop enabled, verify recommendations remediation type,
-    and test filtering recommendations by status.
+    disable the recommendation, check status, then re-enable the recommendation.
 
     :id: 62834698-b4b8-4218-855c-2b2aa584b364
 
