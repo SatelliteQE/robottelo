@@ -1039,7 +1039,7 @@ def test_positive_clone_report_template(module_target_sat):
     cloned_template = module_target_sat.cli.ReportTemplate.info({'name': clone_name})
     assert cloned_template['name'] == clone_name
     assert cloned_template['cloned-from-id'] == template['id']
-    if is_open('SAT-42163'):
+    if is_open('SAT-47454'):
         module_target_sat.cli.ReportTemplate.update(
             {'id': cloned_template['id'], 'locked': 'false'}
         )
