@@ -485,8 +485,9 @@ class TestContentView:
 
         ac_key = module_target_sat.cli_factory.make_activation_key(
             {
-                'content-view-id': source_cv['id'],
-                'lifecycle-environment-id': env[0]['id'],
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    source_cv['id'], env[0]['id']
+                ),
                 'name': gen_alphanumeric(),
                 'organization-id': module_org.id,
             }
@@ -553,8 +554,9 @@ class TestContentView:
 
         module_target_sat.cli_factory.make_fake_host(
             {
-                'content-view-id': source_cv['id'],
-                'lifecycle-environment-id': env[0]['id'],
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    source_cv['id'], env[0]['id']
+                ),
                 'name': gen_alphanumeric(),
                 'organization-id': module_org.id,
             }
@@ -1759,8 +1761,9 @@ class TestContentView:
         assert content_view['content-host-count'] == '0'
         module_target_sat.cli_factory.make_fake_host(
             {
-                'content-view-id': content_view['id'],
-                'lifecycle-environment-id': env['id'],
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    content_view['id'], env['id']
+                ),
                 'name': gen_alphanumeric(),
                 'organization-id': module_sca_manifest_org.id,
             }
@@ -1831,8 +1834,9 @@ class TestContentView:
 
         module_target_sat.cli_factory.make_fake_host(
             {
-                'content-view-id': content_view['id'],
-                'lifecycle-environment-id': env['id'],
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    content_view['id'], env['id']
+                ),
                 'name': gen_alphanumeric(),
                 'organization-id': module_sca_manifest_org.id,
             }
@@ -1869,8 +1873,9 @@ class TestContentView:
 
         module_target_sat.cli_factory.make_fake_host(
             {
-                'content-view-id': content_view['id'],
-                'lifecycle-environment-id': env['id'],
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    content_view['id'], env['id']
+                ),
                 'name': gen_alphanumeric(),
                 'organization-id': module_org.id,
             }
@@ -3340,8 +3345,9 @@ class TestRollingContentView:
         ak = target_sat.cli.ActivationKey.create(
             {
                 'organization-id': module_org.id,
-                'content-view': rolling_cv['name'],
-                'lifecycle-environment-id': library_id,
+                'content-view-environment-ids': target_sat.api_factory.get_cvenv_id(
+                    rolling_cv['id'], library_id
+                ),
                 'name': gen_alphanumeric(),
             }
         )
@@ -3368,8 +3374,9 @@ class TestRollingContentView:
             {
                 'id': module_ak.id,
                 'organization-id': module_org.id,
-                'content-view': rolling_cv['name'],
-                'lifecycle-environment-id': library_id,
+                'content-view-environment-ids': target_sat.api_factory.get_cvenv_id(
+                    rolling_cv['id'], library_id
+                ),
             }
         )
         # updated module_ak was associated to rolling cv
