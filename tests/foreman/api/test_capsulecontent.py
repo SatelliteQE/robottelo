@@ -665,7 +665,7 @@ class TestCapsuleContentManagement:
     def test_positive_update_with_immediate_sync(
         self,
         target_sat,
-        module_capsule_configured,
+        capsule_configured,
         function_org,
         function_product,
         function_lce,
@@ -692,12 +692,12 @@ class TestCapsuleContentManagement:
             url=repo_url,
         ).create()
         # Update capsule's download policy to on_demand to match repository's policy
-        module_capsule_configured.update_download_policy('on_demand')
+        capsule_configured.update_download_policy('on_demand')
         # Associate the lifecycle environment with the capsule
-        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce.id}
         )
-        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
 
         assert len(result['results'])
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
@@ -718,7 +718,7 @@ class TestCapsuleContentManagement:
         timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
-        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
@@ -729,7 +729,7 @@ class TestCapsuleContentManagement:
         assert repo.download_policy == 'immediate'
 
         # Update capsule's download policy as well
-        module_capsule_configured.update_download_policy('immediate')
+        capsule_configured.update_download_policy('immediate')
 
         # Sync repository once again
         repo.sync()
@@ -746,12 +746,12 @@ class TestCapsuleContentManagement:
         timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
-        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
         # Verify the count of RPMs published on Capsule
-        caps_repo_url = module_capsule_configured.get_published_repo_url(
+        caps_repo_url = capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
