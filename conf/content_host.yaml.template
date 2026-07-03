@@ -17,7 +17,8 @@ content_host:
     vm:
       workflow: deploy-rhel
       deploy_rhel_version: '7'
-      deploy_fips: true
+    post_configs:
+      - fips
   rhel8:
     vm:
       workflow: deploy-rhel
