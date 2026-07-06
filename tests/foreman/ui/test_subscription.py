@@ -240,8 +240,7 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
         6. Check all ticked checkboxes
         7. Verify that the table header column is the same as the Checkbox_dict
 
-        Note: Table header will always contain 'Select all rows' header in html,
-        but will not be displayed in UI
+        Note: 'Name' column is always displayed and cannot be unchecked.
 
     :expectedresults:
         1. No column headers show up
@@ -249,15 +248,14 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
     :CaseImportance: Medium
     """
     checkbox_dict = {
-        'Name': False,
         'SKU': False,
         'Contract': False,
-        'Start Date': False,
-        'End Date': False,
-        'Requires Virt-Who': False,
+        'Start date': False,
+        'End date': False,
+        'Requires virt-who': False,
         'Type': False,
         'Entitlements': False,
-        'Product Host Count': False,
+        'Hosts': False,
     }
     org = function_org
     with session:
@@ -267,11 +265,11 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
         )
         headers = session.subscription.filter_columns(checkbox_dict)
-        assert headers == ('Select all rows',)
+        assert headers == ('Select all rows', 'Name')
         time.sleep(3)
         checkbox_dict.update((k, True) for k in checkbox_dict)
         col = session.subscription.filter_columns(checkbox_dict)
-        checkbox_dict.update({'Select all rows': ''})
+        checkbox_dict.update({'Select all rows': '', 'Name': ''})
         assert set(col) == set(checkbox_dict)
 
 
@@ -382,7 +380,7 @@ def test_positive_populate_future_date_subcription(
         # Get subscription Start Date and compare with current date
         subscriptions = session.subscription.read_subscriptions()
         if not any(
-            datetime.strptime(sub['Start Date'], '%Y-%m-%d %H:%M:%S %Z').date() > current_date
+            datetime.strptime(sub['Start date'], '%b %d, %Y').date() > current_date
             for sub in subscriptions
         ):
             raise AssertionError('Subscription start date is not in the future')
