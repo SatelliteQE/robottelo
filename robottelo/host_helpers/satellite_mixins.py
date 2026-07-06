@@ -21,7 +21,7 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
-from robottelo.enums import NetworkType
+from robottelo.enums import InstallMethod, NetworkType
 from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError, SatelliteHostError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
@@ -457,7 +457,11 @@ class IoPSetup:
         }
 
     def configure_iop(self):
-        """Configure on prem Advisor engine on Satellite"""
+        """Configure on prem Advisor engine on Satellite.
+
+        Branches on install_method: foremanctl uses ``foremanctl deploy --add-feature iop``,
+        installer uses ``satellite-installer --enable-iop --iop-ensure present``.
+        """
         logger.info('Configuring Satellite with local Red Hat Lightspeed')
 
         self.register_to_cdn()
@@ -472,30 +476,33 @@ class IoPSetup:
             iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
         )
 
-        # Set IPv6 podman proxy on Satellite, to pull from container registry
         self.enable_ipv6_podman_proxy()
 
-        # Set up container image path overrides
-        if image_paths := self.get_iop_image_paths():
-            custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
+        if self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('foremanctl deploy --add-feature iop', timeout='30m')
+        else:
+            # Set up container image path overrides for satellite-installer
+            if image_paths := self.get_iop_image_paths():
+                custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
 
-            with open(custom_hiera, 'w') as f:
-                yaml.dump(
-                    image_paths,
-                    f,
-                    sort_keys=False,
-                    default_flow_style=False,
-                )
-            self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
+                with open(custom_hiera, 'w') as f:
+                    yaml.dump(
+                        image_paths,
+                        f,
+                        sort_keys=False,
+                        default_flow_style=False,
+                    )
+                self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
 
-        command = InstallerCommand(
-            'enable-iop',
-            iop_ensure='present',
-            scenario='satellite',
-            foreman_initial_admin_password=settings.server.admin_password,
-        ).get_command()
+            command = InstallerCommand(
+                'enable-iop',
+                iop_ensure='present',
+                scenario='satellite',
+                foreman_initial_admin_password=settings.server.admin_password,
+            ).get_command()
 
-        result = self.execute(command, timeout='30m')
+            result = self.execute(command, timeout='30m')
+
         if result.status != 0:
             raise SatelliteHostError(f'Failed to configure IoP: {result.stdout}')
         if not self.iop_enabled:
@@ -506,11 +513,12 @@ class IoPSetup:
             logger.info('IoP is already disabled. Skipping uninstallation.')
             return
 
-        command = InstallerCommand(
-            iop_ensure='absent',
-        ).get_command()
+        if self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('foremanctl deploy --remove-feature iop', timeout='30m')
+        else:
+            command = InstallerCommand(iop_ensure='absent').get_command()
+            result = self.execute(command, timeout='30m')
 
-        result = self.execute(command, timeout='30m')
         if result.status != 0:
             raise SatelliteHostError(f'Failed to disable IoP: {result.stdout}')
         if self.iop_enabled:

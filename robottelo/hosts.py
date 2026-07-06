@@ -3150,7 +3150,12 @@ class Satellite(Capsule, SatelliteMixins):
     @property
     def iop_enabled(self):
         """Return boolean indicating whether IoP (local Red Hat Lightspeed) is enabled."""
-        return self.api.RHCloud().advisor_engine_config()['use_iop_mode']
+        from robottelo.enums import InstallMethod
+
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return 'iop' in self.list_foremanctl_features(enabled=True)
+        result = self.execute('systemctl is-active iop-core-engine')
+        return result.status == 0
 
 
 class SSOHost(Host):
