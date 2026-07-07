@@ -467,9 +467,13 @@ def test_negative_create_with_content_source(
 
     :BZ: 1260697
 
+    :Verifies: SAT-47465
+
     :expectedresults: Host was not created
 
     :CaseImportance: Medium
+
+    :BlockedBy: SAT-47465
     """
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.make_fake_host(
@@ -491,12 +495,16 @@ def test_negative_update_content_source(
 
     :BZ: 1260697, 1483252, 1313056
 
+    :Verifies: SAT-47465
+
     :customerscenario: true
 
     :expectedresults: Host was not updated. Content source remains the same
         as it was before update
 
     :CaseImportance: Medium
+
+    :BlockedBy: SAT-47465
     """
     host = module_target_sat.cli_factory.make_fake_host(
         {
