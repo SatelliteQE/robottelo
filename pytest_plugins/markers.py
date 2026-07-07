@@ -17,6 +17,7 @@ def pytest_configure(config):
         "rhel_ver_list: Filter rhel_contenthost versions by list",
         "rhel_ver_match: Filter rhel_contenthost versions by regexp, or format 'N-#'",
         "no_containers: Disable container hosts from being used in favor of VMs",
+        "foreman_installer: Tests that require satellite-installer; deselected when server.install_method is foremanctl",
         "include_capsule: For satellite-maintain tests to run on Satellite and Capsule both",
         "include_satellite_iop: For satellite-maintain tests to run on both default Satellite and IoP Satellite",
         "satellite_iop_only: For satellite-maintain tests to run only on IoP Satellite",
@@ -25,7 +26,8 @@ def pytest_configure(config):
         "ldap: Tests related to ldap authentication",
         "no_compose : Skip the marked sanity test for nightly compose",
         "network: Restrict test to specific network environments",
-        "foremanctl: Tests that require foremanctl",
+        "foremanctl: Tests that require foremanctl; deselected when server.install_method is installer",
+        "pqc: Post-Quantum Cryptography tests",
     ]
     markers.extend(module_markers())
     for marker in markers:

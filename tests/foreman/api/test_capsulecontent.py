@@ -42,7 +42,7 @@ from robottelo.constants import (
     RPM_TO_UPLOAD,
     DataFile,
 )
-from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
+from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO, RHEL10_BASEOS_MLDSA
 from robottelo.content_info import (
     get_repo_files_by_url,
     get_repomd,
@@ -665,7 +665,7 @@ class TestCapsuleContentManagement:
     def test_positive_update_with_immediate_sync(
         self,
         target_sat,
-        module_capsule_configured,
+        capsule_configured,
         function_org,
         function_product,
         function_lce,
@@ -692,12 +692,12 @@ class TestCapsuleContentManagement:
             url=repo_url,
         ).create()
         # Update capsule's download policy to on_demand to match repository's policy
-        module_capsule_configured.update_download_policy('on_demand')
+        capsule_configured.update_download_policy('on_demand')
         # Associate the lifecycle environment with the capsule
-        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce.id}
         )
-        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
 
         assert len(result['results'])
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
@@ -718,7 +718,7 @@ class TestCapsuleContentManagement:
         timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
-        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
@@ -729,7 +729,7 @@ class TestCapsuleContentManagement:
         assert repo.download_policy == 'immediate'
 
         # Update capsule's download policy as well
-        module_capsule_configured.update_download_policy('immediate')
+        capsule_configured.update_download_policy('immediate')
 
         # Sync repository once again
         repo.sync()
@@ -746,12 +746,12 @@ class TestCapsuleContentManagement:
         timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
-        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
         # Verify the count of RPMs published on Capsule
-        caps_repo_url = module_capsule_configured.get_published_repo_url(
+        caps_repo_url = capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -2319,3 +2319,111 @@ class TestPodman:
         assert res.status == 0  # expect cmd succeeded
         assert 'login succeeded' not in res.stdout.lower()
         assert 'invalid username/password' in res.stdout.lower()
+
+
+@pytest.mark.pqc
+@pytest.mark.e2e
+@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.no_containers
+@pytest.mark.skip_if_not_set('capsule')
+def test_positive_e2e_mldsa_content_via_capsule(
+    target_sat,
+    module_capsule_configured,
+    rhel_contenthost,
+    function_sca_manifest_org,
+    function_lce,
+    default_location,
+):
+    """End-to-end PQC/ML-DSA content delivery test via Capsule.
+
+    Sync the latest RHEL BaseOS repository, publish and promote a content view,
+    sync to a Capsule, register a host through the Capsule, install
+    ML-DSA-signed packages, download additional ones and verify their
+    V6 ML-DSA-87+Ed448 signatures are intact after being served by the Capsule.
+
+    :id: 55a98192-7257-4860-9d90-73d3937ee9ea
+
+    :setup:
+        1. Satellite with SCA manifest, configured external Capsule, and a
+           latest RHEL content host.
+
+    :steps:
+        1. Enable and sync the latest RHEL BaseOS repository (on_demand policy).
+        2. Create a content view with the repo, publish and promote to an LCE.
+        3. Associate the LCE with the Capsule and wait for capsule sync.
+        4. Create an activation key and register the content host via the Capsule.
+        5. Install ML-DSA-signed packages (tuna, strace) via dnf.
+        6. Download additional ML-DSA-signed packages (chrony, jq) via dnf.
+        7. Verify each downloaded RPM carries exactly one V6 ML-DSA-87+Ed448
+           signature with the correct key ID, and that rpm -Kv exits successfully.
+
+    :expectedresults:
+        1. Repository syncs successfully.
+        2. Content view publishes and promotes without errors.
+        3. Capsule syncs the promoted content.
+        4. Host registers through the Capsule and can consume content.
+        5. dnf install succeeds for all ML-DSA-signed packages.
+        6. rpm -Kv exits 0 and each downloaded RPM contains exactly one
+           'V6 ML-DSA-87+Ed448/SHA512 Signature, key ID 05707a62' line.
+    """
+    sat, caps, host = target_sat, module_capsule_configured, rhel_contenthost
+    org = function_sca_manifest_org
+    rhel_major = host.os_version.major
+    rh_repo_id = sat.api_factory.enable_sync_redhat_repo(
+        rh_repo=REPOS[f'rhel{rhel_major}_bos'],
+        org_id=org.id,
+        timeout=2400,
+    )
+    rh_repo = sat.api.Repository(id=rh_repo_id).read()
+
+    cv = sat.api.ContentView(organization=org, repository=[rh_repo]).create()
+    cv.publish()
+    cv = cv.read()
+
+    caps.nailgun_capsule.content_add_lifecycle_environment(data={'environment_id': function_lce.id})
+    result = caps.nailgun_capsule.content_lifecycle_environments()
+    assert function_lce.id in [lce['id'] for lce in result['results']]
+
+    timestamp = datetime.now(UTC)
+    cv.version[0].promote(data={'environment_ids': function_lce.id})
+    caps.wait_for_sync(start_time=timestamp)
+
+    nc = caps.nailgun_smart_proxy
+    sat.api.SmartProxy(id=nc.id, organization=[org]).update(['organization'])
+    sat.api.SmartProxy(id=nc.id, location=[default_location]).update(['location'])
+
+    cvenv_id = sat.api_factory.get_cvenv_id(cv, function_lce)
+    ak = sat.api.ActivationKey(
+        organization=org,
+        content_view_environment_ids=[cvenv_id],
+    ).create()
+    result = host.register(
+        org=org,
+        loc=default_location,
+        activation_keys=ak.name,
+        target=caps,
+    )
+    assert result.status == 0, f'Host registration via Capsule failed: {result.stderr}'
+
+    registered_host = sat.api.Host().search(query={'search': f'name="{host.hostname}"'})[0]
+    assert registered_host.content_facet_attributes['content_source_id'] == nc.id, (
+        'Expected Capsule as content source'
+    )
+
+    for pkg in RHEL10_BASEOS_MLDSA['install_packages']:
+        result = host.execute(f'dnf install -y {pkg}')
+        assert result.status == 0, f'dnf install {pkg} failed:\n{result.stdout}'
+
+    download_dir = '/tmp/mldsa-verify'
+    host.execute(f'mkdir -p {download_dir}')
+    pkgs = ' '.join(RHEL10_BASEOS_MLDSA['download_packages'])
+    result = host.execute(f'dnf download --downloaddir {download_dir} {pkgs}')
+    assert result.status == 0, f'dnf download failed:\n{result.stdout}'
+
+    result = host.execute(f'rpm -Kv {download_dir}/*.rpm')
+    assert result.status == 0, f'rpm -Kv failed:\n{result.stdout}'
+    sig_line = (
+        f'V6 {RHEL10_BASEOS_MLDSA["signature_type"]}/SHA512 Signature, '
+        f'key ID {RHEL10_BASEOS_MLDSA["key_id"]}'
+    )
+    assert result.stdout.count(sig_line) == len(RHEL10_BASEOS_MLDSA['download_packages'])
