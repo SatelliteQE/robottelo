@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 import os
 from time import sleep
 
+from broker import Broker
 from fauxfactory import gen_string
 from manifester import Manifester
 import pytest
@@ -33,7 +34,7 @@ from robottelo.constants import (
     REPOS,
     DataFile,
 )
-from robottelo.constants.repos import ANSIBLE_GALAXY
+from robottelo.constants.repos import ANSIBLE_GALAXY, RHEL10_BASEOS_MLDSA
 from robottelo.exceptions import CLIReturnCodeError
 
 
@@ -276,18 +277,23 @@ def function_exporter_user(target_sat, function_org):
 
 
 @pytest.fixture(scope='module')
-def module_import_sat(request, module_target_sat):
+def module_import_sat(module_target_sat, satellite_factory):
     """Provides a Satellite instance for imports.
 
-    Returns a separate Satellite when settings.iss.separate_import_sat is True,
-    or the exporting Satellite when False (for local debugging).
+    Returns a separate large-flavored Satellite (500 GB disk) when
+    settings.iss.separate_import_sat is True, or the exporting Satellite
+    when False (for local debugging).
     An air-gapped import Satellite has subscription_connection_enabled set to No.
     """
     if settings.iss.separate_import_sat:
-        sat = request.getfixturevalue('module_satellite_host')
+        sat = satellite_factory(deploy_flavor=settings.flavors.upgrade)
+        sat.enable_satellite_ipv6_http_proxy()
         sat.cli.Settings.set({'name': 'subscription_connection_enabled', 'value': 'No'})
-        return sat
-    return module_target_sat
+        yield sat
+        sat.teardown()
+        Broker(hosts=[sat]).checkin()
+    else:
+        yield module_target_sat
 
 
 @pytest.fixture
@@ -3321,6 +3327,139 @@ class TestExportImport:
             import_repo['content-counts']['container-manifests']
             == repo['content-counts']['container-manifests']
         )
+
+    @pytest.mark.pqc
+    @pytest.mark.rhel_ver_match('N-0')
+    @pytest.mark.no_containers
+    @pytest.mark.parametrize('export_format', ['importable', 'syncable'])
+    def test_positive_export_import_mldsa_content(
+        self,
+        export_format,
+        target_sat,
+        module_import_sat,
+        rhel_contenthost,
+        function_sca_manifest_org,
+        function_import_org_at_isat_with_manifest,
+        complete_export_import_cleanup,
+    ):
+        """Export and import the latest RHEL BaseOS repository with ML-DSA signed
+        packages, then consume content from the import Satellite and verify the
+        V6 ML-DSA-87+Ed448 signatures are intact end-to-end.
+
+        :id: 17640f0e-0d7c-46de-aee4-a05e73a04d3a
+
+        :parametrized: yes
+
+        :setup:
+            1. Satellite with SCA manifest and import Satellite (separate instance
+               or same, per settings.iss).
+            2. Latest RHEL content host.
+
+        :steps:
+            1. Enable the latest RHEL BaseOS repository on the export Satellite,
+               set download policy to immediate, then sync.
+            2. Create a content view, add the repository, publish it.
+            3. Export the content view version in exportable or syncable format.
+            4. Transfer the export archive to the import Satellite and import it.
+            5. Create an activation key on the import Satellite and register the
+               content host against it.
+            6. Install ML-DSA-signed packages (tuna, strace) via dnf.
+            7. Download additional ML-DSA-signed packages (chrony, jq) via dnf.
+            8. Verify each downloaded RPM carries exactly one V6 ML-DSA-87+Ed448
+               signature with the correct key ID, and that rpm -Kv exits successfully.
+
+        :expectedresults:
+            1. Repository syncs with immediate policy (all RPMs physically downloaded).
+            2. Content view export succeeds in both exportable and syncable formats.
+            3. Content view import succeeds on the import Satellite.
+            4. Host registers against the import Satellite and can consume content.
+            5. dnf install succeeds for all ML-DSA-signed packages.
+            6. rpm -Kv exits 0 and each downloaded RPM contains exactly one
+               'V6 ML-DSA-87+Ed448/SHA512 Signature, key ID 05707a62' line.
+        """
+        eorg, iorg = function_sca_manifest_org, function_import_org_at_isat_with_manifest
+        rhel_major = rhel_contenthost.os_version.major
+        repo_dict = REPOS[f'rhel{rhel_major}_bos']
+
+        target_sat.cli.RepositorySet.enable(
+            {
+                'organization-id': eorg.id,
+                'name': repo_dict['reposet'],
+                'product': repo_dict['product'],
+                'releasever': repo_dict['releasever'],
+                'basearch': DEFAULT_ARCHITECTURE,
+            }
+        )
+        repo = target_sat.cli.Repository.info(
+            {
+                'organization-id': eorg.id,
+                'name': repo_dict['name'],
+                'product': repo_dict['product'],
+            }
+        )
+        target_sat.cli.Repository.update({'download-policy': 'immediate', 'id': repo['id']})
+        target_sat.cli.Repository.synchronize({'id': repo['id']}, timeout='30m')
+
+        cv = target_sat.cli_factory.make_content_view({'organization-id': eorg.id})
+        target_sat.cli.ContentView.add_repository(
+            {'id': cv['id'], 'organization-id': eorg.id, 'repository-id': repo['id']}
+        )
+        target_sat.cli.ContentView.publish({'id': cv['id']})
+        cv = target_sat.cli.ContentView.info({'id': cv['id']})
+        assert len(cv['versions']) == 1
+
+        assert target_sat.validate_pulp_filepath(eorg, PULP_EXPORT_DIR) == ''
+        export = target_sat.cli.ContentExport.completeVersion(
+            {'id': cv['versions'][0]['id'], 'organization-id': eorg.id, 'format': export_format},
+            timeout='30m',
+        )
+        assert target_sat.validate_pulp_filepath(eorg, PULP_EXPORT_DIR) != ''
+
+        import_path = target_sat.move_pulp_archive(
+            eorg, export['message'], target=module_import_sat
+        )
+        module_import_sat.cli.ContentImport.version(
+            {'organization-id': iorg.id, 'path': import_path},
+            timeout='30m',
+        )
+        imp_cv = module_import_sat.cli.ContentView.info(
+            {'name': cv['name'], 'organization-id': iorg.id}
+        )
+        assert imp_cv['name'] == cv['name']
+        assert len(imp_cv['versions']) == 1
+
+        cvenv_id = module_import_sat.api_factory.get_cvenv_id(imp_cv['id'], iorg.library)
+        ak = module_import_sat.cli_factory.make_activation_key(
+            {
+                'content-view-environment-ids': cvenv_id,
+                'organization-id': iorg.id,
+            }
+        )
+        result = rhel_contenthost.register(
+            org=iorg,
+            loc=None,
+            activation_keys=ak['name'],
+            target=module_import_sat,
+        )
+        assert result.status == 0, f'Host registration failed: {result.stderr}'
+
+        for pkg in RHEL10_BASEOS_MLDSA['install_packages']:
+            result = rhel_contenthost.execute(f'dnf install -y {pkg}')
+            assert result.status == 0, f'dnf install {pkg} failed:\n{result.stdout}'
+
+        download_dir = '/tmp/mldsa-iss-verify'
+        rhel_contenthost.execute(f'mkdir -p {download_dir}')
+        pkgs = ' '.join(RHEL10_BASEOS_MLDSA['download_packages'])
+        result = rhel_contenthost.execute(f'dnf download --downloaddir {download_dir} {pkgs}')
+        assert result.status == 0, f'dnf download failed:\n{result.stdout}'
+
+        result = rhel_contenthost.execute(f'rpm -Kv {download_dir}/*.rpm')
+        assert result.status == 0, f'rpm -Kv failed:\n{result.stdout}'
+        sig_line = (
+            f'V6 {RHEL10_BASEOS_MLDSA["signature_type"]}/SHA512 Signature, '
+            f'key ID {RHEL10_BASEOS_MLDSA["key_id"]}'
+        )
+        assert result.stdout.count(sig_line) == len(RHEL10_BASEOS_MLDSA['download_packages'])
 
 
 @pytest.fixture(scope='module')
