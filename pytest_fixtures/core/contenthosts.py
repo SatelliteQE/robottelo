@@ -18,12 +18,15 @@ from robottelo.hosts import ContentHost, Satellite
 
 def host_conf(request):
     """A function that returns arguments for Broker host deployment"""
-    conf = params = {}
+    params = {}
     if hasattr(request, 'param'):
         params = request.param
     distro = params.get('distro', 'rhel')
     network = params.get('network', settings.content_host.network_type)
     _rhelver = f"{distro}{params.get('rhel_version', settings.content_host.default_rhel_version)}"
+
+    version_conf = settings.content_host.get(_rhelver).to_dict()
+    post_configs = version_conf.get('post_configs', [])
 
     # check to see if no-containers is passed as an argument to pytest
     deploy_kwargs = {}
@@ -34,18 +37,20 @@ def host_conf(request):
             request.node.get_closest_marker('no_containers'),
         ]
     ):
-        deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('container', {})
+        deploy_kwargs = version_conf.get('container', {})
         if deploy_kwargs and network:
             deploy_kwargs.update({'Container': str(network)})
     # if we're not using containers or a container isn't available, use a VM
     if not deploy_kwargs:
-        deploy_kwargs = settings.content_host.get(_rhelver).to_dict().get('vm', {})
+        deploy_kwargs = version_conf.get('vm', {})
         if network:
             deploy_kwargs.update({'deploy_network_type': network})
     if network:
         # pass the network type to the deploy kwargs, so the host class can use it
         deploy_kwargs.update({'net_type': network})
-    conf.update(deploy_kwargs)
+    conf = {**deploy_kwargs}
+    if post_configs:
+        conf['post_configs'] = post_configs
     return conf
 
 
@@ -77,6 +82,8 @@ def host_post_config(hosts, config_name):
             if isinstance(val, str) and "{" in val:
                 broker_args[key] = val.format(host=host)
         Broker(**broker_args).execute()
+        host._post_deploy_config = getattr(host, '_post_deploy_config', set()) | {config_name}
+        host.connect()
 
 
 @contextmanager
@@ -256,7 +263,7 @@ def katello_host_tools_tracer_host(rex_contenthost, target_sat):
 def rhel_contenthost_with_repos(request, target_sat):
     """Install katello-host-tools-tracer, create custom
     repositories on the host"""
-    with Broker(**host_conf(request), host_class=ContentHost) as host:
+    with contenthost_factory(request=request) as host:
         # add IPv6 proxy for IPv6 communication
         if not host.network_type.has_ipv4:
             host.enable_ipv6_dnf_and_rhsm_proxy()
@@ -305,7 +312,7 @@ def module_flatpak_contenthost(request):
         "no_containers": True,
         "network": "ipv6" if settings.server.network_type == NetworkType.IPV6 else "ipv4",
     }
-    with Broker(**host_conf(request), host_class=ContentHost) as host:
+    with contenthost_factory(request=request) as host:
         host.register_to_cdn()
         res = host.execute('dnf -y install podman flatpak dbus-x11')
         assert res.status == 0, f'Initial installation failed: {res.stderr}'
