@@ -1882,16 +1882,12 @@ class TestContentViewPublishPromote:
             1. Create and Sync a repository.
             2. Add it to a Content View and publish it.
             3. Remove that CV from Library, then delete it.
-            4. Using the rake console, get the DeleteDistribution task output associated with
-            the CV deletion.
+            4. Using the rake console, get the DeleteDistribution task output associated with the CV deletion.
 
         :expectedresults:
-            1. CV is deleted successfully, and the DeleteDistributions pulp task output isn't empty, and contains
-            proper information.
+            1. CV is deleted successfully, and the DeleteDistributions pulp task output isn't empty, and contains proper information.
 
         :Verifies: SAT-45529
-
-        :CaseImportance: High
         """
         repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
@@ -1921,9 +1917,10 @@ class TestContentViewPublishPromote:
             ),
             search_rate=20,
             max_tries=15,
-        )[0]
+        )
+        assert len(task) == 1
         rake_command = (
-            f'task = ForemanTasks::Task.find("{task.id}"); '
+            f'task = ForemanTasks::Task.find("{task[0].id}"); '
             'dist_task = task.execution_plan_action.execution_plan.actions.find do |action| action.is_a?(::Actions::Pulp3::Repository::DeleteDistributions) end; '
             'dist_task.output;'
         )
