@@ -1568,7 +1568,7 @@ class TestCapsuleContentManagement:
     def test_positive_capsule_sync_openstack_container_repos(
         self,
         module_target_sat,
-        module_capsule_configured,
+        capsule_configured,
         function_org,
         function_product,
         function_lce,
@@ -1603,6 +1603,7 @@ class TestCapsuleContentManagement:
             repo = module_target_sat.api.Repository(
                 content_type='docker',
                 docker_upstream_name=ups_name,
+                download_policy='on_demand',
                 product=function_product,
                 url=settings.container.rh.registry_hub,
                 upstream_username=settings.subscription.rhn_username,
@@ -1612,10 +1613,10 @@ class TestCapsuleContentManagement:
             repos.append(repo)
 
         # Associate LCE with the capsule
-        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce.id}
         )
-        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
         assert len(result['results'])
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
@@ -1630,7 +1631,7 @@ class TestCapsuleContentManagement:
         timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
-        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
