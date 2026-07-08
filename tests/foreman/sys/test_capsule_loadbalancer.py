@@ -432,6 +432,8 @@ def test_loadbalancer_flatpak(
 
     :id: 937674f3-3d0b-4346-8d9f-844d72a5c8e7
 
+    :Team: Artemis
+
     :setup:
         1. Two capsules set up with a load balancer (HAProxy).
         2. Flatpak repos mirrored, two CVs published and promoted, capsules synced.
