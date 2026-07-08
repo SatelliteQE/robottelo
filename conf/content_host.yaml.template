@@ -15,7 +15,7 @@ content_host:
       container_host: localhost/ubi7:latest
   rhel7_fips:
     vm:
-      workflow: deploy-base-rhel-fips
+      workflow: deploy-rhel
       deploy_rhel_version: '7'
     post_configs:
       - fips
@@ -27,10 +27,9 @@ content_host:
       container_host: localhost/ubi8:latest
   rhel8_fips:
     vm:
-      workflow: deploy-base-rhel-fips
+      workflow: deploy-rhel
       deploy_rhel_version: '8'
-    post_configs:
-      - fips
+      deploy_fips: true
   rhel9:
     vm:
       workflow: deploy-rhel
@@ -39,10 +38,9 @@ content_host:
       container_host: localhost/ubi9:latest
   rhel9_fips:
     vm:
-      workflow: deploy-base-rhel-fips
+      workflow: deploy-rhel
       deploy_rhel_version: '9'
-    post_configs:
-      - fips
+      deploy_fips: true
   rhel10:
     vm:
       workflow: deploy-rhel
@@ -51,8 +49,9 @@ content_host:
       container_host: localhost/ubi10:latest
   rhel10_fips:
     vm:
-      workflow: deploy-base-rhel-fips
+      workflow: deploy-rhel
       deploy_rhel_version: '10'
+      deploy_fips: true
   centos7:
     vm:
       deploy_rhel_version: '7'
