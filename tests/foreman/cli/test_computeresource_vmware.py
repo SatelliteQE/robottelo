@@ -23,7 +23,7 @@ from robottelo.hosts import ContentHost
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location, vmware):
+def test_positive_vmware_cr_end_to_end(request, target_sat, module_org, module_location, vmware):
     """Create, Read, Update and Delete VMware compute resources
 
     :id: 96faae3f-bc64-4147-a9fc-09c858e0a68f
@@ -36,6 +36,8 @@ def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location, 
 
     :CaseImportance: Critical
     """
+    if 'vmware7' in request.node.callspec.id and target_sat.is_fips_enabled():
+        pytest.skip('VMware 7 is not supported in FIPS mode')
     cr_name = gen_string('alpha')
     # Create
     vmware_cr = target_sat.cli.ComputeResource.create(
