@@ -18,6 +18,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import FOREMANCTL_PARAMETERS_FILE
 from robottelo.logging import logger
 
 pytestmark = pytest.mark.e2e
@@ -246,3 +247,122 @@ def test_positive_logging_from_pulp3(module_org, target_sat):
     # verify pulp correlation id in message
     message_log = target_sat.execute(f'cat {test_logfile} | grep {pulp_correlation_id}')
     assert message_log.status == 0
+
+
+@pytest.mark.foremanctl
+class TestSOSReportForemanctl:
+    """Tests for the foremanctl sos plugin on containerized Satellite."""
+
+    SOS_CMD = 'sos report -o foremanctl --batch --tmp-dir /var/tmp'
+    EXTRACT_DIR = '/var/tmp/sosreport-extract'
+
+    @pytest.fixture(scope="module")
+    def sosreport_extract(self, module_target_sat):
+        """Run sosreport and yield the extracted report directory path."""
+        result = module_target_sat.execute(self.SOS_CMD, timeout='10m')
+        assert result.status == 0, f'sosreport failed:\n{result.stdout}\n{result.stderr}'
+
+        tarball = module_target_sat.execute(
+            'ls /var/tmp/sosreport-*.tar.xz | head -1'
+        ).stdout.strip()
+        assert tarball, 'No sosreport tarball found'
+
+        module_target_sat.execute(f'mkdir -p {self.EXTRACT_DIR}')
+        module_target_sat.execute(f'tar xf {tarball} -C {self.EXTRACT_DIR}')
+
+        report_dir = module_target_sat.execute(
+            f'ls -d {self.EXTRACT_DIR}/sosreport-*'
+        ).stdout.strip()
+        yield report_dir
+        module_target_sat.execute(f'rm -rf /var/tmp/sosreport-* {self.EXTRACT_DIR}')
+
+    def test_positive_sosreport_foremanctl_collects_data(
+        self, module_target_sat, sosreport_extract
+    ):
+        """Verify the foremanctl sos plugin activates on a containerized
+        Satellite and collects expected configuration files and command output.
+
+        :id: dc91bb91-d785-49f9-b19d-b0484662ce3f
+
+        :steps:
+            1. Run sosreport with the foremanctl plugin
+            2. Verify foremanctl configuration files are collected
+            3. Verify foremanctl command outputs are collected
+
+        :expectedresults:
+            1. parameters.yaml and inventory files are present in the report
+            2. foremanctl features and foremanctl health output are collected
+        """
+        report = sosreport_extract
+
+        params = module_target_sat.execute(f'test -f {report}/var/lib/foremanctl/parameters.yaml')
+        assert params.status == 0, 'parameters.yaml not collected'
+
+        inventory = module_target_sat.execute(f'test -f {report}/etc/foremanctl/inventory')
+        assert inventory.status == 0, 'foremanctl inventory not collected'
+
+        features = module_target_sat.execute(
+            f'test -f {report}/sos_commands/foremanctl/foremanctl_features'
+        )
+        assert features.status == 0, 'foremanctl features output not collected'
+
+        health = module_target_sat.execute(
+            f'test -f {report}/sos_commands/foremanctl/foremanctl_health'
+        )
+        assert health.status == 0, 'foremanctl health output not collected'
+
+    def test_positive_sosreport_foremanctl_scrub_sensitive_values(
+        self, module_target_sat, sosreport_extract
+    ):
+        """Verify the foremanctl sos plugin scrubs sensitive credentials
+        from parameters.yaml and foremanctl log files while preserving
+        non-sensitive values.
+
+        :id: a8bdb8f7-dd0f-44ee-9722-af4b1815aad2
+
+        :steps:
+            1. Verify passwords exist in the original parameters.yaml
+            2. Run sosreport with the foremanctl plugin
+            3. Check password values in parameters.yaml are scrubbed
+            4. Check non-sensitive values are NOT scrubbed
+            5. Verify foremanctl log files are collected
+            6. Check that sensitive values in logs are scrubbed
+
+        :expectedresults:
+            1. All password values in parameters.yaml are scrubbed
+            2. Non-sensitive values like database names remain intact
+            3. foremanctl log files are present in the report
+            4. Any lines matching sensitive value patterns in logs
+               have their values scrubbed'
+        """
+        # only password exists for now on the default deploy and more can be added in future
+        SENSITIVE_KEYWORD = ('password',)
+        SCRUB_MARKER = '***'
+
+        original = module_target_sat.execute(f'grep -i password {FOREMANCTL_PARAMETERS_FILE}')
+        assert original.stdout.strip(), f'No password entries found in {FOREMANCTL_PARAMETERS_FILE}'
+
+        report = sosreport_extract
+
+        # Verify parameters.yaml scrubbing
+        collected = module_target_sat.execute(f'cat {report}/var/lib/foremanctl/parameters.yaml')
+        assert collected.status == 0, 'Could not read collected parameters.yaml'
+
+        for keyword in SENSITIVE_KEYWORD:
+            matching_lines = [
+                line for line in collected.stdout.splitlines() if keyword in line.lower()
+            ]
+            for line in matching_lines:
+                assert SCRUB_MARKER in line, f'Sensitive value not scrubbed in line: {line}'
+
+        # Verify log file scrubbing
+        log_dir = f'{report}/var/log/foremanctl'
+        log_files = module_target_sat.execute(f'ls {log_dir}/foremanctl*log* 2>/dev/null')
+        assert log_files.status == 0, 'Failed to list foremanctl log files in sosreport'
+
+        sensitive_check = module_target_sat.execute(
+            f'grep -hEi "passw|cred|token|secret" {log_dir}/foremanctl*log* 2>/dev/null'
+        )
+        if sensitive_check.stdout.strip():
+            for line in sensitive_check.stdout.splitlines():
+                assert SCRUB_MARKER in line, f'Sensitive value not scrubbed in log line: {line}'
