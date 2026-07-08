@@ -2436,6 +2436,53 @@ class TestFileRepository:
         repo.remove_content(data={'ids': [file_detail[0].id], 'content_type': 'file'})
         assert repo.read().content_counts['file'] == 0
 
+    def test_positive_file_repo_accessible_via_pulp_isos(self, target_sat):
+        """Verify file repositories are accessible via /pulp/isos path
+
+        :id: fa57b02d-433b-4f2a-8d28-0b1b856ced01
+
+        :steps:
+            1. Create an organization
+            2. Create a product
+            3. Create a file-type repository with a valid file repo URL
+            4. Sync the repository
+            5. Access the repository via /pulp/isos/{org}/Library/custom/{product}/{repo}/
+            6. Verify files are accessible with HTTP 200 response
+
+        :expectedresults:
+            1. Repository syncs successfully
+            2. Files are accessible via /pulp/isos path
+            3. HTTP response is 200 OK
+
+        :Verifies: SAT-47194
+        """
+        org = target_sat.api.Organization().create()
+        product = target_sat.api.Product(organization=org).create()
+        repo = target_sat.api.Repository(
+            product=product,
+            content_type='file',
+            url=repo_constants.CUSTOM_FILE_REPO,
+        ).create()
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['file'] > 0, 'Repository should contain files after sync'
+
+        # Construct /pulp/isos path from repo.full_path
+        # repo.full_path returns /pulp/content/... but we need to test /pulp/isos/...
+        content_path = urlparse(repo.full_path).path
+        iso_path = content_path.replace('/pulp/content/', '/pulp/isos/')
+
+        # Use target_sat.hostname instead of localhost for IPv6 compatibility
+        result = target_sat.execute(
+            f'curl -k -s -o /dev/null -w "%{{http_code}}" https://{target_sat.hostname}{iso_path}'
+        )
+
+        assert result.status == 0, f'curl command failed: {result.stderr}'
+        assert result.stdout.strip() == '200', (
+            f'Expected HTTP 200 for {iso_path}, got {result.stdout.strip()}'
+        )
+
 
 @pytest.mark.skip_if_not_set('container_repo')
 class TestTokenAuthContainerRepository:
