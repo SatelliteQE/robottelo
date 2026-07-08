@@ -1008,7 +1008,7 @@ VULNERABLE_PACKAGES = {
     8: {
         'rpm': 'mariadb-10.3.39-1.module+el8.8.0+19673+72b0d35f.x86_64',
         'cves': ['CVE-2025-13699'],
-        'erratum': 'RHSA-2026:0137',
+        'erratum': 'RHSA-2026:0225',
     },
     9: {
         'rpm': 'mariadb-3:10.5.29-2.el9_6.x86_64',
