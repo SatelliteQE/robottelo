@@ -21,6 +21,7 @@ from fauxfactory import gen_integer, gen_string, gen_utf8
 import pytest
 from requests.exceptions import HTTPError
 
+from robottelo import constants
 from robottelo.config import settings, user_nailgun_config
 from robottelo.constants import (
     CUSTOM_RPM_SHA_512_FEED_COUNT,
@@ -1868,6 +1869,64 @@ class TestContentViewPublishPromote:
         assert len(content_view.repository) == 10
         content_view.publish()
         assert len(content_view.read().version) == 1
+
+    def test_positive_synchronous_distribution_delete(
+        self, content_view, module_sca_manifest_org, module_target_sat
+    ):
+        """Delete a Content View containing a synced Repository, and verify the DeleteDistributions dynflow task output
+        is not empty, and contains proper information.
+
+        :id: cb317252-b60a-4adb-8333-160f594ae5d7
+
+        :steps:
+            1. Create and Sync a repository.
+            2. Add it to a Content View and publish it.
+            3. Remove that CV from Library, then delete it.
+            4. Using the rake console, get the DeleteDistribution task output associated with the CV deletion.
+
+        :expectedresults:
+            1. CV is deleted successfully, and the DeleteDistributions pulp task output isn't empty, and contains proper information.
+
+        :Verifies: SAT-45529
+        """
+        repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_sca_manifest_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhst7']['name'],
+            reposet=constants.REPOSET['rhst7'],
+            releasever=None,
+        )
+        module_target_sat.api.Repository(id=repo_id).sync()
+        rh_repo = module_target_sat.api.Repository(id=repo_id).read()
+        content_view.repository.append(rh_repo)
+        content_view = content_view.update(['repository'])
+        content_view = content_view.read()
+        assert len(content_view.repository) == 1
+        content_view.publish()
+        content_view = content_view.read()
+        assert len(content_view.version) == 1
+        # Remove from Library environment before deleting
+        content_view.delete_from_environment(content_view.environment[0].id)
+        content_view.delete()
+        task = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'label = Actions::Katello::ContentView::RemoveFromEnvironment '
+                f'and action = "Remove from Environment content view \'{content_view.name}\'; '
+                f'organization \'{module_sca_manifest_org.name}\'"'
+            ),
+            search_rate=20,
+            max_tries=15,
+        )
+        assert len(task) == 1
+        rake_command = (
+            f'task = ForemanTasks::Task.find("{task[0].id}"); '
+            'dist_task = task.execution_plan_action.execution_plan.actions.find do |action| action.is_a?(::Actions::Pulp3::Repository::DeleteDistributions) end; '
+            'dist_task.output;'
+        )
+        output = module_target_sat.execute(f"foreman-rake console <<< '{rake_command}'")
+        assert '''"state"=>"completed"''' in output.stdout
+        assert '''"name"=>"pulpcore.app.tasks.base.ageneral_delete"''' in output.stdout
 
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
