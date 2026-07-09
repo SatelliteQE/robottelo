@@ -27,6 +27,7 @@ def pytest_configure(config):
         "no_compose : Skip the marked sanity test for nightly compose",
         "network: Restrict test to specific network environments",
         "foremanctl: Tests that require foremanctl; deselected when server.install_method is installer",
+        "pqc: Post-Quantum Cryptography tests",
     ]
     markers.extend(module_markers())
     for marker in markers:

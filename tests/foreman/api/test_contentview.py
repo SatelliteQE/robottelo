@@ -21,6 +21,7 @@ from fauxfactory import gen_integer, gen_string, gen_utf8
 import pytest
 from requests.exceptions import HTTPError
 
+from robottelo import constants
 from robottelo.config import settings, user_nailgun_config
 from robottelo.constants import (
     CUSTOM_RPM_SHA_512_FEED_COUNT,
@@ -36,7 +37,7 @@ from robottelo.constants import (
     TIMESTAMP_FMT_ZONE,
     DataFile,
 )
-from robottelo.constants.repos import CUSTOM_RPM_SHA_512, FEDORA_OSTREE_REPO
+from robottelo.constants.repos import CUSTOM_RPM_SHA_512, FEDORA_OSTREE_REPO, RHEL10_BASEOS_MLDSA
 from robottelo.utils.datafactory import (
     invalid_names_list,
     parametrized,
@@ -1869,6 +1870,64 @@ class TestContentViewPublishPromote:
         content_view.publish()
         assert len(content_view.read().version) == 1
 
+    def test_positive_synchronous_distribution_delete(
+        self, content_view, module_sca_manifest_org, module_target_sat
+    ):
+        """Delete a Content View containing a synced Repository, and verify the DeleteDistributions dynflow task output
+        is not empty, and contains proper information.
+
+        :id: cb317252-b60a-4adb-8333-160f594ae5d7
+
+        :steps:
+            1. Create and Sync a repository.
+            2. Add it to a Content View and publish it.
+            3. Remove that CV from Library, then delete it.
+            4. Using the rake console, get the DeleteDistribution task output associated with the CV deletion.
+
+        :expectedresults:
+            1. CV is deleted successfully, and the DeleteDistributions pulp task output isn't empty, and contains proper information.
+
+        :Verifies: SAT-45529
+        """
+        repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_sca_manifest_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhst7']['name'],
+            reposet=constants.REPOSET['rhst7'],
+            releasever=None,
+        )
+        module_target_sat.api.Repository(id=repo_id).sync()
+        rh_repo = module_target_sat.api.Repository(id=repo_id).read()
+        content_view.repository.append(rh_repo)
+        content_view = content_view.update(['repository'])
+        content_view = content_view.read()
+        assert len(content_view.repository) == 1
+        content_view.publish()
+        content_view = content_view.read()
+        assert len(content_view.version) == 1
+        # Remove from Library environment before deleting
+        content_view.delete_from_environment(content_view.environment[0].id)
+        content_view.delete()
+        task = module_target_sat.wait_for_tasks(
+            search_query=(
+                f'label = Actions::Katello::ContentView::RemoveFromEnvironment '
+                f'and action = "Remove from Environment content view \'{content_view.name}\'; '
+                f'organization \'{module_sca_manifest_org.name}\'"'
+            ),
+            search_rate=20,
+            max_tries=15,
+        )
+        assert len(task) == 1
+        rake_command = (
+            f'task = ForemanTasks::Task.find("{task[0].id}"); '
+            'dist_task = task.execution_plan_action.execution_plan.actions.find do |action| action.is_a?(::Actions::Pulp3::Repository::DeleteDistributions) end; '
+            'dist_task.output;'
+        )
+        output = module_target_sat.execute(f"foreman-rake console <<< '{rake_command}'")
+        assert '''"state"=>"completed"''' in output.stdout
+        assert '''"name"=>"pulpcore.app.tasks.base.ageneral_delete"''' in output.stdout
+
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )
@@ -3001,3 +3060,87 @@ class TestContentViewRedHatOstreeContent:
             data={'environment_ids': module_lce.id, 'force': False}
         )
         assert len(content_view.read().version[0].read().environment) == 2
+
+
+@pytest.mark.pqc
+@pytest.mark.e2e
+@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.no_containers
+def test_positive_e2e_mldsa_content_via_satellite(
+    target_sat,
+    rhel_contenthost,
+    function_sca_manifest_org,
+    function_lce,
+):
+    """End-to-end PQC/ML-DSA content delivery test via Satellite.
+
+    Sync the latest RHEL BaseOS repository, publish and promote a content view,
+    register a host, install ML-DSA-signed packages, download additional ones
+    and verify their V6 ML-DSA-87+Ed448 signatures are intact.
+
+    :id: 3107d0fa-602c-4886-afb0-660aaea1aab1
+
+    :setup:
+        1. Satellite with SCA manifest and a latest RHEL content host.
+
+    :steps:
+        1. Enable and sync the latest RHEL BaseOS repository (on_demand policy).
+        2. Create a content view with the repo, publish and promote to an LCE.
+        3. Create an activation key and register the content host.
+        4. Install ML-DSA-signed packages (tuna, strace) via dnf.
+        5. Download additional ML-DSA-signed packages (chrony, jq) via dnf.
+        6. Verify each downloaded RPM carries exactly one V6 ML-DSA-87+Ed448
+           signature with the correct key ID, and that rpm -Kv exits successfully.
+
+    :expectedresults:
+        1. Repository syncs successfully.
+        2. Content view publishes and promotes without errors.
+        3. Host registers and can consume content from the LCE.
+        4. dnf install succeeds for all ML-DSA-signed packages.
+        5. rpm -Kv exits 0 and each downloaded RPM contains exactly one
+           'V6 ML-DSA-87+Ed448/SHA512 Signature, key ID 05707a62' line.
+    """
+    org = function_sca_manifest_org
+    rhel_major = rhel_contenthost.os_version.major
+    rh_repo_id = target_sat.api_factory.enable_sync_redhat_repo(
+        rh_repo=REPOS[f'rhel{rhel_major}_bos'],
+        org_id=org.id,
+        timeout=2400,
+    )
+    rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
+
+    cv = target_sat.api.ContentView(organization=org, repository=[rh_repo]).create()
+    cv.publish()
+    cv = cv.read()
+    cv.version[0].promote(data={'environment_ids': function_lce.id})
+
+    cvenv_id = target_sat.api_factory.get_cvenv_id(cv, function_lce)
+    ak = target_sat.api.ActivationKey(
+        organization=org,
+        content_view_environment_ids=[cvenv_id],
+    ).create()
+    result = rhel_contenthost.register(
+        org=org,
+        loc=None,
+        activation_keys=ak.name,
+        target=target_sat,
+    )
+    assert result.status == 0, f'Host registration failed: {result.stderr}'
+
+    for pkg in RHEL10_BASEOS_MLDSA['install_packages']:
+        result = rhel_contenthost.execute(f'dnf install -y {pkg}')
+        assert result.status == 0, f'dnf install {pkg} failed:\n{result.stdout}'
+
+    download_dir = '/tmp/mldsa-verify'
+    rhel_contenthost.execute(f'mkdir -p {download_dir}')
+    pkgs = ' '.join(RHEL10_BASEOS_MLDSA['download_packages'])
+    result = rhel_contenthost.execute(f'dnf download --downloaddir {download_dir} {pkgs}')
+    assert result.status == 0, f'dnf download failed:\n{result.stdout}'
+
+    result = rhel_contenthost.execute(f'rpm -Kv {download_dir}/*.rpm')
+    assert result.status == 0, f'rpm -Kv failed:\n{result.stdout}'
+    sig_line = (
+        f'V6 {RHEL10_BASEOS_MLDSA["signature_type"]}/SHA512 Signature, '
+        f'key ID {RHEL10_BASEOS_MLDSA["key_id"]}'
+    )
+    assert result.stdout.count(sig_line) == len(RHEL10_BASEOS_MLDSA['download_packages'])
