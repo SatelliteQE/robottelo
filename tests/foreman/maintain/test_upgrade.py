@@ -17,6 +17,8 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_INSTALLER_CONFIG
 
+pytestmark = pytest.mark.foreman_installer
+
 
 def last_y_stream_version(release):
     """Returns the version of the last Y stream

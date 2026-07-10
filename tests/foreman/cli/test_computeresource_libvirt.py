@@ -41,6 +41,8 @@ from robottelo.exceptions import CLIReturnCodeError
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import parametrized
 
+pytestmark = pytest.mark.foreman_installer
+
 
 def valid_name_desc_data():
     """Random data for valid name and description"""

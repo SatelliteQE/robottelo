@@ -16,6 +16,8 @@ import pytest
 
 from robottelo.config import settings
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.stubbed
 @pytest.mark.skipif((not settings.remotedb.server), reason='Intended only for RemoteDB setup')

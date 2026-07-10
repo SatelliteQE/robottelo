@@ -24,6 +24,9 @@ from robottelo.constants import (
 )
 from robottelo.hosts import Satellite
 
+pytestmark = pytest.mark.foreman_installer
+
+
 IOP_SERVICES = [
     'iop-core-engine.service',
     'iop-core-gateway.service',

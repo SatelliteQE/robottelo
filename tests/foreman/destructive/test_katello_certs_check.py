@@ -16,7 +16,7 @@ import re
 
 import pytest
 
-pytestmark = pytest.mark.destructive
+pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
 
 
 def test_positive_update_katello_certs(cert_setup_destructive_teardown):

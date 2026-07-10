@@ -21,6 +21,8 @@ import pytest
 from robottelo import constants
 from robottelo.exceptions import CLIReturnCodeError
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture(scope='module')
 def module_os_with_minor(module_target_sat):

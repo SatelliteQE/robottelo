@@ -21,13 +21,15 @@ from robottelo.cli import hammer
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_ANSWER_FILE
 
+pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
+
+
 BCK_MSG = "**** Hostname change complete! ****"
 BAD_HN_MSG = (
     "{0} is not a valid fully qualified domain name. Please use a valid FQDN and try again."
 )
 NO_CREDS_MSG = "Username and/or Password options are missing!"
 BAD_CREDS_MSG = "Unable to authenticate user admin"
-pytestmark = pytest.mark.destructive
 
 
 @pytest.mark.e2e

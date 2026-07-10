@@ -232,6 +232,7 @@ def test_negative_handle_invalid_certificate(cert_setup_destructive_teardown):
     assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
 
 
+@pytest.mark.foreman_installer
 def test_negative_installer_invalid_dns_forwarder(target_sat):
     """Satellite installer should not do any impact if any invalid values are set for DNS forwarder
 

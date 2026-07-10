@@ -17,6 +17,8 @@ import pytest
 from robottelo.constants import DataFile
 from robottelo.utils.datafactory import gen_string
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture(scope='module')
 def template_data():

@@ -19,6 +19,8 @@ import pytest
 from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.e2e
 def test_positive_install_sat_with_katello_certs(certs_data, sat_ready_rhel):

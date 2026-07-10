@@ -25,6 +25,8 @@ from robottelo.constants import (
     AZURERM_PREMIUM_OS_Disk,
 )
 
+pytestmark = pytest.mark.foreman_installer
+
 
 class TestAzureRMComputeResourceTestCase:
     """Tests for ``api/v2/compute_resources``"""

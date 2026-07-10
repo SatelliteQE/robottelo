@@ -25,6 +25,8 @@ from robottelo.constants import (
     AZURERM_PREMIUM_OS_Disk,
 )
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture(scope='class')
 def azurerm_hostgroup(

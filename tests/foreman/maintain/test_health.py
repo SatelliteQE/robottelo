@@ -20,6 +20,8 @@ from robottelo.config import settings
 from robottelo.enums import NetworkType
 from robottelo.utils.installer import InstallerCommand
 
+pytestmark = pytest.mark.foreman_installer
+
 upstream_url = {
     'foreman_repo': 'https://yum.theforeman.org/releases/nightly/el9/x86_64/',
     'puppet_repo': 'https://yum.puppetlabs.com/puppet/el/9/x86_64/',

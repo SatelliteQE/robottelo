@@ -20,6 +20,8 @@ from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.shared_resource import SharedResource
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture
 def perf_tuning_upgrade_setup(perf_tuning_upgrade_shared_satellite, upgrade_action):
