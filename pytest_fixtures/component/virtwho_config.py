@@ -7,7 +7,6 @@ from robottelo.utils.virtwho import (
     deploy_configure_by_command,
     deploy_configure_by_script,
     get_configure_command,
-    get_configure_command_option,
     get_guest_info,
 )
 
@@ -26,82 +25,6 @@ def org_module(request, default_org, module_sca_manifest_org):
 @pytest.fixture
 def org_session(request, session, session_sca):
     return session_sca if 'sca' in request.module.__name__.split('.')[-1] else session
-
-
-@pytest.fixture
-def form_data_cli(request, target_sat, org_module):
-    hypervisor_type = request.module.__name__.split('.')[-1].split('_', 1)[-1]
-    if 'esx' in hypervisor_type:
-        form = {
-            'name': gen_string('alpha'),
-            'debug': 1,
-            'interval': '60',
-            'hypervisor-id': 'hostname',
-            'hypervisor-type': settings.virtwho.esx.hypervisor_type,
-            'hypervisor-server': settings.virtwho.esx.hypervisor_server,
-            'organization-id': org_module.id,
-            'filtering-mode': 'none',
-            'satellite-url': target_sat.hostname,
-            'hypervisor-username': settings.virtwho.esx.hypervisor_username,
-            'hypervisor-password': settings.virtwho.esx.hypervisor_password,
-        }
-    elif 'hyperv' in hypervisor_type:
-        form = {
-            'name': gen_string('alpha'),
-            'debug': 1,
-            'interval': '60',
-            'hypervisor-id': 'hostname',
-            'hypervisor-type': settings.virtwho.hyperv.hypervisor_type,
-            'hypervisor-server': settings.virtwho.hyperv.hypervisor_server,
-            'organization-id': org_module.id,
-            'filtering-mode': 'none',
-            'satellite-url': target_sat.hostname,
-            'hypervisor-username': settings.virtwho.hyperv.hypervisor_username,
-            'hypervisor-password': settings.virtwho.hyperv.hypervisor_password,
-        }
-    elif 'kubevirt' in hypervisor_type:
-        form = {
-            'name': gen_string('alpha'),
-            'debug': 1,
-            'interval': '60',
-            'hypervisor-id': 'hostname',
-            'hypervisor-type': settings.virtwho.kubevirt.hypervisor_type,
-            'organization-id': org_module.id,
-            'filtering-mode': 'none',
-            'satellite-url': target_sat.hostname,
-            'kubeconfig-path': settings.virtwho.kubevirt.hypervisor_config_file,
-        }
-    elif 'libvirt' in hypervisor_type:
-        form = {
-            'name': gen_string('alpha'),
-            'debug': 1,
-            'interval': '60',
-            'hypervisor-id': 'hostname',
-            'hypervisor-type': settings.virtwho.libvirt.hypervisor_type,
-            'hypervisor-server': settings.virtwho.libvirt.hypervisor_server,
-            'organization-id': org_module.id,
-            'filtering-mode': 'none',
-            'satellite-url': target_sat.hostname,
-            'hypervisor-username': settings.virtwho.libvirt.hypervisor_username,
-            'hypervisor-password': settings.virtwho.libvirt.hypervisor_password,
-        }
-    elif 'nutanix' in hypervisor_type:
-        form = {
-            'name': gen_string('alpha'),
-            'debug': 1,
-            'interval': '60',
-            'hypervisor-id': 'hostname',
-            'hypervisor-type': settings.virtwho.ahv.hypervisor_type,
-            'hypervisor-server': settings.virtwho.ahv.hypervisor_server,
-            'organization-id': org_module.id,
-            'filtering-mode': 'none',
-            'satellite-url': target_sat.hostname,
-            'hypervisor-username': settings.virtwho.ahv.hypervisor_username,
-            'hypervisor-password': settings.virtwho.ahv.hypervisor_password,
-            'prism-flavor': settings.virtwho.ahv.prism_flavor,
-            'ahv-internal-debug': 'false',
-        }
-    return form
 
 
 @pytest.fixture
@@ -277,16 +200,6 @@ def setup_libvirt_ssh_auth(request, target_sat):
 
 
 @pytest.fixture
-def virtwho_config_cli(
-    form_data_cli, target_sat, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth
-):
-    virtwho_config_cli = target_sat.cli.VirtWhoConfig.create(form_data_cli)['general-information']
-    yield virtwho_config_cli
-    target_sat.cli.VirtWhoConfig.delete({'name': virtwho_config_cli['name']})
-    assert not target_sat.cli.VirtWhoConfig.exists(search=('name', form_data_cli['name']))
-
-
-@pytest.fixture
 def virtwho_config_api(
     form_data_api, target_sat, register_sat_and_enable_aps_repo, setup_libvirt_ssh_auth
 ):
@@ -309,48 +222,6 @@ def virtwho_config_ui(
         yield virtwho_config_ui
         org_session.virtwho_configure.delete(name)
         assert not org_session.virtwho_configure.search(name)
-
-
-@pytest.fixture
-def deploy_type_cli(
-    request,
-    org_module,
-    form_data_cli,
-    register_sat_and_enable_aps_repo,
-    virtwho_config_cli,
-    target_sat,
-    default_location,
-):
-    deploy_type = request.param.lower()
-    assert virtwho_config_cli['status'] == 'No Report Yet'
-    if 'script' in deploy_type:
-        script = target_sat.cli.VirtWhoConfig.fetch(
-            {'id': virtwho_config_cli['id']}, output_format='base'
-        )
-        hypervisor_name, guest_name = deploy_configure_by_script(
-            script,
-            form_data_cli['hypervisor-type'],
-            debug=True,
-            org=org_module.label,
-            target_sat=target_sat,
-        )
-    elif deploy_type == 'organization-title':
-        virtwho_config_cli['organization-title'] = org_module.title
-    elif deploy_type == 'location-id':
-        virtwho_config_cli['location-id'] = default_location.id
-    if deploy_type in ['id', 'name', 'organization-title', 'location-id']:
-        if 'id' in deploy_type:
-            command = get_configure_command(virtwho_config_cli['id'], org_module.name)
-        else:
-            command = get_configure_command_option(deploy_type, virtwho_config_cli, org_module.name)
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command,
-            form_data_cli['hypervisor-type'],
-            debug=True,
-            org=org_module.label,
-            target_sat=target_sat,
-        )
-    return hypervisor_name, guest_name
 
 
 @pytest.fixture

@@ -24,9 +24,7 @@ from robottelo.utils.virtwho import (
     ETC_VIRTWHO_CONFIG,
     add_configure_option,
     delete_configure_option,
-    deploy_configure_by_command,
-    deploy_configure_by_command_check,
-    get_configure_command,
+    deploy_configure_by_script,
     get_configure_file,
     get_configure_id,
     get_configure_option,
@@ -40,8 +38,8 @@ from robottelo.utils.virtwho import (
 @pytest.mark.usefixtures('delete_host')
 class TestVirtwhoConfigforEsx:
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('deploy_type_ui', ['id', 'script'], indirect=True)
-    def test_positive_deploy_configure_by_id_script(
+    @pytest.mark.parametrize('deploy_type_ui', ['script'], indirect=True)
+    def test_positive_deploy_configure_by_script(
         self,
         module_sca_manifest_org,
         org_session,
@@ -49,12 +47,12 @@ class TestVirtwhoConfigforEsx:
         deploy_type_ui,
         default_location,
     ):
-        """Verify configure created and deployed with id.
+        """Verify configure created and deployed with script.
 
         :id: 867e109f-3ecc-4631-b6fb-085a1142473a
 
         :expectedresults:
-            1. Config can be created and deployed by command or script
+            1. Config can be created and deployed by script
             2. No error msg in /var/log/rhsm/rhsm.log
             3. Report is sent to satellite
             4. Subscription Status set to 'Simple Content Access', and generate mapping in Legacy UI
@@ -86,10 +84,10 @@ class TestVirtwhoConfigforEsx:
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
-        config_id = get_configure_id(name)
-        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
-        deploy_configure_by_command(
-            config_command,
+        values = org_session.virtwho_configure.read(name)
+        script = values['deploy']['script']
+        deploy_configure_by_script(
+            script,
             form_data_ui['hypervisor_type'],
             org=module_sca_manifest_org.label,
             target_sat=target_sat,
@@ -98,8 +96,9 @@ class TestVirtwhoConfigforEsx:
         org_session.virtwho_configure.edit(name, {'debug': False})
         results = org_session.virtwho_configure.read(name)
         assert results['overview']['debug'] is False
-        deploy_configure_by_command(
-            config_command,
+        script = results['deploy']['script']
+        deploy_configure_by_script(
+            script,
             form_data_ui['hypervisor_type'],
             org=module_sca_manifest_org.label,
             target_sat=target_sat,
@@ -120,8 +119,6 @@ class TestVirtwhoConfigforEsx:
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
-        config_id = get_configure_id(name)
-        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
         intervals = {
             'Every hour': '3600',
             'Every 2 hours': '7200',
@@ -136,8 +133,9 @@ class TestVirtwhoConfigforEsx:
             org_session.virtwho_configure.edit(name, {'interval': option})
             results = org_session.virtwho_configure.read(name)
             assert results['overview']['interval'] == option
-            deploy_configure_by_command(
-                config_command,
+            script = results['deploy']['script']
+            deploy_configure_by_script(
+                script,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
@@ -158,16 +156,16 @@ class TestVirtwhoConfigforEsx:
         :CaseImportance: Medium
         """
         name = form_data_ui['name']
-        config_id = get_configure_id(name)
-        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
+        config_id = get_configure_id(name, target_sat)
         config_file = get_configure_file(config_id)
         # esx and rhevm support hwuuid option
         for value in ['uuid', 'hostname', 'hwuuid']:
             org_session.virtwho_configure.edit(name, {'hypervisor_id': value})
             results = org_session.virtwho_configure.read(name)
             assert results['overview']['hypervisor_id'] == value
-            deploy_configure_by_command(
-                config_command,
+            script = results['deploy']['script']
+            deploy_configure_by_script(
+                script,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
@@ -211,8 +209,7 @@ class TestVirtwhoConfigforEsx:
         with org_session:
             if option_type == "edit":
                 org_session.virtwho_configure.create(form_data_ui)
-                config_id = get_configure_id(name)
-                config_command = get_configure_command(config_id, module_sca_manifest_org.name)
+                config_id = get_configure_id(name, target_sat)
                 config_file = get_configure_file(config_id)
                 if filter_type == "whitelist":
                     whitelist = {'filtering': 'Whitelist', 'filtering_content.filter_hosts': regex}
@@ -230,8 +227,10 @@ class TestVirtwhoConfigforEsx:
                     results = org_session.virtwho_configure.read(name)
                     assert results['overview']['exclude_hosts'] == regex
                     assert results['overview']['exclude_host_parents'] == regex
-                deploy_configure_by_command(
-                    config_command,
+                results = org_session.virtwho_configure.read(name)
+                script = results['deploy']['script']
+                deploy_configure_by_script(
+                    script,
                     form_data_ui['hypervisor_type'],
                     org=module_sca_manifest_org.label,
                     target_sat=target_sat,
@@ -254,10 +253,11 @@ class TestVirtwhoConfigforEsx:
                     form_data_ui['filtering_content.exclude_hosts'] = regex
                     form_data_ui['filtering_content.exclude_host_parents'] = regex
                 org_session.virtwho_configure.create(form_data_ui)
-                config_id = get_configure_id(name)
-                command = get_configure_command(config_id, module_sca_manifest_org.name)
-                deploy_configure_by_command(
-                    command,
+                config_id = get_configure_id(name, target_sat)
+                results = org_session.virtwho_configure.read(name)
+                script = results['deploy']['script']
+                deploy_configure_by_script(
+                    script,
                     form_data_ui['hypervisor_type'],
                     org=module_sca_manifest_org.label,
                     target_sat=target_sat,
@@ -294,9 +294,9 @@ class TestVirtwhoConfigforEsx:
         """
         name = form_data_ui['name']
         values = org_session.virtwho_configure.read(name)
-        command = values['deploy']['command']
-        deploy_configure_by_command(
-            command,
+        script = values['deploy']['script']
+        deploy_configure_by_script(
+            script,
             form_data_ui['hypervisor_type'],
             debug=True,
             org=module_sca_manifest_org.label,
@@ -305,11 +305,11 @@ class TestVirtwhoConfigforEsx:
         assert org_session.virtwho_configure.search(name)[0]['Status'] == 'ok'
         # Check the option "env=" should be removed from etc/virt-who.d/virt-who.conf
         option = "env"
-        config_id = get_configure_id(name)
+        config_id = get_configure_id(name, target_sat)
         config_file = get_configure_file(config_id)
-        env_error = f"option {{'{option}'}} is not exist or not be enabled in {{'{config_file}'}}"
+        env_error = f"option {option} is not exist or not be enabled in {config_file}"
         with pytest.raises(Exception) as exc_info:  # noqa: PT011 - TODO determine better exception
-            get_configure_option({option}, {config_file})
+            get_configure_option(option, config_file)
         assert str(exc_info.value) == env_error
         # Check /var/log/messages should not display warning message
         env_warning = f"Ignoring unknown configuration option \"{option}\""
@@ -370,10 +370,11 @@ class TestVirtwhoConfigforEsx:
         form_data_ui['name'] = name
         with org_session:
             org_session.virtwho_configure.create(form_data_ui)
-            config_id = get_configure_id(name)
-            config_command = get_configure_command(config_id, module_sca_manifest_org.name)
-            deploy_configure_by_command(
-                config_command,
+            values = org_session.virtwho_configure.read(name)
+
+            script = values['deploy']['script']
+            deploy_configure_by_script(
+                script,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
@@ -382,6 +383,13 @@ class TestVirtwhoConfigforEsx:
             org_session.virtwho_configure.delete(name)
             assert not org_session.virtwho_configure.search(name)
             restart_virtwho_service()
+            # Wait for virt-who to attempt connection and log errors after config deletion
+            wait_for(
+                lambda: get_virtwho_status() == 'logerror',
+                timeout=60,
+                delay=5,
+                logger=None,
+            )
             assert get_virtwho_status() == 'logerror'
 
     def test_positive_virtwho_reporter_role(
@@ -416,16 +424,16 @@ class TestVirtwhoConfigforEsx:
             form_data_ui['name'] = config_name
             org_session.virtwho_configure.create(form_data_ui)
             values = org_session.virtwho_configure.read(config_name)
-            command = values['deploy']['command']
-            deploy_configure_by_command(
-                command,
+            script = values['deploy']['script']
+            deploy_configure_by_script(
+                script,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
             )
             assert org_session.virtwho_configure.search(config_name)[0]['Status'] == 'ok'
             # Update the virt-who config file
-            config_id = get_configure_id(config_name)
+            config_id = get_configure_id(config_name, target_sat)
             config_file = get_configure_file(config_id)
             update_configure_option('rhsm_username', username, config_file)
             delete_configure_option('rhsm_encrypted_password', config_file)
@@ -476,9 +484,9 @@ class TestVirtwhoConfigforEsx:
             form_data_ui['name'] = config_name
             org_session.virtwho_configure.create(form_data_ui)
             values = org_session.virtwho_configure.read(config_name)
-            command = values['deploy']['command']
-            deploy_configure_by_command(
-                command,
+            script = values['deploy']['script']
+            deploy_configure_by_script(
+                script,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
@@ -489,7 +497,7 @@ class TestVirtwhoConfigforEsx:
             user = org_session.user.read(username)
             assert user['roles']['resources']['assigned'] == ['Virt-who Viewer']
             # Update the virt-who config file
-            config_id = get_configure_id(config_name)
+            config_id = get_configure_id(config_name, target_sat)
             config_file = get_configure_file(config_id)
             update_configure_option('rhsm_username', username, config_file)
             delete_configure_option('rhsm_encrypted_password', config_file)
@@ -541,9 +549,9 @@ class TestVirtwhoConfigforEsx:
             form_data_ui['name'] = config_name
             org_session.virtwho_configure.create(form_data_ui)
             values = org_session.virtwho_configure.read(config_name)
-            command = values['deploy']['command']
-            deploy_configure_by_command(
-                command,
+            script = values['deploy']['script']
+            deploy_configure_by_script(
+                script,
                 form_data_ui['hypervisor_type'],
                 org=module_sca_manifest_org.label,
                 target_sat=target_sat,
@@ -560,9 +568,9 @@ class TestVirtwhoConfigforEsx:
                 newsession.virtwho_configure.create(form_data_ui)
                 # view_virt_who_config
                 values = newsession.virtwho_configure.read(new_virt_who_name)
-                command = values['deploy']['command']
-                deploy_configure_by_command(
-                    command,
+                script = values['deploy']['script']
+                deploy_configure_by_script(
+                    script,
                     form_data_ui['hypervisor_type'],
                     org=module_sca_manifest_org.label,
                     target_sat=target_sat,
@@ -601,10 +609,14 @@ class TestVirtwhoConfigforEsx:
             form_data_ui['hypervisor_content.password'] = "Tes't"
             org_session.virtwho_configure.create(form_data_ui)
             values = org_session.virtwho_configure.read(name)
-            command = values['deploy']['command']
-            config_id = get_configure_id(name)
-            deploy_status = deploy_configure_by_command_check(command)
-            assert deploy_status == 'Finished successfully'
+            script = values['deploy']['script']
+            config_id = get_configure_id(name, target_sat)
+            deploy_configure_by_script(
+                script,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
+            )
             config_file = get_configure_file(config_id)
             assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
             assert (
@@ -617,10 +629,14 @@ class TestVirtwhoConfigforEsx:
             form_data_ui['hypervisor_content.password'] = "my`password"
             org_session.virtwho_configure.create(form_data_ui)
             values = org_session.virtwho_configure.read(name)
-            command = values['deploy']['command']
-            config_id = get_configure_id(name)
-            deploy_status = deploy_configure_by_command_check(command)
-            assert deploy_status == 'Finished successfully'
+            script = values['deploy']['script']
+            config_id = get_configure_id(name, target_sat)
+            deploy_configure_by_script(
+                script,
+                form_data_ui['hypervisor_type'],
+                org=module_sca_manifest_org.label,
+                target_sat=target_sat,
+            )
             config_file = get_configure_file(config_id)
             assert get_configure_option('rhsm_hostname', config_file) == target_sat.hostname
             assert (
@@ -647,10 +663,11 @@ class TestVirtwhoConfigforEsx:
         :BZ: 2256927
         """
         name = form_data_ui['name']
-        config_id = get_configure_id(name)
-        config_command = get_configure_command(config_id, module_sca_manifest_org.name)
-        deploy_configure_by_command(
-            config_command,
+        values = org_session.virtwho_configure.read(name)
+        config_id = get_configure_id(name, target_sat)
+        script = values['deploy']['script']
+        deploy_configure_by_script(
+            script,
             form_data_ui['hypervisor_type'],
             org=module_sca_manifest_org.label,
             target_sat=target_sat,
@@ -663,7 +680,7 @@ class TestVirtwhoConfigforEsx:
         results = org_session.virtwho_configure.read(name)
         assert 'encrypted_password=$cr_password' in results['deploy']['script']
 
-    @pytest.mark.parametrize('deploy_type_ui', ['id'], indirect=True)
+    @pytest.mark.parametrize('deploy_type_ui', ['script'], indirect=True)
     def test_positive_minimal_report_hypervisor(
         self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, module_target_sat
     ):
