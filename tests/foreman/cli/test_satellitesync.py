@@ -3248,6 +3248,7 @@ class TestExportImport:
         )
 
     @pytest.mark.pqc
+    @pytest.mark.destructive
     @pytest.mark.rhel_ver_match('N-0')
     @pytest.mark.no_containers
     @pytest.mark.parametrize('export_format', ['importable', 'syncable'])
@@ -3263,6 +3264,9 @@ class TestExportImport:
         """Export and import the latest RHEL BaseOS repository with ML-DSA signed
         packages, then consume content from the import Satellite and verify the
         V6 ML-DSA-87+Ed448 signatures are intact end-to-end.
+
+        Marked destructive to get a fresh Satellite for the export side since
+        immediate sync of RHEL BaseOS would exhaust disk on a shared target_sat.
 
         :id: 17640f0e-0d7c-46de-aee4-a05e73a04d3a
 
@@ -3314,6 +3318,9 @@ class TestExportImport:
                 'product': repo_dict['product'],
             }
         )
+        # Set immediate policy explicitly — class_immediate_rh_download_policy applies to
+        # class_target_sat, not to the fresh destructive target_sat this test gets.
+        target_sat.cli.Repository.update({'download-policy': 'immediate', 'id': repo['id']})
         target_sat.cli.Repository.synchronize({'id': repo['id']}, timeout='30m')
 
         cv = target_sat.cli_factory.make_content_view({'organization-id': eorg.id})
