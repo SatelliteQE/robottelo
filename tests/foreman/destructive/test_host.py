@@ -98,12 +98,17 @@ class TestHostCockpit:
                     'foreman_cockpit_journal': (
                         'journalctl -u foreman-cockpit --no-pager -n 50 2>&1'
                     ),
-                    'foreman_proxy_journal': ('journalctl -u foreman-proxy --no-pager -n 30 2>&1'),
-                    'httpd_error_log': 'tail -30 /var/log/httpd/error_log 2>&1',
-                    'cockpit_proxy_log': ('tail -30 /var/log/httpd/foreman-ssl_error_ssl.log 2>&1'),
+                    'webcon_access_log': (
+                        'grep webcon /var/log/httpd/foreman-ssl_access_ssl.log | tail -20 2>&1'
+                    ),
+                    'ssl_error_log': 'tail -30 /var/log/httpd/foreman-ssl_error_ssl.log 2>&1',
+                    'httpd_journal': 'journalctl -u httpd --no-pager -n 30 2>&1',
                     'sat_curl_cockpit': (
                         f'curl -sk -o /dev/null -w "%{{http_code}}"'
                         f' https://{cockpit_host.hostname}:9090 2>&1'
+                    ),
+                    'foreman_cockpit_recent': (
+                        'journalctl -u foreman-cockpit --no-pager --since "2 minutes ago" 2>&1'
                     ),
                 }
                 for label, cmd in post_fail_cmds.items():
