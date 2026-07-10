@@ -2150,6 +2150,7 @@ class Capsule(ContentHost, CapsuleMixins):
                 job_template='upstream-pr-install',
                 target_vm=self.name,
                 pull_requests=pull_requests,
+                deploy_network_type=settings.server.network_type,
             ).execute()
 
         # Install podman (required for foremanctl container operations)
