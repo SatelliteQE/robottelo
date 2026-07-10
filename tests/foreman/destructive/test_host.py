@@ -16,7 +16,6 @@ from airgun.exceptions import NoSuchElementException
 import pytest
 
 from robottelo.constants import ANY_CONTEXT
-from robottelo.logging import logger
 
 
 class TestHostCockpit:
@@ -99,7 +98,7 @@ class TestHostCockpit:
             }
             for label, cmd in debug_cmds.items():
                 result = cockpit_host.execute(cmd)
-                logger.info(f'[cockpit-debug][{label}] rc={result.status}\n{result.stdout}')
+                print(f'[cockpit-debug][{label}] rc={result.status}\n{result.stdout}')
 
             sat_debug_cmds = {
                 'cockpit_ws_status': 'systemctl status cockpit-ws 2>&1',
@@ -110,7 +109,7 @@ class TestHostCockpit:
             }
             for label, cmd in sat_debug_cmds.items():
                 result = class_cockpit_sat.execute(cmd)
-                logger.info(f'[cockpit-debug][sat-{label}] rc={result.status}\n{result.stdout}')
+                print(f'[cockpit-debug][sat-{label}] rc={result.status}\n{result.stdout}')
 
             hostname_inside_cockpit = session.host.get_webconsole_content(
                 entity_name=cockpit_host.hostname,
