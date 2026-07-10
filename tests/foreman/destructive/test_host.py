@@ -16,6 +16,7 @@ from airgun.exceptions import NoSuchElementException
 import pytest
 
 from robottelo.constants import ANY_CONTEXT
+from robottelo.logging import logger
 
 
 class TestHostCockpit:
@@ -85,6 +86,32 @@ class TestHostCockpit:
 
             session.browser.switch_to_window(session.browser.window_handles[0])
             session.browser.close_window(session.browser.window_handles[-1])
+
+            # Debug: capture cockpit connectivity state before webconsole attempt
+            debug_cmds = {
+                'fips_check': 'fips-mode-setup --check 2>&1',
+                'crypto_policy': 'update-crypto-policies --show 2>&1',
+                'firewall_rules': 'firewall-cmd --list-all 2>&1',
+                'cockpit_socket': 'systemctl status cockpit.socket 2>&1',
+                'cockpit_service': 'systemctl status cockpit.service 2>&1',
+                'cockpit_listen': 'ss -tlnp | grep 9090 2>&1',
+                'cockpit_packages': 'rpm -qa | grep cockpit 2>&1',
+            }
+            for label, cmd in debug_cmds.items():
+                result = cockpit_host.execute(cmd)
+                logger.info(f'[cockpit-debug][{label}] rc={result.status}\n{result.stdout}')
+
+            sat_debug_cmds = {
+                'cockpit_ws_status': 'systemctl status cockpit-ws 2>&1',
+                'cockpit_ws_journal': (
+                    'journalctl -u cockpit-ws --no-pager --since "5 minutes ago" 2>&1'
+                ),
+                'foreman_cockpit_status': 'systemctl status foreman-cockpit 2>&1',
+            }
+            for label, cmd in sat_debug_cmds.items():
+                result = class_cockpit_sat.execute(cmd)
+                logger.info(f'[cockpit-debug][sat-{label}] rc={result.status}\n{result.stdout}')
+
             hostname_inside_cockpit = session.host.get_webconsole_content(
                 entity_name=cockpit_host.hostname,
                 rhel_version=cockpit_host.os_version.major,
