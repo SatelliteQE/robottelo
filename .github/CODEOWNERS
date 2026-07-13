@@ -205,6 +205,7 @@ tests/foreman/destructive/test_packages.py @SatelliteQE/team-rocket
 tests/foreman/destructive/test_ping.py @SatelliteQE/team-rocket
 tests/foreman/destructive/test_rename.py @SatelliteQE/team-rocket
 tests/foreman/endtoend/test_cli_endtoend.py @SatelliteQE/team-rocket
+tests/foreman/installer/foremanctl/ @SatelliteQE/team-rocket
 tests/foreman/installer/test_infoblox.py @SatelliteQE/team-rocket
 tests/foreman/installer/test_install_foremanctl.py @SatelliteQE/team-rocket
 tests/foreman/installer/test_installer.py @SatelliteQE/team-rocket

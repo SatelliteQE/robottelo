@@ -11,11 +11,40 @@
 :CaseImportance: Critical
 """
 
+import re
+
+from fauxfactory import gen_string
 import pytest
 
+from robottelo.hosts import Satellite
 
-@pytest.mark.foremanctl
-def test_positive_offline_backup(foremanctl_sat):
+pytestmark = [pytest.mark.foremanctl]
+
+BACKUP_DIR = '/tmp/'
+IOP_FILES = {
+    'iop_inventory.dump',
+    'iop_vmaas.dump',
+    'iop_advisor.dump',
+    'iop_remediations.dump',
+    'iop_vulnerability.dump',
+}
+BASIC_FILES = {'config_files.tar.gz', '.config.snar', 'metadata.yml'}
+SAT_FILES = {'candlepin.dump', 'foreman.dump', 'pulpcore.dump'} | BASIC_FILES
+CAPS_FILES = {'pulpcore.dump'} | BASIC_FILES
+CONTENT_FILES = {'pulp_data.tar', '.pulp.snar'}
+
+
+def get_exp_files(module_target_sat, skip_pulp=False):
+    expected_files = SAT_FILES if type(module_target_sat) is Satellite else CAPS_FILES
+    if not skip_pulp:
+        expected_files = expected_files | CONTENT_FILES
+    # IoP support will come when it is supported in CI
+    # if type(module_target_sat) is Satellite:
+    #    expected_files = expected_files | IOP_FILES if module_target_sat.iop_enabled else expected_files
+    return expected_files
+
+
+def test_positive_offline_backup(module_target_sat, setup_backup_tests):
     """Verify foremanctl backup creates a backup successfully
 
     :id: e9eafa8a-4f1b-458c-b24b-c31d4bc04c4b
@@ -33,40 +62,32 @@ def test_positive_offline_backup(foremanctl_sat):
 
     :Verifies: SAT-44895
     """
-    backup_dir = '/var/tmp/foreman-backup-test'
-
-    # Clean up any existing backup directory
-    foremanctl_sat.execute(f'rm -rf {backup_dir}')
+    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
 
     # Run backup with --wait-for-tasks to ensure no running tasks block it
-    result = foremanctl_sat.execute(
-        f'foremanctl backup {backup_dir} --wait-for-tasks',
+    result = module_target_sat.execute(
+        f'foremanctl backup {subdir} --wait-for-tasks',
         timeout='30m',
     )
     assert result.status == 0, f'foremanctl backup failed:\n{result.stdout}\n{result.stderr}'
 
     # Verify backup directory was created
-    result = foremanctl_sat.execute(f'test -d {backup_dir}')
-    assert result.status == 0, f'Backup directory {backup_dir} was not created'
+    result = module_target_sat.execute(f'test -d {subdir}')
+    assert result.status == 0, f'Backup directory {subdir} was not created'
 
-    # Verify backup directory contains expected content
-    result = foremanctl_sat.execute(f'ls -la {backup_dir}/*')
-    assert result.status == 0
+    # Get list of files in backup directory
+    # result = module_target_sat.execute(f'ls -a {backup_dir}')
+    # assert result.status == 0
+    # files = set(result.stdout.split())
+    files = module_target_sat.execute(f'ls -a {subdir}').stdout.split('\n')
+    files = [i for i in files if not re.compile(r'^\.*$').search(i)]
+    expected_files = get_exp_files(module_target_sat)
 
-    # Database dumps should be present
-    result = foremanctl_sat.execute(f'ls {backup_dir}/* | grep .dump').stdout
-    assert 'candlepin.dump' in result
-    assert 'pulp.dump' in result
-    assert 'foreman.dump' in result
+    # Verify all expected files are present
+    assert set(files).issuperset(expected_files), (
+        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
+    )
 
-    # Verify backup metadata file exists
-    result = foremanctl_sat.execute(f'ls {backup_dir}/* | grep metadata.yml').stdout
-    assert 'metadata.yml' in result
-
-    # Verify pulp content exists
-    result = foremanctl_sat.execute(f'ls {backup_dir}/* | grep pulp-content.tar.gz').stdout
-    assert "pulp-content.tar.gz" in result
-
-    # Verify foremanctl is still active
-    result = foremanctl_sat.execute('foremanctl health', timeout='5m')
-    assert result.status == 0
+    # Verify foremanctl is still healthy after backup
+    result = module_target_sat.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, f'foremanctl health check failed after backup:\n{result.stdout}'

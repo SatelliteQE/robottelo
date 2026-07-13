@@ -89,7 +89,6 @@ def get_instance_name(sat_maintain):
 
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.foreman_installer
 def test_positive_backup_preserve_directory(
     sat_maintain, setup_backup_tests, module_synced_repos, backup_type
 ):
@@ -129,7 +128,6 @@ def test_positive_backup_preserve_directory(
 
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.foreman_installer
 def test_positive_backup_split_pulp_tar(
     sat_maintain, setup_backup_tests, module_synced_repos, backup_type
 ):
@@ -183,7 +181,6 @@ def test_positive_backup_split_pulp_tar(
 
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.foreman_installer
 def test_positive_backup_capsule_features(
     sat_maintain, setup_backup_tests, module_synced_repos, backup_type
 ):
@@ -223,7 +220,6 @@ def test_positive_backup_capsule_features(
 
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.foreman_installer
 def test_positive_backup_all(sat_maintain, setup_backup_tests, module_synced_repos, backup_type):
     """Take a backup with all options provided
 
@@ -271,7 +267,6 @@ def test_positive_backup_all(sat_maintain, setup_backup_tests, module_synced_rep
 
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.foreman_installer
 def test_negative_backup_nodir(sat_maintain, setup_backup_tests, module_synced_repos, backup_type):
     """Try to take a backup not providing a backup path
 
@@ -296,7 +291,6 @@ def test_negative_backup_nodir(sat_maintain, setup_backup_tests, module_synced_r
 
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.foreman_installer
 def test_negative_backup_incremental_nodir(sat_maintain, setup_backup_tests, backup_type):
     """Try to take an incremental backup providing non-existing path to the previous backup
     (expected after --incremental option)
@@ -322,7 +316,6 @@ def test_negative_backup_incremental_nodir(sat_maintain, setup_backup_tests, bac
 
 
 @pytest.mark.include_capsule
-@pytest.mark.foreman_installer
 def test_negative_restore_baddir_nodir(sat_maintain, setup_backup_tests):
     """Try to run restore with non-existing source dir provided
 
@@ -353,7 +346,6 @@ def test_negative_restore_baddir_nodir(sat_maintain, setup_backup_tests):
 
 
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.foreman_installer
 def test_positive_puppet_backup_restore(
     sat_maintain,
     setup_backup_tests,
@@ -438,7 +430,6 @@ def test_positive_puppet_backup_restore(
 @pytest.mark.e2e
 @pytest.mark.satellite_iop_only
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.foreman_installer
 def test_positive_backup_restore_satellite_iop(
     sat_maintain,
     setup_backup_tests,
@@ -530,7 +521,6 @@ def test_positive_backup_restore_satellite_iop(
 @pytest.mark.include_capsule
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.foreman_installer
 def test_positive_backup_restore(
     sat_maintain,
     setup_backup_tests,
@@ -644,7 +634,6 @@ def test_positive_backup_restore(
 
 
 @pytest.mark.parametrize('backup_type', ['online', 'offline'])
-@pytest.mark.foreman_installer
 def test_positive_backup_restore_incremental(
     sat_maintain, setup_backup_tests, module_synced_repos, backup_type
 ):
