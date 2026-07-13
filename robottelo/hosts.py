@@ -919,6 +919,8 @@ class ContentHost(Host, ContentHostMixins):
         if not self.network_type.has_ipv4:
             container_cfg = '/etc/containers/containers.conf'
             proxy_url = settings.http_proxy.http_proxy_ipv6_url
+            # Ensure /etc/containers exists if podman is not installed
+            assert self.execute('rpm -q podman || mkdir -p /etc/containers').status == 0
             if self.execute(f'grep -q "https_proxy" {container_cfg}').status != 0:
                 assert (
                     self.execute(
