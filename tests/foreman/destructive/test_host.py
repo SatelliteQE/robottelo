@@ -94,23 +94,16 @@ class TestHostCockpit:
                 )
             except NoSuchElementException:
                 # /login returns 500 — capture foreman-cockpit-session error
+                settings = '/etc/foreman/cockpit/foreman-cockpit-session.yml'
                 post_fail_cmds = {
-                    'webcon_access_log': (
-                        'grep webcon /var/log/httpd/foreman-ssl_access_ssl.log | tail -15 2>&1'
-                    ),
-                    'session_script_source': ('head -50 /usr/sbin/foreman-cockpit-session 2>&1'),
                     'session_manual_test': (
-                        f'timeout 10 /usr/bin/ruby /usr/sbin/foreman-cockpit-session'
+                        f'FOREMAN_COCKPIT_SETTINGS={settings}'
+                        f' timeout 10 /usr/bin/ruby'
+                        f' /usr/sbin/foreman-cockpit-session'
                         f' {cockpit_host.hostname} 2>&1 || true'
                     ),
-                    'cockpit_ws_stderr': (
-                        'journalctl _SYSTEMD_UNIT=foreman-cockpit.service'
-                        ' --no-pager -o cat 2>&1 | tail -30'
-                    ),
-                    'all_cockpit_logs': (
-                        'journalctl -t cockpit-ws -t foreman-cockpit'
-                        ' -t foreman-cockpit-session'
-                        ' --no-pager -o cat 2>&1 | tail -30'
+                    'webcon_access_log': (
+                        'grep webcon /var/log/httpd/foreman-ssl_access_ssl.log | tail -15 2>&1'
                     ),
                     'ssl_error_log': ('tail -10 /var/log/httpd/foreman-ssl_error_ssl.log 2>&1'),
                 }
