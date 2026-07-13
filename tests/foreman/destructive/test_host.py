@@ -94,18 +94,28 @@ class TestHostCockpit:
                 )
             except NoSuchElementException:
                 # /login returns 500 — capture foreman-cockpit-session error
-                settings = '/etc/foreman/cockpit/foreman-cockpit-session.yml'
+                host = cockpit_host.hostname
                 post_fail_cmds = {
-                    'session_manual_test': (
-                        f'FOREMAN_COCKPIT_SETTINGS={settings}'
-                        f' timeout 10 /usr/bin/ruby'
-                        f' /usr/sbin/foreman-cockpit-session'
-                        f' {cockpit_host.hostname} 2>&1 || true'
+                    'cockpit_ssh_test': (
+                        f'timeout 10 /usr/libexec/cockpit-ssh root@{host} 2>&1 || true'
                     ),
-                    'webcon_access_log': (
-                        'grep webcon /var/log/httpd/foreman-ssl_access_ssl.log | tail -15 2>&1'
+                    'ssh_verbose_test': (
+                        f'timeout 5 ssh -vvv -o StrictHostKeyChecking=no'
+                        f' -o BatchMode=yes root@{host}'
+                        f' "echo ok" 2>&1 || true'
                     ),
-                    'ssl_error_log': ('tail -10 /var/log/httpd/foreman-ssl_error_ssl.log 2>&1'),
+                    'sat_ssh_ciphers': 'ssh -Q cipher 2>&1 | head -20',
+                    'host_sshd_fips_config': (
+                        f'ssh -o StrictHostKeyChecking=no root@{host}'
+                        f' "sshd -T 2>/dev/null'
+                        f' | grep -iE \\"ciphers|macs|kexalgorithms\\""'
+                        f' 2>&1 || true'
+                    ),
+                    'webcon_login_line': (
+                        'grep "cockpit.*login"'
+                        ' /var/log/httpd/foreman-ssl_access_ssl.log'
+                        ' | tail -5 2>&1'
+                    ),
                 }
                 for label, cmd in post_fail_cmds.items():
                     result = class_cockpit_sat.execute(cmd)
