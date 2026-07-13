@@ -679,17 +679,14 @@ def test_positive_health_check_corrupted_roles(sat_maintain, request):
         options={'role': role_name, 'permissions': ['view_hosts', 'console_hosts']}
     )
     sat_maintain.query_db(
-        f"UPDATE permissions SET resource_type = '{resource_type}' "
-        f"WHERE name = 'console_hosts'",
+        f"UPDATE permissions SET resource_type = '{resource_type}' WHERE name = 'console_hosts'",
         output_format='raw',
     )
     result = sat_maintain.cli.Filter.list(options={'search': role_name}, output_format='yaml')
     # Shows the filter id which comprises of role id hence asserting 2 here
     assert result.count('Id') == 2
     # Run corrupted-roles check.
-    result = sat_maintain.cli.Health.check(
-        options={'label': 'corrupted-roles', 'assumeyes': True}
-    )
+    result = sat_maintain.cli.Health.check(options={'label': 'corrupted-roles', 'assumeyes': True})
     assert result.status == 0
     assert 'FAIL' in result.stdout
     # Verify corrupted roles are fixed and new filter is created for updated resource_type.

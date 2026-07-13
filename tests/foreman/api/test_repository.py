@@ -1377,7 +1377,7 @@ class TestRepositorySync:
             releasever=None,
         )
         target_sat.api.Repository(id=repo_id).sync()
-        assert(
+        assert (
             target_sat.query_db(
                 "select class,execution_plan_uuid,input "
                 "from dynflow_actions where input LIKE '%\"contents_changed\":null%'"
