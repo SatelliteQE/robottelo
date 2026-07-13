@@ -93,47 +93,30 @@ class TestHostCockpit:
                     rhel_version=cockpit_host.os_version.major,
                 )
             except NoSuchElementException:
-                # Capture debug info after the failure to see what went wrong
+                # /login returns 500 — capture foreman-cockpit-session error
                 post_fail_cmds = {
                     'webcon_access_log': (
-                        'grep webcon /var/log/httpd/foreman-ssl_access_ssl.log | tail -20 2>&1'
+                        'grep webcon /var/log/httpd/foreman-ssl_access_ssl.log | tail -15 2>&1'
                     ),
-                    'foreman_cockpit_full': (
-                        'journalctl -u foreman-cockpit --no-pager --since "5 minutes ago" 2>&1'
+                    'session_script_source': ('head -50 /usr/sbin/foreman-cockpit-session 2>&1'),
+                    'session_manual_test': (
+                        f'timeout 10 /usr/bin/ruby /usr/sbin/foreman-cockpit-session'
+                        f' {cockpit_host.hostname} 2>&1 || true'
                     ),
-                    'foreman_cockpit_all_output': (
+                    'cockpit_ws_stderr': (
                         'journalctl _SYSTEMD_UNIT=foreman-cockpit.service'
-                        ' --no-pager --since "5 minutes ago" -o verbose 2>&1'
+                        ' --no-pager -o cat 2>&1 | tail -30'
                     ),
-                    'cockpit_session_errors': (
-                        'journalctl -t cockpit-ws --no-pager --since "5 minutes ago" 2>&1'
+                    'all_cockpit_logs': (
+                        'journalctl -t cockpit-ws -t foreman-cockpit'
+                        ' -t foreman-cockpit-session'
+                        ' --no-pager -o cat 2>&1 | tail -30'
                     ),
-                    'foreman_cockpit_session_log': (
-                        'find /var/log -name "*cockpit*" -newer /tmp 2>/dev/null'
-                        ' | xargs tail -30 2>&1'
-                    ),
-                    'syslog_cockpit': (
-                        'grep -i cockpit /var/log/messages 2>/dev/null | tail -20 2>&1'
-                    ),
-                    'ssl_error_log': ('tail -30 /var/log/httpd/foreman-ssl_error_ssl.log 2>&1'),
+                    'ssl_error_log': ('tail -10 /var/log/httpd/foreman-ssl_error_ssl.log 2>&1'),
                 }
                 for label, cmd in post_fail_cmds.items():
                     result = class_cockpit_sat.execute(cmd)
                     logger.info(f'[cockpit-debug][sat-{label}] rc={result.status}\n{result.stdout}')
-
-                host_cmds = {
-                    'cockpit_journal': (
-                        'journalctl -u cockpit --no-pager --since "5 minutes ago" 2>&1'
-                    ),
-                    'cockpit_ws_journal': (
-                        'journalctl -t cockpit-ws --no-pager --since "5 minutes ago" 2>&1'
-                    ),
-                }
-                for label, cmd in host_cmds.items():
-                    result = cockpit_host.execute(cmd)
-                    logger.info(
-                        f'[cockpit-debug][host-{label}] rc={result.status}\n{result.stdout}'
-                    )
                 raise
 
             assert cockpit_host.hostname in hostname_inside_cockpit, (
