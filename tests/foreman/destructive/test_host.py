@@ -95,22 +95,21 @@ class TestHostCockpit:
             except NoSuchElementException:
                 # /login returns 500 — capture foreman-cockpit-session error
                 host = cockpit_host.hostname
+                sat = class_cockpit_sat.hostname
                 post_fail_cmds = {
-                    'cockpit_ssh_test': (
-                        f'timeout 10 /usr/libexec/cockpit-ssh root@{host} 2>&1 || true'
+                    'login_response_body': (
+                        f'curl -sk https://{sat}/webcon/cockpit+%3D{host}/login 2>&1 || true'
                     ),
-                    'ssh_verbose_test': (
-                        f'timeout 5 ssh -vvv -o StrictHostKeyChecking=no'
-                        f' -o BatchMode=yes root@{host}'
-                        f' "echo ok" 2>&1 || true'
+                    'find_cockpit_ssh': (
+                        'find / -name "cockpit-ssh" -o -name "cockpit-ssh-agent"'
+                        ' 2>/dev/null | head -5; rpm -ql cockpit-ws 2>/dev/null'
+                        ' | grep ssh; rpm -qa | grep cockpit 2>&1'
                     ),
-                    'sat_ssh_ciphers': 'ssh -Q cipher 2>&1 | head -20',
-                    'host_sshd_fips_config': (
-                        f'ssh -o StrictHostKeyChecking=no root@{host}'
-                        f' "sshd -T 2>/dev/null'
-                        f' | grep -iE \\"ciphers|macs|kexalgorithms\\""'
-                        f' 2>&1 || true'
+                    'cockpit_ws_config': (
+                        'cat /etc/cockpit/cockpit.conf 2>/dev/null || true;'
+                        ' cat /etc/foreman/cockpit/*.yml 2>&1'
                     ),
+                    'host_cockpit_tls_log': 'placeholder',
                     'webcon_login_line': (
                         'grep "cockpit.*login"'
                         ' /var/log/httpd/foreman-ssl_access_ssl.log'
@@ -120,6 +119,17 @@ class TestHostCockpit:
                 for label, cmd in post_fail_cmds.items():
                     result = class_cockpit_sat.execute(cmd)
                     logger.info(f'[cockpit-debug][sat-{label}] rc={result.status}\n{result.stdout}')
+
+                host_cmds = {
+                    'cockpit_tls_journal': (
+                        'journalctl -u cockpit -t cockpit-tls -t cockpit-ws --no-pager -n 30 2>&1'
+                    ),
+                }
+                for label, cmd in host_cmds.items():
+                    result = cockpit_host.execute(cmd)
+                    logger.info(
+                        f'[cockpit-debug][host-{label}] rc={result.status}\n{result.stdout}'
+                    )
                 raise
 
             assert cockpit_host.hostname in hostname_inside_cockpit, (
