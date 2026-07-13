@@ -4531,19 +4531,19 @@ def test_positive_search_by_report_origin_shows_all_hosts(target_sat):
     timestamp = '2025-05-16 16:16:16'
     report_count = 25
 
-    target_sat.execute(
-        'su - postgres -c "psql -d foreman -c \\"'
+    target_sat.query_db(
         f"INSERT INTO reports (host_id, origin, reported_at) "
-        f"SELECT {host1.id}, 'Puppet', '{timestamp}'::timestamp + (i || ' seconds')::interval "
-        f"FROM generate_series(1, {report_count}) AS i"
-        '\\""'
+        f"SELECT {host1.id}, 'Puppet', '{timestamp}'::timestamp "
+        f"+ (i || ' seconds')::interval "
+        f"FROM generate_series(1, {report_count}) AS i",
+        output_format='raw',
     )
-    target_sat.execute(
-        'su - postgres -c "psql -d foreman -c \\"'
+    target_sat.query_db(
         f"INSERT INTO reports (host_id, origin, reported_at) "
-        f"SELECT {host2.id}, 'Puppet', '{timestamp}'::timestamp + (i || ' seconds')::interval "
-        f"FROM generate_series(1, 2) AS i"
-        '\\""'
+        f"SELECT {host2.id}, 'Puppet', '{timestamp}'::timestamp "
+        f"+ (i || ' seconds')::interval "
+        f"FROM generate_series(1, 2) AS i",
+        output_format='raw',
     )
 
     with target_sat.ui_session() as session:

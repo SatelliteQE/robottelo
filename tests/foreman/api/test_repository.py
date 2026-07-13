@@ -1377,13 +1377,14 @@ class TestRepositorySync:
             releasever=None,
         )
         target_sat.api.Repository(id=repo_id).sync()
-        prod_log_out = target_sat.execute(
-            'sudo -u postgres psql -d foreman -c "select class,execution_plan_uuid,input '
-            'from dynflow_actions where input LIKE \'%"contents_changed":null%\''
-            ' AND class = \'Actions::Katello::Repository::Sync\';"'
+        assert(
+            target_sat.query_db(
+                "select class,execution_plan_uuid,input "
+                "from dynflow_actions where input LIKE '%\"contents_changed\":null%'"
+                " AND class = 'Actions::Katello::Repository::Sync'"
+            )
+            == []
         )
-        assert prod_log_out.status == 0
-        assert "(0 rows)" in prod_log_out.stdout
 
     def test_positive_validate_async_operation_response(self, module_sca_manifest_org, target_sat):
         """Verify that RefreshDistribution action properly tracks Pulp tasks via AsyncOperationResponse.

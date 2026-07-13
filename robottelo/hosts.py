@@ -2339,13 +2339,18 @@ class Capsule(ContentHost, CapsuleMixins):
             CLIReturnCodeError: If the database query fails
         """
 
+        from robottelo.enums import InstallMethod
+
         def _execute_db_query(cmd):
             result = self.execute(cmd)
             if result.status != 0:
                 raise CLIReturnCodeError(result.status, result.stderr, f'"{cmd}" failed')
             return result
 
-        base_cmd = f'sudo -u postgres psql -d {db}'
+        if self.install_method == InstallMethod.FOREMANCTL:
+            base_cmd = f'podman exec postgresql psql -U foreman -d {db}'
+        else:
+            base_cmd = f'sudo -u postgres psql -d {db}'
 
         if output_format == 'json':
             cmd = f'{base_cmd} -A -t -c "SELECT json_agg(row_to_json(t)) FROM ({query}) t"'

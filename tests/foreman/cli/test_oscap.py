@@ -619,16 +619,8 @@ class TestOpenScap:
             pytest.fail("failed to list policies")
         assert name in [policy['name'] for policy in result]
         # check for orphaned entries
-        db_out = module_target_sat.execute(
-            'sudo -u postgres psql -d foreman -c "select * from foreman_openscap_assets"'
-        )
-        assert db_out.status == 0
-        assert "(0 rows)" in db_out.stdout
-        db_out = module_target_sat.execute(
-            'sudo -u postgres psql -d foreman -c "select * from foreman_openscap_asset_policies"'
-        )
-        assert db_out.status == 0
-        assert "(0 rows)" in db_out.stdout
+        assert module_target_sat.query_db('select * from foreman_openscap_assets') == []
+        assert module_target_sat.query_db('select * from foreman_openscap_asset_policies') == []
 
     def test_positive_associate_scap_policy_with_hostgroup_via_ansible(
         self, scap_content, module_target_sat
