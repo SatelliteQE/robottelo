@@ -93,36 +93,16 @@ class TestHostCockpit:
                     rhel_version=cockpit_host.os_version.major,
                 )
             except NoSuchElementException:
-                host = cockpit_host.hostname
-                sat = class_cockpit_sat.hostname
-                # Enable COCKPIT_DEBUG via systemd drop-in and replay
-                class_cockpit_sat.execute(
-                    'mkdir -p /etc/systemd/system/foreman-cockpit.service.d;'
-                    ' printf "[Service]\\nEnvironment=COCKPIT_DEBUG=all\\n"'
-                    ' > /etc/systemd/system/foreman-cockpit.service.d/debug.conf;'
-                    ' systemctl daemon-reload;'
-                    ' systemctl restart foreman-cockpit'
-                )
-                class_cockpit_sat.execute(
-                    f'curl -sk -o /dev/null'
-                    f' https://{sat}/webcon/cockpit+%3D{host}/login'
-                    f' 2>&1 || true'
-                )
-                import time
-
-                time.sleep(3)
+                # Line 304 crashes: undefined method `[]' for nil
                 result = class_cockpit_sat.execute(
-                    'journalctl -u foreman-cockpit --no-pager -n 100 2>&1'
+                    'sed -n "280,330p" /usr/sbin/foreman-cockpit-session 2>&1'
                 )
                 logger.info(
-                    f'[cockpit-debug][sat-cockpit_ws_debug_journal]'
-                    f' rc={result.status}\n{result.stdout}'
+                    f'[cockpit-debug][sat-session_line_304] rc={result.status}\n{result.stdout}'
                 )
-                # Cleanup
-                class_cockpit_sat.execute(
-                    'rm -rf /etc/systemd/system/foreman-cockpit.service.d;'
-                    ' systemctl daemon-reload;'
-                    ' systemctl restart foreman-cockpit'
+                result = class_cockpit_sat.execute('wc -l /usr/sbin/foreman-cockpit-session 2>&1')
+                logger.info(
+                    f'[cockpit-debug][sat-session_line_count] rc={result.status}\n{result.stdout}'
                 )
                 raise
 
