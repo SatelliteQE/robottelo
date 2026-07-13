@@ -359,7 +359,7 @@ def test_positive_vmware_custom_profile_end_to_end(
     memory_hot_add = True
     cpu_hot_add = True
     cdrom_drive = True
-    disk_size = '10 GB'
+    disk_size = '10'
     network = 'VLAN 400'  # hardcoding network here as this test won't be doing actual provisioning
     storage_data = {
         'storage': {
