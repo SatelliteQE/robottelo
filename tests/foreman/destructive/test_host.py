@@ -95,41 +95,32 @@ class TestHostCockpit:
             except NoSuchElementException:
                 # /login returns 500 — capture foreman-cockpit-session error
                 host = cockpit_host.hostname
-                sat = class_cockpit_sat.hostname
-                post_fail_cmds = {
-                    'login_response_body': (
-                        f'curl -sk https://{sat}/webcon/cockpit+%3D{host}/login 2>&1 || true'
-                    ),
-                    'find_cockpit_ssh': (
-                        'find / -name "cockpit-ssh" -o -name "cockpit-ssh-agent"'
-                        ' 2>/dev/null | head -5; rpm -ql cockpit-ws 2>/dev/null'
-                        ' | grep ssh; rpm -qa | grep cockpit 2>&1'
-                    ),
-                    'cockpit_ws_config': (
-                        'cat /etc/cockpit/cockpit.conf 2>/dev/null || true;'
-                        ' cat /etc/foreman/cockpit/*.yml 2>&1'
-                    ),
-                    'host_cockpit_tls_log': 'placeholder',
-                    'webcon_login_line': (
-                        'grep "cockpit.*login"'
-                        ' /var/log/httpd/foreman-ssl_access_ssl.log'
-                        ' | tail -5 2>&1'
-                    ),
-                }
-                for label, cmd in post_fail_cmds.items():
-                    result = class_cockpit_sat.execute(cmd)
-                    logger.info(f'[cockpit-debug][sat-{label}] rc={result.status}\n{result.stdout}')
+                # Restart foreman-cockpit with debug logging, then
+                # replay the /login request to capture the error
+                class_cockpit_sat.execute('systemctl stop foreman-cockpit')
+                class_cockpit_sat.execute(
+                    'COCKPIT_DEBUG=all /usr/libexec/cockpit-ws'
+                    ' --no-tls --address 127.0.0.1 --port 19090'
+                    ' &>/tmp/cockpit-ws-debug.log &'
+                    ' echo $!>/tmp/cockpit-ws-debug.pid;'
+                    ' sleep 2'
+                )
+                class_cockpit_sat.execute(
+                    f'curl -sk -o /dev/null'
+                    f' https://{class_cockpit_sat.hostname}'
+                    f'/webcon/cockpit+%3D{host}/login 2>&1 || true'
+                )
+                import time
 
-                host_cmds = {
-                    'cockpit_tls_journal': (
-                        'journalctl -u cockpit -t cockpit-tls -t cockpit-ws --no-pager -n 30 2>&1'
-                    ),
-                }
-                for label, cmd in host_cmds.items():
-                    result = cockpit_host.execute(cmd)
-                    logger.info(
-                        f'[cockpit-debug][host-{label}] rc={result.status}\n{result.stdout}'
-                    )
+                time.sleep(3)
+                class_cockpit_sat.execute(
+                    'kill $(cat /tmp/cockpit-ws-debug.pid) 2>/dev/null || true'
+                )
+                result = class_cockpit_sat.execute('cat /tmp/cockpit-ws-debug.log 2>&1')
+                logger.info(
+                    f'[cockpit-debug][sat-cockpit_ws_debug_log] rc={result.status}\n{result.stdout}'
+                )
+                class_cockpit_sat.execute('systemctl start foreman-cockpit')
                 raise
 
             assert cockpit_host.hostname in hostname_inside_cockpit, (
