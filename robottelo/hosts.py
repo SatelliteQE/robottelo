@@ -10,6 +10,8 @@ import json
 from pathlib import Path, PurePath
 import random
 import re
+import socket
+import ssl
 import subprocess
 import sys
 from tempfile import NamedTemporaryFile
@@ -2373,6 +2375,59 @@ class Satellite(Capsule, SatelliteMixins):
         self._cli = type('cli', (), {'_configured': False})
         self._apidoc = None
         self.record_property = None
+
+    def get_foreman_raw_ca(self, verify=settings.server.verify_ca, timeout=60):
+        """Return the PEM-encoded Foreman CA bundle from the public unattended endpoint.
+
+        Issues ``GET {satellite_url}/unattended/public/foreman_raw_ca`` (no authentication).
+
+        :param verify: Passed to ``requests.get`` as ``verify`` (SSL bundle or bool).
+            Defaults to ``settings.server.verify_ca``.
+        :param timeout: Request timeout in seconds.
+        :return: Response body (PEM certificate bundle text).
+        :raises SatelliteHostError: If the request fails or the response status is not successful.
+        """
+        url = f'{self.url}/unattended/public/foreman_raw_ca'
+        try:
+            response = requests.get(url, verify=verify, timeout=timeout)
+            response.raise_for_status()
+        except requests.RequestException as err:
+            raise SatelliteHostError(f'Failed to fetch foreman_raw_ca from {url}') from err
+        return response.text
+
+    def get_server_certificate_from_ssl_socket(self, timeout=60):
+        """Return the leaf TLS server certificate (PEM) presented for ``self.url``.
+
+        Resolves host and port from ``self.url`` (using ``self.port`` when the URL has no
+        explicit port), opens a TCP connection, performs a TLS handshake with Server Name
+        Indication (SNI) set to that host, and returns the peer certificate as PEM text.
+
+        Hostname verification and CA validation are disabled so self-signed Satellite
+        certificates can be retrieved.
+
+        :param timeout: TCP connect timeout in seconds.
+        :return: PEM-encoded leaf server certificate.
+        :raises SatelliteHostError: If connect, handshake, or certificate retrieval fails.
+        """
+        parsed = urlparse(self.url)
+        host = parsed.hostname or self.hostname
+        port = parsed.port if parsed.port is not None else socket.getservbyname(parsed.scheme)
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        try:
+            with (
+                socket.create_connection((host, port), timeout=timeout) as sock,
+                ctx.wrap_socket(sock, server_hostname=host) as tls_sock,
+            ):
+                der = tls_sock.getpeercert(binary_form=True)
+        except OSError as err:
+            raise SatelliteHostError(
+                f'Failed to retrieve TLS server certificate from {host}:{port}'
+            ) from err
+        if not der:
+            raise SatelliteHostError(f'No peer certificate presented by {host}:{port}')
+        return ssl.DER_cert_to_PEM_cert(der)
 
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
