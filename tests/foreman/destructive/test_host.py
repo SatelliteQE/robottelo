@@ -93,34 +93,37 @@ class TestHostCockpit:
                     rhel_version=cockpit_host.os_version.major,
                 )
             except NoSuchElementException:
-                # /login returns 500 — capture foreman-cockpit-session error
                 host = cockpit_host.hostname
-                # Restart foreman-cockpit with debug logging, then
-                # replay the /login request to capture the error
-                class_cockpit_sat.execute('systemctl stop foreman-cockpit')
+                sat = class_cockpit_sat.hostname
+                # Enable COCKPIT_DEBUG via systemd drop-in and replay
                 class_cockpit_sat.execute(
-                    'COCKPIT_DEBUG=all /usr/libexec/cockpit-ws'
-                    ' --no-tls --address 127.0.0.1 --port 19090'
-                    ' &>/tmp/cockpit-ws-debug.log &'
-                    ' echo $!>/tmp/cockpit-ws-debug.pid;'
-                    ' sleep 2'
+                    'mkdir -p /etc/systemd/system/foreman-cockpit.service.d;'
+                    ' printf "[Service]\\nEnvironment=COCKPIT_DEBUG=all\\n"'
+                    ' > /etc/systemd/system/foreman-cockpit.service.d/debug.conf;'
+                    ' systemctl daemon-reload;'
+                    ' systemctl restart foreman-cockpit'
                 )
                 class_cockpit_sat.execute(
                     f'curl -sk -o /dev/null'
-                    f' https://{class_cockpit_sat.hostname}'
-                    f'/webcon/cockpit+%3D{host}/login 2>&1 || true'
+                    f' https://{sat}/webcon/cockpit+%3D{host}/login'
+                    f' 2>&1 || true'
                 )
                 import time
 
                 time.sleep(3)
-                class_cockpit_sat.execute(
-                    'kill $(cat /tmp/cockpit-ws-debug.pid) 2>/dev/null || true'
+                result = class_cockpit_sat.execute(
+                    'journalctl -u foreman-cockpit --no-pager -n 100 2>&1'
                 )
-                result = class_cockpit_sat.execute('cat /tmp/cockpit-ws-debug.log 2>&1')
                 logger.info(
-                    f'[cockpit-debug][sat-cockpit_ws_debug_log] rc={result.status}\n{result.stdout}'
+                    f'[cockpit-debug][sat-cockpit_ws_debug_journal]'
+                    f' rc={result.status}\n{result.stdout}'
                 )
-                class_cockpit_sat.execute('systemctl start foreman-cockpit')
+                # Cleanup
+                class_cockpit_sat.execute(
+                    'rm -rf /etc/systemd/system/foreman-cockpit.service.d;'
+                    ' systemctl daemon-reload;'
+                    ' systemctl restart foreman-cockpit'
+                )
                 raise
 
             assert cockpit_host.hostname in hostname_inside_cockpit, (
