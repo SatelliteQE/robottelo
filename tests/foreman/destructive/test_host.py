@@ -95,29 +95,39 @@ class TestHostCockpit:
             except NoSuchElementException:
                 # Capture debug info after the failure to see what went wrong
                 post_fail_cmds = {
-                    'foreman_cockpit_journal': (
-                        'journalctl -u foreman-cockpit --no-pager -n 50 2>&1'
-                    ),
                     'webcon_access_log': (
                         'grep webcon /var/log/httpd/foreman-ssl_access_ssl.log | tail -20 2>&1'
                     ),
-                    'ssl_error_log': 'tail -30 /var/log/httpd/foreman-ssl_error_ssl.log 2>&1',
-                    'httpd_journal': 'journalctl -u httpd --no-pager -n 30 2>&1',
-                    'sat_curl_cockpit': (
-                        f'curl -sk -o /dev/null -w "%{{http_code}}"'
-                        f' https://{cockpit_host.hostname}:9090 2>&1'
+                    'foreman_cockpit_full': (
+                        'journalctl -u foreman-cockpit --no-pager --since "5 minutes ago" 2>&1'
                     ),
-                    'foreman_cockpit_recent': (
-                        'journalctl -u foreman-cockpit --no-pager --since "2 minutes ago" 2>&1'
+                    'foreman_cockpit_all_output': (
+                        'journalctl _SYSTEMD_UNIT=foreman-cockpit.service'
+                        ' --no-pager --since "5 minutes ago" -o verbose 2>&1'
                     ),
+                    'cockpit_session_errors': (
+                        'journalctl -t cockpit-ws --no-pager --since "5 minutes ago" 2>&1'
+                    ),
+                    'foreman_cockpit_session_log': (
+                        'find /var/log -name "*cockpit*" -newer /tmp 2>/dev/null'
+                        ' | xargs tail -30 2>&1'
+                    ),
+                    'syslog_cockpit': (
+                        'grep -i cockpit /var/log/messages 2>/dev/null | tail -20 2>&1'
+                    ),
+                    'ssl_error_log': ('tail -30 /var/log/httpd/foreman-ssl_error_ssl.log 2>&1'),
                 }
                 for label, cmd in post_fail_cmds.items():
                     result = class_cockpit_sat.execute(cmd)
                     logger.info(f'[cockpit-debug][sat-{label}] rc={result.status}\n{result.stdout}')
 
                 host_cmds = {
-                    'cockpit_service_status': 'systemctl status cockpit.service 2>&1',
-                    'cockpit_journal': 'journalctl -u cockpit --no-pager -n 30 2>&1',
+                    'cockpit_journal': (
+                        'journalctl -u cockpit --no-pager --since "5 minutes ago" 2>&1'
+                    ),
+                    'cockpit_ws_journal': (
+                        'journalctl -t cockpit-ws --no-pager --since "5 minutes ago" 2>&1'
+                    ),
                 }
                 for label, cmd in host_cmds.items():
                     result = cockpit_host.execute(cmd)
