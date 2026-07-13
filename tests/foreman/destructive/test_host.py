@@ -93,16 +93,58 @@ class TestHostCockpit:
                     rhel_version=cockpit_host.os_version.major,
                 )
             except NoSuchElementException:
-                # Line 304 crashes: undefined method `[]' for nil
+                # Grab read_auth_reply method and inject debug logging
                 result = class_cockpit_sat.execute(
-                    'sed -n "280,330p" /usr/sbin/foreman-cockpit-session 2>&1'
+                    'grep -n "def read_auth_reply\\|def send_auth"'
+                    ' /usr/sbin/foreman-cockpit-session 2>&1'
                 )
                 logger.info(
-                    f'[cockpit-debug][sat-session_line_304] rc={result.status}\n{result.stdout}'
+                    f'[cockpit-debug][sat-auth_methods_lines] rc={result.status}\n{result.stdout}'
                 )
-                result = class_cockpit_sat.execute('wc -l /usr/sbin/foreman-cockpit-session 2>&1')
+                result = class_cockpit_sat.execute(
+                    'grep -n "def read_auth_reply" /usr/sbin/foreman-cockpit-session'
+                    ' | head -1 | cut -d: -f1'
+                )
+                line_num = result.stdout.strip()
+                if line_num:
+                    start = max(1, int(line_num) - 2)
+                    end = int(line_num) + 20
+                    result = class_cockpit_sat.execute(
+                        f'sed -n "{start},{end}p" /usr/sbin/foreman-cockpit-session 2>&1'
+                    )
+                    logger.info(
+                        f'[cockpit-debug][sat-read_auth_reply_source]'
+                        f' rc={result.status}\n{result.stdout}'
+                    )
+                # Patch the script to log what read_auth_reply returns
+                class_cockpit_sat.execute(
+                    "sed -i"
+                    " 's/token = read_auth_reply/"
+                    "reply = read_auth_reply;"
+                    " LOG.error(\"AUTH_REPLY: [#{reply}]\");"
+                    " token = reply/'"
+                    " /usr/sbin/foreman-cockpit-session"
+                )
+                class_cockpit_sat.execute('systemctl restart foreman-cockpit')
+                class_cockpit_sat.execute(
+                    f'curl -sk -o /dev/null'
+                    f' https://{class_cockpit_sat.hostname}'
+                    f'/webcon/cockpit+%3D{cockpit_host.hostname}/login'
+                    f' 2>&1 || true'
+                )
+                import time
+
+                time.sleep(3)
+                result = class_cockpit_sat.execute(
+                    'journalctl -u foreman-cockpit --no-pager -n 30 2>&1'
+                )
                 logger.info(
-                    f'[cockpit-debug][sat-session_line_count] rc={result.status}\n{result.stdout}'
+                    f'[cockpit-debug][sat-patched_session_output]'
+                    f' rc={result.status}\n{result.stdout}'
+                )
+                # Restore original script
+                class_cockpit_sat.execute(
+                    'yum reinstall -y rubygem-foreman_remote_execution-cockpit 2>/dev/null || true'
                 )
                 raise
 
