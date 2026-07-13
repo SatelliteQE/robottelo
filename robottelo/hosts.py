@@ -2138,6 +2138,8 @@ class Capsule(ContentHost, CapsuleMixins):
         # Add IPv6 proxy for IPv6 communication
         self.enable_ipv6_dnf_and_rhsm_proxy()
         self.enable_ipv6_system_proxy()
+        # Add IPv6 proxy for podman to pull from container registry
+        self.enable_ipv6_podman_proxy()
         # Enable RHEL and Satellite repos
         self.register_to_cdn()
         self.setup_rhel_repos()
