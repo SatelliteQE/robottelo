@@ -919,8 +919,6 @@ class ContentHost(Host, ContentHostMixins):
         if not self.network_type.has_ipv4:
             container_cfg = '/etc/containers/containers.conf'
             proxy_url = settings.http_proxy.http_proxy_ipv6_url
-            # Ensure /etc/containers exists if podman is not installed
-            assert self.execute('rpm -q podman || mkdir -p /etc/containers').status == 0
             if self.execute(f'grep -q "https_proxy" {container_cfg}').status != 0:
                 assert (
                     self.execute(
@@ -2140,8 +2138,8 @@ class Capsule(ContentHost, CapsuleMixins):
         # Add IPv6 proxy for IPv6 communication
         self.enable_ipv6_dnf_and_rhsm_proxy()
         self.enable_ipv6_system_proxy()
-        # Add IPv6 proxy for podman to pull from container registry
-        self.enable_ipv6_podman_proxy()
+        # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
+        self.ensure_podman_installed(enable_ipv6_proxy=True)
         # Enable RHEL and Satellite repos
         self.register_to_cdn()
         self.setup_rhel_repos()
