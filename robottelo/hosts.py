@@ -924,7 +924,7 @@ class ContentHost(Host, ContentHostMixins):
             if self.execute(f'grep -q "https_proxy" {container_cfg}').status != 0:
                 assert (
                     self.execute(
-                        f'echo -e "[engine]\\nenv = [\'https_proxy={proxy_url}\']" >> {container_cfg}'
+                        f'echo -e "[engine]\\nenv = [\'https_proxy={proxy_url}\', \'no_proxy=localhost\']" >> {container_cfg}'
                     ).status
                     == 0
                 )
