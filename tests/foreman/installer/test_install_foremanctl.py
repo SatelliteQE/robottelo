@@ -12,6 +12,8 @@
 
 """
 
+import re
+
 from broker import Broker
 from fauxfactory import gen_string
 import pytest
@@ -550,3 +552,147 @@ def test_positive_foremanctl_tuning_profile(module_sat_foremanctl_tuning):
     parameters_file = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
     assert 'tuning' not in parameters_file
     assert_postgresql_tuning(sat, 'default')
+
+
+def assert_cert_validity_days(host, cert_paths, expected_days):
+    """Assert each certificate has the expected validity period in days."""
+    for cert_path in cert_paths:
+        assert get_cert_validity_days(host, cert_path) == expected_days
+
+
+def foremanctl_host_cert_paths(hostname):
+    """Return server and client certificate paths for a foremanctl host."""
+    return [
+        f'{FOREMANCTL_CERTS_DIR}/{hostname}.crt',
+        f'{FOREMANCTL_CERTS_DIR}/{hostname}-client.crt',
+    ]
+
+
+def foremanctl_capsule_cert_paths(sat, capsule, result, extract_dir):
+    """Return server and client certificate paths for a foremanctl capsule bundle."""
+    sat.execute(f'mkdir -p {extract_dir}')
+
+    bundle_path = re.search(r'/\S+?\.tar\.gz', result.stdout).group(0)
+    sat.execute(f'tar xf {bundle_path} -C {extract_dir}')
+
+    result = sat.execute(f'tar -tzf {bundle_path}')
+    assert result.status == 0, (
+        f'Certificate bundle tarball not found at {bundle_path}: {result.stderr}'
+    )
+    assert f'certs/{capsule.hostname}.crt' in result.stdout
+    assert f'certs/{capsule.hostname}-client.crt' in result.stdout
+
+    return [
+        f'{extract_dir}/certs/{capsule.hostname}.crt',
+        f'{extract_dir}/certs/{capsule.hostname}-client.crt',
+    ]
+
+
+@pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
+@pytest.mark.rhel_ver_match('9')
+def test_positive_foremanctl_certificate_bundle(module_sat_ready_rhel, rhel_contenthost):
+    """Verify foremanctl certificate-bundle generation and renewal for a capsule.
+
+    :id: 9bd1d8d8-a22a-4917-9522-22b7165d224c
+
+    :steps:
+        1. Deploy Satellite with foremanctl using default certificates
+        2. Generate a certificate bundle via
+           foremanctl certificate-bundle
+        3. Extract the bundle tarball and verify it contains capsule server and
+           client certificate files
+        4. Verify capsule server and client certificates have default validity
+           (7300 days)
+        5. Verify capsule server and client certificates are signed by the bundle CA
+        6. Capture SHA256 fingerprints of the CA, capsule server, and capsule
+           client certificates
+        7. Renew the capsule certificate bundle with foremanctl certificate-bundle
+           --certificate-renew
+        8. Extract the renewed bundle tarball and verify its contents
+        9. Verify renewed capsule server and client certificates retain default
+           validity (7300 days)
+        10. Verify renewed capsule certificates chain to both the original and
+            renewed bundle CA
+        11. Verify CA fingerprint is unchanged between the original and renewed
+            bundle
+        12. Verify capsule server and client certificate fingerprints changed after
+            renewal
+
+    :expectedresults:
+        1. foremanctl certificate-bundle succeeds and produces a tarball
+        2. Extracted tarball contains the expected server and client certificate
+           files
+        3. Initial capsule certificate validity is 7300 days
+        4. Capsule certificates validate against the bundle CA
+        5. foremanctl certificate-bundle --certificate-renew succeeds
+        6. Renewed capsule certificates retain 7300-day validity
+        7. CA identity is preserved across renewal (fingerprint unchanged)
+        8. Capsule server and client certificates are regenerated (fingerprints change)
+        9. Renewed certificates maintain chain integrity against both the original
+           and renewed CA
+
+    :verifies: SAT-43475
+    """
+    extract_dir = '/var/tmp/capsule-tarball'
+    renewed_extract_dir = '/var/tmp/capsule-tarball-renewed'
+    ca_cert = f'{extract_dir}/certs/ca.crt'
+    renewed_ca_cert = f'{renewed_extract_dir}/certs/ca.crt'
+
+    sat = module_sat_ready_rhel
+    capsule = rhel_contenthost
+
+    # Generate bundle
+    result = sat.execute(f'foremanctl certificate-bundle {capsule.hostname}', timeout='10m')
+    assert result.status == 0, f'foremanctl certificate-bundle failed:\n{result.stderr}'
+
+    # Phase 1: initial capsule validity
+    capsule_certs = foremanctl_capsule_cert_paths(sat, capsule, result, extract_dir)
+    assert_cert_validity_days(sat, capsule_certs, 7300)
+
+    # verify certificate chain — capsule server and client signed by CA
+    for cert in capsule_certs:
+        verify = sat.execute(f'openssl verify -CAfile {ca_cert} {cert}')
+        assert verify.status == 0, f'Chain validation failed for {cert}: {verify.stderr}'
+
+    # capture fingerprints to track capsule certificate identity across renewal
+    ca_fp_before = get_cert_fingerprint(sat, ca_cert)
+    server_fp_before = get_cert_fingerprint(sat, capsule_certs[0])
+    client_fp_before = get_cert_fingerprint(sat, capsule_certs[1])
+
+    # Renew bundle
+    result = sat.execute(
+        f'foremanctl certificate-bundle --certificate-renew {capsule.hostname}',
+        timeout='10m',
+    )
+    assert result.status == 0, f'Capsule certificate renewal failed: {result.stderr}'
+
+    # Phase 2: renew capsule validate
+    capsule_certs = foremanctl_capsule_cert_paths(sat, capsule, result, renewed_extract_dir)
+    assert_cert_validity_days(sat, capsule_certs, 7300)
+
+    # verify certificate chain — capsule server and client signed by previous and current CA
+    for cert in capsule_certs:
+        verify = sat.execute(f'openssl verify -CAfile {ca_cert} {cert}')
+        assert verify.status == 0, (
+            f'Chain validation failed after renewal for {cert}: {verify.stderr}'
+        )
+        verify = sat.execute(f'openssl verify -CAfile {renewed_ca_cert} {cert}')
+        assert verify.status == 0, (
+            f'Chain validation failed after renewal for {cert}: {verify.stderr}'
+        )
+
+    # CA certificate fingerprint must be unchanged (CA not regenerated)
+    ca_fp_after = get_cert_fingerprint(sat, renewed_ca_cert)
+    assert ca_fp_after == ca_fp_before, (
+        'CA fingerprint changed after capsule --certificate-renew; CA should not be regenerated'
+    )
+
+    # server and client certificate fingerprint must be changed
+    server_fp_after = get_cert_fingerprint(sat, capsule_certs[0])
+    assert server_fp_after != server_fp_before, (
+        'Capsule server cert fingerprint unchanged — renewal did not regenerate it'
+    )
+    client_fp_after = get_cert_fingerprint(sat, capsule_certs[1])
+    assert client_fp_after != client_fp_before, (
+        'Capsule client cert fingerprint unchanged — renewal did not regenerate it'
+    )
