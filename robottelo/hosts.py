@@ -3264,7 +3264,6 @@ class Satellite(Capsule, SatelliteMixins):
     @property
     def iop_enabled(self):
         """Return boolean indicating whether IoP (local Red Hat Lightspeed) is enabled."""
-        from robottelo.enums import InstallMethod
 
         if self.install_method == InstallMethod.FOREMANCTL:
             return 'iop' in self.list_foremanctl_features(enabled=True)
