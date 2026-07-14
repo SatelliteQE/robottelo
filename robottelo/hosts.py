@@ -54,7 +54,7 @@ from robottelo.constants import (
     RHSSO_USER_UPDATE,
     SATELLITE_VERSION,
 )
-from robottelo.enums import NetworkType
+from robottelo.enums import InstallMethod, NetworkType
 from robottelo.exceptions import (
     CapsuleHostError,
     CLIFactoryError,
@@ -1805,7 +1805,6 @@ class Capsule(ContentHost, CapsuleMixins):
         :return: InstallMethod enum value
         :rtype: InstallMethod
         """
-        from robottelo.enums import InstallMethod
 
         # Runtime override
         if hasattr(self, '_install_method_override'):
@@ -1855,7 +1854,6 @@ class Capsule(ContentHost, CapsuleMixins):
         :rtype: list
         """
         from robottelo.constants import InstallationServices
-        from robottelo.enums import InstallMethod
 
         if self.install_method == InstallMethod.FOREMANCTL:
             return InstallationServices.FOREMANCTL_SERVICES
@@ -2268,7 +2266,6 @@ class Capsule(ContentHost, CapsuleMixins):
         :param foremanctl_parameters: Parameters list for foremanctl deploy
         :return: Installation result
         """
-        from robottelo.enums import InstallMethod
         from robottelo.utils.installer import InstallerCommand
 
         # Determine method
@@ -3150,7 +3147,6 @@ class Satellite(Capsule, SatelliteMixins):
     @property
     def iop_enabled(self):
         """Return boolean indicating whether IoP (local Red Hat Lightspeed) is enabled."""
-        from robottelo.enums import InstallMethod
 
         if self.install_method == InstallMethod.FOREMANCTL:
             return 'iop' in self.list_foremanctl_features(enabled=True)

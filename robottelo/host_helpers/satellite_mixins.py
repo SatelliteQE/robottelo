@@ -459,7 +459,7 @@ class IoPSetup:
     def configure_iop(self):
         """Configure on prem Advisor engine on Satellite.
 
-        Branches on install_method: foremanctl uses ``foremanctl deploy --add-feature iop``,
+        Based on install_method: foremanctl uses ``foremanctl deploy --add-feature iop``,
         installer uses ``satellite-installer --enable-iop --iop-ensure present``.
         """
         logger.info('Configuring Satellite with local Red Hat Lightspeed')
