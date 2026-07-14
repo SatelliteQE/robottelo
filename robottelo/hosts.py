@@ -920,12 +920,12 @@ class ContentHost(Host, ContentHostMixins):
             container_cfg = '/etc/containers/containers.conf'
             proxy_url = settings.http_proxy.http_proxy_ipv6_url
             if self.execute(f'grep -q "https_proxy" {container_cfg}').status != 0:
-                assert (
-                    self.execute(
-                        f'echo -e "[engine]\\nenv = [\'https_proxy={proxy_url}\', \'no_proxy=localhost\']" >> {container_cfg}'
-                    ).status
-                    == 0
+                proxy_env = (
+                    '[engine]\\nenv = ['
+                    f'\\"https_proxy={proxy_url}\\"]\\n'
+                    '[containers]\\nhttp_proxy=false'
                 )
+                assert self.execute(f'echo -e "{proxy_env}" >> {container_cfg}').status == 0
 
     def disable_rhsm_proxy(self):
         """Disables HTTP proxy for subscription manager"""
