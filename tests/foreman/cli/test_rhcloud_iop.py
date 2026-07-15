@@ -118,8 +118,7 @@ def test_positive_install_iop_custom_certs(
         for service, image in iop_settings.image_paths.items():
             quadlet_name = f'iop-{service.replace("_", "-")}'
             satellite.execute(
-                f"sed -i 's|^Image=.*|Image={image}|' "
-                f"/etc/containers/systemd/{quadlet_name}.image"
+                f"sed -i 's|^Image=.*|Image={image}|' /etc/containers/systemd/{quadlet_name}.image"
             )
         result = satellite.execute(
             'foremanctl deploy --add-feature iop'
