@@ -274,9 +274,8 @@ def test_foremanctl_deploy_certificate_cname(module_sat_ready_rhel):
     assert result.status == 0, (
         f'foremanctl deploy with --certificate-cname failed:\n{result.stderr}'
     )
-
     result = satellite.execute(
-        'curl --fail --silent --show-error --head '
+        'curl --noproxy "*" --fail --silent --show-error --head '
         f'--cacert {FOREMANCTL_CERTS_DIR}/ca.crt '
         f'--resolve "{cname}:443:127.0.0.1" '
         f'https://{cname}/users/login'
