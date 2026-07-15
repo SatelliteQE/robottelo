@@ -53,7 +53,8 @@ def sync_recommendations(session):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.parametrize(
-    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True)
+    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
+)
 def test_rhcloud_insights_e2e(
     request,
     rhel_insights_vm,
