@@ -479,6 +479,12 @@ class IoPSetup:
         self.enable_ipv6_podman_proxy()
 
         if self.install_method == InstallMethod.FOREMANCTL:
+            for service, image in settings.rh_cloud.iop.image_paths.items():
+                quadlet_name = f'iop-{service.replace("_", "-")}'
+                self.execute(
+                    f"sed -i 's|^Image=.*|Image={image}|' "
+                    f"/etc/containers/systemd/{quadlet_name}.image"
+                )
             result = self.execute('foremanctl deploy --add-feature iop', timeout='30m')
         else:
             # Set up container image path overrides for satellite-installer

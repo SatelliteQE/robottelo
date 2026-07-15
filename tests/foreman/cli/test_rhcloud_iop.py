@@ -115,11 +115,18 @@ def test_positive_install_iop_custom_certs(
     assert result.status == 0, f'Error logging in to container registry: {result.stdout}'
 
     if satellite.install_method == InstallMethod.FOREMANCTL:
+        for service, image in iop_settings.image_paths.items():
+            quadlet_name = f'iop-{service.replace("_", "-")}'
+            satellite.execute(
+                f"sed -i 's|^Image=.*|Image={image}|' "
+                f"/etc/containers/systemd/{quadlet_name}.image"
+            )
         result = satellite.execute(
             'foremanctl deploy --add-feature iop'
             f' --certificate-source=custom_server'
             f' --certificate-server-certificate /root/{certs_data["cert_file_name"]}'
-            f' --certificate-server-key /root/{certs_data["key_file_name"]}',
+            f' --certificate-server-key /root/{certs_data["key_file_name"]}'
+            f' --certificate-server-ca-certificate /root/{certs_data["ca_bundle_file_name"]}',
             timeout='30m',
         )
     else:
@@ -368,6 +375,7 @@ def process_iop_log_options(installer_output):
     return options_dict
 
 
+@pytest.mark.foreman_installer
 def test_set_iop_log_level_via_installer(module_satellite_iop):
     """Set IoP log level to DEBUG using satellite-installer options.
 
@@ -385,10 +393,6 @@ def test_set_iop_log_level_via_installer(module_satellite_iop):
 
     :Verifies: SAT-41750
     """
-    if module_satellite_iop.install_method == InstallMethod.FOREMANCTL:
-        pytest.skip(
-            'IoP log level configuration via satellite-installer not available on foremanctl'
-        )
 
     NEW_LOG_LEVEL = 'DEBUG'
 
