@@ -93,7 +93,7 @@ def test_rhcloud_insights_e2e(
     :CaseAutomation: Automated
     """
     org_name = rhcloud_manifest_org.name
-    local_advisor_enabled = module_target_sat_insights.iop_enabled
+    local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
 
     # Query for searching the available recommendation
     REC_QUERY = f'hostname = "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
