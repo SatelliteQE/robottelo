@@ -920,12 +920,12 @@ class ContentHost(Host, ContentHostMixins):
             container_cfg = '/etc/containers/containers.conf'
             proxy_url = settings.http_proxy.http_proxy_ipv6_url
             if self.execute(f'grep -q "https_proxy" {container_cfg}').status != 0:
-                assert (
-                    self.execute(
-                        f'echo -e "[engine]\\nenv = [\'https_proxy={proxy_url}\']" >> {container_cfg}'
-                    ).status
-                    == 0
+                proxy_env = (
+                    '[engine]\\nenv = ['
+                    f'\\"https_proxy={proxy_url}\\"]\\n'
+                    '[containers]\\nhttp_proxy=false'
                 )
+                assert self.execute(f'echo -e "{proxy_env}" >> {container_cfg}').status == 0
 
     def disable_rhsm_proxy(self):
         """Disables HTTP proxy for subscription manager"""
@@ -2138,6 +2138,8 @@ class Capsule(ContentHost, CapsuleMixins):
         # Add IPv6 proxy for IPv6 communication
         self.enable_ipv6_dnf_and_rhsm_proxy()
         self.enable_ipv6_system_proxy()
+        # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
+        self.ensure_podman_installed(enable_ipv6_proxy=True)
         # Enable RHEL and Satellite repos
         self.register_to_cdn()
         self.setup_rhel_repos()
@@ -2150,6 +2152,7 @@ class Capsule(ContentHost, CapsuleMixins):
                 job_template='upstream-pr-install',
                 target_vm=self.name,
                 pull_requests=pull_requests,
+                deploy_network_type=settings.server.network_type,
             ).execute()
 
         # Install podman (required for foremanctl container operations)
