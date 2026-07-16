@@ -642,7 +642,6 @@ def test_positive_remove_job_file(sat_maintain):
     assert sat_maintain.execute("ls -l /var/lib/pulp/job1.0.0").status != 0
 
 
-@pytest.mark.foreman_installer
 def test_positive_health_check_corrupted_roles(sat_maintain, request):
     """Verify corrupted-roles check.
 
@@ -735,7 +734,6 @@ def test_positive_health_check_non_rh_packages(sat_maintain, request):
     assert 'WARNING' in result.stdout
 
 
-@pytest.mark.foreman_installer
 def test_positive_health_check_duplicate_permissions(sat_maintain):
     """Verify duplicate-permissions check
 

@@ -1805,7 +1805,6 @@ class Capsule(ContentHost, CapsuleMixins):
         :return: InstallMethod enum value
         :rtype: InstallMethod
         """
-        from robottelo.enums import InstallMethod
 
         # Runtime override
         if hasattr(self, '_install_method_override'):
@@ -1855,7 +1854,6 @@ class Capsule(ContentHost, CapsuleMixins):
         :rtype: list
         """
         from robottelo.constants import InstallationServices
-        from robottelo.enums import InstallMethod
 
         if self.install_method == InstallMethod.FOREMANCTL:
             return InstallationServices.FOREMANCTL_SERVICES
