@@ -54,7 +54,7 @@ from robottelo.constants import (
     RHSSO_USER_UPDATE,
     SATELLITE_VERSION,
 )
-from robottelo.enums import NetworkType
+from robottelo.enums import InstallMethod, NetworkType
 from robottelo.exceptions import (
     CapsuleHostError,
     CLIFactoryError,
@@ -2271,7 +2271,6 @@ class Capsule(ContentHost, CapsuleMixins):
         :param foremanctl_parameters: Parameters list for foremanctl deploy
         :return: Installation result
         """
-        from robottelo.enums import InstallMethod
         from robottelo.utils.installer import InstallerCommand
 
         # Determine method
@@ -2338,8 +2337,6 @@ class Capsule(ContentHost, CapsuleMixins):
         Raises:
             CLIReturnCodeError: If the database query fails
         """
-
-        from robottelo.enums import InstallMethod
 
         def _execute_db_query(cmd):
             result = self.execute(cmd)
