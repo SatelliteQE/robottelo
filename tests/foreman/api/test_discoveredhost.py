@@ -20,6 +20,8 @@ from wait_for import TimedOutError, wait_for
 from robottelo.logging import logger
 from robottelo.utils.datafactory import valid_data_list
 
+pytestmark = pytest.mark.foreman_installer
+
 
 class HostNotDiscoveredException(Exception):
     """Raised when host is not discovered"""

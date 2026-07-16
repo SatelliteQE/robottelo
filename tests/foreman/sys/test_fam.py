@@ -32,6 +32,8 @@ from robottelo.hosts import (
 )
 from robottelo.utils.installer import InstallerCommand
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture
 def sync_roles(target_sat):

@@ -19,6 +19,8 @@ from wrapanapi.systems.virtualcenter import VMWareVirtualMachine
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning

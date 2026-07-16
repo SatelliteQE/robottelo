@@ -24,7 +24,7 @@ from robottelo.utils.datafactory import (
     valid_data_list,
 )
 
-pytestmark = [pytest.mark.skip_if_not_set('ocpv')]
+pytestmark = [pytest.mark.skip_if_not_set('ocpv'), pytest.mark.foreman_installer]
 
 
 @pytest.mark.e2e

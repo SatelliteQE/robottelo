@@ -31,7 +31,7 @@ from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.skip_if_not_set('vmware')]
+pytestmark = [pytest.mark.skip_if_not_set('vmware'), pytest.mark.foreman_installer]
 
 
 def _round_to_2_significant_digits(x):

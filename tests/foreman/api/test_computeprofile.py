@@ -21,6 +21,8 @@ from robottelo.utils.datafactory import (
     valid_data_list,
 )
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_create_with_name(name, target_sat):

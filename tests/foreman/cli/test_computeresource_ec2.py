@@ -15,6 +15,8 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import EC2_REGION_CA_CENTRAL_1, FOREMAN_PROVIDERS
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture(scope='module')
 def aws(module_target_sat):

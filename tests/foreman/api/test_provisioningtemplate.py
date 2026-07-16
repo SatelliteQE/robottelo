@@ -25,6 +25,8 @@ from requests.exceptions import HTTPError
 from robottelo.config import settings, user_nailgun_config
 from robottelo.utils.datafactory import invalid_names_list, valid_data_list
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture(scope='module')
 def module_user(module_target_sat, module_org, module_location):

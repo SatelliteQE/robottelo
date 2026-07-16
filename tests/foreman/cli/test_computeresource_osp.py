@@ -18,6 +18,8 @@ import pytest
 from robottelo.config import settings
 from robottelo.exceptions import CLIReturnCodeError
 
+pytestmark = pytest.mark.foreman_installer
+
 OSP_SETTINGS = Box(
     username=settings.osp.username,
     password=settings.osp.password,

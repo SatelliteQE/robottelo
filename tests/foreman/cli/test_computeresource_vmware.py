@@ -19,6 +19,8 @@ from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.hosts import ContentHost
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.e2e
 @pytest.mark.upgrade

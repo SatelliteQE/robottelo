@@ -627,6 +627,7 @@ def test_positive_check_installer_hammer_ping(target_sat):
             assert 'ok' in line
 
 
+@pytest.mark.foreman_installer
 def test_installer_cap_pub_directory_accessibility(capsule_configured):
     """Verify the public directory accessibility from capsule url after disabling it from the
     custom-hiera
@@ -682,6 +683,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     assert 'Success!' in command_output.stdout
 
 
+@pytest.mark.foreman_installer
 def test_installer_capsule_with_enabled_ansible(module_capsule_configured_ansible):
     """Enables Ansible feature on external Capsule and checks the callback is set correctly
 
@@ -793,7 +795,7 @@ def test_weak_dependency(sat_non_default_install, package):
 @pytest.mark.parametrize(
     'satellite_with_install_method',
     [
-        pytest.param('installer', id='installer-method'),
+        pytest.param('installer', marks=pytest.mark.foreman_installer, id='installer-method'),
         pytest.param('foremanctl', marks=pytest.mark.foremanctl, id='foremanctl-method'),
     ],
     indirect=True,

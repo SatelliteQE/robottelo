@@ -15,6 +15,8 @@
 from fauxfactory import gen_string
 import pytest
 
+pytestmark = pytest.mark.foreman_installer
+
 
 class TestScenarioPositiveGCEHostComputeResource:
     """The host can be provisioned on GCE CR created in previous version

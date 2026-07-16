@@ -17,6 +17,9 @@ import pytest
 
 from robottelo.config import settings
 
+pytestmark = pytest.mark.foreman_installer
+
+
 provisioning_template_kinds = ['provision', 'PXEGrub2', 'PXELinux', 'iPXE']
 
 

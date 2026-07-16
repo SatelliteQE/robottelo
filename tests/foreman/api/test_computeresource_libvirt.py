@@ -30,7 +30,7 @@ from robottelo.utils.datafactory import (
     valid_data_list,
 )
 
-pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
+pytestmark = [pytest.mark.skip_if_not_set('libvirt'), pytest.mark.foreman_installer]
 
 
 @pytest.mark.e2e

@@ -24,7 +24,7 @@ from robottelo.constants import (
     COMPUTE_PROFILE_SMALL,
 )
 
-pytestmark = [pytest.mark.skip_if_not_set('azurerm')]
+pytestmark = [pytest.mark.skip_if_not_set('azurerm'), pytest.mark.foreman_installer]
 
 
 @pytest.fixture(scope='module')

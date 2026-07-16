@@ -28,6 +28,8 @@ from robottelo.constants import (
     GCE_NETWORK_DEFAULT,
 )
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.e2e
 @pytest.mark.upgrade

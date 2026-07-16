@@ -26,7 +26,7 @@ from robottelo.constants import (
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
+pytestmark = [pytest.mark.skip_if_not_set('libvirt'), pytest.mark.foreman_installer]
 
 
 @pytest.mark.e2e

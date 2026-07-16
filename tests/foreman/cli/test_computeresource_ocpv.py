@@ -23,7 +23,7 @@ from robottelo.exceptions import CLIReturnCodeError
 from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import parametrized
 
-pytestmark = [pytest.mark.skip_if_not_set('ocpv')]
+pytestmark = [pytest.mark.skip_if_not_set('ocpv'), pytest.mark.foreman_installer]
 
 
 def valid_name_desc_data():

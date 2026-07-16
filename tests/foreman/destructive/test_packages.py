@@ -18,7 +18,7 @@ import pytest
 
 from robottelo.hosts import Satellite
 
-pytestmark = pytest.mark.destructive
+pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
 
 
 @pytest.mark.include_capsule

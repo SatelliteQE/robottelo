@@ -20,6 +20,8 @@ import pytest
 
 from robottelo.utils.shared_resource import SharedResource
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture
 def fdi_upgrade_setup(fdi_upgrade_shared_satellite, upgrade_action):

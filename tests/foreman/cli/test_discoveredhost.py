@@ -15,7 +15,7 @@ from wait_for import wait_for
 
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.run_in_one_thread]
+pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.foreman_installer]
 
 
 @pytest.mark.e2e

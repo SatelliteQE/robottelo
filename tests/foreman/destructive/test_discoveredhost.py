@@ -19,7 +19,7 @@ from wait_for import TimedOutError, wait_for
 from robottelo.config import admin_nailgun_config
 from robottelo.logging import logger
 
-pytestmark = pytest.mark.destructive
+pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
 
 
 def _read_log(ch, pattern):

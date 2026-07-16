@@ -24,6 +24,8 @@ from robottelo.enums import NetworkType
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.e2e
 @pytest.mark.upgrade

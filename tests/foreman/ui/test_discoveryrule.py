@@ -18,6 +18,8 @@ import pytest
 from robottelo.config import settings
 from robottelo.enums import NetworkType
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture
 def module_discovery_env(module_org, module_location, module_target_sat):

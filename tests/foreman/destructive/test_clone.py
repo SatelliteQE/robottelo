@@ -19,7 +19,7 @@ from robottelo.config import settings
 from robottelo.hosts import Satellite, get_sat_rhel_version
 
 SSH_PASS = settings.server.ssh_password
-pytestmark = pytest.mark.destructive
+pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
 
 
 @pytest.mark.pit_server
