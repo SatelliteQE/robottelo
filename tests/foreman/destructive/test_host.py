@@ -13,10 +13,10 @@
 """
 
 from airgun.exceptions import NoSuchElementException
-import epdb
 import pytest
 
 from robottelo.constants import ANY_CONTEXT
+from robottelo.logging import logger
 
 
 class TestHostCockpit:
@@ -71,6 +71,17 @@ class TestHostCockpit:
 
             service_restart = class_cockpit_sat.cli.Service.restart()
             assert service_restart.status == 0
+
+            # Patch session script to log auth reply
+            class_cockpit_sat.execute(
+                "sed -i 's/token = read_auth_reply/"
+                "reply = read_auth_reply;"
+                " LOG.error(\"AUTH_REPLY_LOCAL: [#{reply}]\");"
+                " token = reply/'"
+                " /usr/sbin/foreman-cockpit-session"
+            )
+            class_cockpit_sat.execute('systemctl restart foreman-cockpit')
+
             # SAT-36783 can be triggered by just having wide characters anywhere
             # in the payload that gets sent between Satellite, Capsule and
             # cockpit. The password doesn't have to be accepted, it doesn't even
@@ -86,13 +97,24 @@ class TestHostCockpit:
 
             session.browser.switch_to_window(session.browser.window_handles[0])
             session.browser.close_window(session.browser.window_handles[-1])
-
-            epdb.serve(port=8888)
-
             hostname_inside_cockpit = session.host.get_webconsole_content(
                 entity_name=cockpit_host.hostname,
                 rhel_version=cockpit_host.os_version.major,
             )
+
+            # Capture what the session script received
+            result = class_cockpit_sat.execute(
+                'journalctl -u foreman-cockpit --no-pager -n 20 2>&1'
+            )
+            logger.info(f'[cockpit-debug][sat-local-journal] rc={result.status}\n{result.stdout}')
+
+            # Restore original script
+            class_cockpit_sat.execute(
+                'yum reinstall -y rubygem-foreman_remote_execution-cockpit'
+                ' 2>/dev/null;'
+                ' systemctl restart foreman-cockpit 2>/dev/null || true'
+            )
+
             assert cockpit_host.hostname in hostname_inside_cockpit, (
                 f'cockpit page shows hostname {hostname_inside_cockpit} '
                 f'instead of {cockpit_host.hostname}'
