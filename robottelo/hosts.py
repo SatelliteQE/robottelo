@@ -1016,9 +1016,14 @@ class ContentHost(Host, ContentHostMixins):
                 f'Failed to put hostname in ssh known_hosts files:\n{result.stderr}'
             )
 
-    def configure_puppet(self, proxy_hostname=None, run_agent=True, use_openvox=True):
+    def configure_puppet(
+        self, proxy_hostname=None, run_agent=True, use_openvox=True, auto_sign=False
+    ):
         """Configures puppet on the virtual machine/Host.
         :param proxy_hostname: external capsule hostname
+        :param run_agent: whether to run the puppet agent after configuration
+        :param use_openvox: whether to use the openvox agent
+        :param auto_sign: whether to create auto-sign entry for automatically signing the puppet certificate
         :return: None.
         :raises robottelo.hosts.ContentHostError: If installation or configuration fails.
         """
@@ -1063,8 +1068,17 @@ class ContentHost(Host, ContentHostMixins):
         # sat6 under the capsule --> certificates or on capsule via cli "puppetserver
         # ca list", so that we sign it.
         self.execute('/opt/puppetlabs/bin/puppet agent -t')
-        proxy_host = Host(hostname=proxy_hostname, ipv6=self.network_type == NetworkType.IPV6)
-        proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
+
+        proxy_host = Capsule(hostname=proxy_hostname, ipv6=self.network_type == NetworkType.IPV6)
+        if auto_sign:
+            proxy_host.nailgun_smart_proxy.add_autosign_entry(cert_name)
+        else:
+            result = proxy_host.execute(f'puppetserver ca sign --certname {cert_name}')
+            if result.status:
+                proxy_host.execute('tail -2 /var/log/puppetlabs/puppetserver/puppetserver.log')
+                raise ContentHostError(
+                    f'Failed to sign the puppet certificate on the capsule {proxy_hostname}'
+                )
 
         if run_agent:
             # This particular puppet run would create the host entity under 'All Hosts'
