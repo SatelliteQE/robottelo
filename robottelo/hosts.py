@@ -1691,6 +1691,22 @@ class ContentHost(Host, ContentHostMixins):
         else:
             logger.warning(f'Podman is not logged into container registry {registry}')
 
+    def cast_to_infra_host(self):
+        """Re-type this ContentHost in-place to Capsule or Satellite based on installed RPMs.
+
+        Uses __class__ reassignment to preserve the existing SSH session and all broker state.
+        """
+        if self.execute('rpm -q satellite').status == 0:
+            self.__class__ = Satellite
+            return self
+        if self.execute('rpm -q satellite-capsule').status == 0:
+            self.__class__ = Capsule
+            return self
+        raise ContentHostError(
+            f'Unable to cast ContentHost {self.hostname} to Satellite or Capsule. '
+            'Neither satellite nor satellite-capsule RPMs are installed.'
+        )
+
 
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
