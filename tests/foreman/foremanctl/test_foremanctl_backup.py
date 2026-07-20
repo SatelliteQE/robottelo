@@ -16,19 +16,16 @@ import re
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.hosts import Satellite
-
 pytestmark = [pytest.mark.foremanctl]
 
 BACKUP_DIR = '/tmp/'
 BASIC_FILES = {'foremanctl-state.tar.gz', 'metadata.yml'}
 SAT_FILES = {'candlepin.dump', 'foreman.dump', 'pulp.dump'} | BASIC_FILES
-CAPS_FILES = {'pulpcore.dump'} | BASIC_FILES
 CONTENT_FILES = {'pulp-content.tar.gz'}
 
 
 def get_exp_files(module_target_sat, skip_pulp=False):
-    expected_files = SAT_FILES if type(module_target_sat) is Satellite else CAPS_FILES
+    expected_files = SAT_FILES
     if not skip_pulp:
         expected_files = expected_files | CONTENT_FILES
     return expected_files
