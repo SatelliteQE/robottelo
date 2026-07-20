@@ -208,6 +208,9 @@ tests/foreman/endtoend/test_cli_endtoend.py @SatelliteQE/team-rocket
 tests/foreman/installer/test_infoblox.py @SatelliteQE/team-rocket
 tests/foreman/installer/test_install_foremanctl.py @SatelliteQE/team-rocket
 tests/foreman/installer/test_installer.py @SatelliteQE/team-rocket
+tests/foreman/foremanctl/test_foremanctl_backup.py @SatelliteQE/team-rocket
+tests/foreman/foremanctl/test_foremanctl_health.py @SatelliteQE/team-rocket
+tests/foreman/foremanctl/test_install_foremanctl.py @SatelliteQE/team-rocket
 tests/foreman/maintain/test_advanced.py @SatelliteQE/team-rocket
 tests/foreman/maintain/test_backup_restore.py @SatelliteQE/team-rocket
 tests/foreman/maintain/test_health.py @SatelliteQE/team-rocket
