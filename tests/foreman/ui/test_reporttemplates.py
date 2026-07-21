@@ -15,6 +15,7 @@
 import json
 import os
 from pathlib import Path, PurePath
+import tempfile
 
 from lxml import etree
 import pytest
@@ -31,6 +32,22 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.utils.datafactory import gen_string
+
+
+@pytest.fixture(autouse=True)
+def _isolate_report_downloads():
+    """Use a unique temp directory per test for report downloads.
+
+    Concurrent xdist workers generating the same report template save to the
+    same airgun tmp_dir with the same filename, causing cross-worker overwrites.
+    """
+    import airgun
+
+    original = airgun.settings.airgun.tmp_dir
+    with tempfile.TemporaryDirectory(dir=original) as tmpdir:
+        airgun.settings.airgun.tmp_dir = tmpdir
+        yield
+        airgun.settings.airgun.tmp_dir = original
 
 
 @pytest.fixture
