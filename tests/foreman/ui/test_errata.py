@@ -1703,3 +1703,104 @@ def test_content_host_errata_search_commands(
                 assert row['Errata'] == settings.repos.yum_6.errata[0]
                 assert row['Type'] == 'Bugfix'
                 assert row['Synopsis'] == 'Kangaroo_Erratum'
+
+
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_positive_repo_sync_status_on_errata_repository(
+    module_sca_manifest_org,
+    module_product,
+    module_target_sat,
+    module_cv,
+):
+    """Verify that errata repository sync status is displayed correctly
+    when viewing errata through a Content View, not just the Default
+    Organization View.
+
+    :id: 8e0ea736-b80a-4aa1-801d-980db2519501
+
+    :setup:
+        1. Organization with a manifest.
+        2. Product with a custom repository containing errata, synced.
+        3. Content View with the repository, published.
+
+    :steps:
+        1. Navigate to Content > Errata, select an erratum.
+        2. On the Repositories tab, verify the Last Sync value shows a
+           successful sync timestamp with Default Organization View.
+        3. Change the Content View filter to the published Content View.
+        4. Verify the Last Sync value still shows a successful sync
+           timestamp.
+
+    :expectedresults: The repository sync status on the errata Repositories
+        tab shows a successful sync timestamp (e.g. "Success less than a
+        minute ago") for both the Default Organization View and the
+        published Content View.
+
+    :Verifies: SAT-45979
+
+    :customerscenario: true
+    """
+    custom_repo = module_target_sat.api.Repository(
+        url=CUSTOM_REPO_URL,
+        product=module_product,
+    ).create()
+    custom_repo.sync()
+    custom_repo = custom_repo.read()
+    assert custom_repo.last_sync, 'Repository sync task was not recorded.'
+    module_cv.repository = [custom_repo]
+    module_cv.update(['repository'])
+    module_cv.publish()
+    module_cv = module_cv.read()
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_sca_manifest_org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+
+        # Read errata details with default content view filter
+        errata = session.errata.read(CUSTOM_REPO_ERRATA_ID, applicable=False)
+        repos_table = errata['repositories']['table']
+        assert repos_table, (
+            f'No repositories found for errata {CUSTOM_REPO_ERRATA_ID}'
+            f' in org {module_sca_manifest_org.name}.'
+        )
+        available_repo = next(
+            (r for r in repos_table if r['Name'] == custom_repo.name),
+            None,
+        )
+        assert available_repo, (
+            f'Repository {custom_repo.name} not found in errata repositories table.'
+        )
+        repo_sync_status = available_repo.get('Last Sync')
+        assert repo_sync_status, (
+            'Last Sync column is empty for the repository with default content view filter.'
+        )
+        assert all(x in repo_sync_status for x in ('Success', 'ago')), (
+            f'Expected a successful sync timestamp (e.g. "Success less than a minute ago") '
+            f'with default content view filter, but got: {repo_sync_status}'
+        )
+
+        # Search errata repositories filtered by Content View
+        cv_repos_table = session.errata.search_repositories(
+            CUSTOM_REPO_ERRATA_ID, custom_repo.name, cv=module_cv.name
+        )
+        assert cv_repos_table, (
+            f'No repositories found for errata {CUSTOM_REPO_ERRATA_ID}'
+            f' when filtered by Content View {module_cv.name}.'
+        )
+        cv_repo = next(
+            (r for r in cv_repos_table if r['Name'] == custom_repo.name),
+            None,
+        )
+        assert cv_repo, (
+            f'Repository {custom_repo.name} not found in errata repositories table'
+            f' when filtered by Content View {module_cv.name}.'
+        )
+        cv_sync_status = cv_repo.get('Last Sync')
+        assert cv_sync_status, (
+            f'Last Sync column is empty for the repository when filtered by'
+            f' Content View {module_cv.name}.'
+        )
+        assert all(x in cv_sync_status for x in ('Success', 'ago')), (
+            f'Expected a successful sync timestamp (e.g. "Success less than a minute ago") '
+            f'when filtered by Content View {module_cv.name}, but got: {cv_sync_status}'
+        )
