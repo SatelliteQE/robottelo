@@ -251,38 +251,36 @@ def test_foremanctl_deploy_reset_parameters(module_sat_ready_rhel):
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
-def test_foremanctl_deploy_certificate_cname(module_sat_ready_rhel):
-    """Verify foremanctl deploy --certificate-cname adds CNAME to server certificate SANs
+def test_foremanctl_deploy_certificate_alias(module_sat_ready_rhel):
+    """Verify foremanctl deploy --server-alias adds another alias to server certificate SANs
 
     :id: a5390e11-0e48-4a13-951f-749df8716e0c
 
     :steps:
-        1. Run foremanctl deploy --certificate-cname with an additional DNS name
-        2. Verify HTTPS connectivity using the CNAME with the self-signed CA
+        1. Run foremanctl deploy --server-alias with an additional DNS name
+        2. Verify HTTPS connectivity using the server alias with the self-signed CA
 
     :expectedresults:
         1. foremanctl deploy completes successfully
-        2. HTTPS request via the CNAME returns HTTP 200 without certificate errors
+        2. HTTPS request via the server alias returns HTTP 200 without certificate errors
     """
     satellite = module_sat_ready_rhel
-    cname = f'cname.{satellite.hostname}'
+    alias = f'alias.{satellite.hostname}'
 
     result = satellite.execute(
-        f'foremanctl deploy --certificate-cname {cname}',
+        f'foremanctl deploy --server-alias {alias}',
         timeout='10m',
     )
-    assert result.status == 0, (
-        f'foremanctl deploy with --certificate-cname failed:\n{result.stderr}'
-    )
+    assert result.status == 0, f'foremanctl deploy with --server-alias failed:\n{result.stderr}'
     result = satellite.execute(
         'curl --noproxy "*" --fail --silent --show-error --head '
         f'--cacert {FOREMANCTL_CERTS_DIR}/ca.crt '
-        f'--resolve "{cname}:443:127.0.0.1" '
-        f'https://{cname}/users/login'
+        f'--resolve "{alias}:443:127.0.0.1" '
+        f'https://{alias}/users/login'
     )
-    assert result.status == 0, f'HTTPS request failed for {cname}:\n{result.stderr}'
+    assert result.status == 0, f'HTTPS request failed for {alias}:\n{result.stderr}'
     assert '200 OK' in result.stdout, (
-        f'Expected HTTP 200 response for {cname}.\nOutput:\n{result.stdout}'
+        f'Expected HTTP 200 response for {alias}.\nOutput:\n{result.stdout}'
     )
 
 
