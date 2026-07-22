@@ -3426,6 +3426,82 @@ def test_positive_change_hosts_org_loc(
             )
 
 
+def test_positive_bulk_change_location_select_all_respects_context(
+    module_target_sat,
+    request,
+):
+    """Verify bulk 'Change Location' via 'Select All' only affects hosts
+    in the current location context, not all hosts across the Satellite.
+
+    :id: 235fa529-0a35-41a3-98f2-73d2ba3de5ef
+
+    :Verifies: SAT-44548
+
+    :steps:
+        1. Create an organization with three locations (X, Y, Z)
+        2. Create three fake hosts in location X and two in location Y
+        3. Navigate to All Hosts page with location X selected
+        4. Select all hosts using the 'Select All' checkbox
+        5. Use bulk action to change location to Z
+        6. Verify hosts originally in location X are now in location Z
+        7. Verify hosts in location Y remain unaffected
+
+    :expectedresults:
+        1. Bulk 'Change Location' with 'Select All' respects the current
+           location context and only moves hosts from that location
+        2. Hosts in other locations are not affected by the bulk action
+    """
+    org = module_target_sat.api.Organization().create()
+    loc_x, loc_y, loc_z = [
+        module_target_sat.api.Location(organization=[org]).create() for _ in range(3)
+    ]
+
+    hosts_x_names = []
+    for _ in range(3):
+        host = module_target_sat.cli_factory.make_fake_host(
+            {'organization': org.name, 'location': loc_x.name}
+        )
+        hosts_x_names.append(host['name'])
+
+    hosts_y_names = []
+    for _ in range(2):
+        host = module_target_sat.cli_factory.make_fake_host(
+            {'organization': org.name, 'location': loc_y.name}
+        )
+        hosts_y_names.append(host['name'])
+
+    @request.addfinalizer
+    def cleanup():
+        for host_name in hosts_x_names + hosts_y_names:
+            hosts = module_target_sat.api.Host().search(query={'search': f'name={host_name}'})
+            if hosts:
+                hosts[0].delete()
+        for loc in [loc_x, loc_y, loc_z]:
+            loc.delete()
+        org.delete()
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org.name)
+        session.location.select(loc_x.name)
+
+        session.all_hosts.change_associations_location(
+            select_all_hosts=True,
+            new_location=loc_z.name,
+        )
+
+    for host_name in hosts_x_names:
+        host_entity = module_target_sat.api.Host().search(query={'search': f'name={host_name}'})[0]
+        assert host_entity.location.id == loc_z.id, (
+            f'Host {host_name} was not moved from location X to Z!'
+        )
+
+    for host_name in hosts_y_names:
+        host_entity = module_target_sat.api.Host().search(query={'search': f'name={host_name}'})[0]
+        assert host_entity.location.id == loc_y.id, (
+            f'Host {host_name} in location Y was incorrectly affected by bulk action!'
+        )
+
+
 def read_host_collections_hosts(target_sat, host_col_names, org):
     """
     Helper function to read hosts in a host collections via API.
