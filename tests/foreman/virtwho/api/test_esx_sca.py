@@ -24,6 +24,8 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtWhoConfigforEsx:
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
     def test_positive_deploy_configure_by_job(
         self,
         module_sca_manifest_org,

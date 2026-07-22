@@ -14,6 +14,7 @@ from robottelo import ssh
 from robottelo.cli.base import Base
 from robottelo.cli.host import Host
 from robottelo.config import settings
+from robottelo.constants import REPOS
 from robottelo.hosts import ContentHost
 
 ETC_VIRTWHO_CONFIG = "/etc/virt-who.conf"
@@ -410,24 +411,16 @@ def get_activation_key(org, target_sat):
     return ak.name
 
 
-def deploy_configure_by_job_api(
-    form_data,
-    hypervisor_type,
-    debug=False,
-    org='Default_Organization',
-    activation_key=None,
-    target_sat=None,
-):
-    """Deploy and run virt-who service via the 'Deploy virt-who Config' Ansible REX job (API).
+def _setup_virtwho_guest(hypervisor_type, org, activation_key, target_sat):
+    """Common setup for virt-who deploy functions: create activation key,
+    register the hypervisor guest system, and return the activation key name.
 
-    :param dict form_data: Hypervisor config data with connection details.
     :param str hypervisor_type: esx, libvirt, rhevm, xen, kubevirt, ahv
-    :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     :param str org: Organization Label
-    :param str activation_key: Activation key for system registration (optional)
-    :param target_sat: Satellite object for registration and job execution.
+    :param str activation_key: Activation key name, or None to auto-create.
+    :param target_sat: Satellite object.
+    :return str: The activation key name used for registration.
     """
-    virtwho_cleanup()
     guest_name, guest_uuid = get_guest_info(hypervisor_type)
     if Host.list({'search': guest_name}):
         Host.delete({'name': guest_name})
@@ -437,8 +430,63 @@ def deploy_configure_by_job_api(
     register_system(
         get_system(hypervisor_type), activation_key=activation_key, org=org, target_sat=target_sat
     )
+    return activation_key
 
-    target_sat.add_rex_key(target_sat)
+
+def _register_content_host_with_virtwho(content_host, target_sat, org, activation_key, location):
+    """Register a content host to Satellite with virt-who pre-installed.
+
+    Registers to CDN first to install virt-who from AppStream, then
+    registers to Satellite so the host is available for REX job targeting.
+
+    :param content_host: ContentHost object.
+    :param target_sat: Satellite object.
+    :param str org: Organization label.
+    :param str activation_key: Activation key name.
+    :param location: Location object for content host registration.
+    """
+    org_obj = target_sat.api.Organization().search(query={'search': f'label={org}'})[0]
+
+    content_host.register_to_cdn()
+    aps_repo = REPOS[f'rhel{content_host.os_version.major}_aps']['id']
+    content_host.enable_repo(aps_repo, force=True)
+    result = content_host.execute('dnf install -y virt-who')
+    assert result.status == 0, f'Failed to install virt-who from CDN: {result.stderr}'
+
+    result = content_host.api_register(
+        target_sat,
+        organization=org_obj,
+        activation_keys=[activation_key],
+        location=location,
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register content host: {result.stderr}'
+
+
+def deploy_configure_by_job_api(
+    form_data,
+    hypervisor_type,
+    debug=False,
+    org='Default_Organization',
+    activation_key=None,
+    target_sat=None,
+    content_host=None,
+    location=None,
+):
+    """Deploy and run virt-who service via the 'Deploy virt-who Config' Ansible REX job (API).
+
+    :param dict form_data: Hypervisor config data with connection details.
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, kubevirt, ahv
+    :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
+    :param str org: Organization Label
+    :param str activation_key: Activation key for system registration (optional)
+    :param target_sat: Satellite object for registration and job execution.
+    :param content_host: ContentHost object to use as REX job target.
+    :param location: Location object for content host registration.
+    """
+    virtwho_cleanup()
+    activation_key = _setup_virtwho_guest(hypervisor_type, org, activation_key, target_sat)
+    _register_content_host_with_virtwho(content_host, target_sat, org, activation_key, location)
 
     template_id = (
         target_sat.api.JobTemplate().search(query={'search': 'name="Deploy virt-who Config"'})[0].id
@@ -464,7 +512,7 @@ def deploy_configure_by_job_api(
             'job_template_id': template_id,
             'inputs': inputs,
             'targeting_type': 'static_query',
-            'search_query': f'name = {target_sat.hostname}',
+            'search_query': f'name = {content_host.hostname}',
         },
     )
     target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
@@ -474,8 +522,10 @@ def deploy_configure_by_job_api(
             f'Failed to deploy virt-who config via Ansible job. '
             f'Succeeded: {result.succeeded}, Failed: {result.failed}'
         )
+    content_host.execute('rm -f /var/log/rhsm/rhsm.log')
+    content_host.execute('systemctl restart virt-who; sleep 10')
     if debug:
-        return deploy_validation(hypervisor_type)
+        return deploy_validation_on_host(hypervisor_type, content_host)
     return None
 
 
@@ -489,7 +539,6 @@ def deploy_configure_by_job_ui(
     target_sat=None,
     content_host=None,
     location=None,
-    capsule=None,
 ):
     """Deploy and run virt-who service via the 'Deploy virt-who Config' job template (UI).
 
@@ -502,39 +551,9 @@ def deploy_configure_by_job_ui(
     :param target_sat: Satellite object for registration and job execution.
     :param content_host: ContentHost object to use as REX job target.
     :param location: Location object for content host registration.
-    :param capsule: Capsule object to use as smart proxy for registration.
     """
-    guest_name, guest_uuid = get_guest_info(hypervisor_type)
-    if Host.list({'search': guest_name}):
-        Host.delete({'name': guest_name})
-
-    if target_sat and not activation_key:
-        activation_key = get_activation_key(org, target_sat)
-    register_system(
-        get_system(hypervisor_type), activation_key=activation_key, org=org, target_sat=target_sat
-    )
-
-    org_obj = target_sat.api.Organization().search(query={'search': f'label={org}'})[0]
-    nc = capsule.nailgun_smart_proxy
-    target_sat.api.SmartProxy(id=nc.id, organization=[org_obj]).update(['organization'])
-    target_sat.api.SmartProxy(id=nc.id, location=[location]).update(['location'])
-
-    library_lce = target_sat.api.LifecycleEnvironment().search(
-        query={'search': f'name=Library and organization_id={org_obj.id}'}
-    )[0]
-    capsule.nailgun_capsule.content_add_lifecycle_environment(
-        data={'environment_id': library_lce.id}
-    )
-
-    result = content_host.api_register(
-        target_sat,
-        smart_proxy=nc,
-        organization=org_obj,
-        activation_keys=[activation_key],
-        location=location,
-        force=True,
-    )
-    assert result.status == 0, f'Failed to register content host: {result.stderr}'
+    activation_key = _setup_virtwho_guest(hypervisor_type, org, activation_key, target_sat)
+    _register_content_host_with_virtwho(content_host, target_sat, org, activation_key, location)
 
     username, password = Base._get_username_password()
 
@@ -560,6 +579,8 @@ def deploy_configure_by_job_ui(
             'hypervisor_content.password', ''
         ),
     }
+
+    session.location.select(location.name)
     session.host_new.schedule_job(content_host.hostname, job_values)
     job_description = 'Deploy virt-who configuration virt-who-config'
     session.jobinvocation.wait_job_invocation_state(
@@ -601,16 +622,7 @@ def deploy_configure_by_script(
     script_filename = "/tmp/deploy_script.sh"
     script_content = script_content.replace('&amp;', '&').replace('&gt;', '>').replace('&lt;', '<')
     virtwho_cleanup()
-    guest_name, guest_uuid = get_guest_info(hypervisor_type)
-    if Host.list({'search': guest_name}):
-        Host.delete({'name': guest_name})
-    # If target_sat is provided but activation_key is not, create one for global registration
-    if target_sat and not activation_key:
-        activation_key = get_activation_key(org, target_sat)
-
-    register_system(
-        get_system(hypervisor_type), activation_key=activation_key, org=org, target_sat=target_sat
-    )
+    _setup_virtwho_guest(hypervisor_type, org, activation_key, target_sat)
     with open(script_filename, 'w') as fp:
         fp.write(script_content)
     ssh.get_client().put(script_filename, script_filename)

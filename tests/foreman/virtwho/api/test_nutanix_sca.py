@@ -13,6 +13,9 @@
 :BlockedBy: SAT-45010
 """
 
+import pytest
+
+from robottelo.config import settings
 from robottelo.utils.virtwho import (
     deploy_configure_by_script,
     get_configure_file,
@@ -21,6 +24,8 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtWhoConfigforNutanix:
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
     def test_positive_deploy_configure_by_job(
         self,
         module_sca_manifest_org,

@@ -270,12 +270,10 @@ def deploy_via_job_ui(
     org_module,
     form_data_ui,
     org_session,
-    register_sat_and_enable_aps_repo,
     setup_libvirt_ssh_auth,
     target_sat,
     rhel_contenthost,
-    module_location,
-    module_capsule_configured,
+    default_location,
 ):
     hypervisor_name, guest_name = deploy_configure_by_job_ui(
         org_session,
@@ -285,8 +283,7 @@ def deploy_via_job_ui(
         org=org_module.label,
         target_sat=target_sat,
         content_host=rhel_contenthost,
-        location=module_location,
-        capsule=module_capsule_configured,
+        location=default_location,
     )
     return hypervisor_name, guest_name
 
@@ -295,9 +292,10 @@ def deploy_via_job_ui(
 def deploy_via_job_api(
     org_module,
     form_data_api,
-    register_sat_and_enable_aps_repo,
     setup_libvirt_ssh_auth,
     target_sat,
+    rhel_contenthost,
+    default_location,
 ):
     hypervisor_name, guest_name = deploy_configure_by_job_api(
         form_data_api,
@@ -305,6 +303,8 @@ def deploy_via_job_api(
         debug=True,
         org=org_module.label,
         target_sat=target_sat,
+        content_host=rhel_contenthost,
+        location=default_location,
     )
     return hypervisor_name, guest_name
 
