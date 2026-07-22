@@ -87,7 +87,7 @@ def test_positive_userdata_image_provision_end_to_end(
 
         wait_for(
             lambda: (
-                sat.api.Host().search(query={'search': f'name="{host_fqdn}"'})[0].build_status_label
+                session.host_new.get_host_statuses(name)['Build']['Status']
                 != 'Pending installation'
             ),
             timeout=1500,
