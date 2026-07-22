@@ -388,7 +388,7 @@ def test_positive_vmware_custom_profile_end_to_end(
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
-                'provider_content.enable_caching': False,
+                'provider_content.enable_caching': True,
             }
         )
 
