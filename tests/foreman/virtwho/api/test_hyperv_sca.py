@@ -13,7 +13,6 @@
 :BlockedBy: SAT-45010
 """
 
-
 from robottelo.utils.virtwho import (
     deploy_configure_by_script,
     get_configure_file,

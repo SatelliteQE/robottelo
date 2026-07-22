@@ -290,6 +290,7 @@ def deploy_via_job_ui(
     )
     return hypervisor_name, guest_name
 
+
 @pytest.fixture
 def deploy_via_job_api(
     org_module,

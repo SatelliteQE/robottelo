@@ -232,8 +232,10 @@ def _get_hypervisor_mapping(hypervisor_type):
     timeout = 60 if hypervisor_type == 'ahv' else 20
 
     wait_for(
-        lambda: 'Sending updated Host-to-guest mapping to' in get_rhsm_log()
-                or 'Host-to-guest mapping being sent to' in get_rhsm_log(),
+        lambda: (
+            'Sending updated Host-to-guest mapping to' in get_rhsm_log()
+            or 'Host-to-guest mapping being sent to' in get_rhsm_log()
+        ),
         timeout=timeout,
         delay=2,
     )
@@ -337,16 +339,17 @@ def deploy_validation_on_host(hypervisor_type, host):
     svc_result = host.execute('systemctl status virt-who')
     if 'Active: active (running)' not in svc_result.stdout:
         raise VirtWhoError(
-            f'Failed to start virt-who service on {host.hostname}. '
-            f'Output: {svc_result.stdout}'
+            f'Failed to start virt-who service on {host.hostname}. Output: {svc_result.stdout}'
         )
     guest_name, guest_uuid = get_guest_info(hypervisor_type)
     timeout = 60 if hypervisor_type == 'ahv' else 20
     wait_for(
-        lambda: 'Sending updated Host-to-guest mapping to'
-        in host.execute('cat /var/log/rhsm/rhsm.log').stdout
-        or 'Host-to-guest mapping being sent to'
-        in host.execute('cat /var/log/rhsm/rhsm.log').stdout,
+        lambda: (
+            'Sending updated Host-to-guest mapping to'
+            in host.execute('cat /var/log/rhsm/rhsm.log').stdout
+            or 'Host-to-guest mapping being sent to'
+            in host.execute('cat /var/log/rhsm/rhsm.log').stdout
+        ),
         timeout=timeout,
         delay=2,
     )
@@ -438,9 +441,7 @@ def deploy_configure_by_job_api(
     target_sat.add_rex_key(target_sat)
 
     template_id = (
-        target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Deploy virt-who Config"'})[0]
-        .id
+        target_sat.api.JobTemplate().search(query={'search': 'name="Deploy virt-who Config"'})[0].id
     )
     username, password = Base._get_username_password()
 
@@ -466,9 +467,7 @@ def deploy_configure_by_job_api(
             'search_query': f'name = {target_sat.hostname}',
         },
     )
-    target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {job["id"]}'
-    )
+    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
     result = target_sat.api.JobInvocation(id=job['id']).read()
     if result.succeeded != 1:
         raise VirtWhoError(
@@ -549,12 +548,8 @@ def deploy_configure_by_job_ui(
         'target_hosts_and_inputs.virt_who_hypervisor_id': form_data.get(
             'hypervisor_id', 'hostname'
         ),
-        'target_hosts_and_inputs.virt_who_debug': str(
-            form_data.get('debug', debug)
-        ).lower(),
-        'target_hosts_and_inputs.virt_who_filtering_mode': form_data.get(
-            'filtering_mode', 'none'
-        ),
+        'target_hosts_and_inputs.virt_who_debug': str(form_data.get('debug', debug)).lower(),
+        'target_hosts_and_inputs.virt_who_filtering_mode': form_data.get('filtering_mode', 'none'),
         'target_hosts_and_inputs.virt_who_hypervisor_server': form_data.get(
             'hypervisor_content.server', ''
         ),
