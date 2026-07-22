@@ -12,45 +12,19 @@
 
 """
 
-import os
-
 from fauxfactory import gen_url
 from navmazing import NavigationTriesExceeded
 import pyotp
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT, CERT_PATH, LDAP_ATTR, PERMISSIONS
+from robottelo.constants import ANY_CONTEXT, LDAP_ATTR, PERMISSIONS
 from robottelo.utils.datafactory import gen_string
+from robottelo.utils.ldap import get_ldap_cacert_pem
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
 EXTERNAL_GROUP_NAME = 'foobargroup'
-
-
-def set_certificate_in_satellite(server_type, target_sat, hostname=None):
-    """update the cert settings in satellite based on type of ldap server"""
-    if server_type == 'IPA':
-        idm_cert_path_url = os.path.join(settings.ipa.hostname, 'ipa/config/ca.crt')
-        target_sat.download_file(
-            file_url=idm_cert_path_url, local_path=CERT_PATH, file_name='ipa.crt'
-        )
-    elif server_type == 'AD':
-        assert hostname is not None
-        target_sat.execute('yum -y --disableplugin=foreman-protector install cifs-utils')
-        command = r'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
-        target_sat.execute(command.format(settings.ldap.password, hostname))
-        result = target_sat.execute(
-            f'cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {CERT_PATH}'
-        )
-        if result.status != 0:
-            raise AssertionError('Failed to copy the AD server certificate at right path')
-    result = target_sat.execute(f'update-ca-trust extract && restorecon -R {CERT_PATH}')
-    if result.status != 0:
-        raise AssertionError('Failed to update and trust the certificate')
-    result = target_sat.execute('systemctl restart httpd')
-    if result.status != 0:
-        raise AssertionError(f'Failed to restart the httpd after applying {server_type} cert')
 
 
 @pytest.fixture
@@ -839,6 +813,46 @@ def test_positive_test_connection_functionality(session, ldap_auth_source):
     ldap_data, auth_source = ldap_auth_source
     with session:
         session.ldapauthentication.test_connection({'ldap_server.host': ldap_data['ldap_hostname']})
+
+
+@pytest.mark.parametrize('ldap_auth_source', ['IPA'], indirect=True)
+def test_ldaps_cacert_test_connection(session, ldap_auth_source, target_sat):
+    """LDAPS auth source without cacert fails test connection and succeeds with it.
+
+    :id: 63ef2536-cffa-453e-bf8d-4b887623270d
+
+    :steps:
+        1. Open an existing LDAP auth source created without TLS.
+        2. Enable LDAPS without providing a cacert.
+        3. Click test connection.
+        4. Provide a cacert.
+        5. Click test connection.
+
+    :expectedresults: Test connection fails at first due to untrusted CA certificate
+        and passes once the cacert is provided.
+
+    :parametrized: yes
+    """
+    ldap_data, auth_source = ldap_auth_source
+    cacert = get_ldap_cacert_pem(target_sat, 'IPA', ldap_data['ldap_hostname'])
+    with session:
+        with pytest.raises(AssertionError) as error:
+            session.ldapauthentication.test_connection(
+                {
+                    'ldap_server.host': ldap_data['ldap_hostname'],
+                    'ldap_server.ldaps': True,
+                }
+            )
+        # No error details in toast https://projects.theforeman.org/issues/39552
+        assert error.match('Danger alert: Error')
+
+        session.ldapauthentication.test_connection(
+            {
+                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.ldaps': True,
+                'ldap_server.cacert': cacert,
+            }
+        )
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)
