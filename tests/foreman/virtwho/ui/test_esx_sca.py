@@ -38,7 +38,6 @@ from robottelo.utils.virtwho import (
 @pytest.mark.usefixtures('delete_host')
 class TestVirtwhoConfigforEsx:
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('deploy_type_ui', ['script'], indirect=True)
     def test_positive_deploy_configure_by_script(
         self,
         module_sca_manifest_org,
@@ -66,6 +65,39 @@ class TestVirtwhoConfigforEsx:
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
 
         # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
+        hypervisor_guest_mapping_newcontent_ui(
+            org_session, default_location, hypervisor_name, guest_name
+        )
+
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+    def test_positive_deploy_configure_by_job(
+        self,
+        module_sca_manifest_org,
+        org_session,
+        deploy_via_job_ui,
+        default_location,
+    ):
+        """Verify virt-who configuration deployed via Ansible REX job.
+
+        :id: c05a3927-0ea7-45a7-abd2-47ab375ac0a9
+
+        :steps:
+            1. Run the 'Deploy virt-who Config' Ansible REX job targeting the Satellite
+            2. Verify virt-who service is running and reporting
+            3. Check hypervisor and guest mapping in UI
+
+        :expectedresults:
+            1. Ansible REX job completes successfully
+            2. virt-who service reports hypervisor-guest mapping
+            3. Hypervisor host and virtual guest are visible in UI
+
+        :Verifies: SAT-46996
+
+        :CaseImportance: High
+        """
+        hypervisor_name, guest_name = deploy_via_job_ui
+        org_session.organization.select(org_name=module_sca_manifest_org.name)
         hypervisor_guest_mapping_newcontent_ui(
             org_session, default_location, hypervisor_name, guest_name
         )
@@ -680,7 +712,6 @@ class TestVirtwhoConfigforEsx:
         results = org_session.virtwho_configure.read(name)
         assert 'encrypted_password=$cr_password' in results['deploy']['script']
 
-    @pytest.mark.parametrize('deploy_type_ui', ['script'], indirect=True)
     def test_positive_minimal_report_hypervisor(
         self, module_sca_manifest_org, org_session, form_data_ui, deploy_type_ui, module_target_sat
     ):

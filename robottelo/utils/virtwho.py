@@ -14,7 +14,6 @@ from robottelo import ssh
 from robottelo.cli.base import Base
 from robottelo.cli.host import Host
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ORG
 from robottelo.hosts import ContentHost
 
 ETC_VIRTWHO_CONFIG = "/etc/virt-who.conf"
@@ -179,15 +178,6 @@ def get_configure_id(name, target_sat=None):
     raise VirtWhoError(f"No configure id found for {name}")
 
 
-def get_configure_command(config_id, org=DEFAULT_ORG):
-    """Return the deploy command line based on configure id.
-    :param str config_id: the unique id of the configure file you have created.
-    :param str org: the satellite organization name.
-    """
-    username, password = Base._get_username_password()
-    return f"hammer -u {username} -p {password} virt-who-config deploy --id {config_id} --organization '{org}' "
-
-
 def get_configure_file(config_id):
     """Return the configuration file full name in /etc/virt-who.d
     :param str config_id: the unique id of the configuration file you have created.
@@ -240,8 +230,10 @@ def _get_hypervisor_mapping(hypervisor_type):
     """
     # Increase timeout for hypervisors like Nutanix Prism Central which can be slower
     timeout = 60 if hypervisor_type == 'ahv' else 20
+
     wait_for(
-        lambda: 'Host-to-guest mapping being sent to' in get_rhsm_log(),
+        lambda: 'Sending updated Host-to-guest mapping to' in get_rhsm_log()
+                or 'Host-to-guest mapping being sent to' in get_rhsm_log(),
         timeout=timeout,
         delay=2,
     )
@@ -334,6 +326,61 @@ def deploy_validation(hypervisor_type):
     return hypervisor_name, guest_name
 
 
+def deploy_validation_on_host(hypervisor_type, host):
+    """Validate virt-who deployment on a remote content host.
+
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, kubevirt, ahv
+    :param host: ContentHost object where virt-who is deployed.
+    :raises: VirtWhoError: If virt-who service is not running or mapping not found.
+    :return: tuple of (hypervisor_name, guest_name)
+    """
+    svc_result = host.execute('systemctl status virt-who')
+    if 'Active: active (running)' not in svc_result.stdout:
+        raise VirtWhoError(
+            f'Failed to start virt-who service on {host.hostname}. '
+            f'Output: {svc_result.stdout}'
+        )
+    guest_name, guest_uuid = get_guest_info(hypervisor_type)
+    timeout = 60 if hypervisor_type == 'ahv' else 20
+    wait_for(
+        lambda: 'Sending updated Host-to-guest mapping to'
+        in host.execute('cat /var/log/rhsm/rhsm.log').stdout
+        or 'Host-to-guest mapping being sent to'
+        in host.execute('cat /var/log/rhsm/rhsm.log').stdout,
+        timeout=timeout,
+        delay=2,
+    )
+    logs = host.execute('cat /var/log/rhsm/rhsm.log').stdout.strip()
+    mapping = []
+    entry = None
+    for line in logs.split('\n'):
+        if not line:
+            continue
+        if line[0].isdigit():
+            if entry:
+                mapping.append(_parse_entry(entry))
+            entry = '{'
+            continue
+        if entry:
+            entry += line
+    else:
+        mapping.append(_parse_entry(entry))
+    mapping = [m for m in mapping if m is not None]
+    hypervisor_name = None
+    for item in mapping[-1]['hypervisors']:
+        for guest in item['guestIds']:
+            if guest_uuid in guest['guestId']:
+                hypervisor_name = item['hypervisorId']['hypervisorId']
+                break
+    if not hypervisor_name:
+        raise VirtWhoError(f'Failed to get hypervisor_name for guest {guest_name}')
+    for h in Host.list({'search': hypervisor_name}):
+        Host.delete({'id': h['id']})
+    host.execute('rm -f /var/log/rhsm/rhsm.log')
+    host.execute('systemctl restart virt-who; sleep 10')
+    return hypervisor_name, guest_name
+
+
 def get_activation_key(org, target_sat):
     """Create a virt-who activation key for the given organization.
     :param str org: The label of the organization for which the activation key is created.
@@ -360,40 +407,183 @@ def get_activation_key(org, target_sat):
     return ak.name
 
 
-def deploy_configure_by_command(
-    command,
+def deploy_configure_by_job_api(
+    form_data,
     hypervisor_type,
     debug=False,
     org='Default_Organization',
     activation_key=None,
     target_sat=None,
 ):
-    """Deploy and run virt-who service by the hammer command.
+    """Deploy and run virt-who service via the 'Deploy virt-who Config' Ansible REX job (API).
 
-    :param str command: get the command by UI/CLI/API, it should be like:
-        `hammer virt-who-config deploy --id 1 --organization-id 1`
-    :param str hypervisor_type: esx, libvirt, rhevm, xen, libvirt, kubevirt, ahv
+    :param dict form_data: Hypervisor config data with connection details.
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, kubevirt, ahv
     :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
     :param str org: Organization Label
     :param str activation_key: Activation key for system registration (optional)
-    :param target_sat: Satellite object for registration (optional)
+    :param target_sat: Satellite object for registration and job execution.
     """
     virtwho_cleanup()
     guest_name, guest_uuid = get_guest_info(hypervisor_type)
     if Host.list({'search': guest_name}):
         Host.delete({'name': guest_name})
 
-    # If target_sat is provided but activation_key is not, create one for global registration
     if target_sat and not activation_key:
         activation_key = get_activation_key(org, target_sat)
     register_system(
         get_system(hypervisor_type), activation_key=activation_key, org=org, target_sat=target_sat
     )
-    ret, stdout = runcmd(command)
-    if ret != 0 or 'Finished successfully' not in stdout:
-        raise VirtWhoError(f"Failed to deploy configure by {command}")
+
+    target_sat.add_rex_key(target_sat)
+
+    template_id = (
+        target_sat.api.JobTemplate()
+        .search(query={'search': 'name="Deploy virt-who Config"'})[0]
+        .id
+    )
+    username, password = Base._get_username_password()
+
+    inputs = {
+        'virt_who_hypervisor_type': hypervisor_type,
+        'virt_who_organization_label': org,
+        'virt_who_service_user': username,
+        'virt_who_service_user_password': password,
+        'virt_who_hypervisor_id': form_data.get('hypervisor_id', 'hostname'),
+        'virt_who_debug': 'true' if form_data.get('debug', debug) else 'false',
+        'virt_who_filtering_mode': form_data.get('filtering_mode', 'none'),
+        'virt_who_hypervisor_server': form_data.get('hypervisor_server', ''),
+        'virt_who_hypervisor_username': form_data.get('hypervisor_username', ''),
+        'virt_who_hypervisor_password': form_data.get('hypervisor_password', ''),
+    }
+
+    job = target_sat.api.JobInvocation().run(
+        synchronous=False,
+        data={
+            'job_template_id': template_id,
+            'inputs': inputs,
+            'targeting_type': 'static_query',
+            'search_query': f'name = {target_sat.hostname}',
+        },
+    )
+    target_sat.wait_for_tasks(
+        f'resource_type = JobInvocation and resource_id = {job["id"]}'
+    )
+    result = target_sat.api.JobInvocation(id=job['id']).read()
+    if result.succeeded != 1:
+        raise VirtWhoError(
+            f'Failed to deploy virt-who config via Ansible job. '
+            f'Succeeded: {result.succeeded}, Failed: {result.failed}'
+        )
     if debug:
         return deploy_validation(hypervisor_type)
+    return None
+
+
+def deploy_configure_by_job_ui(
+    session,
+    form_data,
+    hypervisor_type,
+    debug=False,
+    org='Default_Organization',
+    activation_key=None,
+    target_sat=None,
+    content_host=None,
+    location=None,
+    capsule=None,
+):
+    """Deploy and run virt-who service via the 'Deploy virt-who Config' job template (UI).
+
+    :param session: Airgun browser session.
+    :param dict form_data: Hypervisor config data with connection details.
+    :param str hypervisor_type: esx, libvirt, rhevm, xen, kubevirt, ahv
+    :param bool debug: if VIRTWHO_DEBUG=1, this option should be True.
+    :param str org: Organization Label
+    :param str activation_key: Activation key for system registration (optional)
+    :param target_sat: Satellite object for registration and job execution.
+    :param content_host: ContentHost object to use as REX job target.
+    :param location: Location object for content host registration.
+    :param capsule: Capsule object to use as smart proxy for registration.
+    """
+    guest_name, guest_uuid = get_guest_info(hypervisor_type)
+    if Host.list({'search': guest_name}):
+        Host.delete({'name': guest_name})
+
+    if target_sat and not activation_key:
+        activation_key = get_activation_key(org, target_sat)
+    register_system(
+        get_system(hypervisor_type), activation_key=activation_key, org=org, target_sat=target_sat
+    )
+
+    org_obj = target_sat.api.Organization().search(query={'search': f'label={org}'})[0]
+    nc = capsule.nailgun_smart_proxy
+    target_sat.api.SmartProxy(id=nc.id, organization=[org_obj]).update(['organization'])
+    target_sat.api.SmartProxy(id=nc.id, location=[location]).update(['location'])
+
+    library_lce = target_sat.api.LifecycleEnvironment().search(
+        query={'search': f'name=Library and organization_id={org_obj.id}'}
+    )[0]
+    capsule.nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': library_lce.id}
+    )
+
+    result = content_host.api_register(
+        target_sat,
+        smart_proxy=nc,
+        organization=org_obj,
+        activation_keys=[activation_key],
+        location=location,
+        force=True,
+    )
+    assert result.status == 0, f'Failed to register content host: {result.stderr}'
+
+    username, password = Base._get_username_password()
+
+    job_values = {
+        'category_and_template.job_category': 'Virt-who',
+        'category_and_template.job_template_text_input': 'Deploy virt-who Config',
+        'target_hosts_and_inputs.virt_who_hypervisor_type': hypervisor_type,
+        'target_hosts_and_inputs.virt_who_organization_label': org,
+        'target_hosts_and_inputs.virt_who_service_user': username,
+        'target_hosts_and_inputs.virt_who_service_user_password': password,
+        'target_hosts_and_inputs.virt_who_hypervisor_id': form_data.get(
+            'hypervisor_id', 'hostname'
+        ),
+        'target_hosts_and_inputs.virt_who_debug': str(
+            form_data.get('debug', debug)
+        ).lower(),
+        'target_hosts_and_inputs.virt_who_filtering_mode': form_data.get(
+            'filtering_mode', 'none'
+        ),
+        'target_hosts_and_inputs.virt_who_hypervisor_server': form_data.get(
+            'hypervisor_content.server', ''
+        ),
+        'target_hosts_and_inputs.virt_who_hypervisor_username': form_data.get(
+            'hypervisor_content.username', ''
+        ),
+        'target_hosts_and_inputs.virt_who_hypervisor_password': form_data.get(
+            'hypervisor_content.password', ''
+        ),
+    }
+    session.host_new.schedule_job(content_host.hostname, job_values)
+    job_description = 'Deploy virt-who configuration virt-who-config'
+    session.jobinvocation.wait_job_invocation_state(
+        entity_name=job_description,
+        host_name=content_host.hostname,
+    )
+    status = session.jobinvocation.read(
+        entity_name=job_description,
+        host_name=content_host.hostname,
+    )
+    if status['hosts'][0]['Status'] != 'Succeeded':
+        raise VirtWhoError(
+            f'Failed to deploy virt-who config via UI job invocation. '
+            f'Status: {status["hosts"][0]["Status"]}'
+        )
+    content_host.execute('rm -f /var/log/rhsm/rhsm.log')
+    content_host.execute('systemctl restart virt-who; sleep 10')
+    if debug:
+        return deploy_validation_on_host(hypervisor_type, content_host)
     return None
 
 
@@ -630,21 +820,6 @@ def create_http_proxy(org, location, name=None, url=None, http_type='https'):
         location=[location.id],
     ).create()
     return http_proxy.url, http_proxy.name, http_proxy.id
-
-
-def get_configure_command_option(deploy_type, args, org=DEFAULT_ORG):
-    """Return the deploy command line based on option.
-    :param str option: the unique id of the configure file you have created.
-    :param str org: the satellite organization name.
-    """
-    username, password = Base._get_username_password()
-    if deploy_type == 'location-id':
-        return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --location-id '{args['location-id']}' "
-    if deploy_type == 'organization-title':
-        return f"hammer -u {username} -p {password} virt-who-config deploy --id {args['id']} --organization-title '{args['organization-title']}' "
-    if deploy_type == 'name':
-        return f"hammer -u {username} -p {password} virt-who-config deploy --name {args['name']} --organization '{org}' "
-    return None
 
 
 def vw_fake_conf_create(

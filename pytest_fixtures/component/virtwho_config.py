@@ -4,9 +4,9 @@ from robottelo.config import settings
 from robottelo.constants import REPOS
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.virtwho import (
-    deploy_configure_by_command,
+    deploy_configure_by_job_api,
+    deploy_configure_by_job_ui,
     deploy_configure_by_script,
-    get_configure_command,
     get_guest_info,
 )
 
@@ -226,39 +226,26 @@ def virtwho_config_ui(
 
 @pytest.fixture
 def deploy_type_api(
-    request,
     org_module,
     form_data_api,
     register_sat_and_enable_aps_repo,
     virtwho_config_api,
     target_sat,
 ):
-    deploy_type = request.param.lower()
     assert virtwho_config_api.status == 'unknown'
-    if "id" in deploy_type:
-        command = get_configure_command(virtwho_config_api.id, org_module.name)
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command,
-            form_data_api['hypervisor_type'],
-            debug=True,
-            org=org_module.label,
-            target_sat=target_sat,
-        )
-    elif "script" in deploy_type:
-        script = virtwho_config_api.deploy_script()
-        hypervisor_name, guest_name = deploy_configure_by_script(
-            script['virt_who_config_script'],
-            form_data_api['hypervisor_type'],
-            debug=True,
-            org=org_module.label,
-            target_sat=target_sat,
-        )
+    script = virtwho_config_api.deploy_script()
+    hypervisor_name, guest_name = deploy_configure_by_script(
+        script['virt_who_config_script'],
+        form_data_api['hypervisor_type'],
+        debug=True,
+        org=org_module.label,
+        target_sat=target_sat,
+    )
     return hypervisor_name, guest_name
 
 
 @pytest.fixture
 def deploy_type_ui(
-    request,
     org_module,
     form_data_ui,
     org_session,
@@ -266,26 +253,58 @@ def deploy_type_ui(
     virtwho_config_ui,
     target_sat,
 ):
-    deploy_type = request.param.lower()
     values = org_session.virtwho_configure.read(form_data_ui['name'])
-    if "id" in deploy_type:
-        command = values['deploy']['command']
-        hypervisor_name, guest_name = deploy_configure_by_command(
-            command,
-            form_data_ui['hypervisor_type'],
-            debug=True,
-            org=org_module.label,
-            target_sat=target_sat,
-        )
-    elif "script" in deploy_type:
-        script = values['deploy']['script']
-        hypervisor_name, guest_name = deploy_configure_by_script(
-            script,
-            form_data_ui['hypervisor_type'],
-            debug=True,
-            org=org_module.label,
-            target_sat=target_sat,
-        )
+    script = values['deploy']['script']
+    hypervisor_name, guest_name = deploy_configure_by_script(
+        script,
+        form_data_ui['hypervisor_type'],
+        debug=True,
+        org=org_module.label,
+        target_sat=target_sat,
+    )
+    return hypervisor_name, guest_name
+
+
+@pytest.fixture
+def deploy_via_job_ui(
+    org_module,
+    form_data_ui,
+    org_session,
+    register_sat_and_enable_aps_repo,
+    setup_libvirt_ssh_auth,
+    target_sat,
+    rhel_contenthost,
+    module_location,
+    module_capsule_configured,
+):
+    hypervisor_name, guest_name = deploy_configure_by_job_ui(
+        org_session,
+        form_data_ui,
+        form_data_ui['hypervisor_type'],
+        debug=True,
+        org=org_module.label,
+        target_sat=target_sat,
+        content_host=rhel_contenthost,
+        location=module_location,
+        capsule=module_capsule_configured,
+    )
+    return hypervisor_name, guest_name
+
+@pytest.fixture
+def deploy_via_job_api(
+    org_module,
+    form_data_api,
+    register_sat_and_enable_aps_repo,
+    setup_libvirt_ssh_auth,
+    target_sat,
+):
+    hypervisor_name, guest_name = deploy_configure_by_job_api(
+        form_data_api,
+        form_data_api['hypervisor_type'],
+        debug=True,
+        org=org_module.label,
+        target_sat=target_sat,
+    )
     return hypervisor_name, guest_name
 
 
