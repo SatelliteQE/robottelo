@@ -1727,31 +1727,28 @@ class TestDockerRepository:
         ),
         indirect=True,
     )
-    def test_negative_synchronize_private_registry_no_passwd(
+    def test_positive_create_docker_repo_with_private_registry_no_passwd(
         self, repo_options, module_product, target_sat
     ):
-        """Create and try to sync a Docker-type repository from a private
-        registry providing empty password and the sync must fail with
-        reasonable error message.
+        """Create a Docker-type repository from a private registry
+        with username but without password.
 
-        :id: 86bde2f1-4761-4045-aa54-c7be7715cd3a
+        :id: 9e4e2139-a990-4e76-a1db-a7be3fd3654b
 
         :parametrized: yes
 
-        :expectedresults: A repository is created with a private Docker \
-            repository and sync fails with reasonable error message.
+        :expectedresults: A Docker repository is created successfully
+            with a private registry using username but no password.
 
         :customerscenario: true
 
-        :BZ: 1475121, 1580510
-
         """
-        with pytest.raises(
-            HTTPError,
-            match='422 Client Error: Unprocessable Content for url: '
-            f'{target_sat.url}/katello/api/v2/repositories',
-        ):
-            target_sat.api.Repository(**repo_options).create()
+        repo = target_sat.api.Repository(**repo_options).create()
+        assert repo.id
+        assert repo.content_type == 'docker'
+        assert repo.docker_upstream_name == settings.docker.private_registry_name
+        assert repo.upstream_username == settings.docker.private_registry_username
+        assert repo.url == settings.docker.private_registry_url
 
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
