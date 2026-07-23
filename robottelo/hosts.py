@@ -1773,6 +1773,20 @@ class Capsule(ContentHost, CapsuleMixins):
         pub_url = urlunsplit(('http', self.hostname, 'pub/', '', ''))  # use url with https?
         return urljoin(pub_url, 'katello-ca-consumer-latest.noarch.rpm')
 
+    @cached_property
+    def ca_cert_file(self):
+        """Return the path to the CA certificate file on this server.
+
+        The path depends on the installation method:
+        - foremanctl: /var/lib/foremanctl/certs/certs/ca.crt
+        - installer: /etc/pki/katello/certs/katello-default-ca.crt
+        """
+        from robottelo.enums import InstallMethod
+
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            return '/var/lib/foremanctl/certs/certs/ca.crt'
+        return '/etc/pki/katello/certs/katello-default-ca.crt'
+
     @property
     def rex_pub_key(self):
         return self.execute(f'cat {self.rex_key_path}').stdout.strip()
