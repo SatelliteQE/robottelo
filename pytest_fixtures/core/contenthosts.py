@@ -21,6 +21,8 @@ def host_conf(request):
     params = {}
     if hasattr(request, 'param'):
         params = request.param
+    elif hasattr(request, 'get'):
+        params = request.get('param', {})
     distro = params.get('distro', 'rhel')
     network = params.get('network', settings.content_host.network_type)
     _rhelver = f"{distro}{params.get('rhel_version', settings.content_host.default_rhel_version)}"
@@ -30,12 +32,10 @@ def host_conf(request):
 
     # check to see if no-containers is passed as an argument to pytest
     deploy_kwargs = {}
-    if not any(
-        [
-            request.config.getoption('no_containers'),
-            params.get('no_containers'),
-            request.node.get_closest_marker('no_containers'),
-        ]
+    if not (
+        params.get('no_containers')
+        or request.config.getoption('no_containers')
+        or request.node.get_closest_marker('no_containers')
     ):
         deploy_kwargs = version_conf.get('container', {})
         if deploy_kwargs and network:
