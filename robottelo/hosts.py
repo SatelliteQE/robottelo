@@ -2343,7 +2343,7 @@ class Capsule(ContentHost, CapsuleMixins):
                 raise CLIReturnCodeError(result.status, result.stderr, f'"{cmd}" failed')
             return result
 
-        if self.install_method == InstallMethod.FOREMANCTL:
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
             base_cmd = f'podman exec postgresql psql -U {db_user} -d {db}'
         else:
             base_cmd = f'sudo -u postgres psql -d {db}'
