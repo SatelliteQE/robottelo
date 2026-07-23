@@ -52,12 +52,17 @@ def sync_recommendations(session):
 @pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')
+@pytest.mark.parametrize(
+    "module_target_sat_insights", [True, False], ids=["hosted", "local"], indirect=True
+)
 def test_rhcloud_insights_e2e(
+    request,
     rhel_insights_vm,
     rhcloud_manifest_org,
     module_target_sat_insights,
 ):
-    """Synchronize hits data from hosted, verify results are displayed in Satellite, and run remediation.
+    """Synchronize hits data from hosted or local Insights Advisor, verify results are displayed
+    in Satellite, and run remediation.
 
     :id: d952e83c-3faf-4299-a048-2eb6ccb8c9c2
 
@@ -66,7 +71,7 @@ def test_rhcloud_insights_e2e(
         2. In Satellite UI, go to Insights > Recommendations.
         3. Run remediation for "OpenSSH config permissions" recommendation against host.
         4. Verify that the remediation job completed successfully.
-        5. Re-sync recommendations.
+        5. Refresh Insights recommendations (re-sync if using hosted Insights).
         6. Search for previously remediated issue.
 
     :expectedresults:
@@ -88,6 +93,7 @@ def test_rhcloud_insights_e2e(
     :CaseAutomation: Automated
     """
     org_name = rhcloud_manifest_org.name
+    local_advisor_enabled = module_target_sat_insights.local_advisor_enabled
 
     # Query for searching the available recommendation
     REC_QUERY = f'hostname = "{rhel_insights_vm.hostname}" and title = "{OPENSSH_RECOMMENDATION}"'
@@ -101,8 +107,9 @@ def test_rhcloud_insights_e2e(
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
 
-        # Sync the recommendations
-        sync_recommendations(session)
+        # Sync the recommendations (hosted Insights only).
+        if not local_advisor_enabled:
+            sync_recommendations(session)
 
         # Verify that we can see the rule hit via insights-client
         result = rhel_insights_vm.execute('insights-client --diagnosis')
@@ -131,11 +138,29 @@ def test_rhcloud_insights_e2e(
             host_name=rhel_insights_vm.hostname,
         )
 
-        # Re-sync the recommendations
-        sync_recommendations(session)
+        # Re-sync the recommendations (hosted Insights only).
+        if not local_advisor_enabled:
+            sync_recommendations(session)
 
         # Verify that the recommendation is not listed anymore.
         assert not session.cloudinsights.search(REC_QUERY)
+
+        # Verify the on_prem report entries
+        if 'local' in request.node.name:
+            assert (
+                module_target_sat_insights.get_reported_value(
+                    'advisor_on_prem_remediations_enabled'
+                )
+                == 'true'
+            )
+            assert (
+                int(
+                    module_target_sat_insights.get_reported_value(
+                        'advisor_on_prem_remediations_count'
+                    )
+                )
+                == 1
+            )
 
 
 @pytest.mark.e2e
