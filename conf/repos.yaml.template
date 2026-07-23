@@ -42,6 +42,10 @@ REPOS:
     RHEL7: replace-with-rhel7-http-link
     RHEL8: replace-with-rhel8-http-link
     RHEL9: replace-with-rhel9-http-link
+  OPENVOX_AGENT_REPO:
+    RHEL7: some-url
+    RHEL8: some-url
+    RHEL9: some-url
   # Downstream Satellite-maintain repo
   SATMAINTENANCE_REPO: replace-with-sat-maintain-repo
   MOCK_SERVICE_REPO_BASE: replace-with-repo-providing-robttelo-mock-service
