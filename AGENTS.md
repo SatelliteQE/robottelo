@@ -923,5 +923,14 @@ repo_url = settings.repos.yum_3.url
 
 ---
 
-**Last Updated**: 2026-06-25
+## Skills
+
+Reusable workflows are stored in `.claude/skills/`. When the user types `/skill-name`, read `.claude/skills/skill-name.md` and follow its instructions.
+
+Available skills:
+- `/prt` — Trigger and monitor Pull Request Testing (PRT) builds
+
+---
+
+**Last Updated**: 2026-07-22
 **Maintainers**: Cole Higgins, Ian Ballou
