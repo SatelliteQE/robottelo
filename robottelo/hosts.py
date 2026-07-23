@@ -2321,13 +2321,14 @@ class Capsule(ContentHost, CapsuleMixins):
 
         return result
 
-    def query_db(self, query, db='foreman', output_format='json'):
+    def query_db(self, query, db='foreman', output_format='json', db_user='foreman'):
         """Execute a PostgreSQL query and return the result.
 
         Args:
             query: SQL query to execute
             db: Database name (default: 'foreman')
             output_format: Output format - 'json' for JSON array, raw output otherwise
+            db_user: Database user (default: 'foreman')
 
         Returns:
             list of dicts if output_format='json', str otherwise
@@ -2343,7 +2344,7 @@ class Capsule(ContentHost, CapsuleMixins):
             return result
 
         if self.install_method == InstallMethod.FOREMANCTL:
-            base_cmd = f'podman exec postgresql psql -U foreman -d {db}'
+            base_cmd = f'podman exec postgresql psql -U {db_user} -d {db}'
         else:
             base_cmd = f'sudo -u postgres psql -d {db}'
 
