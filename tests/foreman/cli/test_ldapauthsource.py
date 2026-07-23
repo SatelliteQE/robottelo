@@ -18,6 +18,7 @@ import pytest
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import generate_strings_list, parametrized
+from robottelo.utils.ldap import get_ldap_cacert_pem
 
 
 @pytest.fixture
@@ -202,6 +203,51 @@ class TestIPAAuthSource:
         module_target_sat.cli.LDAPAuthSource.delete({'name': new_name})
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.LDAPAuthSource.info({'name': new_name})
+
+    @pytest.mark.usefixtures("ldap_tear_down")
+    def test_positive_create_with_cacert_ipa(self, default_ipa_host, module_target_sat):
+        """Create LDAP auth source with cacert via hammer CLI and verify it persists.
+
+        :id: 5c35665c-05af-426f-8c7c-761c6c6a81c3
+
+        :steps:
+            1. Fetch the IPA CA certificate PEM and write it to a file on the satellite.
+            2. Create an LDAP auth source with LDAPS and --cacert-file via CLI.
+            3. Read back with ``hammer auth-source ldap info``.
+
+        :expectedresults: The cacert is stored and shown in the CLI info output.
+        """
+        cacert_pem = get_ldap_cacert_pem(module_target_sat, 'IPA', default_ipa_host.hostname)
+        cacert_file = '/tmp/ipa-ca.crt'
+        result = module_target_sat.execute(f"cat > {cacert_file} << 'EOF'\n{cacert_pem}\nEOF")
+        assert result.status == 0, f'Failed to write CA cert to {cacert_file}'
+        try:
+            server_name = gen_string('alpha')
+            auth = module_target_sat.cli_factory.ldap_auth_source(
+                {
+                    'name': server_name,
+                    'onthefly-register': 'true',
+                    'host': default_ipa_host.hostname,
+                    'server-type': LDAP_SERVER_TYPE['CLI']['ipa'],
+                    'attr-login': LDAP_ATTR['login'],
+                    'attr-firstname': LDAP_ATTR['firstname'],
+                    'attr-lastname': LDAP_ATTR['surname'],
+                    'attr-mail': LDAP_ATTR['mail'],
+                    'account': default_ipa_host.ldap_user_cn,
+                    'account-password': default_ipa_host.ldap_user_passwd,
+                    'base-dn': default_ipa_host.base_dn,
+                    'groups-base': default_ipa_host.group_base_dn,
+                    'tls': '1',
+                    'port': '636',
+                    'cacert-file': cacert_file,
+                }
+            )
+            assert auth['server']['name'] == server_name
+            auth_info = module_target_sat.cli.LDAPAuthSource.info({'id': auth['server']['id']})
+            cacert_found = "\n".join(auth_info['server']['ca-certificate'])
+            assert cacert_found.strip() == cacert_pem.strip()
+        finally:
+            module_target_sat.execute(f'rm -f {cacert_file}')
 
     @pytest.mark.parametrize('server_type', ['ipa', 'nonposix_schema'])
     @pytest.mark.usefixtures("ldap_tear_down")
