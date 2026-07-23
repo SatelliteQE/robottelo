@@ -186,10 +186,11 @@ def test_content_validation_on_download(request, target_sat, function_org, funct
     # 4. Attempt to download the corrupted package from published_at URL,
     #    ensure 200 status on first and 404 status on second download.
     download_url = f"{repo.full_path}Packages/{pkg_name[0]}/{pkg_name}"
-    result = target_sat.execute(f'curl -O -w "%{{http_code}}" -s {download_url}')
+    ca_opt = f'--cacert {target_sat.ca_cert_file}'
+    result = target_sat.execute(f'curl -O -w "%{{http_code}}" -s {ca_opt} {download_url}')
     request.addfinalizer(lambda: target_sat.execute(f'rm -f {pkg_name}'))
     assert '200' in result.stdout, f'Expected 200 status, got: {result.stdout}'
-    result = target_sat.execute(f'curl -O -w "%{{http_code}}" -s {download_url}')
+    result = target_sat.execute(f'curl -O -w "%{{http_code}}" -s {ca_opt} {download_url}')
     assert '404' in result.stdout, f'Expected 404 status, got: {result.stdout}'
 
     # 5. Check the downloaded file content contains 404 message.
