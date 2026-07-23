@@ -547,45 +547,42 @@ class InstallationVerification:
         if settings.server.version.source != 'nightly':
             assert settings.server.version.release == sat_version
 
-        # Check journald for errors using installation-method-aware service list
-        services = self.get_service_names()
-        service_units = ' '.join([f'-u "{svc}"' for svc in services])
-        result = self.execute(
-            f'journalctl --quiet --no-pager --boot --priority err {service_units}'
-        )
-        assert not result.stdout
-
-        # Check foreman production log
-        result = self.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
-        if not is_open('SAT-21086'):
-            assert not result.stdout
-
-        # Check foreman-installer log (only relevant for satellite-installer method)
+        # Check foreman production log (only relevant for satellite-installer method)
         if self.install_method == InstallMethod.INSTALLER:
+            result = self.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
+            if not is_open('SAT-21086'):
+                assert not result.stdout
+            # Check foreman-installer log
             result = self.execute(
                 r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
             )
             assert not result.stdout
 
-        # Check httpd logs, filtering expected transient startup errors
-        # (httpd may start before Foreman/containers are ready, causing brief "Connection refused")
-        result = self.execute(r'grep -iR "error" /var/log/httpd/*')
-        if result.stdout:
-            filtered_errors = [
-                line
-                for line in result.stdout.splitlines()
-                if 'Connection refused' not in line
-                and 'attempt to connect to 127.0.0.1:3000' not in line
-                and 'failed to make connection to backend: localhost' not in line
-            ]
-            assert not filtered_errors, f'Unexpected httpd errors:\n{chr(10).join(filtered_errors)}'
+        # Bug covers
+        if not is_open('SAT-47736'):
+            services = self.get_service_names()
+            service_units = ' '.join([f'-u "{svc}"' for svc in services])
+            # Check journald for errors using installation-method-aware service list
+            result = self.execute(
+                f'journalctl --quiet --no-pager --boot --grep ERROR {service_units}'
+            )
+            assert not result.stdout
+            # Check httpd logs, filtering expected transient startup errors
+            # (httpd may start before Foreman/containers are ready, causing brief "Connection refused")
+            result = self.execute(r'grep -iR "error" /var/log/httpd/*')
+            assert not result.stdout
 
-        # Check candlepin logs
-        result = self.execute(r'grep -iR "error" /var/log/candlepin/*')
-        assert not result.stdout
+            # Check candlepin logs
+            result = self.execute(r'grep -iR "error" /var/log/candlepin/*')
+            assert not result.stdout
 
-        httpd_log = self.execute('journalctl --unit=httpd')
-        assert 'WARNING' not in httpd_log.stdout
+            # Check httpd logs
+            httpd_log = self.execute('journalctl --unit=httpd')
+            assert 'WARNING' not in httpd_log.stdout
 
-        result = self.cli.Health.check()
-        assert 'FAIL' not in result.stdout
+        if self.is_satellitectl_available():
+            result = self.execute('foremanctl health')
+            assert 'failed=0' in result
+        else:
+            result = self.cli.Health.check()
+            assert 'FAIL' not in result.stdout

@@ -1696,6 +1696,8 @@ class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     product_rpm_name = 'satellite-capsule'
     upstream_rpm_name = 'foreman-proxy'
+    container_rpm_name = 'satellitectl'
+    upstream_container = 'foremanctl'
 
     def __init__(self, hostname, **kwargs):
         kwargs.setdefault('net_type', settings.capsule.network_type)
@@ -1743,7 +1745,10 @@ class Capsule(ContentHost, CapsuleMixins):
         :return: True if no downstream satellite RPMS are installed
         :rtype: bool
         """
-        return self.execute(f'rpm -q {self.product_rpm_name}').status != 0
+        return (
+            self.execute(f'rpm -q {self.product_rpm_name}').status
+            and self.execute(f'rpm -q {self.container_rpm_name}').status
+        ) != 0
 
     @cached_property
     def is_stream(self):
@@ -1756,11 +1761,22 @@ class Capsule(ContentHost, CapsuleMixins):
             return False
         return (
             'stream' in self.execute(f'rpm -q --qf "%{{RELEASE}}" {self.product_rpm_name}').stdout
+            or self.is_satellitectl_available()
         )
 
     @cached_property
     def version(self):
-        rpm_name = self.upstream_rpm_name if self.is_upstream else self.product_rpm_name
+        """Get the version of the Capsule/Satellite installation.
+
+        Queries the appropriate RPM based on upstream vs downstream.
+        """
+        product_rpm_name = (
+            self.container_rpm_name if self.is_satellitectl_available() else self.product_rpm_name
+        )
+        upstream_rpm_name = (
+            self.upstream_container if self.is_foremanctl_available() else self.upstream_rpm_name
+        )
+        rpm_name = upstream_rpm_name if self.is_upstream else product_rpm_name
         return self.execute(f'rpm -q --qf "%{{VERSION}}" {rpm_name}').stdout
 
     @cached_property
@@ -1788,6 +1804,19 @@ class Capsule(ContentHost, CapsuleMixins):
         """
         # Check if foremanctl command exists (already installed)
         result = self.execute('which foremanctl')
+        return result.status == 0
+
+    def is_satellitectl_available(self):
+        """Check if satellitectl is installed on the system.
+
+        Only checks if the command exists, not if the package is available in repos.
+        This ensures auto-detection defaults to satellite-installer on clean systems.
+
+        :return: True if satellite command is installed
+        :rtype: bool
+        """
+        # Check if foremanctl command exists (already installed)
+        result = self.execute('which satellitectl')
         return result.status == 0
 
     def detect_install_method(self):
@@ -2180,7 +2209,9 @@ class Capsule(ContentHost, CapsuleMixins):
             )
 
         # Install foremanctl
-        assert self.execute('dnf install -y foremanctl').status == 0, 'Failed to install foremanctl'
+        assert self.execute('dnf install -y satellitectl').status == 0, (
+            'Failed to install satellitectl'
+        )
 
         if enable_fapolicyd:
             assert self.execute('dnf -y install fapolicyd').status == 0
@@ -2365,6 +2396,8 @@ class Capsule(ContentHost, CapsuleMixins):
 class Satellite(Capsule, SatelliteMixins):
     product_rpm_name = 'satellite'
     upstream_rpm_name = 'foreman'
+    container_rpm_name = 'satellitectl'
+    upstream_container = 'foremanctl'
 
     def __init__(self, hostname=None, **kwargs):
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
