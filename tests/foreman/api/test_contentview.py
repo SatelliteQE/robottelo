@@ -2723,11 +2723,12 @@ def test_repository_rpms_id_type(target_sat):
 
     :CaseImportance: Medium
     """
-    db_out = target_sat.execute(
-        'sudo -u postgres psql -d foreman -c "select * from pg_sequences where sequencename=\'katello_repository_rpms_id_seq\';"'
+    db_out = target_sat.query_db(
+        "select * from pg_sequences where sequencename='katello_repository_rpms_id_seq'",
+        output_format='raw',
     )
-    assert 'bigint' in db_out.stdout
-    assert 'integer' not in db_out.stdout
+    assert 'bigint' in db_out
+    assert 'integer' not in db_out
 
 
 def test_negative_readonly_user_actions(

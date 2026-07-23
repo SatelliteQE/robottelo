@@ -54,7 +54,7 @@ from robottelo.constants import (
     RHSSO_USER_UPDATE,
     SATELLITE_VERSION,
 )
-from robottelo.enums import NetworkType
+from robottelo.enums import InstallMethod, NetworkType
 from robottelo.exceptions import (
     CapsuleHostError,
     CLIFactoryError,
@@ -1805,7 +1805,6 @@ class Capsule(ContentHost, CapsuleMixins):
         :return: InstallMethod enum value
         :rtype: InstallMethod
         """
-        from robottelo.enums import InstallMethod
 
         # Runtime override
         if hasattr(self, '_install_method_override'):
@@ -1855,7 +1854,6 @@ class Capsule(ContentHost, CapsuleMixins):
         :rtype: list
         """
         from robottelo.constants import InstallationServices
-        from robottelo.enums import InstallMethod
 
         if self.install_method == InstallMethod.FOREMANCTL:
             return InstallationServices.FOREMANCTL_SERVICES
@@ -2271,7 +2269,6 @@ class Capsule(ContentHost, CapsuleMixins):
         :param foremanctl_parameters: Parameters list for foremanctl deploy
         :return: Installation result
         """
-        from robottelo.enums import InstallMethod
         from robottelo.utils.installer import InstallerCommand
 
         # Determine method
@@ -2324,13 +2321,14 @@ class Capsule(ContentHost, CapsuleMixins):
 
         return result
 
-    def query_db(self, query, db='foreman', output_format='json'):
+    def query_db(self, query, db='foreman', output_format='json', db_user='foreman'):
         """Execute a PostgreSQL query and return the result.
 
         Args:
             query: SQL query to execute
             db: Database name (default: 'foreman')
             output_format: Output format - 'json' for JSON array, raw output otherwise
+            db_user: Database user (default: 'foreman')
 
         Returns:
             list of dicts if output_format='json', str otherwise
@@ -2345,7 +2343,10 @@ class Capsule(ContentHost, CapsuleMixins):
                 raise CLIReturnCodeError(result.status, result.stderr, f'"{cmd}" failed')
             return result
 
-        base_cmd = f'sudo -u postgres psql -d {db}'
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            base_cmd = f'podman exec postgresql psql -U {db_user} -d {db}'
+        else:
+            base_cmd = f'sudo -u postgres psql -d {db}'
 
         if output_format == 'json':
             cmd = f'{base_cmd} -A -t -c "SELECT json_agg(row_to_json(t)) FROM ({query}) t"'

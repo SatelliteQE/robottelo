@@ -667,10 +667,9 @@ def test_positive_health_check_corrupted_roles(sat_maintain, request):
 
     @request.addfinalizer
     def _finalize():
-        resource_type = r"'\''Host'\''"
-        sat_maintain.execute(
-            f'''sudo su - postgres -c "psql -d foreman -c 'UPDATE permissions SET
-                        resource_type = {resource_type} WHERE name = {permission_name};'"'''
+        sat_maintain.query_db(
+            "UPDATE permissions SET resource_type = 'Host' WHERE name = 'console_hosts'",
+            output_format='raw',
         )
         sat_maintain.cli.Role.delete(options={'name': role_name})
 
@@ -678,13 +677,10 @@ def test_positive_health_check_corrupted_roles(sat_maintain, request):
     sat_maintain.cli.Filter.create(
         options={'role': role_name, 'permissions': ['view_hosts', 'console_hosts']}
     )
-    permission_name = r"'\''console_hosts'\''"
-    resource_type = rf"'\''{resource_type}'\''"
-    setup = sat_maintain.execute(
-        f'''sudo su - postgres -c "psql -d foreman -c 'UPDATE permissions SET
-            resource_type = {resource_type} WHERE name = {permission_name};'"'''
+    sat_maintain.query_db(
+        f"UPDATE permissions SET resource_type = '{resource_type}' WHERE name = 'console_hosts'",
+        output_format='raw',
     )
-    assert setup.status == 0
     result = sat_maintain.cli.Filter.list(options={'search': role_name}, output_format='yaml')
     # Shows the filter id which comprises of role id hence asserting 2 here
     assert result.count('Id') == 2
@@ -758,13 +754,11 @@ def test_positive_health_check_duplicate_permissions(sat_maintain):
     :BZ: 1849110, 1884024
     """
     # Verify if check failed because of duplicate permissions
-    name = r"'\''view_ansible_variables'\''"
-    resource_type = r"'\''AnsibleVariable'\''"
-    result = sat_maintain.execute(
-        f'''sudo su - postgres -c "psql -d foreman -c 'INSERT INTO permissions(name, resource_type)
-            VALUES({name}, {resource_type});'"'''
+    sat_maintain.query_db(
+        "INSERT INTO permissions(name, resource_type) "
+        "VALUES('view_ansible_variables', 'AnsibleVariable')",
+        output_format='raw',
     )
-    assert result.status == 0
     result = sat_maintain.cli.Health.check({'label': 'duplicate-permissions', 'assumeyes': True})
     assert result.status == 0
     assert 'FAIL' in result.stdout
