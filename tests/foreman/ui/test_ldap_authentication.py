@@ -20,7 +20,6 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT, LDAP_ATTR, PERMISSIONS
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.ldap import get_ldap_cacert_pem
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -813,46 +812,6 @@ def test_positive_test_connection_functionality(session, ldap_auth_source):
     ldap_data, auth_source = ldap_auth_source
     with session:
         session.ldapauthentication.test_connection({'ldap_server.host': ldap_data['ldap_hostname']})
-
-
-@pytest.mark.parametrize('ldap_auth_source', ['IPA'], indirect=True)
-def test_ldaps_cacert_test_connection(session, ldap_auth_source, target_sat):
-    """LDAPS auth source without cacert fails test connection and succeeds with it.
-
-    :id: 63ef2536-cffa-453e-bf8d-4b887623270d
-
-    :steps:
-        1. Open an existing LDAP auth source created without TLS.
-        2. Enable LDAPS without providing a cacert.
-        3. Click test connection.
-        4. Provide a cacert.
-        5. Click test connection.
-
-    :expectedresults: Test connection fails at first due to untrusted CA certificate
-        and passes once the cacert is provided.
-
-    :parametrized: yes
-    """
-    ldap_data, auth_source = ldap_auth_source
-    cacert = get_ldap_cacert_pem(target_sat, 'IPA', ldap_data['ldap_hostname'])
-    with session:
-        with pytest.raises(AssertionError) as error:
-            session.ldapauthentication.test_connection(
-                {
-                    'ldap_server.host': ldap_data['ldap_hostname'],
-                    'ldap_server.ldaps': True,
-                }
-            )
-        # No error details in toast https://projects.theforeman.org/issues/39552
-        assert error.match('Danger alert: Error')
-
-        session.ldapauthentication.test_connection(
-            {
-                'ldap_server.host': ldap_data['ldap_hostname'],
-                'ldap_server.ldaps': True,
-                'ldap_server.cacert': cacert,
-            }
-        )
 
 
 @pytest.mark.parametrize('ldap_auth_source', ['AD', 'IPA', 'OPENLDAP'], indirect=True)

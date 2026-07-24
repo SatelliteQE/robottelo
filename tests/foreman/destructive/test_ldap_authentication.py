@@ -92,6 +92,20 @@ def rhsso_groups_teardown(module_target_sat, default_sso_host):
 
 
 @pytest.fixture
+def untrust_rhit_cas(module_target_sat):
+    """Temporarily remove Red Hat IT Root CAs from the system trust store."""
+    anchors = '/etc/pki/ca-trust/source/anchors'
+    backup_dir = '/tmp/ca-backup'
+    module_target_sat.execute(f'mkdir -p {backup_dir}')
+    module_target_sat.execute(f'mv {anchors}/*-IT-Root-CA.pem {backup_dir}/')
+    module_target_sat.execute('update-ca-trust extract')
+    yield
+    module_target_sat.execute(f'mv {backup_dir}/* {anchors}/')
+    module_target_sat.execute(f'rm -rf {backup_dir}')
+    module_target_sat.execute('update-ca-trust extract')
+
+
+@pytest.fixture
 def configure_hammer_session(parametrized_enrolled_sat, enable=True):
     """Take backup of the hammer config file and enable use_sessions"""
     parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
@@ -112,7 +126,13 @@ def generate_otp(secret):
 @pytest.mark.upgrade
 @pytest.mark.parametrize('auth_data', ['AD_2019', 'IPA'], indirect=True)
 def test_positive_create_with_https(
-    session, module_subscribe_satellite, test_name, auth_data, ldap_tear_down, module_target_sat
+    session,
+    module_subscribe_satellite,
+    test_name,
+    auth_data,
+    ldap_tear_down,
+    module_target_sat,
+    untrust_rhit_cas,
 ):
     """Create LDAP auth_source for IDM/AD with LDAPS.
 
@@ -174,7 +194,13 @@ def test_positive_create_with_https(
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
         assert ldap_source['ldap_server']['host'] == auth_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '636'
-        assert ldap_source['ldap_server']['cacert'].strip() == cacert_pem.strip()
+
+        # In AD's case, the CA cert uses CRLF line endings
+        # when this cert is uploaded to Satellite and read back through hammer,
+        # the line endings are replaced with unix LF-only line endings.
+        assert (
+            ldap_source['ldap_server']['cacert'].strip() == cacert_pem.replace("\r\n", "\n").strip()
+        )
     with (
         module_target_sat.ui_session(
             test_name, username, auth_data['ldap_user_passwd']
@@ -1084,3 +1110,45 @@ def test_negative_autonegotiate_with_autonegotiation_disabled(
         # User has not been added
         user = parametrized_enrolled_sat.api.User().search(query={'search': f'login={user}'})
         assert not user
+
+
+@pytest.mark.parametrize('ldap_auth_source', ['IPA'], indirect=True)
+def test_ldaps_cacert_test_connection(
+    session, ldap_auth_source, module_target_sat, untrust_rhit_cas
+):
+    """LDAPS auth source without cacert fails test connection and succeeds with it.
+
+    :id: 63ef2536-cffa-453e-bf8d-4b887623270d
+
+    :steps:
+        1. Open an existing LDAP auth source created without TLS.
+        2. Enable LDAPS without providing a cacert.
+        3. Click test connection.
+        4. Provide a cacert.
+        5. Click test connection.
+
+    :expectedresults: Test connection fails at first due to untrusted CA certificate
+        and passes once the cacert is provided.
+
+    :parametrized: yes
+    """
+    ldap_data, auth_source = ldap_auth_source
+    cacert = get_ldap_cacert_pem(module_target_sat, 'IPA', ldap_data['ldap_hostname'])
+    with session:
+        with pytest.raises(AssertionError) as error:
+            session.ldapauthentication.test_connection(
+                {
+                    'ldap_server.host': ldap_data['ldap_hostname'],
+                    'ldap_server.ldaps': True,
+                }
+            )
+        # No error details in toast https://projects.theforeman.org/issues/39552
+        assert error.match('Danger alert: Error')
+
+        session.ldapauthentication.test_connection(
+            {
+                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.ldaps': True,
+                'ldap_server.cacert': cacert,
+            }
+        )
