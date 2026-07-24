@@ -1775,7 +1775,21 @@ class Capsule(ContentHost, CapsuleMixins):
 
     @property
     def rex_pub_key(self):
-        return self.execute(f'cat {self.rex_key_path}').stdout.strip()
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            if 'remote-execution' in self.list_foremanctl_features(enabled=True):
+                result = self.execute(
+                    f"podman exec foreman-proxy bash -c 'cat {self.rex_key_path}'"
+                )
+            else:
+                raise SatelliteHostError('remote-execution feature is not enabled')
+        else:
+            result = self.execute(f'cat {self.rex_key_path}')
+        key = result.stdout.strip()
+        if not key:
+            raise ValueError(
+                f'Rex public key is empty. Command returned status {result.status}: {result.stderr}'
+            )
+        return key
 
     def is_foremanctl_available(self):
         """Check if foremanctl is installed on the system.
