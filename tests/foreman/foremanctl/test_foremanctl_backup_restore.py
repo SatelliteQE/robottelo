@@ -284,3 +284,133 @@ def test_negative_restore_no_force(module_target_sat, setup_backup_tests):
     assert result.status != 0, (
         'foremanctl restore should fail without --force on existing deployment'
     )
+
+
+@pytest.mark.destructive
+def test_positive_backup_restore_incremental(target_sat, setup_backup_tests):
+    """Incremental backup/restore end-to-end test using foremanctl.
+
+    :id: 2fc57857-bba0-425e-a7f2-e70ff5cafaab
+
+    :steps:
+        1. Sync a custom repository
+        2. Take an initial backup with foremanctl
+        3. Create additional content (sync another repo)
+        4. Take an incremental backup referencing the initial one
+        5. Verify expected files are present in the incremental backup
+        6. Restore the initial backup and check system health
+        7. Verify the additional content is missing
+        8. Restore the incremental backup and check system health
+        9. Verify all content is restored
+
+    :expectedresults:
+        1. Initial and incremental backups succeed
+        2. Expected files are present in the incremental backup
+        3. Restore of both backups succeeds
+        4. System health checks pass after each restore
+        5. Content is present/absent as expected after each restore
+    """
+    org = target_sat.api.Organization().create()
+    product = target_sat.api.Product(organization=org).create()
+    initial_repo = target_sat.api.Repository(
+        url=settings.repos.yum_1.url, product=product
+    ).create()
+    initial_repo.sync()
+    initial_repo = initial_repo.read()
+
+    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
+    init_backup_dir = _create_backup(target_sat, subdir)
+
+    secondary_repo = target_sat.api.Repository(
+        url=settings.repos.yum_3.url, product=product
+    ).create()
+    secondary_repo.sync()
+    secondary_repo = secondary_repo.read()
+
+    result = target_sat.execute(
+        f'foremanctl backup {subdir} --incremental {init_backup_dir} --wait-for-tasks',
+        timeout='30m',
+    )
+    assert result.status == 0, f'Incremental backup failed:\n{result.stdout}\n{result.stderr}'
+
+    all_dirs = target_sat.execute(f'ls -d {subdir}/foreman-backup-*').stdout.strip().splitlines()
+    inc_backup_dir = [d for d in all_dirs if d != init_backup_dir][0]
+
+    files = target_sat.execute(f'ls -a {inc_backup_dir}').stdout.split('\n')
+    files = [i for i in files if not re.compile(r'^\.*$').search(i)]
+    expected_files = get_exp_files(target_sat)
+    assert set(files).issuperset(expected_files), (
+        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
+    )
+
+    result = target_sat.execute(
+        f'foremanctl restore {init_backup_dir} --force',
+        timeout='30m',
+    )
+    assert result.status == 0, f'Initial restore failed:\n{result.stdout}\n{result.stderr}'
+
+    result = target_sat.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, f'Health check failed after initial restore:\n{result.stdout}'
+
+    result = target_sat.api.Repository().search(
+        query={'search': f'name="{secondary_repo.name}"'}
+    )
+    assert len(result) == 0, 'Secondary repo should not exist after restoring initial backup'
+
+    result = target_sat.execute(
+        f'foremanctl restore {inc_backup_dir} --force',
+        timeout='30m',
+    )
+    assert result.status == 0, f'Incremental restore failed:\n{result.stdout}\n{result.stderr}'
+
+    result = target_sat.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, f'Health check failed after incremental restore:\n{result.stdout}'
+
+    repo = target_sat.api.Repository().search(
+        query={'search': f'name="{initial_repo.name}"'}
+    )[0]
+    assert repo.id == initial_repo.id
+
+    repo = target_sat.api.Repository().search(
+        query={'search': f'name="{secondary_repo.name}"'}
+    )[0]
+    assert repo.id == secondary_repo.id
+
+
+def test_negative_backup_incremental_nodir_baddir(target_sat, setup_backup_tests):
+    """Try to take an incremental backup with missing or non-existing previous backup path.
+
+    :id: 715a0b22-6b9d-4f0b-b8c3-1ea0713ee68f
+
+    :steps:
+        1. Run foremanctl backup with --incremental but no path argument
+        2. Run foremanctl backup with --incremental pointing to a non-existing directory
+
+    :expectedresults:
+        1. Both commands fail with a non-zero exit code
+        2. The no-directory variant mentions expected one argument
+        3. The bad-directory variant mentions the directory does not exist
+    """
+    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
+
+    # No directory: --incremental without a path
+    result = target_sat.execute(
+        f'foremanctl backup {subdir} --incremental',
+        timeout='5m',
+    )
+    assert result.status != 0, f'Incremental backup without path should have failed:\n{result.stdout}'
+    assert '--incremental: expected one argument' in result.stderr, (
+        f'Expected --incremental argument error, got:\n{result.stderr}'
+    )
+
+    # Bad directory: --incremental with a non-existing path
+    nonexistent = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
+    result = target_sat.execute(
+        f'foremanctl backup {subdir} --incremental {nonexistent}',
+        timeout='5m',
+    )
+    assert result.status != 0, f'Incremental backup should have failed:\n{result.stdout}'
+    assert (
+        f'Previous backup directory does not exist or is not a valid foremanctl backup: {nonexistent}'
+        in result.stdout
+    ), f'Expected error referencing bad path {nonexistent}, got:\n{result.stdout}'
