@@ -29,7 +29,7 @@ jobs:
 
       - name: Build Robottelo image
         id: build-image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@v3
         with:
           image: robottelo
           tags: ${{ steps.image_tag.outputs.IMAGE_TAG }}
