@@ -135,11 +135,12 @@ class ContentInfo:
             reached or calculation was not successful).
         """
         filename = url.split('/')[-1]
-        result = self.execute(f'wget -q --spider {url}')
+        ca_opt = f'--ca-certificate={self.ca_cert_file}'
+        result = self.execute(f'wget -q --spider {ca_opt} {url}')
         if result.status != 0:
             raise AssertionError(f'Failed to get `{filename}` from `{url}`.')
         return self.execute(
-            f'wget -qO - {url} | tee {filename} | {sum_type} | awk \'{{print $1}}\''
+            f'wget -qO - {ca_opt} {url} | tee {filename} | {sum_type} | awk \'{{print $1}}\''
         ).stdout.strip()
 
     def upload_manifest(self, org_id, manifest=None, interface='API', timeout=None):
