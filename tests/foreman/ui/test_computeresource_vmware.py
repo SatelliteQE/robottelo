@@ -28,6 +28,7 @@ from robottelo.constants import (
     VMWARE_CONSTANTS,
 )
 from robottelo.hosts import ContentHost
+from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
 
@@ -340,6 +341,7 @@ def test_positive_vmware_custom_profile_end_to_end(
 
     :verifies: SAT-31447
     """
+    logger.info("test_positive_vmware_custom_profile_end_to_end start")
     if 'vmware7' in request.node.callspec.id and target_sat.is_fips_enabled():
         pytest.skip('VMware 7 is not supported in FIPS mode')
     cr_name = gen_string('alpha')
@@ -380,6 +382,7 @@ def test_positive_vmware_custom_profile_end_to_end(
         }
     }
     with session:
+        logger.info("test_positive_vmware_custom_profile_end_to_end with session")
         session.computeresource.create(
             {
                 'name': cr_name,
@@ -388,20 +391,23 @@ def test_positive_vmware_custom_profile_end_to_end(
                 'provider_content.user': settings.vmware.username,
                 'provider_content.password': settings.vmware.password,
                 'provider_content.datacenter.value': settings.vmware.datacenter,
-                'provider_content.enable_caching': False,
+                'provider_content.enable_caching': True,
             }
         )
 
         @request.addfinalizer
         def _finalize():
+            logger.info("test_positive_vmware_custom_profile_end_to_end finalizer start")
             cr = target_sat.api.VMWareComputeResource().search(query={'search': f'name={cr_name}'})
             if cr:
                 target_sat.api.VMWareComputeResource(id=cr[0].id).delete()
+            logger.info("test_positive_vmware_custom_profile_end_to_end finalizer end")
 
         assert session.computeresource.search(cr_name)[0]['Name'] == cr_name
         for guest_os_name, cprofile, cpu, memory, firmware in zip(
             guest_os_names, compute_profile, cpus, vm_memory, firmware_type, strict=True
         ):
+            logger.info("test_positive_vmware_custom_profile_end_to_end for")
             session.computeresource.update_computeprofile(
                 cr_name,
                 cprofile,
@@ -448,8 +454,10 @@ def test_positive_vmware_custom_profile_end_to_end(
                 == VMWARE_CONSTANTS['network_interface_name']
             )
             assert provider_content['network_interfaces'][0]['network'] == network
+            logger.info("test_positive_vmware_custom_profile_end_to_end for end")
         session.computeresource.delete(cr_name)
         assert not session.computeresource.search(cr_name)
+    logger.info("test_positive_vmware_custom_profile_end_to_end end")
 
 
 @pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
