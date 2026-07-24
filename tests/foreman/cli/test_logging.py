@@ -18,6 +18,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import FOREMANCTL_PARAMETERS_FILE
 from robottelo.logging import logger
 
 pytestmark = pytest.mark.e2e
@@ -246,3 +247,81 @@ def test_positive_logging_from_pulp3(module_org, target_sat):
     # verify pulp correlation id in message
     message_log = target_sat.execute(f'cat {test_logfile} | grep {pulp_correlation_id}')
     assert message_log.status == 0
+
+
+@pytest.mark.foremanctl
+def test_positive_foremanctl_log_level(module_target_sat):
+    """Verify foremanctl deploy log level parameters for Foreman and Proxy services.
+
+    :id: 3170785b-5327-43f6-a2b5-8e3f4049da45
+
+    :steps:
+        1. Deploy with --foreman-log-level=debug --foreman-proxy-log-level=debug --log-level=debug
+        2. Verify all three parameters are persisted in parameters file
+        3. Trigger Foreman activity and verify DEBUG [D] output in foreman journal
+        4. Trigger Proxy activity and verify DEBUG [D] output in foreman-proxy journal
+        5. Reset all log level parameters in a single deploy
+        6. Verify all log level parameters are removed from parameters file
+
+    :expectedresults:
+        1. All log level parameters are persisted correctly
+        2. Both services emit DEBUG-level [D] log entries
+        3. All parameters are removed after reset
+    """
+    sat = module_target_sat
+
+    result = sat.execute(
+        'foremanctl deploy'
+        ' --add-feature hammer'
+        ' --foreman-log-level=debug'
+        ' --foreman-proxy-log-level=debug'
+        ' --log-level=debug',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl deploy with log level parameters failed:\n{result.stderr}'
+    )
+
+    # Verify all parameters are persisted
+    params = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert params.foreman_log_level == 'debug', (
+        f'foreman_log_level not persisted correctly: {params.get("foreman_log_level")}'
+    )
+    assert params.foreman_proxy_log_level == 'debug', (
+        f'foreman_proxy_log_level not persisted correctly: {params.get("foreman_proxy_log_level")}'
+    )
+    assert params.log_level == 'debug', (
+        f'log_level not persisted correctly: {params.get("log_level")}'
+    )
+
+    # Trigger activity and verify DEBUG [D|...] output in foreman journal
+    sat.execute('hammer host list')
+    result = sat.execute(r'journalctl --no-pager -u foreman.service --since "-2 min" | grep "\[D|"')
+    assert result.status == 0, 'No DEBUG-level [D|...] messages found in foreman.service journal'
+
+    # Trigger activity and verify DEBUG [D] output in foreman-proxy journal
+    sat.execute('hammer proxy refresh-features --id 1')
+    result = sat.execute(
+        r'journalctl --no-pager -u foreman-proxy.service --since "-2 min" | grep "\[D\]"'
+    )
+    assert result.status == 0, 'No DEBUG-level [D] messages found in foreman-proxy.service journal'
+
+    # Reset all log level parameters in a single deploy
+    result = sat.execute(
+        'foremanctl deploy'
+        ' --reset-foreman-log-level'
+        ' --reset-foreman-proxy-log-level'
+        ' --reset-log-level',
+        timeout='30m',
+    )
+    assert result.status == 0, f'Reset log level parameters failed:\n{result.stderr}'
+
+    # Verify all parameters are removed
+    params = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert 'foreman_log_level' not in params, (
+        'foreman_log_level still present in parameters after reset'
+    )
+    assert 'foreman_proxy_log_level' not in params, (
+        'foreman_proxy_log_level still present in parameters after reset'
+    )
+    assert 'log_level' not in params, 'log_level still present in parameters after reset'
