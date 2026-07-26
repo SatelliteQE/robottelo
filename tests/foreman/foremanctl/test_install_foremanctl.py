@@ -21,12 +21,18 @@ import pytest
 from robottelo.cli import hammer
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
     FOREMANCTL_PARAMETERS_FILE,
     FOREMANCTL_POSTGRESQL_TUNING_PROFILES,
+    PRDS,
+    REPOS,
+    REPOSET,
     InstallationServices,
 )
-from robottelo.hosts import Satellite
+from robottelo.exceptions import CapsuleHostError
+from robottelo.hosts import Satellite, Capsule
 from robottelo.utils.issue_handlers import is_open
+from robottelo.utils.ohsnap import dogfood_repository
 
 pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
 
@@ -49,6 +55,27 @@ def common_sat_install_assertions(satellite):
     assert 'WARNING' not in httpd_log.stdout
 
 
+def common_cap_install_assertions(capsule):
+    result = capsule.execute('systemctl status foreman-proxy.service foreman.target')
+    if 'inactive (dead)' in '\n'.join(result.stdout):
+        raise CapsuleHostError(
+            f'foreman-proxy service is not running on the capsule:\n{result.stdout}'
+        )
+    # no errors/failures in journald
+    result = capsule.execute(
+        r'journalctl --quiet --no-pager --boot --grep ERROR -u "foreman-proxy" -u "httpd" -u "postgresql" -u "pulp-api" -u "pulp-content" -u "pulp-worker*" -u "valkey"'
+    )
+    if is_open('SAT-21086'):
+        assert not list(filter(lambda x: 'PG::' not in x, result.stdout.splitlines()))
+    else:
+        assert not result.stdout
+    # no errors/failures in /var/log/httpd/*
+    result = capsule.execute(r'grep -iR "error" /var/log/httpd/*')
+    assert not result.stdout
+    httpd_log = capsule.execute('journalctl --unit=httpd')
+    assert 'WARNING' not in httpd_log.stdout
+
+
 def assert_hammer_ping_ok(result):
     assert result.status == 0, 'hammer ping failed'
     services = hammer.parse_ping(result.stdout)
@@ -68,9 +95,125 @@ def assert_postgresql_tuning(sat, tuning):
         )
 
 
+def sync_capsule_repos(satellite, capsule_host, org, ak):
+    """
+    On Satellite enable and synchronize content required for Capsule installation.
+    1. Enable RHEL repositories based on configuration
+    2. Enable capsule repositories based on configuration
+    3. Synchronize repositories
+    """
+    # List of sync tasks - all repos will be synced asynchronously
+    sync_tasks = []
+
+    # Enable and sync RHEL BaseOS and AppStream repos
+    if settings.robottelo.rhel_source == "internal":
+        # Configure internal sources as custom repositories
+        product_rhel = satellite.api.Product(organization=org.id).create()
+        for repourl in settings.repos.get(f'rhel{capsule_host.os_version.major}_os').values():
+            repo = satellite.api.Repository(
+                organization=org.id, product=product_rhel, content_type='yum', url=repourl
+            ).create()
+            # custom repos need to be explicitly enabled
+            ak.content_override(
+                data={
+                    'content_overrides': [
+                        {
+                            'content_label': '_'.join([org.label, product_rhel.label, repo.label]),
+                            'value': '1',
+                        }
+                    ]
+                }
+            )
+    else:
+        # use AppStream and BaseOS from CDN
+        for rh_repo_key in [
+            f'rhel{capsule_host.os_version.major}_bos',
+            f'rhel{capsule_host.os_version.major}_aps',
+        ]:
+            satellite.api_factory.enable_rhrepo_and_fetchid(
+                basearch=DEFAULT_ARCHITECTURE,
+                org_id=org.id,
+                product=PRDS[f'rhel{capsule_host.os_version.major}'],
+                repo=REPOS[rh_repo_key]['name'],
+                reposet=REPOSET[rh_repo_key],
+                releasever=REPOS[rh_repo_key]['releasever'],
+            )
+        product_rhel = satellite.api.Product(
+            name=PRDS[f'rhel{capsule_host.os_version.major}'], organization=org.id
+        ).search()[0]
+    sync_tasks.append(satellite.api.Product(id=product_rhel.id).sync(synchronous=False))
+
+    # Enable and sync Capsule repos
+    if settings.capsule.version.source == "ga":
+        # enable Capsule repos from CDN
+        for repo in capsule_host.CAPSULE_CDN_REPOS.values():
+            reposet = satellite.api.RepositorySet(organization=org.id).search(
+                query={'search': repo}
+            )[0]
+            reposet.enable()
+            # repos need to be explicitly enabled in AK
+            ak.content_override(
+                data={
+                    'content_overrides': [
+                        {
+                            'content_label': reposet.label,
+                            'value': '1',
+                        }
+                    ]
+                }
+            )
+            sync_tasks.append(satellite.api.Product(id=reposet.product.id).sync(synchronous=False))
+    else:
+        # configure internal source as custom repos
+        product_capsule = satellite.api.Product(organization=org.id).create()
+        for repo_variant, repo_default_url in [
+            ('capsule', 'capsule_repo'),
+            ('maintenance', 'satmaintenance_repo'),
+        ]:
+            if settings.capsule.version.source == 'nightly':
+                repo_url = getattr(settings.repos, repo_default_url)
+            else:
+                repo_url = dogfood_repository(
+                    ohsnap=settings.ohsnap,
+                    repo=repo_variant,
+                    product="capsule",
+                    release=settings.capsule.version.release,
+                    os_release=capsule_host.os_version.major,
+                    snap=settings.capsule.version.snap,
+                ).baseurl
+            repo = satellite.api.Repository(
+                organization=org.id,
+                product=product_capsule,
+                content_type='yum',
+                url=repo_url,
+            ).create()
+
+            # custom repos need to be explicitly enabled
+            ak.content_override(
+                data={
+                    'content_overrides': [
+                        {
+                            'content_label': '_'.join(
+                                [org.label, product_capsule.label, repo.label]
+                            ),
+                            'value': '1',
+                        }
+                    ]
+                }
+            )
+        sync_tasks.append(satellite.api.Product(id=product_capsule.id).sync(synchronous=False))
+
+    # Wait for asynchronous sync tasks
+    satellite.wait_for_tasks(
+        search_query=(f'id ^ "{",".join(task["id"] for task in sync_tasks)}"'),
+        poll_timeout=1800,
+    )
+
+
 @pytest.fixture(scope='module')
 def module_sat_ready_rhel(request):
-    param = request.param
+    """Deploy bare RHEL system ready for Satellite installation."""
+    param = getattr(request, 'param', 'default')
     deploy_args = param.get('deploy_args', '') if isinstance(param, dict) else ''
     with Broker(
         workflow=settings.server.deploy_workflows.os,
@@ -85,6 +228,40 @@ def module_sat_ready_rhel(request):
             parameters=deploy_args,
         )
         yield sat
+
+@pytest.fixture(scope='module')
+def module_cap_ready_rhel(request):
+    """Deploy bare RHEL system ready for Capsule installation."""
+    with Broker(
+        workflow=settings.server.deploy_workflows.os,
+        deploy_rhel_version=settings.server.version.rhel_version,
+        deploy_flavor=settings.flavors.default,
+        deploy_network_type=settings.server.network_type,
+        host_class=Capsule,
+    ) as cap:
+        # Add IPv6 proxy for IPv6 communication
+        cap.enable_ipv6_dnf_and_rhsm_proxy()
+        cap.enable_ipv6_system_proxy()
+        # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
+        cap.ensure_podman_installed(enable_ipv6_proxy=True)
+        # Unregister capsule in case it's registered to CDN
+        cap.unregister()
+
+        # Install satellitectl package on Capsule
+        cap.setup_satellite_repos()  # Remove this when satellitectl is available in capsule repos
+        # Enable Packit repos for upstream testing
+        pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
+        if pull_requests:
+            Broker(
+                job_template='upstream-pr-install',
+                target_vm=cap.name,
+                pull_requests=pull_requests,
+                deploy_network_type=settings.server.network_type,
+            ).execute()
+        assert cap.execute('dnf install -y satellitectl').status == 0, (
+            'Failed to install satellitectl'
+        )
+        yield cap
 
 
 @pytest.fixture(scope='module')
@@ -105,6 +282,8 @@ def module_sat_foremanctl_tuning(request):
         yield sat
 
 
+@pytest.mark.e2e
+@pytest.mark.pit_server
 @pytest.mark.first_sanity
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
 def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
@@ -123,6 +302,67 @@ def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
         2. no unexpected errors in logs
     """
     common_sat_install_assertions(module_sat_ready_rhel)
+
+
+@pytest.mark.e2e
+@pytest.mark.pit_server
+@pytest.mark.build_sanity
+def test_capsule_installation_with_foremanctl(
+    pytestconfig, module_sat_ready_rhel, module_cap_ready_rhel, module_sca_manifest
+):
+    """Run a basic Capsule installation with foremanctl
+
+    :id: 64fa85b6-96e6-4fea-bea4-a30539d59e69
+
+    :steps:
+        1. Use Satellite deployed with foremanctl.
+        2. Configure RHEL and Capsule repos on Satellite
+        3. Register Capsule machine to consume Satellite content
+        4. Install and setup Capsule server using foremanctl
+
+    :expectedresults:
+        1. Capsule is installed and setup correctly
+        2. no unexpected errors in logs
+        3. health check runs successfully
+    """
+    # Setup Capsule Hostname for further sanity capsule testing
+    if 'build_sanity' in pytestconfig.option.markexpr:
+        settings.capsule.hostname = module_cap_ready_rhel.hostname
+        module_cap_ready_rhel._skip_context_checkin = True
+        pytest.capsule_sanity = True
+
+    # Create testing organization
+    org = module_sat_ready_rhel.api.Organization().create()
+
+    # Add a manifest to the Satellite
+    module_sat_ready_rhel.upload_manifest(org.id, module_sca_manifest.content)
+    # Create capsule certs and activation key
+    file, _, cmd_args = module_sat_ready_rhel.capsule_certs_generate(module_cap_ready_rhel)
+    module_sat_ready_rhel.session.remote_copy(file, module_cap_ready_rhel)
+    cvenv_id = module_sat_ready_rhel.api_factory.get_cvenv_id(org.default_content_view, org.library)
+    ak = module_sat_ready_rhel.api.ActivationKey(
+        organization=org, content_view_environment_ids=[cvenv_id]
+    ).create()
+    sync_capsule_repos(module_sat_ready_rhel, module_cap_ready_rhel, org, ak)
+
+    module_cap_ready_rhel.register(org, None, ak.name, module_sat_ready_rhel)
+
+    # Setup Capsule
+    result = module_cap_ready_rhel.execute(cmd_args)
+    assert result.status == 0, (
+        f'satellitectl deploy-proxy failed at capsule host\n{result.stdout}\n{result.stderr}'
+    )
+
+    assert module_sat_ready_rhel.api.Capsule().search(
+        query={'search': f'name={module_cap_ready_rhel.hostname}'}
+    )[0]
+
+    common_cap_install_assertions(module_cap_ready_rhel)
+
+    result = module_cap_ready_rhel.execute('satellitectl health')
+    assert result.status == 0
+    assert 'FAIL' not in result.stdout
+    assert 'Some services are not running' not in result.stdout
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
