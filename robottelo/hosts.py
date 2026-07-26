@@ -1698,6 +1698,7 @@ class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     product_rpm_name = 'satellite-capsule'
     upstream_rpm_name = 'foreman-proxy'
+    container_rpm_name = 'satellitectl'
 
     def __init__(self, hostname, **kwargs):
         kwargs.setdefault('net_type', settings.capsule.network_type)
@@ -2017,7 +2018,30 @@ class Capsule(ContentHost, CapsuleMixins):
         """
         self.register_to_cdn()
         self.setup_rhel_repos()
-        self.setup_capsule_repos(release=release)
+        product_rpm_name = (
+            self.container_rpm_name if self.is_foremanctl_available() else self.product_rpm_name
+        )
+        # TODO: Remove this condition once foremanctl is available in capsule repos
+        if settings.server.install_method == InstallMethod.INSTALLER:
+            self.setup_capsule_repos(release=release)
+        else:
+            self.setup_satellite_repos()
+            # Enable Packit repos
+            pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
+            if pull_requests:
+                Broker(
+                    job_template='upstream-pr-install',
+                    target_vm=self.name,
+                    pull_requests=pull_requests,
+                    deploy_network_type=settings.server.network_type,
+                ).execute()
+            assert self.execute(f'dnf install -y {product_rpm_name}').status == 0, (
+                f'Failed to install {product_rpm_name}'
+            )
+
+        result = self.execute(f'rpm -q {product_rpm_name}')
+        if result.status:
+            raise CapsuleHostError(f'The {product_rpm_name} package was not found\n{result.stdout}')
 
         # After capsule registration to cdn, it should be initialized with the Satellite.
         self._satellite = sat_host or Satellite()
@@ -2033,31 +2057,49 @@ class Capsule(ContentHost, CapsuleMixins):
         ), "firewalld is not present and can't be installed"
         self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
         self.execute('firewall-cmd --runtime-to-permanent')
-        result = self.execute('rpm -q satellite-capsule')
-        if result.status:
-            raise CapsuleHostError(f'The satellite-capsule package was not found\n{result.stdout}')
 
         # Generate certificate, copy it to Capsule, run installer, check it succeeds
         if not capsule_cert_opts:
             capsule_cert_opts = {}
         certs_tar, _, installer = self.satellite.capsule_certs_generate(self, **capsule_cert_opts)
         self.satellite.session.remote_copy(certs_tar, self)
-        installer.update(**installer_kwargs)
-        result = self.install(installer)
-        if result.status:
-            # before exit download the capsule log file
-            self.session.sftp_read(
-                '/var/log/foreman-installer/capsule.log',
-                f'{settings.robottelo.tmp_dir}/capsule-{self.ip_addr}.log',
-            )
-            raise CapsuleHostError(
-                f'Foreman installer failed at capsule host\n{result.stdout}\n{result.stderr}'
-            )
-        result = self.execute('satellite-maintain service status')
-        if 'inactive (dead)' in '\n'.join(result.stdout):
-            raise CapsuleHostError(
-                f'A core service is not running at capsule host\n{result.stdout}'
-            )
+
+        if settings.server.install_method == InstallMethod.INSTALLER:
+            installer.update(**installer_kwargs)
+            result = self.install(installer)
+            if result.status:
+                # before exit download the capsule log file
+                self.session.sftp_read(
+                    '/var/log/foreman-installer/capsule.log',
+                    f'{settings.robottelo.tmp_dir}/capsule-{self.ip_addr}.log',
+                )
+                raise CapsuleHostError(
+                    f'Foreman installer failed at capsule host\n{result.stdout}\n{result.stderr}'
+                )
+            result = self.execute('satellite-maintain service status')
+            if 'inactive (dead)' in '\n'.join(result.stdout):
+                raise CapsuleHostError(
+                    f'A core service is not running at capsule host\n{result.stdout}'
+                )
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute(installer)
+            if result.status:
+                # before exit download the logs file for further investigation
+                self.execute(
+                    'journalctl --since "1 hour ago" -u foreman-proxy -u pulp-api -u pulp-content -u httpd -u postgresql -u valkey > /tmp/deploy-proxy-failure.log'
+                )
+                self.session.sftp_read(
+                    '/tmp/deploy-proxy-failure.log',
+                    f'{settings.robottelo.tmp_dir}/deploy-proxy-failure-{self.ip_addr}.log',
+                )
+                raise CapsuleHostError(
+                    f'foremanctl deploy-proxy failed at capsule host\n{result.stdout}\n{result.stderr}'
+                )
+            result = self.execute('systemctl status foreman-proxy.service foreman.target')
+            if 'inactive (dead)' in '\n'.join(result.stdout):
+                raise CapsuleHostError(
+                    f'A core service is not running at capsule host\n{result.stdout}'
+                )
 
     def update_download_policy(self, policy):
         """Updates capsule's download policy to desired value"""
@@ -2394,6 +2436,7 @@ class Capsule(ContentHost, CapsuleMixins):
 class Satellite(Capsule, SatelliteMixins):
     product_rpm_name = 'satellite'
     upstream_rpm_name = 'foreman'
+    container_rpm_name = 'satellitectl'
 
     def __init__(self, hostname=None, **kwargs):
         hostname = hostname or settings.server.hostname  # instance attr set by broker.Host
@@ -2720,17 +2763,32 @@ class Satellite(Capsule, SatelliteMixins):
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
         """Generate capsule certs, returning the cert path, installer command stdout and args"""
-        cert_file_path = cert_path or f'/root/{capsule.hostname}-certs.tar'
-        result = self.install(
-            InstallerCommand(
-                command='capsule-certs-generate',
-                foreman_proxy_fqdn=capsule.hostname,
-                certs_tar=cert_file_path,
-                installer_args=['no-colors'],
-                **extra_kwargs,
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            cert_file_path = f'/var/lib/foremanctl/certs/bundles/{capsule.hostname}.tar.gz'
+            result = self.execute(
+                f'satellitectl certificate-bundle {capsule.hostname}', timeout='10m'
             )
-        )
-        install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
+            if result.status:
+                raise SatelliteHostError(
+                    f'satellitectl certificate-bundle failed\n{result.stdout}\n{result.stderr}'
+                )
+            install_cmd = (
+                f'satellitectl deploy-proxy --flavor foreman-proxy-content'
+                f' --certificate-bundle {cert_file_path}'
+                f' --foreman-fqdn {self.hostname}'
+            )
+        else:
+            cert_file_path = cert_path or f'/root/{capsule.hostname}-certs.tar'
+            result = self.install(
+                InstallerCommand(
+                    command='capsule-certs-generate',
+                    foreman_proxy_fqdn=capsule.hostname,
+                    certs_tar=cert_file_path,
+                    installer_args=['no-colors'],
+                    **extra_kwargs,
+                )
+            )
+            install_cmd = InstallerCommand.from_cmd_str(cmd_str=result.stdout)
         return cert_file_path, result, install_cmd
 
     def __enter__(self):
