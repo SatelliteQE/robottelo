@@ -28,7 +28,7 @@ from robottelo.constants import (
     InstallationServices,
 )
 from robottelo.exceptions import CapsuleHostError
-from robottelo.hosts import Satellite, Capsule
+from robottelo.hosts import Capsule, Satellite
 from robottelo.utils.issue_handlers import is_open
 from robottelo.utils.ohsnap import dogfood_repository
 
@@ -226,6 +226,7 @@ def module_sat_ready_rhel(request):
             parameters=deploy_args,
         )
         yield sat
+
 
 @pytest.fixture(scope='module')
 def module_cap_ready_rhel(request):
@@ -832,26 +833,18 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
 
     :steps:
         1. Deploy Satellite with foremanctl using default certificates
-        2. Generate an auth bundle via
-           foremanctl auth-bundle
+        2. Generate an auth bundle via foremanctl auth-bundle
         3. Extract the bundle tarball and verify it contains capsule server and
            client certificate files and oauth credentials
-        4. Verify capsule server and client certificates have default validity
-           (7300 days)
+        4. Verify capsule server and client certificates have default validity (7300 days)
         5. Verify capsule server and client certificates are signed by the bundle CA
-        6. Capture SHA256 fingerprints of the CA, capsule server, and capsule
-           client certificates
-        7. Renew the capsule auth bundle with foremanctl auth-bundle
-           --certificate-renew
+        6. Capture SHA256 fingerprints of the CA, capsule server and capsule client certificates
+        7. Renew the capsule auth bundle with foremanctl auth-bundle --certificate-renew
         8. Extract the renewed bundle tarball and verify its contents
-        9. Verify renewed capsule server and client certificates retain default
-           validity (7300 days)
-        10. Verify renewed capsule certificates chain to both the original and
-            renewed bundle CA
-        11. Verify CA fingerprint is unchanged between the original and renewed
-            bundle
-        12. Verify capsule server and client certificate fingerprints changed after
-            renewal
+        9. Verify renewed capsule server and client certificates retain default validity(7300 days)
+        10. Verify renewed capsule certificates chain to both the original and renewed bundle CA
+        11. Verify CA fingerprint is unchanged between the original and renewed bundle
+        12. Verify capsule server and client certificate fingerprints changed after renewal
 
     :expectedresults:
         1. foremanctl auth-bundle succeeds and produces a tarball
@@ -863,8 +856,7 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
         6. Renewed capsule certificates retain 7300-day validity
         7. CA identity is preserved across renewal (fingerprint unchanged)
         8. Capsule server and client certificates are regenerated (fingerprints change)
-        9. Renewed certificates maintain chain integrity against both the original
-           and renewed CA
+        9. Renewed certificates maintain chain integrity against both the original and renewed CA
 
     :verifies: SAT-43475
     """
