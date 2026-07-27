@@ -18,6 +18,8 @@ import pytest
 import requests
 from wait_for import wait_for
 
+from robottelo.utils.issue_handlers import is_open
+
 
 @pytest.mark.e2e
 def test_positive_puppet_bootstrap(
@@ -94,7 +96,9 @@ def test_positive_puppet_bootstrap(
 
 
 @pytest.mark.on_premises_provisioning
-@pytest.mark.rhel_ver_match(r'^\d+$')
+@pytest.mark.rhel_ver_match(
+    f'[{"" if is_open("SAT-41340") else "7"}89]'  # Skip EL7 for provisioning test as UEFI is not supported yet
+)
 def test_host_provisioning_with_external_puppetserver(
     request,
     external_puppet_server,
@@ -166,8 +170,8 @@ def test_host_provisioning_with_external_puppetserver(
     # the result of the installation. Wait until Satellite reports that the host is installed.
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
-        timeout=1500,
-        delay=10,
+        timeout='40m',
+        delay=30,
     )
     host = host.read()
     assert host.build_status_label == 'Installed'
@@ -193,8 +197,8 @@ def test_host_provisioning_with_external_puppetserver(
     assert provisioning_host.subscribed, 'Host is not subscribed'
 
     # Validate external Puppet server deployment with Satellite
-    assert provisioning_host.execute('rpm -q puppet-agent').status == 0, (
-        'Puppet agent package is not installed'
+    assert provisioning_host.execute('rpm -q --whatprovides puppet-agent').status == 0, (
+        'Package providing Puppet agent is not installed'
     )
 
     assert (

@@ -38,9 +38,12 @@ def assert_puppet_status(server, expected):
     assert ('puppet' in result) is expected
     assert ('puppetca' in result) is expected
 
-    result = server.execute('rpm -q puppetserver')
-    assert (result.status == 0) is expected
-    assert ('package puppetserver is not installed' in result.stdout) is not expected
+    result = server.execute('rpm -q --whatprovides puppetserver')
+    assert (result.status == 0) is expected, (
+        'No package provides puppetserver capability'
+        if expected
+        else 'puppetserver capability is provided when it should not be'
+    )
 
     result = server.execute('systemctl status puppetserver')
     assert ('active (running)' in result.stdout) is expected

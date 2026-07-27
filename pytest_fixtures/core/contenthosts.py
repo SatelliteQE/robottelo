@@ -268,21 +268,18 @@ def oracle_host(request, version):
         yield host
 
 
-@pytest.fixture(scope='module', params=[{'rhel_version': 8, 'no_containers': True}])
-def external_puppet_server(request):
-    deploy_args = host_conf(request)
-    deploy_args['target_cores'] = 2
-    deploy_args['target_memory'] = '4GiB'
-    with Broker(**deploy_args, host_class=ContentHost) as host:
+@pytest.fixture(scope='module')
+def external_puppet_server():
+    with Broker(
+        host_class=ContentHost,
+        workflow=settings.server.deploy_workflows.os,
+        deploy_rhel_version=settings.server.version.rhel_version,
+        deploy_network_type=settings.server.network_type,
+    ) as host:
         host.register_to_cdn()
-        # Install puppet packages
-        assert (
-            host.execute(
-                'dnf install -y https://yum.puppet.com/puppet-release-el-8.noarch.rpm'
-            ).status
-            == 0
-        )
-        assert host.execute('dnf install -y puppetserver').status == 0
+        # Enable satellite repositories to install Puppet server
+        host.create_custom_repos(satellite=settings.repos.satellite_repo)
+        assert host.execute('dnf -y install openvox-server').status == 0
         # Source puppet profiles
         host.execute('. /etc/profile.d/puppet-agent.sh')
         # Setup Puppet Server CA
