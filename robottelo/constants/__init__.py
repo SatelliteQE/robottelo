@@ -1012,6 +1012,27 @@ FAKE_9_YUM_SECURITY_ERRATUM = [
 ]
 FAKE_9_YUM_SECURITY_ERRATUM_COUNT = len(FAKE_9_YUM_SECURITY_ERRATUM)
 
+# Packages listed directly in the 3 security errata above
+FAKE_9_YUM_SECURITY_ERRATUM_PACKAGES = [
+    'bear-4.1-1.noarch',
+    'crow-0.8-1.noarch',
+    'duck-0.6-1.noarch',
+    'penguin-0.9.1-1.noarch',
+    'shark-0.1-1.noarch',
+    'stork-0.12-2.noarch',
+    'walrus-5.21-1.noarch',
+]
+
+# Transitive dependencies of the security erratum packages:
+# penguin->dolphin->{lion,tiger}, duck->{cockateel,lion}, cockateel->wolf, lion->wolf
+FAKE_9_YUM_SECURITY_ERRATUM_DEPS = [
+    'cockateel-3.1-1.noarch',
+    'dolphin-3.10.232-1.noarch',
+    'lion-0.4-1.noarch',
+    'tiger-1.0-4.noarch',
+    'wolf-9.4-2.noarch',
+]
+
 FAKE_10_YUM_BUGFIX_ERRATUM = [
     'RHBA-2012:1030',
 ]
