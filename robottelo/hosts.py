@@ -45,7 +45,9 @@ from robottelo.constants import (
     CUSTOM_PUPPET_MODULE_REPOS,
     CUSTOM_PUPPET_MODULE_REPOS_PATH,
     CUSTOM_PUPPET_MODULE_REPOS_VERSION,
+    FOREMANCTL_CA_CERT_PATH,
     HAMMER_CONFIG,
+    INSTALLER_CA_CERT_PATH,
     KEY_CLOAK_CLI,
     RHBK_CLI,
     RHSSO_NEW_GROUP,
@@ -1781,11 +1783,10 @@ class Capsule(ContentHost, CapsuleMixins):
         - foremanctl: /var/lib/foremanctl/certs/certs/ca.crt
         - installer: /etc/pki/katello/certs/katello-default-ca.crt
         """
-        from robottelo.enums import InstallMethod
 
         if settings.server.install_method == InstallMethod.FOREMANCTL:
-            return '/var/lib/foremanctl/certs/certs/ca.crt'
-        return '/etc/pki/katello/certs/katello-default-ca.crt'
+            return FOREMANCTL_CA_CERT_PATH
+        return INSTALLER_CA_CERT_PATH
 
     @property
     def rex_pub_key(self):

@@ -1094,6 +1094,9 @@ PULP_HREF_PRN_MAP = {
     '/pulp/api/v3/acs/file/file': 'prn:file.filealternatecontentsource:',
 }
 
+FOREMANCTL_CA_CERT_PATH = '/var/lib/foremanctl/certs/certs/ca.crt'
+INSTALLER_CA_CERT_PATH = '/etc/pki/katello/certs/katello-default-ca.crt'
+
 PULP_PRN_TABLES = [
     {'name': 'katello_content_guards', 'href_key': 'pulp_href', 'prn_key': 'pulp_prn'},
     {'name': 'katello_repositories', 'href_key': 'remote_href', 'prn_key': 'remote_prn'},
