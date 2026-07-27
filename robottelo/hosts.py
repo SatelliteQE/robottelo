@@ -2765,16 +2765,14 @@ class Satellite(Capsule, SatelliteMixins):
         """Generate capsule certs, returning the cert path, installer command stdout and args"""
         if settings.server.install_method == InstallMethod.FOREMANCTL:
             cert_file_path = f'/var/lib/foremanctl/certs/bundles/{capsule.hostname}.tar.gz'
-            result = self.execute(
-                f'satellitectl certificate-bundle {capsule.hostname}', timeout='10m'
-            )
+            result = self.execute(f'satellitectl auth-bundle {capsule.hostname}', timeout='10m')
             if result.status:
                 raise SatelliteHostError(
-                    f'satellitectl certificate-bundle failed\n{result.stdout}\n{result.stderr}'
+                    f'satellitectl auth-bundle failed\n{result.stdout}\n{result.stderr}'
                 )
             install_cmd = (
                 f'satellitectl deploy-proxy --flavor foreman-proxy-content'
-                f' --certificate-bundle {cert_file_path}'
+                f' --auth-bundle {cert_file_path}'
                 f' --foreman-fqdn {self.hostname}'
             )
         else:
