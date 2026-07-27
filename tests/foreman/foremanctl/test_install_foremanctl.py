@@ -76,6 +76,7 @@ def module_sat_ready_rhel(request):
         deploy_flavor=settings.flavors.default,
         deploy_network_type=settings.server.network_type,
         host_class=Satellite,
+        use_dynamic_inventories_wf_level=False,
     ) as sat:
         sat.install_satellite_foremanctl(
             enable_fapolicyd=(param == 'fapolicyd'),
@@ -94,6 +95,7 @@ def module_sat_foremanctl_tuning(request):
         deploy_flavor=settings.flavors.large,
         deploy_network_type=settings.server.network_type,
         host_class=Satellite,
+        use_dynamic_inventories_wf_level=False,
     ) as sat:
         sat.install_satellite_foremanctl(
             parameters=[
@@ -164,6 +166,7 @@ def module_sat_foremanctl_custom_certs():
         deploy_flavor=settings.flavors.default,
         deploy_network_type=settings.server.network_type,
         host_class=Satellite,
+        use_dynamic_inventories_wf_level=False,
     ) as sat:
         sat.custom_cert_generate(sat.hostname)
         sat.install_satellite_foremanctl(
