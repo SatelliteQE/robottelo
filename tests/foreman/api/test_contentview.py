@@ -30,6 +30,9 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_1_ERRATA_ID,
     FAKE_2_CUSTOM_PACKAGE,
+    FAKE_9_YUM_SECURITY_ERRATUM,
+    FAKE_9_YUM_SECURITY_ERRATUM_DEPS,
+    FAKE_9_YUM_SECURITY_ERRATUM_PACKAGES,
     PERMISSIONS,
     PRDS,
     REPOS,
@@ -2475,6 +2478,93 @@ class TestContentViewPublishPromote:
         assert '2.0' in [v.read().version for v in cv_custom.version]
         ccv = ccv.read()
         assert set(v.read().version for v in ccv.version) == {'1.0'}
+
+    @pytest.mark.parametrize(
+        'resolve_dependencies',
+        [True, False, None],
+        ids=['dep_solving_enabled', 'dep_solving_disabled', 'dep_solving_default'],
+    )
+    def test_positive_inc_update_resolve_dependencies(
+        self,
+        target_sat,
+        module_org,
+        module_product,
+        resolve_dependencies,
+    ):
+        """Verify that the resolve_dependencies parameter controls whether
+        dependency packages are included in an incremental content view update.
+
+        :id: fa45c92d-d1df-4805-833a-bc6c25b8747c
+
+        :parametrized: yes
+
+        :steps:
+            1. Create and sync a custom yum repository containing errata
+               whose packages have known dependency chains.
+            2. Create a content view with the repository, add an erratum
+               inclusion filter with no rules to exclude all errata and
+               their packages, then publish.
+            3. Perform an incremental update to add 3 security errata back,
+               with resolve_dependencies set to True, False, or omitted
+               entirely to test the server default.
+
+        :expectedresults:
+            1. With resolve_dependencies=True, the incremental version includes
+               the direct errata packages and their transitive dependency
+               packages (12 total).
+            2. With resolve_dependencies=False, the incremental version includes
+               only the direct errata packages (7 total).
+            3. With resolve_dependencies omitted, the server default (False)
+               applies and only direct errata packages are included (7 total).
+        """
+        repo = target_sat.api.Repository(
+            product=module_product,
+            url=settings.repos.yum_9.url,
+        ).create()
+        repo.sync()
+
+        cv = target_sat.api.ContentView(
+            organization=module_org,
+            repository=[repo],
+        ).create()
+        # Erratum inclusion filter with no rules: excludes all errata and
+        # their associated packages from the published version.
+        target_sat.api.ErratumContentViewFilter(
+            content_view=cv,
+            inclusion=True,
+        ).create()
+        cv.publish()
+        cv = cv.read()
+        cvv = cv.version[0]
+
+        inc_data = {
+            'content_view_version_environments': [
+                {
+                    'content_view_version_id': cvv.id,
+                    'environment_ids': [module_org.library.id],
+                }
+            ],
+            'add_content': {'errata_ids': FAKE_9_YUM_SECURITY_ERRATUM},
+        }
+        if resolve_dependencies is not None:
+            inc_data['resolve_dependencies'] = resolve_dependencies
+
+        response = target_sat.api.ContentViewVersion().incremental_update(data=inc_data)
+        assert response['result'] == 'success'
+
+        added_errata = response['output']['changed_content'][0]['added_units']['erratum']
+        added_packages = set(response['output']['changed_content'][0]['added_units']['rpm'])
+        # All 3 security errata are added regardless of resolve_dependencies
+        assert set(added_errata) == set(FAKE_9_YUM_SECURITY_ERRATUM)
+
+        expected = set(FAKE_9_YUM_SECURITY_ERRATUM_PACKAGES)
+        if resolve_dependencies:
+            expected |= set(FAKE_9_YUM_SECURITY_ERRATUM_DEPS)
+
+        assert added_packages == expected, (
+            f'Expected {"direct + dependency" if resolve_dependencies else "only direct errata"} '
+            f'packages, got {sorted(added_packages)}'
+        )
 
 
 class TestContentViewUpdate:
