@@ -1080,8 +1080,8 @@ def test_ldaps_cacert_test_connection(session, ldap_auth_source, target_sat):
                     'ldap_server.cacert': wrong_cacert,
                 }
             )
-        # No error details in toast https://projects.theforeman.org/issues/39552
-        assert error.match('Danger alert: Error')
+
+        assert error.match('certificate verify failed')
 
         session.ldapauthentication.test_connection(
             {
