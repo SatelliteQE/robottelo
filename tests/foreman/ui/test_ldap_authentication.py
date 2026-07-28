@@ -20,6 +20,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import ANY_CONTEXT, LDAP_ATTR, PERMISSIONS
 from robottelo.utils.datafactory import gen_string
+from robottelo.utils.ldap import get_ldap_cacert_pem
 
 pytestmark = [pytest.mark.run_in_one_thread]
 
@@ -1041,6 +1042,54 @@ def test_login_failure_if_internal_user_exist(
             assert error.typename == 'NavigationTriesExceeded'
     finally:
         target_sat.api.User(id=user.id).delete()
+
+
+@pytest.mark.parametrize('ldap_auth_source', ['IPA'], indirect=True)
+def test_ldaps_cacert_test_connection(session, ldap_auth_source, target_sat):
+    """LDAPS auth source fails test connection with a wrong cacert and succeeds with the right one.
+
+    :id: eddf4ddf-03d2-4aa1-981f-c30078e3dc54
+
+    :steps:
+        1. Open an existing LDAP auth source created without TLS.
+        2. Enable LDAPS and provide a wrong cacert (the Satellite host certificate).
+        3. Click test connection — expect failure.
+        4. Replace the cacert with the real IPA CA certificate.
+        5. Click test connection — expect success.
+
+    :expectedresults: Test connection fails with a wrong CA certificate and passes once the
+        correct IPA CA certificate is provided.
+
+    :parametrized: yes
+    """
+    ldap_data, auth_source = ldap_auth_source
+    wrong_cacert_result = target_sat.execute(
+        'cat /etc/pki/ca-trust/source/anchors/katello_server-host-cert.crt'
+    )
+    assert wrong_cacert_result.status == 0, (
+        f'Failed to read Satellite host cert: {wrong_cacert_result.stderr}'
+    )
+    wrong_cacert = wrong_cacert_result.stdout
+    cacert = get_ldap_cacert_pem(target_sat, 'IPA', ldap_data['ldap_hostname'])
+    with session:
+        with pytest.raises(AssertionError) as error:
+            session.ldapauthentication.test_connection(
+                {
+                    'ldap_server.host': ldap_data['ldap_hostname'],
+                    'ldap_server.ldaps': True,
+                    'ldap_server.cacert': wrong_cacert,
+                }
+            )
+        # No error details in toast https://projects.theforeman.org/issues/39552
+        assert error.match('Danger alert: Error')
+
+        session.ldapauthentication.test_connection(
+            {
+                'ldap_server.host': ldap_data['ldap_hostname'],
+                'ldap_server.ldaps': True,
+                'ldap_server.cacert': cacert,
+            }
+        )
 
 
 def test_userlist_with_external_admin(

@@ -196,8 +196,8 @@ def test_positive_create_with_https(
         assert ldap_source['ldap_server']['port'] == '636'
 
         # In AD's case, the CA cert uses CRLF line endings
-        # when this cert is uploaded to Satellite and read back through hammer,
-        # the line endings are replaced with unix LF-only line endings.
+        # when this cert is uploaded to Satellite, the line endings are replaced
+        # with unix LF-only line endings.
         assert (
             ldap_source['ldap_server']['cacert'].strip() == cacert_pem.replace("\r\n", "\n").strip()
         )
@@ -1110,45 +1110,3 @@ def test_negative_autonegotiate_with_autonegotiation_disabled(
         # User has not been added
         user = parametrized_enrolled_sat.api.User().search(query={'search': f'login={user}'})
         assert not user
-
-
-@pytest.mark.parametrize('ldap_auth_source', ['IPA'], indirect=True)
-def test_ldaps_cacert_test_connection(
-    session, ldap_auth_source, module_target_sat, untrust_rhit_cas
-):
-    """LDAPS auth source without cacert fails test connection and succeeds with it.
-
-    :id: 63ef2536-cffa-453e-bf8d-4b887623270d
-
-    :steps:
-        1. Open an existing LDAP auth source created without TLS.
-        2. Enable LDAPS without providing a cacert.
-        3. Click test connection.
-        4. Provide a cacert.
-        5. Click test connection.
-
-    :expectedresults: Test connection fails at first due to untrusted CA certificate
-        and passes once the cacert is provided.
-
-    :parametrized: yes
-    """
-    ldap_data, auth_source = ldap_auth_source
-    cacert = get_ldap_cacert_pem(module_target_sat, 'IPA', ldap_data['ldap_hostname'])
-    with session:
-        with pytest.raises(AssertionError) as error:
-            session.ldapauthentication.test_connection(
-                {
-                    'ldap_server.host': ldap_data['ldap_hostname'],
-                    'ldap_server.ldaps': True,
-                }
-            )
-        # No error details in toast https://projects.theforeman.org/issues/39552
-        assert error.match('Danger alert: Error')
-
-        session.ldapauthentication.test_connection(
-            {
-                'ldap_server.host': ldap_data['ldap_hostname'],
-                'ldap_server.ldaps': True,
-                'ldap_server.cacert': cacert,
-            }
-        )
