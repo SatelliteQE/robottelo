@@ -349,7 +349,7 @@ def test_iop_recommendations_remediate_multiple_hosts(
 @pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?![78]).*')
-@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
+@pytest.mark.parametrize('module_target_sat_insights', [True], ids=['local'], indirect=True)
 def test_iop_recommendations_host_details_e2e(
     rhel_insights_vm,
     rhcloud_manifest_org,
@@ -393,6 +393,10 @@ def test_iop_recommendations_host_details_e2e(
         result = rhel_insights_vm.execute('insights-client --diagnosis')
         assert result.status == 0
         assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
+
+        # Verify that searching by recommendations count is not available in IoP mode SAT-46497
+        result = session.host_new.search_autocomplete('insights_recommendations_count >= 1')
+        assert "Searching by recommendations count is not available in IoP mode" in result[0]
 
         result = session.host_new.get_recommendations(rhel_insights_vm.hostname)
         assert any(row.get('Description') == OPENSSH_RECOMMENDATION for row in result), (
