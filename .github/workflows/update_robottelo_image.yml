@@ -38,7 +38,7 @@ jobs:
 
       - name: Push Robottelo image to quay.io
         id: push-to-quay
-        uses: redhat-actions/push-to-registry@v2
+        uses: redhat-actions/push-to-registry@v3
         with:
           image: robottelo
           tags: ${{ steps.image_tag.outputs.IMAGE_TAG }}
