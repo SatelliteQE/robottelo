@@ -45,7 +45,9 @@ from robottelo.constants import (
     CUSTOM_PUPPET_MODULE_REPOS,
     CUSTOM_PUPPET_MODULE_REPOS_PATH,
     CUSTOM_PUPPET_MODULE_REPOS_VERSION,
+    FOREMANCTL_CA_CERT_PATH,
     HAMMER_CONFIG,
+    INSTALLER_CA_CERT_PATH,
     KEY_CLOAK_CLI,
     RHBK_CLI,
     RHSSO_NEW_GROUP,
@@ -1772,6 +1774,19 @@ class Capsule(ContentHost, CapsuleMixins):
         """Return the Katello cert RPM URL"""
         pub_url = urlunsplit(('http', self.hostname, 'pub/', '', ''))  # use url with https?
         return urljoin(pub_url, 'katello-ca-consumer-latest.noarch.rpm')
+
+    @cached_property
+    def ca_cert_file(self):
+        """Return the path to the CA certificate file on this server.
+
+        The path depends on the installation method:
+        - foremanctl: /var/lib/foremanctl/certs/certs/ca.crt
+        - installer: /etc/pki/katello/certs/katello-default-ca.crt
+        """
+
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            return FOREMANCTL_CA_CERT_PATH
+        return INSTALLER_CA_CERT_PATH
 
     @property
     def rex_pub_key(self):
