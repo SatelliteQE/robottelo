@@ -57,7 +57,7 @@ def common_sat_install_assertions(satellite):
 
 def common_cap_install_assertions(capsule):
     result = capsule.execute('systemctl status foreman-proxy.service foreman.target')
-    if 'inactive (dead)' in '\n'.join(result.stdout):
+    if 'inactive (dead)' in result.stdout:
         raise CapsuleHostError(
             f'foreman-proxy service is not running on the capsule:\n{result.stdout}'
         )
@@ -65,10 +65,7 @@ def common_cap_install_assertions(capsule):
     result = capsule.execute(
         r'journalctl --quiet --no-pager --boot --grep ERROR -u "foreman-proxy" -u "httpd" -u "postgresql" -u "pulp-api" -u "pulp-content" -u "pulp-worker*" -u "valkey"'
     )
-    if is_open('SAT-21086'):
-        assert not list(filter(lambda x: 'PG::' not in x, result.stdout.splitlines()))
-    else:
-        assert not result.stdout
+    assert not result.stdout
     # no errors/failures in /var/log/httpd/*
     result = capsule.execute(r'grep -iR "error" /var/log/httpd/*')
     assert not result.stdout
@@ -245,9 +242,6 @@ def module_cap_ready_rhel(request):
         cap.enable_ipv6_system_proxy()
         # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
         cap.ensure_podman_installed(enable_ipv6_proxy=True)
-        # Unregister capsule in case it's registered to CDN
-        cap.unregister()
-
         # Install satellitectl package on Capsule
         cap.setup_satellite_repos()  # Remove this when satellitectl is available in capsule repos
         # Enable Packit repos for upstream testing
@@ -262,6 +256,8 @@ def module_cap_ready_rhel(request):
         assert cap.execute('dnf install -y satellitectl').status == 0, (
             'Failed to install satellitectl'
         )
+        # Unregister capsule in case it's registered to CDN
+        cap.unregister()
         yield cap
 
 

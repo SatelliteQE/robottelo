@@ -2019,7 +2019,9 @@ class Capsule(ContentHost, CapsuleMixins):
         self.register_to_cdn()
         self.setup_rhel_repos()
         product_rpm_name = (
-            self.container_rpm_name if self.is_foremanctl_available() else self.product_rpm_name
+            self.container_rpm_name
+            if settings.server.install_method == InstallMethod.FOREMANCTL
+            else self.product_rpm_name
         )
         # TODO: Remove this condition once foremanctl is available in capsule repos
         if settings.server.install_method == InstallMethod.INSTALLER:
@@ -2077,7 +2079,7 @@ class Capsule(ContentHost, CapsuleMixins):
                     f'Foreman installer failed at capsule host\n{result.stdout}\n{result.stderr}'
                 )
             result = self.execute('satellite-maintain service status')
-            if 'inactive (dead)' in '\n'.join(result.stdout):
+            if 'inactive (dead)' in result.stdout:
                 raise CapsuleHostError(
                     f'A core service is not running at capsule host\n{result.stdout}'
                 )
@@ -2096,7 +2098,7 @@ class Capsule(ContentHost, CapsuleMixins):
                     f'foremanctl deploy-proxy failed at capsule host\n{result.stdout}\n{result.stderr}'
                 )
             result = self.execute('systemctl status foreman-proxy.service foreman.target')
-            if 'inactive (dead)' in '\n'.join(result.stdout):
+            if 'inactive (dead)' in result.stdout:
                 raise CapsuleHostError(
                     f'A core service is not running at capsule host\n{result.stdout}'
                 )
