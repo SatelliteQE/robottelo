@@ -189,7 +189,7 @@ def test_content_validation_on_download(request, target_sat, function_org, funct
     ca_opt = f'--cacert {target_sat.ca_cert_file}'
     result = target_sat.execute(f'curl -O -w "%{{http_code}}" -s {ca_opt} {download_url}')
     request.addfinalizer(lambda: target_sat.execute(f'rm -f {pkg_name}'))
-    assert '200' in result.stdout, f'Expected 200 status, got: {result.stdout}'
+    assert result.stdout.strip() == '200'
     result = target_sat.execute(f'curl -O -w "%{{http_code}}" -s {ca_opt} {download_url}')
     assert '404' in result.stdout, f'Expected 404 status, got: {result.stdout}'
 
