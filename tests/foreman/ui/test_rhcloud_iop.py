@@ -349,7 +349,7 @@ def test_iop_recommendations_remediate_multiple_hosts(
 @pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?![78]).*')
-@pytest.mark.parametrize('module_target_sat_insights', [True], ids=['local'], indirect=True)
+@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_host_details_e2e(
     rhel_insights_vm,
     rhcloud_manifest_org,
