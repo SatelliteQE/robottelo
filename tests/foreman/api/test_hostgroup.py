@@ -687,14 +687,10 @@ class TestHostGroup:
         cv.publish()
         cv = cv.read()
 
-        # Get content view environment ID
-        cv_env = module_target_sat.api.ContentViewEnvironment()
-        cv_env_id = [
-            env['id']
-            for env in cv_env.list_content_view_environments()['results']
-            if env['name'] == f'Library/{cv.name}'
-            and env['organization']['id'] == function_sca_manifest_org.id
-        ]
+        # Get the Library lifecycle environment for the organization
+        library_lce = module_target_sat.api.LifecycleEnvironment(
+            organization=function_sca_manifest_org
+        ).search(query={'search': 'name=Library'})[0]
 
         # Get content source, architecture, and operating system objects for hostgroup creation
         content_source = module_target_sat.api.SmartProxy().search(
@@ -720,7 +716,8 @@ class TestHostGroup:
         parent_hostgroup = module_target_sat.api.HostGroup(
             architecture=arch,
             content_source=content_source,
-            content_view_environment_id=cv_env_id[0],
+            content_view=cv,
+            lifecycle_environment=library_lce,
             kickstart_repository=repos_dict['Old BaseOS'],
             location=[function_location],
             organization=[function_sca_manifest_org],
