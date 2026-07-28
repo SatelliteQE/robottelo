@@ -79,10 +79,14 @@ def test_negative_remove_satellite_packages(sat_maintain):
         protected_package = 'satellite'
         package_list = ['foreman', 'foreman-proxy', 'katello', 'wget', protected_package]
     else:
-        protected_package = 'satellite-capsule'
-        package_list = ['foreman-proxy', protected_package]
+        package_list = ['foreman-proxy', 'satellite-capsule']
+    # DNF reports either "removing the following protected packages" (direct removal)
+    # or "broken dependencies for the following protected packages" (dependency removal),
+    # so we match the common substring that covers both cases.
+    protected_pkg = sat_maintain.product_rpm_name
     for package in package_list:
         result = sat_maintain.execute(f'yum remove {package}')
         assert result.status != 0
-        # dnf may report "removing" (direct remove) or "broken dependencies" (dependency remove)
-        assert f'protected packages: {protected_package}' in str(result.stderr)
+        assert f'protected packages: {protected_pkg}' in str(result.stderr), (
+            f'Expected protection error for {protected_pkg}, got: {result.stderr}'
+        )
