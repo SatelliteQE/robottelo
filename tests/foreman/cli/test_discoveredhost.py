@@ -466,7 +466,7 @@ def test_positive_list_facts():
     :CaseImportance: High
     """
 
-
+@pytest.mark.skip(reason='We do not rebuild FDI every time new version of RHEL is released')
 def test_positive_verify_updated_fdi_image(target_sat):
     """Verify foreman-discovery-image is built on latest up-to-date RHEL
 
