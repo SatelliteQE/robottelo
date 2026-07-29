@@ -6,6 +6,7 @@ from xdist import get_xdist_worker_id
 
 from robottelo.config import setting_is_set, settings
 from robottelo.hosts import get_sat_rhel_version
+from robottelo.logging import logger
 from robottelo.utils.ohsnap import container_image_properties
 
 FMT_XUNIT_TIME = '%Y-%m-%dT%H:%M:%S'
@@ -51,13 +52,16 @@ def pytest_sessionstart(session):
             xml.add_global_property("SatelliteVersion", sat_version)
             xml.add_global_property("SnapVersion", snap_version)
             xml.add_global_property("BaseOS", rhel_version)
-            if settings.server.deploy_arguments.deploy_container:
-                for name, value in container_image_properties(
-                    settings.ohsnap,
-                    sat_version,
-                    snap_version,
-                ):
-                    xml.add_global_property(name, value)
+            try:
+                if settings.server.deploy_arguments.get('deploy_container'):
+                    for name, value in container_image_properties(
+                        settings.ohsnap,
+                        sat_version,
+                        snap_version,
+                    ):
+                        xml.add_global_property(name, value)
+            except Exception:
+                logger.warning('Failed to fetch container image properties for JUnit XML')
 
 
 @pytest.fixture(autouse=False, scope='session')
