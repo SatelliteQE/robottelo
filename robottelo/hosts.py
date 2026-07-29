@@ -3108,7 +3108,7 @@ class Satellite(Capsule, SatelliteMixins):
 
         return new_fqdn
 
-    def generate_inventory_report(self, org, disconnected='false'):
+    def generate_inventory_report(self, org, disconnected='false', timeout=400, delay=15):
         """Function to perform inventory upload."""
         generate_report_task = 'ForemanInventoryUpload::Async::HostInventoryReportJob'
         timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
@@ -3124,8 +3124,8 @@ class Satellite(Capsule, SatelliteMixins):
                 .result
                 == 'success'
             ),
-            timeout=400,
-            delay=15,
+            timeout=timeout,
+            delay=delay,
             silent_failure=True,
             handle_exception=True,
         )
