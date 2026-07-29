@@ -308,7 +308,8 @@ def test_positive_create_sync_date_custom_timezone(module_org, request, target_s
     )
     sync_plan = target_sat.api.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    expected_date = future_date + timedelta(hours=4)
+    time_offset = 24 - datetime.now().astimezone().utcoffset().seconds / 3600
+    expected_date = future_date + timedelta(hours=time_offset)
     # Assert that sync date was converted to UTC correctly
     assert new_sync_plan['start-date'] == expected_date.strftime("%Y/%m/%d %H:%M:%S")
 
