@@ -87,10 +87,6 @@ def test_positive_provision_pxe_host(
         delay=20,
     )
     discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
-    discovered_host.hostgroup = provisioning_hostgroup
-    discovered_host.location = provisioning_hostgroup.location[0]
-    discovered_host.organization = provisioning_hostgroup.organization[0]
-    discovered_host.build = True
 
     discovered_host_name = discovered_host.name
     domain_name = provisioning_hostgroup.domain.read().name
@@ -99,32 +95,41 @@ def test_positive_provision_pxe_host(
     # Teardown
     request.addfinalizer(lambda: sat.provisioning_cleanup(host_name))
 
-    with sat.ui_session() as session:
-        session.organization.select(org_name=module_org.name)
-        session.location.select(loc_name=module_location.name)
-        session.discoveredhosts.provision(
-            discovered_host_name,
-            provisioning_hostgroup.name,
-            module_org.name,
-            module_location.name,
+    if is_open('SAT-33477') and (
+        sat.cli.DiscoveredHost.list(
+            {
+                'organization-id': module_org.id,
+                'location-id': module_location.id,
+            }
         )
-        # Wait for provisioning to complete and report status back to Satellite
-        pending_status = 'N/A' if is_open('SAT-22452') else 'Pending installation'
-        wait_for(
-            lambda: session.host_new.get_host_statuses(host_name)['Build']['Status']
-            != pending_status,
-            timeout=1800,
-            delay=30,
-            fail_func=session.browser.refresh,
-            silent_failure=True,
-            handle_exception=True,
-        )
-        session.browser.refresh()
-        values = session.host_new.get_host_statuses(host_name)
-        assert values['Build']['Status'] == 'Installed'
+        == []
+    ):
+        with sat.ui_session() as session:
+            session.organization.select(org_name=module_org.name)
+            session.location.select(loc_name=module_location.name)
+            session.discoveredhosts.provision(
+                discovered_host_name,
+                provisioning_hostgroup.name,
+                module_org.name,
+                module_location.name,
+            )
+            # Wait for provisioning to complete and report status back to Satellite
+            pending_status = 'N/A' if is_open('SAT-22452') else 'Pending installation'
+            wait_for(
+                lambda: session.host_new.get_host_statuses(host_name)['Build']['Status']
+                != pending_status,
+                timeout=1800,
+                delay=30,
+                fail_func=session.browser.refresh,
+                silent_failure=True,
+                handle_exception=True,
+            )
+            session.browser.refresh()
+            values = session.host_new.get_host_statuses(host_name)
+            assert values['Build']['Status'] == 'Installed'
 
-        # Verify entry from discovered host is auto removed
-        assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
+            # Verify entry from discovered host is auto removed
+            assert not session.discoveredhosts.search(f'name = {discovered_host_name}')
 
 
 @pytest.mark.upgrade
