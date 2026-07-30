@@ -4420,6 +4420,58 @@ def test_assign_multi_cv_from_host_page(
 
 @pytest.mark.rhel_ver_match(f'{settings.content_host.default_rhel_version}')
 @pytest.mark.no_containers
+def test_cv_env_order(module_target_sat, module_org, module_lce, module_cv_repo, rhel_contenthost):
+    """Ensure that content view environments are displayed in a consistent order between the UI and subscription-manager
+
+    :id: 94a466d2-7dd0-4e91-8d0e-496e011d3602
+
+    :steps:
+        1. Create a content view and a new lifecycle environment.
+        2. Create an activation key associated both with the content view environment created in step 1 and with the Default Org View/Library cv env.
+        3. Register a host using the activation key.
+        4. Observe the display order of the cv envs in the 'Content view environments' card on the host's details page.
+        5. Run `subscription-manager environments --list-enabled` on the host and observe the display order of the cv envs.
+
+    :expectedresults:
+        The content view environments are displayed in the same order by both the UI and subscription-manager.
+
+    :verifies: SAT-46510
+    """
+    module_cv_env_id = module_target_sat.api_factory.get_cvenv_id(module_cv_repo, module_lce)
+
+    default_view_env_id = module_target_sat.api_factory.get_cvenv_id(
+        module_org.default_content_view, module_org.library
+    )
+    ak = module_target_sat.api.ActivationKey(
+        organization=module_org.id,
+        content_view_environment_ids=[module_cv_env_id, default_view_env_id],
+    ).create()
+    result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
+    assert result.status == 0
+    result = rhel_contenthost.execute('subscription-manager environments --list-enabled')
+    assert result.status == 0
+
+    # Extract the names of the CV envs from the sub-man output
+    sub_man_env_list = re.findall(r'Name:\s*(.+)', result.stdout)
+    assert len(sub_man_env_list) == 2
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(module_org.name)
+        ui_envs = session.host_new.get_content_view_envs(rhel_contenthost.hostname)
+
+    assert len(ui_envs) == 2
+
+    # Extract the values from the host's CV env list from the UI. Maintain the display order
+    # but put them in the same format as the name data from the sub-man CLI command.
+    ui_env_list = [
+        f'{ui_envs[0]["lce"]}/{ui_envs[0]["content_view"]}',
+        ui_envs[1]['lce'],
+    ]
+    assert sub_man_env_list == ui_env_list
+
+
+@pytest.mark.rhel_ver_match(f'{settings.content_host.default_rhel_version}')
+@pytest.mark.no_containers
 def test_assign_different_cv_from_same_env(
     module_target_sat,
     module_org,
