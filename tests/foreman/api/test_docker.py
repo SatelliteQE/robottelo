@@ -815,3 +815,91 @@ class TestPodman:
             ).status
             == 0
         )
+
+    def test_cosign_sign_pushed_image(
+        self, request, module_target_sat, module_product, module_org, enable_podman
+    ):
+        """Sign a container image in Satellite's registry using cosign.
+
+        :id: 67cb92ef-3133-46fe-95cb-740edf3413a3
+
+        :steps:
+            1. Pull a container image and push it to Satellite's registry.
+            2. Install cosign and generate a signing key pair.
+            3. Sign the image with ``cosign sign --signing-config <no-tlog> --key``.
+            4. Verify the signature with ``cosign verify --key``.
+
+        :expectedresults: The image is signed and the signature is verified
+            successfully.
+
+        :Verifies: SAT-41872
+
+        :CaseImportance: High
+        """
+        image_name = 'fedora'
+        repo_path = f'{module_org.label}/{module_product.label}/{image_name}'.lower()
+        image_ref = f'{module_target_sat.hostname}/{repo_path}'
+        key_dir = '/tmp/cosign-test'
+        digest_file = '/tmp/cosign-push-digest'
+        request.addfinalizer(lambda: module_target_sat.execute(f'rm -rf {key_dir} {digest_file}'))
+
+        # Log in to Satellite's registry so cosign can inherit the credentials
+        result = module_target_sat.execute(
+            f'podman login -u {settings.server.admin_username}'
+            f' -p {settings.server.admin_password} {module_target_sat.hostname}'
+        )
+        assert result.status == 0, f'podman login failed: {result.stderr}'
+
+        # Pull and push a container image to Satellite's registry
+        result = module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{image_name}')
+        assert result.status == 0, f'podman pull failed: {result.stderr}'
+        pull_image_id = module_target_sat.execute(
+            f'podman images {FEDORA_REGISTRY}/{image_name}:latest -q'
+        ).stdout.strip()
+        assert pull_image_id, f'Could not find image ID for {FEDORA_REGISTRY}/{image_name}'
+        result = module_target_sat.execute(
+            f'podman push --digestfile {digest_file} {pull_image_id} {image_ref}'
+        )
+        assert result.status == 0, f'podman push failed: {result.stderr}'
+
+        # Build a digest reference for cosign (it requires digest, not tag)
+        digest = module_target_sat.execute(f'cat {digest_file}').stdout.strip()
+        image_ref_digest = f'{image_ref}@{digest}'
+
+        # Install cosign via RPM
+        result = module_target_sat.execute(
+            'command -v cosign || {'
+            ' COSIGN_VERSION=$(curl -fsSL'
+            ' https://api.github.com/repos/sigstore/cosign/releases/latest'
+            ' | python3 -c "import sys,json; print(json.load(sys.stdin)[\'tag_name\'].lstrip(\'v\'))");'
+            ' curl -fsSL -O'
+            ' "https://github.com/sigstore/cosign/releases/latest/download/cosign-${COSIGN_VERSION}-1.x86_64.rpm"'
+            ' && rpm -ivh "cosign-${COSIGN_VERSION}-1.x86_64.rpm"; }'
+        )
+        assert result.status == 0, f'cosign installation failed: {result.stderr}'
+        module_target_sat.execute(f'rm -rf {key_dir} && mkdir {key_dir}')
+        result = module_target_sat.execute(
+            f'cd {key_dir} && COSIGN_PASSWORD="" cosign generate-key-pair'
+        )
+        assert result.status == 0, f'cosign key generation failed: {result.stderr}'
+
+        # Create a signing config with no services (disables tlog upload)
+        result = module_target_sat.execute(
+            f'cosign signing-config create --out {key_dir}/signing-config.json'
+        )
+        assert result.status == 0, f'cosign signing-config create failed: {result.stderr}'
+
+        # Sign the image by digest
+        result = module_target_sat.execute(
+            f'COSIGN_PASSWORD="" cosign sign'
+            f' --signing-config {key_dir}/signing-config.json'
+            f' --key {key_dir}/cosign.key {image_ref_digest}'
+        )
+        assert result.status == 0, f'cosign sign failed: {result.stderr}'
+
+        # Verify the signature
+        result = module_target_sat.execute(
+            f'cosign verify --insecure-ignore-tlog=true'
+            f' --key {key_dir}/cosign.pub {image_ref_digest}'
+        )
+        assert result.status == 0, f'cosign verify failed: {result.stderr}'
