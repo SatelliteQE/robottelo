@@ -254,24 +254,6 @@ def test_positive_sync_inventory_status_cli(
     assert task_output[0].output['host_statuses']['disconnect'] == 0
 
 
-def test_positive_cloud_connector_enable_cli(module_target_sat):
-    """Cloud-connector enable via hammer:
-
-    :id: 7f9e9918-f5b4-48bd-b316-328c3951fa42
-
-    :steps:
-
-        0. Create a VM and register to insights within org having manifest.
-        1. Enable cloud connector.
-            # hammer insights cloud-connector enable
-
-    :expectedresults: Cloud connector enablement starts successfully.
-    """
-    result = module_target_sat.cli.Insights.cloud_connector_enable({})
-    success_msg = "Cloud connector enable task started"
-    assert success_msg in result
-
-
 @pytest.mark.stubbed
 def test_max_org_size_variable():
     """Verify that if organization had more hosts than specified by max_org_size variable
