@@ -1,11 +1,14 @@
 """Tests for verifying translation completeness on Satellite.
 
+:Requirement: Localization And Internationalization
+
 :CaseAutomation: Automated
 
 :CaseComponent: LocalizationInternationalization
 
 :team: Dragonfly
 
+:CaseImportance: High
 """
 
 import os
@@ -65,6 +68,7 @@ def test_positive_check_missing_translations(target_sat, supported_language):
     untranslated_report = {}
     for po_file in po_files:
         stats = target_sat.execute(f'msgfmt -v --statistics -o /dev/null {po_file}')
+        assert stats.status == 0, f'Failed to analyze file {po_file}: {stats.stderr}'
         if 'untranslated' in stats.stderr:
             details = target_sat.execute(f'msgattrib --untranslated --indent --no-wrap {po_file}')
             untranslated_report[po_file] = {
@@ -78,6 +82,7 @@ def test_positive_check_missing_translations(target_sat, supported_language):
     result = target_sat.execute(FIND_POT)
     assert result.status == 0, f'Failed to search for .pot files: {result.stderr}'
     pot_files = result.stdout.strip().splitlines()
+    assert pot_files, 'No .pot template files found on the Satellite'
 
     template_failures = {}
     for pot_file in pot_files:
@@ -87,6 +92,9 @@ def test_positive_check_missing_translations(target_sat, supported_language):
         related_pos = [po for po in po_files if po.startswith(locale_dir) and pot_name in po]
         for po_file in related_pos:
             cmp_result = target_sat.execute(f'msgcmp {po_file} {pot_file}')
+            assert cmp_result.status == 0, (
+                f'Failed to compare file {po_file} with {pot_file}: {cmp_result.stderr}'
+            )
             not_defined = []
             for line in cmp_result.stderr.splitlines():
                 if f'not defined in {po_file}' in line:
