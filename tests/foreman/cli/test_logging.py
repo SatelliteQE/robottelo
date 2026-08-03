@@ -460,3 +460,43 @@ def test_positive_foremanctl_log_level(module_target_sat):
         'foreman_proxy_log_level still present in parameters after reset'
     )
     assert 'log_level' not in params, 'log_level still present in parameters after reset'
+
+
+@pytest.mark.foremanctl
+def test_positive_foremanctl_valkey_log_level(module_target_sat):
+    """Verify foremanctl deploy --valkey-log-level persists and applies to Valkey.
+
+    :id: ebaa8b06-2e2a-4eb2-8d22-3dc1a8a8f58f
+
+    :steps:
+        1. Deploy with --valkey-log-level=debug
+        2. Verify valkey_log_level is persisted in parameters file
+        3. Trigger Valkey activity and verify debug output in valkey journal
+
+    :expectedresults:
+        1. valkey_log_level=debug is persisted correctly
+        2. valkey.service journal shows debug-level activity
+    """
+    sat = module_target_sat
+
+    result = sat.execute(
+        'foremanctl deploy --valkey-log-level=debug',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl deploy --valkey-log-level=debug failed:\n{result.stderr}'
+    )
+
+    params = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert params.valkey_log_level == 'debug', (
+        f'valkey_log_level not persisted correctly: {params.get("valkey_log_level")}'
+    )
+
+    sat.execute('hammer host list')
+    sat.execute('podman exec valkey valkey-cli PING')
+    result = sat.execute(
+        r'journalctl --no-pager -u valkey.service --since "-2 min" | grep -iE "Accepted|debug"'
+    )
+    assert result.status == 0, (
+        'No debug-level messages found in valkey.service journal after activity'
+    )
