@@ -29,6 +29,7 @@ from robottelo.constants import (
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
     FAKE_1_ERRATA_ID,
+    FAKE_1_YUM_REPOS_COUNT,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_9_YUM_SECURITY_ERRATUM,
     FAKE_9_YUM_SECURITY_ERRATUM_DEPS,
@@ -37,10 +38,12 @@ from robottelo.constants import (
     PRDS,
     REPOS,
     REPOSET,
+    RPM_TO_UPLOAD,
     TIMESTAMP_FMT_ZONE,
     DataFile,
 )
 from robottelo.constants.repos import CUSTOM_RPM_SHA_512, FEDORA_OSTREE_REPO, RHEL10_BASEOS_MLDSA
+from robottelo.content_info import get_repo_files_by_url
 from robottelo.utils.datafactory import (
     invalid_names_list,
     parametrized,
@@ -1488,19 +1491,106 @@ class TestRollingContentView:
         """
         # TODO
 
-    @pytest.mark.stubbed
     @pytest.mark.e2e
-    def test_positive_capsule_with_rolling_content_source(self, module_capsule_configured):
-        """We can use the rolling content view as a content source for a capsule.
+    def test_positive_capsule_with_rolling_content_source(
+        self,
+        target_sat,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce_library,
+    ):
+        """Auto capsule sync is triggered when a rolling content view is refreshed
+        by a subsequent repository sync, not just during initial creation.
 
         :id: b3d3d90a-cfb0-45a3-9e4a-d928190180be
 
-        :CaseImportance: High
+        :steps:
+            1. Create a rolling CV with a custom repository and assign it to Library LCE.
+            2. Associate Library LCE with the capsule.
+            3. Sync the repository to trigger initial rolling CV refresh.
+            4. Verify auto capsule sync is triggered and content reaches the capsule.
+            5. Upload a new RPM to the repository and sync again.
+            6. Verify auto capsule sync is triggered and the new package is present on the capsule.
+
+        :expectedresults:
+            1. Initial repo sync triggers rolling CV refresh and auto capsule sync.
+            2. Subsequent repo sync with new content also triggers rolling CV refresh
+               and auto capsule sync.
+            3. The newly uploaded RPM is present on the capsule after the second sync.
+
+        :Verifies: SAT-45316
+
+        :CaseImportance: Critical
 
         :customerscenario: true
 
         """
-        # TODO
+        repo = target_sat.api.Repository(
+            product=function_product, url=settings.repos.yum_1.url
+        ).create()
+        rolling_cv = target_sat.api.ContentView(
+            organization=function_org,
+            repository=[repo],
+            rolling=True,
+            environment=[function_lce_library],
+        ).create()
+        rolling_cv = rolling_cv.read()
+        assert len(rolling_cv.version) == 1
+        assert len(rolling_cv.environment) == 1
+
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce_library.id}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Initial repo sync triggers rolling CV refresh and auto capsule sync
+        timestamp = datetime.now(UTC).replace(microsecond=0)
+        repo.sync()
+        repo = repo.read()
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        rolling_cv = rolling_cv.read()
+        rolling_version = rolling_cv.version[0].read()
+
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
+            org=function_org.label,
+            lce=function_lce_library.label,
+            cv=rolling_cv.label,
+            prod=function_product.label,
+            repo=repo.label,
+        )
+        sat_repo_url = target_sat.get_published_repo_url(
+            org=function_org.label,
+            lce=function_lce_library.label,
+            cv=rolling_cv.label,
+            prod=function_product.label,
+            repo=repo.label,
+        )
+        sat_files = get_repo_files_by_url(sat_repo_url)
+        caps_files = get_repo_files_by_url(caps_repo_url)
+        assert sat_files == caps_files
+
+        # Upload a new RPM and sync again to trigger another rolling CV refresh
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+
+        timestamp = datetime.now(UTC).replace(microsecond=0)
+        repo.sync()
+        repo = repo.read()
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        rolling_cv = rolling_cv.read()
+        new_rolling_version = rolling_cv.version[0].read()
+        assert new_rolling_version.id == rolling_version.id
+        assert repo.content_counts['rpm'] > FAKE_1_YUM_REPOS_COUNT
+
+        caps_files_after = get_repo_files_by_url(caps_repo_url)
+        sat_files_after = get_repo_files_by_url(sat_repo_url)
+        assert sat_files_after == caps_files_after
+        assert len(caps_files_after) == FAKE_1_YUM_REPOS_COUNT + 1
+        assert RPM_TO_UPLOAD in caps_files_after
 
 
 class TestContentViewCreate:
