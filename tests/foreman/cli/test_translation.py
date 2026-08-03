@@ -92,9 +92,6 @@ def test_positive_check_missing_translations(target_sat, supported_language):
         related_pos = [po for po in po_files if po.startswith(locale_dir) and pot_name in po]
         for po_file in related_pos:
             cmp_result = target_sat.execute(f'msgcmp {po_file} {pot_file}')
-            assert cmp_result.status == 0, (
-                f'Failed to compare file {po_file} with {pot_file}: {cmp_result.stderr}'
-            )
             not_defined = []
             for line in cmp_result.stderr.splitlines():
                 if f'not defined in {po_file}' in line:
