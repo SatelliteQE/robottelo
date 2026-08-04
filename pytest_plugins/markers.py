@@ -26,6 +26,7 @@ def pytest_configure(config):
         "ldap: Tests related to ldap authentication",
         "no_compose : Skip the marked sanity test for nightly compose",
         "network: Restrict test to specific network environments",
+        "network_sensitive: Address-family / multi-host protocol path (IPv6 overlay)",
         "foremanctl: Tests that require foremanctl; deselected when server.install_method is installer",
         "pqc: Post-Quantum Cryptography tests",
     ]

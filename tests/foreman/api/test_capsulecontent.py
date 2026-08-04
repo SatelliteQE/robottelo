@@ -50,6 +50,9 @@ from robottelo.content_info import (
 )
 from robottelo.utils.datafactory import gen_string
 
+# Capsule ↔ Satellite content paths; curated IPv6 overlay.
+pytestmark = pytest.mark.network_sensitive
+
 
 @pytest.fixture(scope="module")
 def add_proxy_cli_config(module_target_sat, module_capsule_configured):
