@@ -473,6 +473,7 @@ class TestAnsibleCfgMgmt:
 
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.network_sensitive
     def test_positive_ansible_config_report_changes_notice_and_failed_tasks_errors(
         self,
         rhel_contenthost,
@@ -495,6 +496,8 @@ class TestAnsibleCfgMgmt:
         :expectedresults:
             1. Verify that any tasks that make changes on the host are listed as notice in the config report
             2. Verify that any task failures are listed as errors in the config report
+
+        :Verifies: SAT-45645
         """
         SELECTED_ROLE = 'theforeman.foreman_scap_client'
         rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()

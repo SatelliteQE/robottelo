@@ -27,7 +27,11 @@ from robottelo.utils.installer import InstallerCommand
 
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
-pytestmark = pytest.mark.destructive
+pytestmark = [
+    pytest.mark.destructive,
+    # REX connect_by_ip / prefer_ipv6; curated IPv6 overlay.
+    pytest.mark.network_sensitive,
+]
 
 
 def create_CA(host, path='/root/CA', name=None):

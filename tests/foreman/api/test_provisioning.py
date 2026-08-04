@@ -24,7 +24,11 @@ from robottelo.enums import NetworkType
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = pytest.mark.foreman_installer
+pytestmark = [
+    pytest.mark.foreman_installer,
+    # PXE/iPXE/HTTP Boot; curated IPv6 overlay (UEFI HTTP Boot is certified path).
+    pytest.mark.network_sensitive,
+]
 
 
 @pytest.mark.e2e

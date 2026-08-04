@@ -531,6 +531,7 @@ def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org
         )
 
 
+@pytest.mark.network_sensitive
 def test_authenticated_test_connection(target_sat, module_org, default_location):
     """Test connection doesn't throw any errors when run on an authenticated HTTP Proxy
 

@@ -173,6 +173,7 @@ def module_sat_foremanctl_tuning(request):
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.first_sanity
+@pytest.mark.network_sensitive
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
 def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
     """Run a basic Satellite installation
@@ -195,6 +196,7 @@ def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.build_sanity
+@pytest.mark.network_sensitive
 def test_capsule_installation_with_foremanctl(
     pytestconfig, module_sat_ready_rhel, module_cap_ready_rhel, module_sca_manifest
 ):
