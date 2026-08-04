@@ -1598,6 +1598,57 @@ def test_positive_multi_cv_info_and_remove_all_cv_envs(
     assert ak_info['content-view-environment-labels'] == {}
 
 
+def test_positive_update_ak_with_duplicate_cv_envs(module_target_sat, module_org):
+    """Verify that updating an activation key with duplicate content view environments
+    deduplicates them and does not create duplicate entries.
+
+    :id: 603197c5-6c64-43ee-8d15-e8e1c69eb058
+
+    :steps:
+        1. Create two lifecycle environments and two content views, publish/promote each
+        2. Create an activation key
+        3. Update the activation key with duplicate content view environments
+           (e.g., cv1/lce1,cv2/lce2,cv1/lce1)
+
+    :expectedresults: The activation key is updated successfully with only the unique
+        content view environments, duplicates are silently ignored.
+
+    :Verifies: SAT-42052
+
+    :CaseImportance: High
+    """
+    lces = [
+        module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+        for _ in range(2)
+    ]
+    cvs = [module_target_sat.api.ContentView(organization=module_org).create() for _ in range(2)]
+    for i in range(2):
+        cvs[i].publish()
+        cvs[i] = cvs[i].read()
+        cvs[i].version[0].promote(data={'environment_ids': lces[i].id})
+
+    ak = module_target_sat.cli_factory.make_activation_key({'organization-id': module_org.id})
+    cv_envs_with_dup = (
+        f'{lces[0].name}/{cvs[0].name},'
+        f'{lces[1].name}/{cvs[1].name},'
+        f'{lces[0].name}/{cvs[0].name}'
+    )
+    ret_val = module_target_sat.cli.ActivationKey.update(
+        {
+            'id': ak['id'],
+            'organization-id': module_org.id,
+            'content-view-environments': cv_envs_with_dup,
+        }
+    )
+    assert ret_val[0]['message'] == 'Activation key updated.'
+
+    ak_info = module_target_sat.cli.ActivationKey.info({'id': ak['id']})
+    assert len(ak_info['content-view-environments']) == 2
+    expected_labels = {f'{lces[0].label}/{cvs[0].label}', f'{lces[1].label}/{cvs[1].label}'}
+    actual_labels = {cve['label'] for cve in ak_info['content-view-environments']}
+    assert actual_labels == expected_labels
+
+
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.pit_client
 @pytest.mark.pit_server

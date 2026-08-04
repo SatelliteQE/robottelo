@@ -3231,6 +3231,73 @@ class TestContentView:
         content_view = module_target_sat.cli.ContentView.info({'id': content_view['id']})
         assert content_view['versions'] == existing_versions
 
+    def test_positive_host_update_with_duplicate_cv_envs(self, module_org, module_target_sat):
+        """Verify that updating a host with duplicate content view environments
+        deduplicates them and does not create duplicate entries.
+
+        :id: 07675375-d292-4b41-8259-aa932e185026
+
+        :steps:
+            1. Create two lifecycle environments and two content views
+            2. Publish and promote each content view to its respective lifecycle environment
+            3. Create a fake host associated with the first content view environment
+            4. Update the host with duplicate content view environments
+               (e.g., cv1/lce1,cv2/lce2,cv1/lce1)
+
+        :expectedresults: The host is updated successfully with only the unique
+            content view environments, duplicates are silently deduplicated.
+
+        :Verifies: SAT-42052
+
+        :CaseImportance: High
+        """
+        lce1 = module_target_sat.cli_factory.make_lifecycle_environment(
+            {'organization-id': module_org.id}
+        )
+        lce2 = module_target_sat.cli_factory.make_lifecycle_environment(
+            {'organization-id': module_org.id}
+        )
+        cv1 = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id}
+        )
+        cv2 = module_target_sat.cli_factory.make_content_view(
+            {'organization-id': module_org.id}
+        )
+        for cv, lce in [(cv1, lce1), (cv2, lce2)]:
+            module_target_sat.cli.ContentView.publish({'id': cv['id']})
+            cv_info = module_target_sat.cli.ContentView.info({'id': cv['id']})
+            module_target_sat.cli.ContentView.version_promote(
+                {
+                    'id': cv_info['versions'][0]['id'],
+                    'to-lifecycle-environment-id': lce['id'],
+                }
+            )
+
+        host = module_target_sat.cli_factory.make_fake_host(
+            {
+                'content-view-environment-ids': module_target_sat.api_factory.get_cvenv_id(
+                    cv1['id'], lce1['id']
+                ),
+                'name': gen_alphanumeric(),
+                'organization-id': module_org.id,
+            }
+        )
+
+        cv_envs_with_dup = (
+            f'{lce1["name"]}/{cv1["name"]},'
+            f'{lce2["name"]}/{cv2["name"]},'
+            f'{lce1["name"]}/{cv1["name"]}'
+        )
+        module_target_sat.cli.Host.update(
+            {'id': host['id'], 'content-view-environments': cv_envs_with_dup}
+        )
+
+        host_info = module_target_sat.cli.Host.info({'id': host['id']})
+        cve_info = host_info['content-information']['content-view-environments']
+        assert len(cve_info) == 2
+        actual_cv_names = {cve_info[key]['content-view-name'] for key in cve_info}
+        assert actual_cv_names == {cv1['name'], cv2['name']}
+
 
 class TestRollingContentView:
     """Hammer testing for Rolling Content Views."""
