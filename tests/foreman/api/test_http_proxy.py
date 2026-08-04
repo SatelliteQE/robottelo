@@ -26,6 +26,7 @@ from robottelo.utils.issue_handlers import is_open
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
+@pytest.mark.network_sensitive
 @pytest.mark.parametrize(
     'use_ip',
     [False] if is_open('SAT-39098') else [False, True],
@@ -163,6 +164,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_sca_man
     indirect=True,
     ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
+@pytest.mark.network_sensitive
 def test_positive_install_content_with_http_proxy(
     setup_http_proxy, module_target_sat, rhel_contenthost, function_sca_manifest_org
 ):
@@ -296,6 +298,7 @@ def test_positive_assign_http_proxy_to_products(target_sat, function_org):
     assert 'success' in product_a.sync()['result'], 'Product sync failed'
 
 
+@pytest.mark.network_sensitive
 def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, module_product):
     """Assign http_proxy with cacert.crt to repository and test
        that http_proxy and cacert are used during sync.
@@ -360,6 +363,7 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
     assert repo.read().content_counts['rpm'] >= 1
 
 
+@pytest.mark.network_sensitive
 def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_product):
     """Ensure that repo refresh updates the http-proxy of pulp remote.
 

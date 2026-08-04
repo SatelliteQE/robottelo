@@ -3461,6 +3461,7 @@ class TestNetworkSync:
     """Implements Network Sync scenarios."""
 
     @pytest.mark.pit_server
+    @pytest.mark.network_sensitive
     @pytest.mark.parametrize(
         'function_synced_rh_repo',
         ['rhae2'],

@@ -31,6 +31,7 @@ from robottelo.constants.repos import PULP_FIXTURE_ROOT, PULP_SUBPATHS_COMBINED
         if not (acs == 'rhui' and cnt == 'file')  # invalid combination: 'rhui-file'
     ],
 )
+@pytest.mark.network_sensitive
 def test_positive_CRUD_all_types(
     request, module_target_sat, acs_type, cnt_type, module_yum_repo, module_file_repo
 ):

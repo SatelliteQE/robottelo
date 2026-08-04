@@ -2211,6 +2211,7 @@ def change_content_source_prep(
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[789]')
+@pytest.mark.network_sensitive
 def test_change_content_source(session, change_content_source_prep, rhel_contenthost):
     """
     This test exercises different ways to change host's content source
