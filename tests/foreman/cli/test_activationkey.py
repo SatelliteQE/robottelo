@@ -1629,9 +1629,7 @@ def test_positive_update_ak_with_duplicate_cv_envs(module_target_sat, module_org
 
     ak = module_target_sat.cli_factory.make_activation_key({'organization-id': module_org.id})
     cv_envs_with_dup = (
-        f'{lces[0].name}/{cvs[0].name},'
-        f'{lces[1].name}/{cvs[1].name},'
-        f'{lces[0].name}/{cvs[0].name}'
+        f'{lces[0].name}/{cvs[0].name},{lces[1].name}/{cvs[1].name},{lces[0].name}/{cvs[0].name}'
     )
     ret_val = module_target_sat.cli.ActivationKey.update(
         {

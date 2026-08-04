@@ -3257,12 +3257,8 @@ class TestContentView:
         lce2 = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id}
         )
-        cv1 = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_org.id}
-        )
-        cv2 = module_target_sat.cli_factory.make_content_view(
-            {'organization-id': module_org.id}
-        )
+        cv1 = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+        cv2 = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
         for cv, lce in [(cv1, lce1), (cv2, lce2)]:
             module_target_sat.cli.ContentView.publish({'id': cv['id']})
             cv_info = module_target_sat.cli.ContentView.info({'id': cv['id']})
