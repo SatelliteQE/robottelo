@@ -1614,8 +1614,6 @@ def test_positive_update_ak_with_duplicate_cv_envs(module_target_sat, module_org
         content view environments, duplicates are silently ignored.
 
     :Verifies: SAT-42052
-
-    :CaseImportance: High
     """
     lces = [
         module_target_sat.api.LifecycleEnvironment(organization=module_org).create()

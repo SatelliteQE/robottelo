@@ -3248,8 +3248,6 @@ class TestContentView:
             content view environments, duplicates are silently deduplicated.
 
         :Verifies: SAT-42052
-
-        :CaseImportance: High
         """
         lce1 = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': module_org.id}
