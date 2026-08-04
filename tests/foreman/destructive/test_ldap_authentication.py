@@ -141,14 +141,17 @@ def test_positive_create_with_https(
     :customerscenario: true
 
     :steps:
-        1. Create a new LDAP Auth source with LDAPS, provide organization and
+        1. Attempt a test connection with a wrong CA certificate — expect failure.
+        2. Attempt a test connection with the correct CA certificate — expect success.
+        3. Create a new LDAP Auth source with LDAPS, provide organization and
            location information.
-        2. Fill in all the fields appropriately.
-        3. Login with existing LDAP user present.
+        4. Fill in all the fields appropriately.
+        5. Login with existing LDAP user present.
 
     :BZ: 1785621
 
-    :expectedresults: LDAP auth source for LDAPS should be successful and LDAP login
+    :expectedresults: Test connection fails with a wrong CA certificate and succeeds with the
+        correct one. LDAP auth source for LDAPS should be successful and LDAP login
         should work as expected.
 
     :parametrized: yes
@@ -162,11 +165,36 @@ def test_positive_create_with_https(
         account_name = f"cn={auth_data['ldap_user_cn']},{auth_data['base_dn']}"
         server_type = 'AD'
     cacert_pem = get_ldap_cacert_pem(module_target_sat, server_type, auth_data['ldap_hostname'])
+    wrong_cacert_result = module_target_sat.execute(
+        'cat /etc/pki/ca-trust/source/anchors/katello_server-host-cert.crt'
+    )
+    assert wrong_cacert_result.status == 0, (
+        f'Failed to read Satellite host cert: {wrong_cacert_result.stderr}'
+    )
+    wrong_cacert = wrong_cacert_result.stdout
     org = module_target_sat.api.Organization().create()
     loc = module_target_sat.api.Location().create()
     ldap_auth_name = gen_string('alphanumeric')
 
     with session:
+        with pytest.raises(AssertionError) as error:
+            session.ldapauthentication.test_connection(
+                {
+                    'ldap_server.host': auth_data['ldap_hostname'],
+                    'ldap_server.ldaps': True,
+                    'ldap_server.cacert': wrong_cacert,
+                }
+            )
+        assert error.match('certificate verify failed')
+
+        session.ldapauthentication.test_connection(
+            {
+                'ldap_server.host': auth_data['ldap_hostname'],
+                'ldap_server.ldaps': True,
+                'ldap_server.cacert': cacert_pem,
+            }
+        )
+
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
