@@ -601,6 +601,9 @@ def test_rhel_pxe_provisioning_fips_enabled(
     assert int(result.stdout) == 1
 
     # Run a command on the host using REX to verify that Satellite's SSH key is present on the host
+    # SAT-48015: non-FIPS Satellite on RHEL 9.8+ generates ed25519 key, rejected by FIPS hosts
+    if is_open('SAT-48015'):
+        pytest.skip('REX broken for FIPS hosts due to ed25519 SSH key on RHEL 9.8+ (SAT-48015)')
     # Add workaround for SAT-32007 and SAT-32006
     if is_open('SAT-32007') and is_open('SAT-32006'):
         assert sat.execute('cat /dev/null > /usr/share/foreman-proxy/.ssh/known_hosts').status == 0
