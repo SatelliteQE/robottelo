@@ -2240,6 +2240,7 @@ class Capsule(ContentHost, CapsuleMixins):
         # Install Satellite and return result
 
         default_parameters = [
+            '--flavor satellite',
             f'--initial-admin-username {settings.server.admin_username}',
             f'--initial-admin-password {settings.server.admin_password}',
         ]
