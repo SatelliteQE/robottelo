@@ -12,7 +12,6 @@
 
 """
 
-import os
 from time import sleep
 
 from navmazing import NavigationTriesExceeded
@@ -21,7 +20,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CERT_PATH,
     HAMMER_CONFIG,
     HAMMER_SESSIONS,
     LDAP_ATTR,
@@ -30,6 +28,7 @@ from robottelo.constants import (
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
+from robottelo.utils.ldap import get_ldap_cacert_pem
 
 pytestmark = [pytest.mark.destructive, pytest.mark.run_in_one_thread]
 
@@ -50,36 +49,6 @@ USING_CREDS = (
     'Using configured credentials for user'  # status when user not logged in and creds in conf
 )
 UNABLE_AUTH = 'Unable to authenticate user'  # attempting to do something without being logged in
-
-
-def set_certificate_in_satellite(server_type, sat, hostname=None):
-    """update the cert settings in satellite based on type of ldap server"""
-    if server_type == 'IPA':
-        certfile = 'ipa.crt'
-        idm_cert_path_url = os.path.join(settings.ipa.hostname, 'ipa/config/ca.crt')
-        sat.download_file(file_url=idm_cert_path_url, local_path=CERT_PATH, file_name=certfile)
-    elif server_type == 'AD':
-        certfile = 'satqe-QE-SAT6-AD-CA.cer'
-        assert hostname is not None
-        sat.execute('yum -y --disableplugin=foreman-protector install cifs-utils')
-        command = r'mount -t cifs -o username=administrator,pass={0} //{1}/c\$ /mnt'
-        sat.execute(command.format(settings.ldap.password, hostname))
-        result = sat.execute(
-            f'cp /mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer {CERT_PATH}'
-        )
-        if result.status != 0:
-            raise AssertionError('Failed to copy the AD server certificate at right path')
-    result = sat.execute(f'update-ca-trust extract && restorecon -R {CERT_PATH}')
-    if result.status != 0:
-        raise AssertionError('Failed to update and trust the certificate')
-    sat.execute(f'install /{CERT_PATH}/{certfile} /etc/pki/tls/certs/')
-    sat.execute(
-        f'ln -s {certfile} /etc/pki/tls/certs/$(openssl x509 '
-        f'-noout -hash -in /etc/pki/tls/certs/{certfile}).0'
-    )
-    result = sat.execute('systemctl restart httpd')
-    if result.status != 0:
-        raise AssertionError(f'Failed to restart the httpd after applying {server_type} cert')
 
 
 @pytest.fixture
@@ -123,6 +92,20 @@ def rhsso_groups_teardown(module_target_sat, default_sso_host):
 
 
 @pytest.fixture
+def untrust_rhit_cas(module_target_sat):
+    """Temporarily remove Red Hat IT Root CAs from the system trust store."""
+    anchors = '/etc/pki/ca-trust/source/anchors'
+    backup_dir = '/tmp/ca-backup'
+    module_target_sat.execute(f'mkdir -p {backup_dir}')
+    module_target_sat.execute(f'mv {anchors}/*-IT-Root-CA.pem {backup_dir}/')
+    module_target_sat.execute('update-ca-trust extract')
+    yield
+    module_target_sat.execute(f'mv {backup_dir}/* {anchors}/')
+    module_target_sat.execute(f'rm -rf {backup_dir}')
+    module_target_sat.execute('update-ca-trust extract')
+
+
+@pytest.fixture
 def configure_hammer_session(parametrized_enrolled_sat, enable=True):
     """Take backup of the hammer config file and enable use_sessions"""
     parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
@@ -143,47 +126,81 @@ def generate_otp(secret):
 @pytest.mark.upgrade
 @pytest.mark.parametrize('auth_data', ['AD_2019', 'IPA'], indirect=True)
 def test_positive_create_with_https(
-    session, module_subscribe_satellite, test_name, auth_data, ldap_tear_down, module_target_sat
+    session,
+    module_subscribe_satellite,
+    test_name,
+    auth_data,
+    ldap_tear_down,
+    module_target_sat,
+    untrust_rhit_cas,
 ):
-    """Create LDAP auth_source for IDM with HTTPS.
+    """Create LDAP auth_source for IDM/AD with LDAPS.
 
     :id: 7ff3daa4-2317-11ea-aeb8-d46d6dd3b5b2
 
     :customerscenario: true
 
     :steps:
-        1. Create a new LDAP Auth source with HTTPS, provide organization and
+        1. Attempt a test connection with a wrong CA certificate — expect failure.
+        2. Attempt a test connection with the correct CA certificate — expect success.
+        3. Create a new LDAP Auth source with LDAPS, provide organization and
            location information.
-        2. Fill in all the fields appropriately.
-        3. Login with existing LDAP user present.
+        4. Fill in all the fields appropriately.
+        5. Login with existing LDAP user present.
 
     :BZ: 1785621
 
-    :expectedresults: LDAP auth source for HTTPS should be successful and LDAP login
+    :expectedresults: Test connection fails with a wrong CA certificate and succeeds with the
+        correct one. LDAP auth source for LDAPS should be successful and LDAP login
         should work as expected.
 
     :parametrized: yes
     """
     if auth_data['auth_type'] == 'ipa':
-        set_certificate_in_satellite(server_type='IPA', sat=module_target_sat)
         username = settings.ipa.user
         account_name = auth_data['ldap_user_cn']
+        server_type = 'IPA'
     else:
-        set_certificate_in_satellite(
-            server_type='AD', sat=module_target_sat, hostname=auth_data['ldap_hostname']
-        )
         username = settings.ldap.username
         account_name = f"cn={auth_data['ldap_user_cn']},{auth_data['base_dn']}"
+        server_type = 'AD'
+    cacert_pem = get_ldap_cacert_pem(module_target_sat, server_type, auth_data['ldap_hostname'])
+    wrong_cacert_result = module_target_sat.execute(
+        'cat /etc/pki/ca-trust/source/anchors/katello_server-host-cert.crt'
+    )
+    assert wrong_cacert_result.status == 0, (
+        f'Failed to read Satellite host cert: {wrong_cacert_result.stderr}'
+    )
+    wrong_cacert = wrong_cacert_result.stdout
     org = module_target_sat.api.Organization().create()
     loc = module_target_sat.api.Location().create()
     ldap_auth_name = gen_string('alphanumeric')
 
     with session:
+        with pytest.raises(AssertionError) as error:
+            session.ldapauthentication.test_connection(
+                {
+                    'ldap_server.host': auth_data['ldap_hostname'],
+                    'ldap_server.ldaps': True,
+                    'ldap_server.cacert': wrong_cacert,
+                }
+            )
+        assert error.match('certificate verify failed')
+
+        session.ldapauthentication.test_connection(
+            {
+                'ldap_server.host': auth_data['ldap_hostname'],
+                'ldap_server.ldaps': True,
+                'ldap_server.cacert': cacert_pem,
+            }
+        )
+
         session.ldapauthentication.create(
             {
                 'ldap_server.name': ldap_auth_name,
                 'ldap_server.host': auth_data['ldap_hostname'],
                 'ldap_server.ldaps': True,
+                'ldap_server.cacert': cacert_pem,
                 'ldap_server.server_type': auth_data['server_type'],
                 'account.account_name': account_name,
                 'account.password': auth_data['ldap_user_passwd'],
@@ -205,6 +222,13 @@ def test_positive_create_with_https(
         assert ldap_source['ldap_server']['name'] == ldap_auth_name
         assert ldap_source['ldap_server']['host'] == auth_data['ldap_hostname']
         assert ldap_source['ldap_server']['port'] == '636'
+
+        # In AD's case, the CA cert uses CRLF line endings
+        # when this cert is uploaded to Satellite, the line endings are replaced
+        # with unix LF-only line endings.
+        assert (
+            ldap_source['ldap_server']['cacert'].strip() == cacert_pem.replace("\r\n", "\n").strip()
+        )
     with (
         module_target_sat.ui_session(
             test_name, username, auth_data['ldap_user_passwd']
