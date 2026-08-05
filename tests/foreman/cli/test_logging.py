@@ -460,3 +460,69 @@ def test_positive_foremanctl_log_level(module_target_sat):
         'foreman_proxy_log_level still present in parameters after reset'
     )
     assert 'log_level' not in params, 'log_level still present in parameters after reset'
+
+
+@pytest.mark.foremanctl
+def test_positive_foremanctl_pulp_valkey_log_level(module_target_sat):
+    """Verify foremanctl deploy pulp and valkey log level parameters.
+
+    :id: de48bbb5-7a0f-48fd-a984-98b26dad45e1
+
+    :steps:
+        1. Deploy with --pulp-log-level=debug --valkey-log-level=debug
+        2. Verify both parameters are persisted in parameters file
+        3. Verify PULP_LOG_LEVEL=debug on pulp-api and --loglevel debug on valkey
+        4. Trigger activity and verify debug output in pulp-api and valkey journals
+
+    :expectedresults:
+        1. pulp_log_level and valkey_log_level are persisted correctly
+        2. pulp-api and valkey run with debug log level
+        3. Both service journals show debug-level activity
+    """
+    sat = module_target_sat
+
+    result = sat.execute(
+        'foremanctl deploy --pulp-log-level=debug --valkey-log-level=debug',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl deploy with pulp/valkey log levels failed:\n{result.stderr}'
+    )
+
+    params = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert params.pulp_log_level == 'debug', (
+        f'pulp_log_level not persisted correctly: {params.get("pulp_log_level")}'
+    )
+    assert params.valkey_log_level == 'debug', (
+        f'valkey_log_level not persisted correctly: {params.get("valkey_log_level")}'
+    )
+
+    result = sat.execute(
+        "podman inspect pulp-api --format '{{range .Config.Env}}{{println .}}{{end}}' "
+        "| grep '^PULP_LOG_LEVEL='"
+    )
+    assert result.status == 0, f'Failed to read PULP_LOG_LEVEL from pulp-api:\n{result.stderr}'
+    assert 'PULP_LOG_LEVEL=debug' in result.stdout, (
+        f'Expected PULP_LOG_LEVEL=debug, got:\n{result.stdout}'
+    )
+
+    result = sat.execute("podman inspect valkey --format '{{.Config.Cmd}}'")
+    assert result.status == 0, f'Failed to inspect valkey container:\n{result.stderr}'
+    assert '--loglevel' in result.stdout, f'--loglevel missing from valkey cmd:\n{result.stdout}'
+    assert 'debug' in result.stdout, f'Expected debug loglevel on valkey, got:\n{result.stdout}'
+
+    sat.execute('hammer ping')
+    sat.execute('hammer host list')
+    sat.execute('podman exec valkey valkey-cli PING')
+
+    result = sat.execute('journalctl --no-pager -u pulp-api.service --since "-5 min"')
+    assert result.status == 0, f'Failed to read pulp-api.service journal:\n{result.stderr}'
+    assert re.search(r':DEBUG:', result.stdout, re.IGNORECASE), (
+        'No DEBUG messages found in pulp-api.service journal when pulp_log_level=debug'
+    )
+
+    result = sat.execute('journalctl --no-pager -u valkey.service --since "-5 min"')
+    assert result.status == 0, f'Failed to read valkey.service journal:\n{result.stderr}'
+    assert re.search(r'Accepted|debug', result.stdout, re.IGNORECASE), (
+        'No debug-level messages found in valkey.service journal after activity'
+    )
