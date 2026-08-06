@@ -472,16 +472,16 @@ def test_foremanctl_deploy_add_remove_feature(module_sat_ready_rhel):
     :id: ec1e8b03-5b29-450a-887d-3a75ab707336
 
     :steps:
-        1. Deploy Satellite with remote-execution feature
-        2. Verify the remote-execution feature is enabled
-        3. Remove 'remote-execution' feature
-        4. Verify the remote-execution feature is disabled
+        1. Deploy Satellite with bmc feature
+        2. Verify the bmc feature is enabled
+        3. Remove 'bmc' feature
+        4. Verify the bmc feature is disabled
 
     :expectedresults:
-        1. The remote-execution feature is enabled
-        2. The remote-execution feature is disabled
+        1. The bmc feature is enabled
+        2. The bmc feature is disabled
     """
-    FEATURE_NAME = 'remote-execution'
+    FEATURE_NAME = 'bmc'
     sat = module_sat_ready_rhel
     result = sat.execute(
         f'foremanctl deploy --add-feature {FEATURE_NAME}',
