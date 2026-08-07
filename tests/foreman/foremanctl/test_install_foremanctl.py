@@ -12,8 +12,6 @@
 
 """
 
-import re
-
 from broker import Broker
 from fauxfactory import gen_string
 import pytest
@@ -565,11 +563,11 @@ def foremanctl_host_cert_paths(hostname):
     ]
 
 
-def foremanctl_capsule_cert_paths(sat, capsule_hostname, result, extract_dir):
+def foremanctl_capsule_cert_paths(sat, capsule_hostname, extract_dir):
     """Return server and client certificate paths for a foremanctl capsule auth bundle."""
     sat.execute(f'mkdir -p {extract_dir}')
 
-    bundle_path = re.search(r'/\S+?\.tar\.gz', result.stdout).group(0)
+    bundle_path = f'/var/lib/foremanctl/certs/bundles/{capsule_hostname}.tar.gz'
     sat.execute(f'tar xf {bundle_path} -C {extract_dir}')
 
     result = sat.execute(f'tar -tzf {bundle_path}')
@@ -643,7 +641,7 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
     assert result.status == 0, f'foremanctl auth-bundle failed:\n{result.stderr}'
 
     # Phase 1: initial capsule validity
-    capsule_certs = foremanctl_capsule_cert_paths(sat, capsule_hostname, result, extract_dir)
+    capsule_certs = foremanctl_capsule_cert_paths(sat, capsule_hostname, extract_dir)
     assert_cert_validity_days(sat, capsule_certs, 7300)
 
     # verify certificate chain — capsule server and client signed by CA
@@ -664,9 +662,7 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
     assert result.status == 0, f'Capsule auth-bundle renewal failed: {result.stderr}'
 
     # Phase 2: renew capsule validate
-    capsule_certs = foremanctl_capsule_cert_paths(
-        sat, capsule_hostname, result, renewed_extract_dir
-    )
+    capsule_certs = foremanctl_capsule_cert_paths(sat, capsule_hostname, renewed_extract_dir)
     assert_cert_validity_days(sat, capsule_certs, 7300)
 
     # verify certificate chain — capsule server and client signed by previous and current CA
