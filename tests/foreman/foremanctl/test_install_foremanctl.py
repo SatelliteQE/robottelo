@@ -565,7 +565,7 @@ def foremanctl_host_cert_paths(hostname):
     ]
 
 
-def foremanctl_capsule_cert_paths(sat, capsule, result, extract_dir):
+def foremanctl_capsule_cert_paths(sat, capsule_hostname, result, extract_dir):
     """Return server and client certificate paths for a foremanctl capsule auth bundle."""
     sat.execute(f'mkdir -p {extract_dir}')
 
@@ -574,20 +574,20 @@ def foremanctl_capsule_cert_paths(sat, capsule, result, extract_dir):
 
     result = sat.execute(f'tar -tzf {bundle_path}')
     assert result.status == 0, f'Auth bundle tarball not found at {bundle_path}: {result.stderr}'
-    assert f'certs/{capsule.hostname}.crt' in result.stdout
-    assert f'certs/{capsule.hostname}-client.crt' in result.stdout
+    assert f'certs/{capsule_hostname}.crt' in result.stdout
+    assert f'certs/{capsule_hostname}-client.crt' in result.stdout
     assert 'oauth/foreman-oauth-consumer-key' in result.stdout
     assert 'oauth/foreman-oauth-consumer-secret' in result.stdout
 
     return [
-        f'{extract_dir}/certs/{capsule.hostname}.crt',
-        f'{extract_dir}/certs/{capsule.hostname}-client.crt',
+        f'{extract_dir}/certs/{capsule_hostname}.crt',
+        f'{extract_dir}/certs/{capsule_hostname}-client.crt',
     ]
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
 @pytest.mark.rhel_ver_match('9')
-def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel, rhel_contenthost):
+def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
     """Verify foremanctl auth-bundle generation and renewal for a capsule.
 
     :id: 9bd1d8d8-a22a-4917-9522-22b7165d224c
@@ -636,14 +636,14 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel, rhel_contenthost
     renewed_ca_cert = f'{renewed_extract_dir}/certs/ca.crt'
 
     sat = module_sat_ready_rhel
-    capsule = rhel_contenthost
+    capsule_hostname = 'capsule.example.test'
 
     # Generate bundle
-    result = sat.execute(f'foremanctl auth-bundle {capsule.hostname}', timeout='10m')
+    result = sat.execute(f'foremanctl auth-bundle {capsule_hostname}', timeout='10m')
     assert result.status == 0, f'foremanctl auth-bundle failed:\n{result.stderr}'
 
     # Phase 1: initial capsule validity
-    capsule_certs = foremanctl_capsule_cert_paths(sat, capsule, result, extract_dir)
+    capsule_certs = foremanctl_capsule_cert_paths(sat, capsule_hostname, result, extract_dir)
     assert_cert_validity_days(sat, capsule_certs, 7300)
 
     # verify certificate chain — capsule server and client signed by CA
@@ -658,13 +658,15 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel, rhel_contenthost
 
     # Renew bundle
     result = sat.execute(
-        f'foremanctl auth-bundle --certificate-renew {capsule.hostname}',
+        f'foremanctl auth-bundle --certificate-renew {capsule_hostname}',
         timeout='10m',
     )
     assert result.status == 0, f'Capsule auth-bundle renewal failed: {result.stderr}'
 
     # Phase 2: renew capsule validate
-    capsule_certs = foremanctl_capsule_cert_paths(sat, capsule, result, renewed_extract_dir)
+    capsule_certs = foremanctl_capsule_cert_paths(
+        sat, capsule_hostname, result, renewed_extract_dir
+    )
     assert_cert_validity_days(sat, capsule_certs, 7300)
 
     # verify certificate chain — capsule server and client signed by previous and current CA
