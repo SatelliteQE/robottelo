@@ -2237,9 +2237,18 @@ class Capsule(ContentHost, CapsuleMixins):
             == 0
         )
 
+        overrides_dir = '/usr/share/foremanctl/src/playbooks/_vendor_overrides/'
+        self.execute(f'mkdir -p {overrides_dir}/deploy/')
+        self.put(
+            'variables:\n  flavor:\n    choices:\n      - satellite',
+            f'{overrides_dir}/deploy/metadata.obsah.yaml',
+            temp_file=True,
+        )
+
         # Install Satellite and return result
 
         default_parameters = [
+            '--flavor satellite',
             f'--initial-admin-username {settings.server.admin_username}',
             f'--initial-admin-password {settings.server.admin_password}',
         ]
