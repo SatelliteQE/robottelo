@@ -1881,8 +1881,10 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
         tracer = session.host_new.get_tracer(tracer_install_host.hostname)
         assert tracer['title'] == "Traces are being enabled"
         wait_for(
-            lambda: session.host_new.get_tracer(tracer_install_host.hostname)['title']
-            != "Traces are being enabled",
+            lambda: (
+                session.host_new.get_tracer(tracer_install_host.hostname)['title']
+                != "Traces are being enabled"
+            ),
             timeout=1800,
             delay=5,
             silent_failure=True,

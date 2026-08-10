@@ -180,8 +180,10 @@ def test_positive_provision_end_to_end(
         assert hostname in result.stdout
         # Wait for provisioning to complete and report status back to Satellite
         wait_for(
-            lambda: session.host.get_details(name)['properties']['properties_table']['Build']
-            != 'Pending installation clear',
+            lambda: (
+                session.host.get_details(name)['properties']['properties_table']['Build']
+                != 'Pending installation clear'
+            ),
             timeout=1800,
             delay=30,
             fail_func=session.browser.refresh,

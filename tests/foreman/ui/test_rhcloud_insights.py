@@ -81,10 +81,12 @@ def test_rhcloud_insights_e2e(
         # Sync Insights recommendations
         session.cloudinsights.sync_hits()
         wait_for(
-            lambda: module_target_sat.api.ForemanTask()
-            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
+            lambda: (
+                module_target_sat.api.ForemanTask()
+                .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,
@@ -102,10 +104,12 @@ def test_rhcloud_insights_e2e(
         timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.remediate(OPENSSH_RECOMMENDATION)
         wait_for(
-            lambda: module_target_sat.api.ForemanTask()
-            .search(query={'search': f'{job_query} and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
+            lambda: (
+                module_target_sat.api.ForemanTask()
+                .search(query={'search': f'{job_query} and started_at >= "{timestamp}"'})[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,
@@ -115,10 +119,12 @@ def test_rhcloud_insights_e2e(
         timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for(
-            lambda: module_target_sat.api.ForemanTask()
-            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
+            lambda: (
+                module_target_sat.api.ForemanTask()
+                .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,
@@ -261,10 +267,12 @@ def test_host_details_page(
         timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         session.cloudinsights.sync_hits()
         wait_for(
-            lambda: module_target_sat.api.ForemanTask()
-            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
+            lambda: (
+                module_target_sat.api.ForemanTask()
+                .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,

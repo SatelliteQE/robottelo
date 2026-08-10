@@ -447,8 +447,10 @@ def test_positive_provision_end_to_end(
     assert hostname in result.stdout
 
     wait_for(
-        lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
-        != 'Pending installation',
+        lambda: (
+            sat.cli.Host.info({'name': hostname})['status']['build-status']
+            != 'Pending installation'
+        ),
         timeout=1800,
         delay=30,
     )
