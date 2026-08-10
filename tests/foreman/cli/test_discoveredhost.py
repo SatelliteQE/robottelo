@@ -55,12 +55,14 @@ def test_rhel_pxe_discovery_provisioning(
     org = provisioning_hostgroup.organization[0].read()
     loc = provisioning_hostgroup.location[0].read()
     wait_for(
-        lambda: sat.api.DiscoveredHost().search(
-            query={
-                'mac': mac,
-            }
-        )
-        != [],
+        lambda: (
+            sat.api.DiscoveredHost().search(
+                query={
+                    'mac': mac,
+                }
+            )
+            != []
+        ),
         timeout=1500,
         delay=20,
     )
@@ -143,12 +145,14 @@ def test_rhel_pxeless_discovery_provisioning(
     org = provisioning_hostgroup.organization[0].read()
     loc = provisioning_hostgroup.location[0].read()
     wait_for(
-        lambda: sat.api.DiscoveredHost().search(
-            query={
-                'mac': mac,
-            }
-        )
-        != [],
+        lambda: (
+            sat.api.DiscoveredHost().search(
+                query={
+                    'mac': mac,
+                }
+            )
+            != []
+        ),
         timeout=1500,
         delay=40,
     )

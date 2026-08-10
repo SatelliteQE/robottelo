@@ -81,8 +81,9 @@ def _validated_image_tags_count(repo, sat):
     immediately after synchronization), which was CLOSED WONTFIX
     """
     wait_for(
-        lambda: int(_get_image_tags_count(repo=repo, sat=sat)['content-counts']['container-tags'])
-        > 0,
+        lambda: (
+            int(_get_image_tags_count(repo=repo, sat=sat)['content-counts']['container-tags']) > 0
+        ),
         timeout=30,
         delay=2,
         logger=logger,

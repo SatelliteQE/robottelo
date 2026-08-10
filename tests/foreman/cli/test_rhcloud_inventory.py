@@ -124,10 +124,12 @@ def test_positive_inventory_recommendation_sync(
     timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     result = module_target_sat.execute(cmd)
     wait_for(
-        lambda: module_target_sat.api.ForemanTask()
-        .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
-        .result
-        == 'success',
+        lambda: (
+            module_target_sat.api.ForemanTask()
+            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success'
+        ),
         timeout=400,
         delay=15,
         silent_failure=True,
@@ -177,15 +179,17 @@ def test_positive_sync_inventory_status_missing_host_ip(
     assert success_msg in result.stdout
     # Check task details
     wait_for(
-        lambda: module_target_sat.api.ForemanTask()
-        .search(
-            query={
-                'search': f'{inventory_sync_task} and started_at >= "{timestamp}"',
-                'per_page': 'all',
-            }
-        )[0]
-        .result
-        == 'success',
+        lambda: (
+            module_target_sat.api.ForemanTask()
+            .search(
+                query={
+                    'search': f'{inventory_sync_task} and started_at >= "{timestamp}"',
+                    'per_page': 'all',
+                }
+            )[0]
+            .result
+            == 'success'
+        ),
         timeout=400,
         delay=15,
         silent_failure=True,
@@ -301,10 +305,14 @@ def test_positive_generate_all_reports_job(target_sat):
             time.sleep(3)  # sleep for the cmd execution
         timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
         wait_for(
-            lambda: target_sat.api.ForemanTask()
-            .search(query={'search': f'{generate_report_jobs} and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
+            lambda: (
+                target_sat.api.ForemanTask()
+                .search(
+                    query={'search': f'{generate_report_jobs} and started_at >= "{timestamp}"'}
+                )[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,
