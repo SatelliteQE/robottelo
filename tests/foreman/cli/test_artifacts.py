@@ -116,13 +116,17 @@ def test_positive_artifact_repair(
             repo=module_synced_content.repo.label,
         )
         wait_for(
-            lambda: len(
-                get_repo_files_urls_by_url(
-                    sat_repo_url,
-                    extension='rpm' if module_synced_content.repo.content_type == 'yum' else 'iso',
+            lambda: (
+                len(
+                    get_repo_files_urls_by_url(
+                        sat_repo_url,
+                        extension='rpm'
+                        if module_synced_content.repo.content_type == 'yum'
+                        else 'iso',
+                    )
                 )
-            )
-            > 0,
+                > 0
+            ),
             timeout=120,
             delay=15,
         )
