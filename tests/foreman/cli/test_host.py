@@ -1738,12 +1738,14 @@ def test_positive_erratum_applicability(
     # verify that the applied erratum is not present in the list of installable errata
     try:
         applicable_erratum, _ = wait_for(
-            lambda: setup_custom_repo["security_errata"]
-            not in [
-                errata['erratum-id']
-                for errata in target_sat.cli.Host.errata_list({'host-id': host_info['id']})
-                if errata['installable'] == 'true'
-            ],
+            lambda: (
+                setup_custom_repo["security_errata"]
+                not in [
+                    errata['erratum-id']
+                    for errata in target_sat.cli.Host.errata_list({'host-id': host_info['id']})
+                    if errata['installable'] == 'true'
+                ]
+            ),
             handle_exception=True,
             timeout=300,
             delay=5,

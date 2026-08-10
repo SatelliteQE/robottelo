@@ -92,15 +92,17 @@ def test_rhcloud_inventory_e2e(
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
-            lambda: module_target_sat.api.ForemanTask()
-            .search(
-                query={
-                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
-                    f'and started_at >= "{timestamp}"'
-                }
-            )[0]
-            .result
-            == 'success',
+            lambda: (
+                module_target_sat.api.ForemanTask()
+                .search(
+                    query={
+                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        f'and started_at >= "{timestamp}"'
+                    }
+                )[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,
@@ -189,15 +191,17 @@ def test_rh_cloud_inventory_settings(
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
-            lambda: module_target_sat.api.ForemanTask()
-            .search(
-                query={
-                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
-                    f'and started_at >= "{timestamp}"'
-                }
-            )[0]
-            .result
-            == 'success',
+            lambda: (
+                module_target_sat.api.ForemanTask()
+                .search(
+                    query={
+                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        f'and started_at >= "{timestamp}"'
+                    }
+                )[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,
@@ -243,15 +247,17 @@ def test_rh_cloud_inventory_settings(
         session.cloudinventory.generate_report(org.name)
         # wait_for_tasks report generation task to finish.
         wait_for(
-            lambda: module_target_sat.api.ForemanTask()
-            .search(
-                query={
-                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
-                    f'and started_at >= "{timestamp}"'
-                }
-            )[0]
-            .result
-            == 'success',
+            lambda: (
+                module_target_sat.api.ForemanTask()
+                .search(
+                    query={
+                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        f'and started_at >= "{timestamp}"'
+                    }
+                )[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,
@@ -333,15 +339,17 @@ def test_rhcloud_inventory_without_manifest(session, module_org, target_sat):
         timestamp = (datetime.now(UTC) - timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M')
         session.cloudinventory.generate_report(module_org.name)
         wait_for(
-            lambda: target_sat.api.ForemanTask()
-            .search(
-                query={
-                    'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
-                    f'and started_at >= "{timestamp}"'
-                }
-            )[0]
-            .result
-            == 'success',
+            lambda: (
+                target_sat.api.ForemanTask()
+                .search(
+                    query={
+                        'search': f'label = ForemanInventoryUpload::Async::GenerateReportJob '
+                        f'and started_at >= "{timestamp}"'
+                    }
+                )[0]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,
@@ -382,10 +390,14 @@ def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, m
         session.location.select(loc_name=DEFAULT_LOC)
         session.cloudinventory.sync_inventory_status()
         wait_for(
-            lambda: module_target_sat.api.ForemanTask()
-            .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success',
+            lambda: (
+                module_target_sat.api.ForemanTask()
+                .search(query={'search': f'{inventory_sync_task} and started_at >= "{timestamp}"'})[
+                    0
+                ]
+                .result
+                == 'success'
+            ),
             timeout=400,
             delay=15,
             silent_failure=True,

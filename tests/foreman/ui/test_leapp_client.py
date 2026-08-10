@@ -22,8 +22,9 @@ from robottelo.constants import RHEL8_VER, RHEL9_VER
     [
         {'source_version': RHEL8_VER, 'target_version': RHEL9_VER},
     ],
-    ids=lambda upgrade_path: f'{upgrade_path["source_version"]}'
-    f'_to_{upgrade_path["target_version"]}',
+    ids=lambda upgrade_path: (
+        f'{upgrade_path["source_version"]}_to_{upgrade_path["target_version"]}'
+    ),
 )
 def test_leapp_preupgrade_report(
     module_target_sat,
