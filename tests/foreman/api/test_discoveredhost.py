@@ -123,12 +123,14 @@ def _assert_discovered_host(host, channel=None, user_config=None):
     default_config = entity_mixins.DEFAULT_SERVER_CONFIG
     try:
         wait_for(
-            lambda: len(
-                host.api.DiscoveredHost(user_config or default_config).search(
-                    query={'search': f'name={host.guest_name}'}
+            lambda: (
+                len(
+                    host.api.DiscoveredHost(user_config or default_config).search(
+                        query={'search': f'name={host.guest_name}'}
+                    )
                 )
-            )
-            > 0,
+                > 0
+            ),
             timeout=20,
             delay=2,
             logger=logger,
