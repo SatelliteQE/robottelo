@@ -82,7 +82,7 @@ def test_negative_remove_satellite_packages(sat_maintain):
     # DNF reports either "removing the following protected packages" (direct removal)
     # or "broken dependencies for the following protected packages" (dependency removal),
     # so we match the common substring that covers both cases.
-    protected_pkg = 'satellite' if isinstance(sat_maintain, Satellite) else 'satellite-capsule'
+    protected_pkg = sat_maintain.product_rpm_name
     for package in package_list:
         result = sat_maintain.execute(f'yum remove {package}')
         assert result.status != 0
