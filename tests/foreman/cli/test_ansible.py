@@ -886,13 +886,15 @@ class TestAnsibleAAPIntegration:
         )
         assert sync_response.ok
         wait_for(
-            lambda: rhel_contenthost.hostname
-            in [
-                host['name']
-                for host in aap_client.get(
-                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={rhel_contenthost.hostname}'
-                ).json()['results']
-            ],
+            lambda: (
+                rhel_contenthost.hostname
+                in [
+                    host['name']
+                    for host in aap_client.get(
+                        f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={rhel_contenthost.hostname}'
+                    ).json()['results']
+                ]
+            ),
             timeout=180,
             delay=30,
         )
@@ -1003,8 +1005,10 @@ class TestAnsibleAAPIntegration:
         # Host should do call back to the Satellite reporting
         # the result of the installation. Wait until Satellite reports that the host is installed.
         wait_for(
-            lambda: sat.cli.Host.info({'name': hostname})['status']['build-status']
-            != 'Pending installation',
+            lambda: (
+                sat.cli.Host.info({'name': hostname})['status']['build-status']
+                != 'Pending installation'
+            ),
             timeout=1800,
             delay=30,
         )
@@ -1038,13 +1042,15 @@ class TestAnsibleAAPIntegration:
         assert sync_response.ok
 
         wait_for(
-            lambda: hostname
-            in [
-                host['name']
-                for host in aap_client.get(
-                    f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={hostname}'
-                ).json()['results']
-            ],
+            lambda: (
+                hostname
+                in [
+                    host['name']
+                    for host in aap_client.get(
+                        f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={hostname}'
+                    ).json()['results']
+                ]
+            ),
             timeout=180,
             delay=30,
         )
@@ -1060,10 +1066,10 @@ class TestAnsibleAAPIntegration:
         # when the callback service is started, the job sometimes starts with pending or waiting state before going to the running state
         filtered_job = jobs['id'] if jobs['status'] in ('running', 'pending', 'waiting') else None
         wait_for(
-            lambda: aap_client.get(f'{api_base}jobs/?id={filtered_job}').json()['results'][0][
-                'status'
-            ]
-            == 'successful',
+            lambda: (
+                aap_client.get(f'{api_base}jobs/?id={filtered_job}').json()['results'][0]['status']
+                == 'successful'
+            ),
             timeout=120,
         )
         # Verify user rocket and package tmux is installed via ansible-callback on provisioning host

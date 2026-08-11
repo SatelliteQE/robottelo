@@ -308,10 +308,12 @@ def test_positive_resource_vm_power_management(session, vmware):
         try:
             wait_for(
                 lambda: (
-                    session.browser.refresh(),
-                    session.computeresource.vm_status(cr_name, vm_name),
-                )[1]
-                is not power_status,
+                    (
+                        session.browser.refresh(),
+                        session.computeresource.vm_status(cr_name, vm_name),
+                    )[1]
+                    is not power_status
+                ),
                 timeout=30,
                 delay=2,
             )
@@ -546,10 +548,12 @@ def test_positive_virt_card(session, target_sat, module_location, module_org, vm
             try:
                 wait_for(
                     lambda: (
-                        session.browser.refresh(),
-                        session.computeresource.vm_status(cr_name, settings.vmware.vm_name),
-                    )[1]
-                    is not power_status,
+                        (
+                            session.browser.refresh(),
+                            session.computeresource.vm_status(cr_name, settings.vmware.vm_name),
+                        )[1]
+                        is not power_status
+                    ),
                     timeout=30,
                     delay=2,
                 )
@@ -673,8 +677,10 @@ def test_positive_provision_end_to_end(
         host_fqdn = f'{host_name}.{module_vmware_hostgroup.domain.read().name}'
         request.addfinalizer(lambda: target_sat.provisioning_cleanup(host_fqdn))
         wait_for(
-            lambda: session.host_new.get_host_statuses(host_fqdn)['Build']['Status']
-            != 'Pending installation',
+            lambda: (
+                session.host_new.get_host_statuses(host_fqdn)['Build']['Status']
+                != 'Pending installation'
+            ),
             timeout=1800,
             delay=30,
             fail_func=session.browser.refresh,
