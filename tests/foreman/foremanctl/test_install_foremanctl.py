@@ -358,7 +358,7 @@ def test_capsule_installation_with_foremanctl(
         f'satellitectl deploy-proxy failed at capsule host\n{result.stdout}\n{result.stderr}'
     )
 
-    assert module_sat_ready_rhel.api.Capsule().search(
+    assert module_sat_ready_rhel.api.SmartProxy().search(
         query={'search': f'name={module_cap_ready_rhel.hostname}'}
     )[0]
 
