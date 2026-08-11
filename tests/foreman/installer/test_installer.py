@@ -265,27 +265,7 @@ def test_capsule_installation(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
 
-    # no errors/failures in journald
-    result = cap_ready_rhel.execute(
-        r'journalctl --quiet --no-pager --boot --priority err -u foreman-proxy -u httpd -u postgresql -u pulpcore-api -u pulpcore-content -u pulpcore-worker* -u redis'
-    )
-    assert len(result.stdout) == 0
-    # no errors/failures /var/log/foreman-installer/satellite.log
-    result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
-    )
-    assert len(result.stdout) == 0
-    # no errors/failures /var/log/foreman-installer/capsule.log
-    result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/capsule.log'
-    )
-    assert len(result.stdout) == 0
-    # no errors/failures in /var/log/httpd/*
-    result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert len(result.stdout) == 0
-    # no errors/failures in /var/log/foreman-proxy/*
-    result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/foreman-proxy/*')
-    assert len(result.stdout) == 0
+    cap_ready_rhel.assert_install_assertions()
 
     # Enabling firewall
     assert (
@@ -296,9 +276,6 @@ def test_capsule_installation(
     ), "firewalld is not present and can't be installed"
     cap_ready_rhel.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
     cap_ready_rhel.execute('firewall-cmd --runtime-to-permanent')
-
-    result = cap_ready_rhel.cli.Health.check()
-    assert 'FAIL' not in result.stdout
 
 
 @pytest.mark.e2e
