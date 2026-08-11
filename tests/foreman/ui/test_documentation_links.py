@@ -19,6 +19,7 @@ import requests
 
 from robottelo.config import settings
 from robottelo.logging import logger
+from robottelo.utils.issue_handlers import is_open
 
 pages = [
     'about',
@@ -115,6 +116,8 @@ def test_positive_documentation_links(module_target_sat, session, custom_docs_ur
 
     :expectedresults: All the Documentation links present on Satellite are working
     """
+    if module_target_sat.is_stream and is_open('SAT-48645'):
+        pytest.skip("Documentation for N+1 version is not yet published in stage")
     sat_version = ".".join(module_target_sat.version.split('.')[0:2])
     all_links = []
     broken_links = []
