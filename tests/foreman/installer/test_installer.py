@@ -18,9 +18,9 @@ import yaml
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
+from robottelo.constants import FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
+from robottelo.enums import InstallMethod
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.ohsnap import dogfood_repository
 
 SATELLITE_SERVICES = [
     'dynflow-sidekiq@orchestrator',
@@ -140,121 +140,6 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
     )
 
 
-def sync_capsule_repos(satellite, capsule_host, org, ak):
-    """
-    On Satellite enable and synchronize content required for Capsule installation.
-    1. Enable RHEL repositories based on configuration
-    2. Enable capsule repositories based on configuration
-    3. Synchronize repositories
-    """
-    # List of sync tasks - all repos will be synced asynchronously
-    sync_tasks = []
-
-    # Enable and sync RHEL BaseOS and AppStream repos
-    if settings.robottelo.rhel_source == "internal":
-        # Configure internal sources as custom repositories
-        product_rhel = satellite.api.Product(organization=org.id).create()
-        for repourl in settings.repos.get(f'rhel{capsule_host.os_version.major}_os').values():
-            repo = satellite.api.Repository(
-                organization=org.id, product=product_rhel, content_type='yum', url=repourl
-            ).create()
-            # custom repos need to be explicitly enabled
-            ak.content_override(
-                data={
-                    'content_overrides': [
-                        {
-                            'content_label': '_'.join([org.label, product_rhel.label, repo.label]),
-                            'value': '1',
-                        }
-                    ]
-                }
-            )
-    else:
-        # use AppStream and BaseOS from CDN
-        for rh_repo_key in [
-            f'rhel{capsule_host.os_version.major}_bos',
-            f'rhel{capsule_host.os_version.major}_aps',
-        ]:
-            satellite.api_factory.enable_rhrepo_and_fetchid(
-                basearch=DEFAULT_ARCHITECTURE,
-                org_id=org.id,
-                product=PRDS[f'rhel{capsule_host.os_version.major}'],
-                repo=REPOS[rh_repo_key]['name'],
-                reposet=REPOSET[rh_repo_key],
-                releasever=REPOS[rh_repo_key]['releasever'],
-            )
-        product_rhel = satellite.api.Product(
-            name=PRDS[f'rhel{capsule_host.os_version.major}'], organization=org.id
-        ).search()[0]
-    sync_tasks.append(satellite.api.Product(id=product_rhel.id).sync(synchronous=False))
-
-    # Enable and sync Capsule repos
-    if settings.capsule.version.source == "ga":
-        # enable Capsule repos from CDN
-        for repo in capsule_host.CAPSULE_CDN_REPOS.values():
-            reposet = satellite.api.RepositorySet(organization=org.id).search(
-                query={'search': repo}
-            )[0]
-            reposet.enable()
-            # repos need to be explicitly enabled in AK
-            ak.content_override(
-                data={
-                    'content_overrides': [
-                        {
-                            'content_label': reposet.label,
-                            'value': '1',
-                        }
-                    ]
-                }
-            )
-            sync_tasks.append(satellite.api.Product(id=reposet.product.id).sync(synchronous=False))
-    else:
-        # configure internal source as custom repos
-        product_capsule = satellite.api.Product(organization=org.id).create()
-        for repo_variant, repo_default_url in [
-            ('capsule', 'capsule_repo'),
-            ('maintenance', 'satmaintenance_repo'),
-        ]:
-            if settings.capsule.version.source == 'nightly':
-                repo_url = getattr(settings.repos, repo_default_url)
-            else:
-                repo_url = dogfood_repository(
-                    ohsnap=settings.ohsnap,
-                    repo=repo_variant,
-                    product="capsule",
-                    release=settings.capsule.version.release,
-                    os_release=capsule_host.os_version.major,
-                    snap=settings.capsule.version.snap,
-                ).baseurl
-            repo = satellite.api.Repository(
-                organization=org.id,
-                product=product_capsule,
-                content_type='yum',
-                url=repo_url,
-            ).create()
-
-            # custom repos need to be explicitly enabled
-            ak.content_override(
-                data={
-                    'content_overrides': [
-                        {
-                            'content_label': '_'.join(
-                                [org.label, product_capsule.label, repo.label]
-                            ),
-                            'value': '1',
-                        }
-                    ]
-                }
-            )
-        sync_tasks.append(satellite.api.Product(id=product_capsule.id).sync(synchronous=False))
-
-    # Wait for asynchronous sync tasks
-    satellite.wait_for_tasks(
-        search_query=(f'id ^ "{",".join(task["id"] for task in sync_tasks)}"'),
-        poll_timeout=1800,
-    )
-
-
 @pytest.fixture(scope='module')
 def sat_default_install(module_sat_ready_rhels):
     """Install Satellite with default options"""
@@ -357,7 +242,7 @@ def test_capsule_installation(
     ak = sat_fapolicyd_install.api.ActivationKey(
         organization=org, content_view_environment_ids=[cvenv_id]
     ).create()
-    sync_capsule_repos(sat_fapolicyd_install, cap_ready_rhel, org, ak)
+    sat_fapolicyd_install.api_factory.sync_capsule_repos(cap_ready_rhel, org, ak)
 
     cap_ready_rhel.register(org, None, ak.name, sat_fapolicyd_install)
 
@@ -677,8 +562,6 @@ def test_satellite_installation(pytestconfig, installer_satellite):
 
     :CaseImportance: Critical
     """
-    from robottelo.enums import InstallMethod
-
     installer_satellite.assert_install_assertions()
 
     # Verify foreman-redis is installed and set as default cache for rails
