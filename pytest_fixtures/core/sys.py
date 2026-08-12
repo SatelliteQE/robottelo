@@ -3,6 +3,8 @@ from urllib.parse import urlparse
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import CONTAINER_CERTS_PATH
+from robottelo.enums import InstallMethod
 from robottelo.exceptions import SatelliteHostError
 
 
@@ -49,6 +51,16 @@ def puppet_proxy_port_range(session_puppet_enabled_sat):
             session_puppet_enabled_sat.execute(
                 f'semanage port -a -t websm_port_t -p tcp {port_pool_range}'
             )
+
+
+@pytest.fixture(autouse=True, scope='session')
+def configure_podman_ca_trust(session_target_sat):
+    """Configure podman on containerized Satellite to trust its own katello CA."""
+    if session_target_sat and session_target_sat.install_method == InstallMethod.FOREMANCTL:
+        certs_dir = f'{CONTAINER_CERTS_PATH}{session_target_sat.hostname}'
+        session_target_sat.execute(
+            f'mkdir -p {certs_dir} && cp {session_target_sat.ca_cert_file} {certs_dir}/ca.crt'
+        )
 
 
 @pytest.fixture(scope='class')
