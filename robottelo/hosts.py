@@ -77,6 +77,7 @@ from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
+from robottelo.utils.issue_handlers import is_open
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -2237,9 +2238,20 @@ class Capsule(ContentHost, CapsuleMixins):
             == 0
         )
 
+        if is_open('SAT-48790'):
+            # This belongs into the downstream packaging, which isn't ready yet
+            overrides_dir = '/usr/share/foremanctl/src/playbooks/_vendor_overrides/'
+            self.execute(f'mkdir -p {overrides_dir}/deploy/')
+            self.put(
+                'variables:\n  flavor:\n    choices:\n      - satellite',
+                f'{overrides_dir}/deploy/metadata.obsah.yaml',
+                temp_file=True,
+            )
+
         # Install Satellite and return result
 
         default_parameters = [
+            '--flavor satellite',
             f'--initial-admin-username {settings.server.admin_username}',
             f'--initial-admin-password {settings.server.admin_password}',
         ]
