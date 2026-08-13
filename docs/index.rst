@@ -15,117 +15,108 @@ Quickstart
 ==========
 
 The following is only a brief setup guide for `Robottelo`_. The section on
-`Running the Tests`_ provides a more comprehensive guide to using Robottelo.
+`Running the tests`_ provides a more comprehensive guide to using Robottelo.
 
-Robottelo requires SSH access to the Satellite system under test, and this
-SSH access is implemented by ssh2-python. Install the headers for the following to
-ensure that ssh2-python's dependencies build correctly:
+Recommendation: Create a virtual Python environment for the following setup.
 
-* OpenSSL
-* Python development headers
+Create virtual environment for Python 3.x::
 
+    $ python3 -m venv <venv_name>
 
-Recommendation: Create a virtual python environment for the following setup.
+To activate the virtual environment::
 
-Create virtual environment for python 3.x::
-$ python3 -m venv <venv_name>
-To activate virtual environment:
-$ source <venv_name>/bin/activate
-To end the session:
-$ deactivate
+    $ source <venv_name>/bin/activate
 
-On Fedora, you can install these with the following command:
+To exit the environment::
 
-For python3.x::
-dnf install -y gcc git libffi-devel openssl-devel python38-devel \
-redhat-rpm-config libcurl-devel libxml2-devel
+    $ deactivate
+
+On Fedora, you can install Robottelo with the following commands:
+
+For Python 3.x::
+
+    $ dnf install -y gcc git python3-devel libxml2-devel
 
 Get the source code and install dependencies::
 
-$ git clone git://github.com/SatelliteQE/robottelo.git
-$ export PYCURL_SSL_LIBRARY=<ssl library>
-$ pip install -r requirements.txt
-
-**Notes:**
-* To determine ssl library, check http://pycurl.io/docs/latest/install.html#ssl
+    $ git clone git://github.com/SatelliteQE/robottelo.git
+    $ cd robottelo/
+    $ pip install -r requirements.txt
 
 That's it! You can now go ahead and start testing The Foreman. However, there
 are a few other things you may wish to do before continuing:
 
-1. You may want to install development tools (such as gcc) for your OS. If
+1. You may want to install development tools (such as ``gcc``) for your OS. If
 running Fedora or Red Hat Enterprise Linux, execute ``yum groupinstall
 "Development Tools"``. Make sure to use ``dnf`` instead of ``yum`` if
 ``dnf`` is available on your system.
 2. You may wish to install the optional dependencies listed in
-``requirements-optional.txt``. (Use pip, as shown above.) They are required
-for tasks like working with certificates, running the internal robottelo test
+``requirements-optional.txt``. (Use ``pip``, as shown above.) They are required
+for tasks like working with certificates, running the internal Robottelo test
 suite and checking code quality with pre-commit.
 
-Robottelo on Docker
+Robottelo on Podman
 -------------------
 
-Robottelo is also available on `dockerhub`_.::
+Robottelo is also available on `quay`_.::
 
-$ docker pull satelliteqe/robottelo
+    $ podman pull quay.io/satelliteqe/robottelo:latest
 
 It also can be built locally using the Dockerfile, in the main directory.::
 
-$ docker build -t robottelo .
+    $ podman build -t robottelo .
 
-In order to run tests, you will need to mount your robottelo.properties file.::
+In order to run tests, you will need to mount your config directory.::
 
-$ docker run -v {path to robottelo dir}/robottelo.properties:/robottelo/robottelo.properties satelliteqe/robottelo <test command>
+    $ podman run -v {path to conf directory}:/opt/app-root/src/robottelo/conf satelliteqe/robottelo <test command>
 
-You can also mount the entire robottelo directory to include the properties file
-and any new tests you have written.::
+You can also mount the entire main directory, to include both the config directory as well as any
+new tests you have written.::
 
-$ docker run -it -v {path to robottelo dir}:/robottelo satelliteqe/robottelo /bin/bash
+    $ podman run -it -v {path to robottelo directory}:/opt/app-root/src/robottelo satelliteqe/robottelo /bin/bash
 
 **Notes:**
 
-- CLI tests run easiest if you include the root credentials in server.yaml
-- UI tests should be configured to run through your SauceLabs account.
+- UI tests should be configured to run through a Selenium server.
 
-Running the Tests
+Running the tests
 =================
 
-Before running any tests, you must create a configuration file::
+Before running any tests, you must set up the necessary configuration files::
 
-$ cp virtwho.properties.sample ./virtwho.properties
-$ vi virtwho.properties
-$ cd conf
-$ cp broker.yaml.template ./broker.yaml
-$ vi broker.yaml
-$ cp robottelo.yaml.template ./robottelo.yaml
-$ vi robottelo.yaml
-$ cp server.yaml.template ./server.yaml
-$ vi server.yaml
-
+    $ cd conf/
+    $ cp virtwho.yaml.template virtwho.yaml
+    $ vi virtwho.yaml
+    $ cp broker.yaml.template broker.yaml
+    $ vi broker.yaml
+    $ cp robottelo.yaml.template robottelo.yaml
+    $ vi robottelo.yaml
+    $ cp server.yaml.template server.yaml
+    $ vi server.yaml
+    # [...]
+    $ cd ..
 
 That done, you can run tests using ``make``::
 
-$ make test-robottelo
-$ make test-docstrings
-$ make test-foreman-api
-$ make test-foreman-cli
-$ make test-foreman-ui
-$ make test-foreman-smoke
+    $ make test-robottelo
+    $ make test-docstrings
+    $ make test-foreman-api
+    $ make test-foreman-cli
+    $ make test-foreman-ui
+    $ make test-foreman-smoke
 
 Robottelo provides two test suites, one for testing Robottelo itself and
 another for testing Foreman/Satellite 6. Robottelo's tests are under the
-tests/robottelo directory and the Foreman/Satellite 6 tests are under the
-tests/foreman directory.
+``tests/robottelo`` directory and the Foreman/Satellite 6 tests are under the
+``tests/foreman`` directory.
 
 If you want to run tests without the aid of ``make``, you can do that with
-either `pytest`_ , `unittest`_ or `nose`_. Just specify the path for the test suite you
+either `pytest`_ or `unittest`_. Just specify the path for the test suite you
 want to run::
 
-$ pytest tests/robottelo
-$ pytest tests/foreman
-$ python -m unittest discover -s tests/robottelo -t .
-$ python -m unittest discover -s tests/foreman -t .
-$ nosetests tests/robottelo
-$ nosetests tests/foreman
+    $ pytest tests/robottelo
+    $ pytest tests/foreman
+    $ python -m unittest discover -s tests/robottelo -t .
 
 The following sections discuss, in detail, how to update the configuration file
 and run tests directly.
@@ -133,158 +124,153 @@ and run tests directly.
 Initial Configuration
 ---------------------
 
-To configure Robottelo, multiple template yaml files are present to execute different test cases in Robottelo.
-1. server.yaml : Populate server.yaml with ssh credentials and ssh key path. Then, edit the configuration file so that
-at least the following attributes are set::
-HOSTNAMES=[LIST OF FULLY QUALIFIED DOMAIN NAMES OR IP ADDRESSES]
-SSH_USERNAME=[SSH USERNAME]
-SSH_PASSWORD=[SSH PASSWORD] / SSH_KEY=[PATH TO YOUR SSH KEY] / SSH_KEY_STRING = [SSH KEY AS STRING]
+To configure Robottelo, multiple template YAML files are present to execute different test cases in Robottelo.
 
+1. ``server.yaml`` : Populate this file with SSH credentials::
+
+    HOSTNAMES: ["satellite.example.com"]
+    SSH_USERNAME: username
+    SSH_PASSWORD: password | SSH_KEY: /path/to/ssh/key | SSH_KEY_STRING: ssh_key_as_string
 
 Note that you only need to configure the SSH key if you want to run CLI tests.
-There are other settings to configure what web browser to use for UI tests and
-even configuration to run the automation using `SauceLabs`_. For more
-information about what web browsers you can use, check Selenium's `WebDriver`_
-documentation.
 
 Using environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each of the sections in the ``robottelo.properties`` file can be mapped to an
-environment variable prefixed with ``ROBOTTELO_`` so for example if you want
-to override the ``server.hostname`` without changing the properties file you can do::
+Each of the sections in ``conf/`` files can be mapped to an environment variable prefixed with ``ROBOTTELO_``.
+For example, if you want to override the server hostname without changing the config file::
 
-$ export ROBOTTELO_SERVER_HOSTNAME=other.hostname.com
+    $ export ROBOTTELO_server__hostnames='["satellite.example.com"]'
 
-The envars follows the format ``ROBOTTELO_{SECTION}_{VALUE}`` all uppercase, more examples::
+The env vars follow the format ``ROBOTTELO_{section}__{key}``. Further examples::
 
-$ export ROBOTTELO_SERVER_SSH_KEY=path/to/your/key
+    $ export ROBOTTELO_server__ssh_key=/path/to/ssh/key
+    $ export ROBOTTELO_ui__grid_url=http://grid.example.com:4444
 
 Using Secrets from Vault
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Robottelo is enabled to fetch secrets from Hashicorp Vault via DynaConf at runtime.
+Robottelo is enabled to fetch secrets from Hashicorp Vault via Dynaconf at runtime.
 
 To enable the integration:
 
-#. Copy .env.example to .env file for dynaconf settings object to connect with vault
-#. Set VAULT_ENABLED_FOR_DYNACONF to true to enable vault integration
-#. Set right values for VAULT_URL_FOR_DYNACONF, VAULT_MOUNT_POINT_FOR_DYNACONF and VAULT_PATH_FOR_DYNACONF
-#. Run 'make vault-login' to login into vault and to generate and set the OIDC token automatically
-#. Edit any conf file from conf/ directory and add the value for setting in as ``@format {this._secret_name_in_vault_}``.
+#. Copy .env.example to .env file for Dynaconf settings object to connect with Vault.
+#. Set VAULT_ENABLED_FOR_DYNACONF to true to enable Vault integration.
+#. Set the corresponding values for VAULT_URL_FOR_DYNACONF, VAULT_MOUNT_POINT_FOR_DYNACONF and VAULT_PATH_FOR_DYNACONF.
+#. Run ``make vault-login`` to log in into Vault and to generate and set the OIDC token automatically.
+#. Edit config files in ``conf/`` and update settings to take values from Vault with the format ``@format {this._secret_name_in_vault_}``.
 
-Running the UI Tests in headless mode
----------------------------------------
-
-You can run browser for UI tests in headless mode by setting browser option in
-``robottelo.properties`` file. Currently it is supported only for chrome
-
-browseroptions=headless
-
-Testing With Pytest
----------------------
+Testing with pytest
+-------------------
 
 To run all tests::
 
-$ pytest
+    $ pytest
 
 It is possible to run a specific subset of tests::
 
-$ pytest test_case.py
-$ pytest test_case.py::TestClass
-$ pytest test_case.py::TestClass::test_case_name
+    $ pytest test_case.py
+    $ pytest test_case.py::TestClass
+    $ pytest test_case.py::TestClass::test_case_name
 
 To get more verbose output, or run multiple tests::
 
-$ pytest tests/ -v
-$ pytest tests/robottelo/test_decorators.py tests/robottelo/test_cli.py
+    $ pytest tests/ -v
+    $ pytest tests/robottelo/test_decorators.py tests/robottelo/test_cli.py
 
 To test The Foreman's API, CLI or UI, use the following commands respectively::
 
-$ pytest tests/foreman/api/
-$ pytest tests/foreman/cli/
-$ pytest tests/foreman/ui/
+    $ pytest tests/foreman/api/
+    $ pytest tests/foreman/cli/
+    $ pytest tests/foreman/ui/
 
 To collect from three directories in one run::
 
-$ pytest tests/foreman/{cli,api,ui}/test_host.py
+    $ pytest tests/foreman/{cli,api,ui}/test_host.py
 
 To search in testcase names, in this case it will run just negative tests::
 
-$ pytest tests/foreman/cli/test_host.py -k negative
+    $ pytest tests/foreman/cli/test_host.py -k negative
 
 To run tests in several threads, in this case 4::
 
-$ pytest tests/foreman/cli/test_host.py -n 4
+    $ pytest tests/foreman/cli/test_host.py -n 4
 
 For more information about Python's `pytest`_ module, read the documentation.
 
 
-Running UI Tests On a Docker Browser
-------------------------------------
+Running UI tests on a local Selenium container
+----------------------------------------------
 
-It is possible to run UI tests within a docker container. To do this:
+It is possible to run UI tests with a standalone Selenium browser container:
 
-* Install docker. It is provided by the ``docker`` package on Fedora and Red Hat. Be aware that the package may call ``docker-io`` on old OS releases.
-* Make sure that docker is running and your user has permission to run docker. For more information, check https://docs.docker.com/engine/installation/.
-* Pull the ``selenium/standalone-firefox`` image
-* Set ``browser=docker`` in ``conf/robottelo.yaml``
+.. code-block:: shell
+
+    $ . selenium_grid.sh
+    $ selenium_standalone_start
+    Running selenium browser:
+    [...]
+    <CONTAINER_ID>
+
+We can check that the container started:
+
+.. code-block:: shell
+
+    $ podman ps -a | grep selenium
+    <CONTAINER_ID>  docker.io/selenium/standalone-chrome:latest  /opt/bin/entry_po...  4 minutes ago  Up 4 minutes  0.0.0.0:4444->4444/tcp, 0.0.0.0:7900->7900/tcp, 4442-4443/tcp, 5900/tcp, 9000/tcp  standalone-chrome
+
+    $ xdg-open http://localhost:4444/ui/
+
+To clean up the container after the test, run the command:
+
+.. code-block:: shell
+
+    $ selenium_standalone_cleanup
 
 
-Once you've performed these steps, UI tests will no longer launch a web browser
-on your system. Instead, UI tests launch a web browser within a docker
-container.
-
-
-Running UI Tests On a local Docker Browser grid
+Running UI tests on a local Selenium Grid
+-----------------------------------------
 
 .. code-block:: shell
 
     $ . selenium_grid.sh
     $ selenium_grid_start_hub
     Running selenium hub:
-    bbaafb2341aae77c32408d1f44e47bed5ced8a97683689b1083080f0389e025c
-    $ selenium_grid_start_node
-    Running selenium node:
-    0d70919ee049679e6dae2cfa7e14d97d26e5be12ad6e48d9a0d1638618f39769
-    $ selenium_grid_start_node
-    Running selenium node:
-    069a294f43be182635008cfdcb6291c8c8cfed4a054640773bfea9a0baae4dc6
-    $ selenium_grid_start_node
-    Running selenium node:
-    4b1881e5d880d49f5380cc90f9ff5deb133c7f42d3565eccb0d91fff6a440307
-    $ selenium_grid_start_node
-    Running selenium node:
-    2504bbe723f3b850b2d87760b7fd90940abb9e827762298652cb5d9facc9195c
+    <HUB_ID>
 
-We can check the containers started fine:
+    $ selenium_grid_start_node
+    Running selenium node:
+    <NODE_1_ID>
+
+    $ selenium_grid_start_node
+    Running selenium node:
+    <NODE_2_ID>
+
+    $ selenium_grid_start_node
+    Running selenium node:
+    <NODE_3_ID>
+
+    $ selenium_grid_start_node
+    Running selenium node:
+    <NODE_4_ID>
+
+We can check that the containers started:
 
 .. code-block:: shell
 
-    $ podman ps -a | grep selenium-
-    bbaafb2341aa  docker.io/selenium/hub:4.3.0                                                /opt/bin/entry_po...  33 seconds ago  Up 33 seconds ago          0.0.0.0:4442-4445->4442-4445/tcp  selenium-hub
-    0d70919ee049  docker.io/selenium/node-chrome:4.3.0                                        /opt/bin/entry_po...  30 seconds ago  Up 30 seconds ago                                            selenium-node-chrome-f4qVX
-    069a294f43be  docker.io/selenium/node-chrome:4.3.0                                        /opt/bin/entry_po...  28 seconds ago  Up 28 seconds ago                                            selenium-node-chrome-3k56l
-    4b1881e5d880  docker.io/selenium/node-chrome:4.3.0                                        /opt/bin/entry_po...  26 seconds ago  Up 26 seconds ago                                            selenium-node-chrome-KIAOk
-    2504bbe723f3  docker.io/selenium/node-chrome:4.3.0                                        /opt/bin/entry_po...  24 seconds ago  Up 24 seconds ago                                            selenium-node-chrome-JQhOi
-    $ xdg-open http://localhost:4444/ui
+    $ podman ps -a | grep selenium
+    <HUB_ID>     docker.io/selenium/hub:latest         /opt/bin/entry_po... 33 seconds ago Up 33 seconds ago 0.0.0.0:4442-4445->4442-4445/tcp  selenium-hub
+    <NODE_1_ID>  docker.io/selenium/node-chrome:latest /opt/bin/entry_po... 30 seconds ago Up 30 seconds ago                                   selenium-node-chrome-f4qVX
+    <NODE_2_ID>  docker.io/selenium/node-chrome:latest /opt/bin/entry_po... 28 seconds ago Up 28 seconds ago                                   selenium-node-chrome-3k56l
+    <NODE_3_ID>  docker.io/selenium/node-chrome:latest /opt/bin/entry_po... 26 seconds ago Up 26 seconds ago                                   selenium-node-chrome-KIAOk
+    <NODE_4_ID>  docker.io/selenium/node-chrome:latest /opt/bin/entry_po... 24 seconds ago Up 24 seconds ago                                   selenium-node-chrome-JQhOi
 
-To cleanup after the test there is a command
+    $ xdg-open http://localhost:4444/ui/
 
-.. code-block:: shell
+To clean up the containers after the test, run the command::
 
-    selenium_grid_cleanup
+    $ selenium_grid_cleanup
 
-
-Running UI Tests On SauceLabs
------------------------------
-
-It is possible to run UI tests on SauceLabs. To do this:
-
-* Set ``browser=saucelabs`` in ``conf/robottelo.yaml``.
-* Select the browser type by setting ``webdriver`` in ``conf/robottelo.yaml`` section in the configuration file. Valid values are ``firefox``, ``chrome`` and ``ie``.
-* Fill ``saucelabs_user`` and ``saucelabs_key`` in ``conf/robottelo.yaml`` section in the configuration file with your Sauce OnDemand credentials.
-* If the machine where Satellite 6 is installed is on a VPN or behind a firewall make sure to have SauceConnect running.
 
 Miscellany
 ==========
@@ -304,43 +290,34 @@ Ready to start reviewing pull requests? We have :doc:`a guide </reviewing_PRs>`
 for that too! Finally, the :doc:`API reference </autoapi/index>` covers
 individual functions, classes, methods and modules.
 
-**Robottelo** is compatible with Python 3.6+.
+**Robottelo** is compatible with Python 3.12+.
 
 Bugs are listed `on GitHub <https://github.com/SatelliteQE/robottelo/issues>`_.
-If you think you've found a new issue, please do one of the following:
-
-* Open a new bug report on Github.
-* Join the #robottelo IRC channel on Freenode (irc.freenode.net).
+If you think you've found a new issue, please open a new bug report there.
 
 You can generate the documentation for Robottelo as follows, so long as you have
 `Sphinx`_ and make installed::
 
-$ cd docs
-$ make html
+    $ cd docs
+    $ make html
 
 You can generate a graph of Foreman entities and their dependencies, so long as
 you have `graphviz`_ installed::
 
-$ make graph-entities
+    $ make graph-entities
 
 To check for code smells::
 
-$ pre-commit install-hooks
-$ pre-commit run --all-files
-
-The design and development for this software is led by `Og Maciel`_.
+    $ pre-commit install-hooks
+    $ pre-commit run --all-files
 
 .. _data driven: http://en.wikipedia.org/wiki/Data-driven_testing
-.. _dockerhub: https://hub.docker.com/r/satelliteqe/robottelo/
-.. _subTest: https://docs.python.org/3/library/unittest.html#unittest.TestCase.subTest
 .. _graphviz: http://graphviz.org/
-.. _nose: https://nose.readthedocs.org/en/latest/index.html
-.. _Og Maciel: http://www.ogmaciel.com
-.. _ssh2-python: https://pypi.org/project/ssh2-python/
 .. _Pytest: https://docs.pytest.org/en/latest/contents.html
+.. _quay: https://quay.io/repository/satelliteqe/robottelo
 .. _Requests: http://docs.python-requests.org/en/latest/
 .. _Robottelo: https://github.com/SatelliteQE/robottelo
-.. _SauceLabs: https://saucelabs.com/
+.. _ssh2-python: https://pypi.org/project/ssh2-python/
 .. _Sphinx: http://sphinx-doc.org/index.html
 .. _The Foreman: http://theforeman.org/
 .. _unittest: http://docs.python.org/2/library/unittest.html
