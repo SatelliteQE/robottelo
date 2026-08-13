@@ -23,6 +23,7 @@ from robottelo.constants import (
     FOREMANCTL_POSTGRESQL_TUNING_PROFILES,
     InstallationServices,
 )
+from robottelo.exceptions import CapsuleHostError
 from robottelo.hosts import Capsule, Satellite
 from robottelo.utils.issue_handlers import is_open
 
@@ -47,6 +48,24 @@ def common_sat_install_assertions(satellite):
     assert 'WARNING' not in httpd_log.stdout
 
 
+def common_cap_install_assertions(capsule):
+    result = capsule.execute('systemctl status foreman-proxy.service foreman.target')
+    if 'inactive (dead)' in result.stdout:
+        raise CapsuleHostError(
+            f'foreman-proxy service is not running on the capsule:\n{result.stdout}'
+        )
+    # no errors/failures in journald
+    result = capsule.execute(
+        r'journalctl --quiet --no-pager --boot --grep ERROR -u "foreman-proxy" -u "httpd" -u "postgresql" -u "pulp-api" -u "pulp-content" -u "pulp-worker*" -u "valkey"'
+    )
+    assert not result.stdout
+    # no errors/failures in /var/log/httpd/*
+    result = capsule.execute(r'grep -iR "error" /var/log/httpd/*')
+    assert not result.stdout
+    httpd_log = capsule.execute('journalctl --unit=httpd')
+    assert 'WARNING' not in httpd_log.stdout
+
+
 def assert_hammer_ping_ok(result):
     assert result.status == 0, 'hammer ping failed'
     services = hammer.parse_ping(result.stdout)
@@ -68,7 +87,8 @@ def assert_postgresql_tuning(sat, tuning):
 
 @pytest.fixture(scope='module')
 def module_sat_ready_rhel(request):
-    param = request.param
+    """Deploy bare RHEL system ready for Satellite installation."""
+    param = getattr(request, 'param', 'default')
     deploy_args = param.get('deploy_args', '') if isinstance(param, dict) else ''
     with Broker(
         workflow=settings.server.deploy_workflows.os,
@@ -84,6 +104,51 @@ def module_sat_ready_rhel(request):
             parameters=deploy_args,
         )
         yield sat
+
+
+@pytest.fixture(scope='module')
+def module_cap_ready_rhel(request):
+    """Deploy bare RHEL system ready for Capsule installation."""
+    with Broker(
+        workflow=settings.server.deploy_workflows.os,
+        deploy_rhel_version=settings.server.version.rhel_version,
+        deploy_flavor=settings.flavors.default,
+        deploy_network_type=settings.server.network_type,
+        host_class=Capsule,
+        use_dynamic_inventories_wf_level=False,
+    ) as cap:
+        # Add IPv6 proxy for IPv6 communication
+        cap.enable_ipv6_dnf_and_rhsm_proxy()
+        cap.enable_ipv6_system_proxy()
+        # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
+        cap.register_to_cdn()
+        cap.ensure_podman_installed(enable_ipv6_proxy=True)
+        # Install satellitectl package on Capsule
+        cap.setup_satellite_repos()  # Remove this when satellitectl is available in capsule repos
+        # Enable Packit repos for upstream testing
+        pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
+        if pull_requests:
+            Broker(
+                job_template='upstream-pr-install',
+                target_vm=cap.name,
+                pull_requests=pull_requests,
+                deploy_network_type=settings.server.network_type,
+            ).execute()
+        assert cap.execute('dnf install -y satellitectl').status == 0, (
+            'Failed to install satellitectl'
+        )
+        # Unregister capsule in case it's registered to CDN
+        cap.unregister()
+        # Setup firewall to allow Satellite-Capsule communication
+        assert (
+            cap.execute(
+                'which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld'
+            ).status
+            == 0
+        ), "firewalld is not present and can't be installed"
+        cap.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
+        cap.execute('firewall-cmd --runtime-to-permanent')
+        yield cap
 
 
 @pytest.fixture(scope='module')
@@ -105,6 +170,8 @@ def module_sat_foremanctl_tuning(request):
         yield sat
 
 
+@pytest.mark.e2e
+@pytest.mark.pit_server
 @pytest.mark.first_sanity
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
 def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
@@ -123,6 +190,67 @@ def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
         2. no unexpected errors in logs
     """
     common_sat_install_assertions(module_sat_ready_rhel)
+
+
+@pytest.mark.e2e
+@pytest.mark.pit_server
+@pytest.mark.build_sanity
+def test_capsule_installation_with_foremanctl(
+    pytestconfig, module_sat_ready_rhel, module_cap_ready_rhel, module_sca_manifest
+):
+    """Run a basic Capsule installation with foremanctl
+
+    :id: 64fa85b6-96e6-4fea-bea4-a30539d59e69
+
+    :steps:
+        1. Use Satellite deployed with foremanctl.
+        2. Configure RHEL and Capsule repos on Satellite
+        3. Register Capsule machine to consume Satellite content
+        4. Install and setup Capsule server using foremanctl
+
+    :expectedresults:
+        1. Capsule is installed and setup correctly
+        2. no unexpected errors in logs
+        3. health check runs successfully
+    """
+    # Setup Capsule Hostname for further sanity capsule testing
+    if 'build_sanity' in pytestconfig.option.markexpr:
+        settings.capsule.hostname = module_cap_ready_rhel.hostname
+        module_cap_ready_rhel._skip_context_checkin = True
+        pytest.capsule_sanity = True
+
+    # Create testing organization
+    org = module_sat_ready_rhel.api.Organization().create()
+
+    # Add a manifest to the Satellite
+    module_sat_ready_rhel.upload_manifest(org.id, module_sca_manifest.content)
+    # Create capsule certs and activation key
+    file, _, cmd_args = module_sat_ready_rhel.capsule_certs_generate(module_cap_ready_rhel)
+    module_sat_ready_rhel.session.remote_copy(file, module_cap_ready_rhel)
+    cvenv_id = module_sat_ready_rhel.api_factory.get_cvenv_id(org.default_content_view, org.library)
+    ak = module_sat_ready_rhel.api.ActivationKey(
+        organization=org, content_view_environment_ids=[cvenv_id]
+    ).create()
+    module_sat_ready_rhel.api_factory.sync_capsule_repos(module_cap_ready_rhel, org, ak)
+
+    module_cap_ready_rhel.register(org, None, ak.name, module_sat_ready_rhel)
+
+    # Setup Capsule
+    result = module_cap_ready_rhel.execute(cmd_args)
+    assert result.status == 0, (
+        f'satellitectl deploy-proxy failed at capsule host\n{result.stdout}\n{result.stderr}'
+    )
+
+    assert module_sat_ready_rhel.api.SmartProxy().search(
+        query={'search': f'name={module_cap_ready_rhel.hostname}'}
+    )[0]
+
+    common_cap_install_assertions(module_cap_ready_rhel)
+
+    result = module_cap_ready_rhel.execute('satellitectl health')
+    assert result.status == 0
+    assert 'FAIL' not in result.stdout
+    assert 'Some services are not running' not in result.stdout
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
@@ -595,26 +723,18 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
 
     :steps:
         1. Deploy Satellite with foremanctl using default certificates
-        2. Generate an auth bundle via
-           foremanctl auth-bundle
+        2. Generate an auth bundle via foremanctl auth-bundle
         3. Extract the bundle tarball and verify it contains capsule server and
            client certificate files and oauth credentials
-        4. Verify capsule server and client certificates have default validity
-           (7300 days)
+        4. Verify capsule server and client certificates have default validity (7300 days)
         5. Verify capsule server and client certificates are signed by the bundle CA
-        6. Capture SHA256 fingerprints of the CA, capsule server, and capsule
-           client certificates
-        7. Renew the capsule auth bundle with foremanctl auth-bundle
-           --certificate-renew
+        6. Capture SHA256 fingerprints of the CA, capsule server and capsule client certificates
+        7. Renew the capsule auth bundle with foremanctl auth-bundle --certificate-renew
         8. Extract the renewed bundle tarball and verify its contents
-        9. Verify renewed capsule server and client certificates retain default
-           validity (7300 days)
-        10. Verify renewed capsule certificates chain to both the original and
-            renewed bundle CA
-        11. Verify CA fingerprint is unchanged between the original and renewed
-            bundle
-        12. Verify capsule server and client certificate fingerprints changed after
-            renewal
+        9. Verify renewed capsule server and client certificates retain default validity(7300 days)
+        10. Verify renewed capsule certificates chain to both the original and renewed bundle CA
+        11. Verify CA fingerprint is unchanged between the original and renewed bundle
+        12. Verify capsule server and client certificate fingerprints changed after renewal
 
     :expectedresults:
         1. foremanctl auth-bundle succeeds and produces a tarball
@@ -626,8 +746,7 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
         6. Renewed capsule certificates retain 7300-day validity
         7. CA identity is preserved across renewal (fingerprint unchanged)
         8. Capsule server and client certificates are regenerated (fingerprints change)
-        9. Renewed certificates maintain chain integrity against both the original
-           and renewed CA
+        9. Renewed certificates maintain chain integrity against both the original and renewed CA
 
     :verifies: SAT-43475
     """
