@@ -2786,8 +2786,17 @@ class Satellite(Capsule, SatelliteMixins):
                 raise SatelliteHostError(
                     f'satellitectl auth-bundle failed\n{result.stdout}\n{result.stderr}'
                 )
+            if is_open('SAT-49003'):
+                # This belongs into the downstream packaging, which isn't ready yet
+                overrides_dir = '/usr/share/foremanctl/src/playbooks/_vendor_overrides/'
+                capsule.execute(f'mkdir -p {overrides_dir}/deploy-proxy/')
+                capsule.put(
+                    'variables:\n  flavor:\n    choices:\n      - capsule',
+                    f'{overrides_dir}/deploy-proxy/metadata.obsah.yaml',
+                    temp_file=True,
+                )
             install_cmd = (
-                f'satellitectl deploy-proxy --flavor foreman-proxy-content'
+                f'satellitectl deploy-proxy --flavor capsule'
                 f' --auth-bundle {cert_file_path}'
                 f' --foreman-fqdn {self.hostname}'
             )
