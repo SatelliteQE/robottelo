@@ -1298,15 +1298,15 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
         assert session.host.search(f'organization = "{org.name}"')[0]['Name'] == host.name
 
 
-def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, module_host_template):
-    """Create a host with hostgroup specified via CLI. Make sure host
-    inherited hostgroup's lifecycle environment, content view and both
-    fields are properly reflected via WebUI. Also host should be searchable by the
-    inherited ansible role.
+def test_positive_validate_inherited_cvenv_ansiblerole(session, target_sat, module_host_template):
+    """Create a host with hostgroup specified via CLI.
+    Make sure host inherited hostgroup's content view environment and
+    field is properly reflected via WebUI.
+    Also host should be searchable by the inherited ansible role.
 
     :id: c83f6819-2649-4a8b-bb1d-ce93b2243765
 
-    :expectedresults: Host's lifecycle environment, content view and ansible role match
+    :expectedresults: Host's content view environment and ansible role match
        the ones specified in hostgroup.
 
     :customerscenario: true
@@ -1364,9 +1364,8 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_host_template.organization.name)
         session.location.select(loc_name=module_host_template.location.name)
-        values = session.host_new.read(host['name'], ['host.lce', 'host.content_view'])
-        assert values['host']['lce'] == lce.name
-        assert values['host']['content_view'] == cv.name
+        values = session.host_new.read(host['name'], ['host.content_view_environment'])
+        assert values['host']['content_view_environment'] == f'{lce.name}/{cv.name}'
         matching_hosts = target_sat.api.Host().search(
             query={'search': f'ansible_role="{SELECTED_ROLE}"'}
         )
