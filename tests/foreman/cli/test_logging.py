@@ -259,17 +259,18 @@ class TestSOSReportForemanctl:
 
     @pytest.fixture(scope="module")
     def sosreport_extract(self, module_target_sat):
-        # Use the sos packit build until the RHEL issue is resolved
+        # Use the sos packit nightly build until the RHEL issue is resolved
         if is_open('RHEL-208899'):
+            rhel_ver = module_target_sat.os_version.major
             assert (
                 module_target_sat.execute(
-                    'dnf -y copr enable packit/sosreport-sos-4376 centos-stream-9-x86_64'
+                    f'dnf copr enable -y @sosreport/develop rhel-{rhel_ver}-x86_64'
                 ).status
                 == 0
             )
             assert (
                 module_target_sat.execute(
-                    'dnf install -y sos-4.11.2-1.20260710083645300958.pr4376.22.g3fc1dc6b.el9.noarch'
+                    'dnf upgrade -y --repo=copr:copr.fedorainfracloud.org:group_sosreport:develop'
                 ).status
                 == 0
             )
