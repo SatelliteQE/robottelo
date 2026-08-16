@@ -17,10 +17,14 @@ from requests import HTTPError
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
+    PRDS,
     REPO_TYPE,
+    REPOS,
+    REPOSET,
 )
 from robottelo.exceptions import APIResponseError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
+from robottelo.utils.ohsnap import dogfood_repository
 
 
 class APIFactory:
@@ -167,6 +171,117 @@ class APIFactory:
             self._satellite.api.Repository(id=repo_id).sync, timeout=timeout
         )
         return repo_id
+
+    def sync_capsule_repos(self, capsule_host, org, ak):
+        """Enable and synchronize content required for Capsule installation on the Satellite.
+
+        Enables RHEL and Capsule repositories via the Satellite API, adds content overrides
+        to the activation key, and waits for all sync tasks to complete.
+
+        :param capsule_host: Capsule host object
+        :param org: Organization entity
+        :param ak: Activation key entity
+        """
+        sync_tasks = []
+
+        if settings.robottelo.rhel_source == 'internal':
+            product_rhel = self._satellite.api.Product(organization=org.id).create()
+            for repourl in settings.repos.get(f'rhel{capsule_host.os_version.major}_os').values():
+                repo = self._satellite.api.Repository(
+                    organization=org.id, product=product_rhel, content_type='yum', url=repourl
+                ).create()
+                ak.content_override(
+                    data={
+                        'content_overrides': [
+                            {
+                                'content_label': '_'.join(
+                                    [org.label, product_rhel.label, repo.label]
+                                ),
+                                'value': '1',
+                            }
+                        ]
+                    }
+                )
+        else:
+            for rh_repo_key in [
+                f'rhel{capsule_host.os_version.major}_bos',
+                f'rhel{capsule_host.os_version.major}_aps',
+            ]:
+                self.enable_rhrepo_and_fetchid(
+                    basearch=DEFAULT_ARCHITECTURE,
+                    org_id=org.id,
+                    product=PRDS[f'rhel{capsule_host.os_version.major}'],
+                    repo=REPOS[rh_repo_key]['name'],
+                    reposet=REPOSET[rh_repo_key],
+                    releasever=REPOS[rh_repo_key]['releasever'],
+                )
+            product_rhel = self._satellite.api.Product(
+                name=PRDS[f'rhel{capsule_host.os_version.major}'], organization=org.id
+            ).search()[0]
+        sync_tasks.append(self._satellite.api.Product(id=product_rhel.id).sync(synchronous=False))
+
+        if settings.capsule.version.source == 'ga':
+            for repo in capsule_host.CAPSULE_CDN_REPOS.values():
+                reposet = self._satellite.api.RepositorySet(organization=org.id).search(
+                    query={'search': repo}
+                )[0]
+                reposet.enable()
+                ak.content_override(
+                    data={
+                        'content_overrides': [
+                            {
+                                'content_label': reposet.label,
+                                'value': '1',
+                            }
+                        ]
+                    }
+                )
+                sync_tasks.append(
+                    self._satellite.api.Product(id=reposet.product.id).sync(synchronous=False)
+                )
+        else:
+            product_capsule = self._satellite.api.Product(organization=org.id).create()
+            for repo_variant, repo_default_url in [
+                ('capsule', 'capsule_repo'),
+                ('maintenance', 'satmaintenance_repo'),
+            ]:
+                if settings.capsule.version.source == 'nightly':
+                    repo_url = getattr(settings.repos, repo_default_url)
+                else:
+                    repo_url = dogfood_repository(
+                        ohsnap=settings.ohsnap,
+                        repo=repo_variant,
+                        product='capsule',
+                        release=settings.capsule.version.release,
+                        os_release=capsule_host.os_version.major,
+                        snap=settings.capsule.version.snap,
+                    ).baseurl
+                repo = self._satellite.api.Repository(
+                    organization=org.id,
+                    product=product_capsule,
+                    content_type='yum',
+                    url=repo_url,
+                ).create()
+                ak.content_override(
+                    data={
+                        'content_overrides': [
+                            {
+                                'content_label': '_'.join(
+                                    [org.label, product_capsule.label, repo.label]
+                                ),
+                                'value': '1',
+                            }
+                        ]
+                    }
+                )
+            sync_tasks.append(
+                self._satellite.api.Product(id=product_capsule.id).sync(synchronous=False)
+            )
+
+        self._satellite.wait_for_tasks(
+            search_query=f'id ^ "{",".join(task["id"] for task in sync_tasks)}"',
+            poll_timeout=1800,
+        )
 
     def one_to_one_names(self, name):
         """Generate the names Satellite might use for a one to one field.
