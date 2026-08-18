@@ -383,16 +383,6 @@ def test_positive_end_to_end(module_global_params, target_sat, host_ui_options, 
     new_name = f"new{gen_string('alpha').lower()}"
     new_host_name = f"{new_name}.{api_values['interfaces.interface.domain']}"
 
-    stripped_headers = None
-
-    @request.addfinalizer
-    def _finalize():
-        # Get table to original state
-        with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
-            session.organization.select(api_values['host.organization'])
-            session.location.select(api_values['host.location'])
-            session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
-
     with target_sat.ui_session(user=ui_user.login, password=ui_user.password) as session:
         session.organization.select(api_values['host.organization'])
         session.location.select(api_values['host.location'])
