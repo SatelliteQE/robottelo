@@ -422,13 +422,6 @@ def test_positive_end_to_end(module_global_params, target_sat, host_ui_options, 
         assert session.host.search(host_name)[0][0] == 'No Results'
         assert session.host.search(new_host_name)[0]['Name'] == new_host_name
         # delete
-        headers = session.all_hosts.get_displayed_table_headers()
-        stripped_headers = tuple(
-            header for header in headers if header is not None and header != 'Name'
-        )
-        wait_for(lambda: session.browser.refresh(), timeout=5)
-        # Make sure there is only Name column displayed
-        session.all_hosts.manage_table_columns({header: False for header in stripped_headers})
         assert session.all_hosts.delete(new_host_name)
         assert not target_sat.api.Host().search(query={'search': f'name="{new_host_name}"'})
 
@@ -2027,35 +2020,6 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
         )
         tracer_title = session.host_new.get_tracer_tab_title(tracer_install_host.hostname)
         assert tracer_title == "No applications to restart"
-
-
-def test_all_hosts_delete(target_sat, function_org, function_location):
-    """Create a host and delete it through All Hosts UI
-
-    :id: 42b4560c-bb57-4c58-928e-e5fd5046b93f
-
-    :expectedresults: Successful deletion of a host through the table dropdown
-
-    :CaseComponent:Hosts
-
-    :Team: Proton
-    """
-    host = target_sat.api.Host(organization=function_org, location=function_location).create()
-    with target_sat.ui_session() as session:
-        session.organization.select(function_org.name)
-        session.location.select(function_location.name)
-        # Get current headers
-        headers = session.all_hosts.get_displayed_table_headers()
-        stripped_headers = tuple(
-            header for header in headers if header is not None and header != 'Name'
-        )
-        wait_for(lambda: session.browser.refresh(), timeout=5)
-        # Make sure there is only Name column displayed
-        session.all_hosts.manage_table_columns({header: False for header in stripped_headers})
-        assert session.all_hosts.delete(host.name)
-        # Get table to original state
-        wait_for(lambda: session.browser.refresh(), timeout=5)
-        session.all_hosts.manage_table_columns({header: True for header in stripped_headers})
 
 
 def test_all_hosts_bulk_delete(target_sat, function_org, function_location):
