@@ -3200,10 +3200,12 @@ class TestExportImport:
         large_image_id = target_sat.execute(f'podman images {REPO_NAME} -q')
         assert large_image_id
         large_repo_cmd = f'{(function_org.label)}/{(function_product.label)}/{REPO_NAME}'.lower()
-        target_sat.execute(
-            f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password}'
+        result = target_sat.execute(
+            f'podman push --tls-verify=false'
+            f' --creds {settings.server.admin_username}:{settings.server.admin_password}'
             f' {large_image_id.stdout.strip()} {target_sat.hostname}/{large_repo_cmd}'
         )
+        assert result.status == 0, f'podman push failed: {result.stderr}'
         repo = target_sat.cli.Repository.info(
             {
                 'organization-id': function_org.id,
