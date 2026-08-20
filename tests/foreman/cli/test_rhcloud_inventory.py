@@ -685,7 +685,7 @@ def test_positive_config_on_sat_without_network_protocol(
         target_sat.unregister()
 
     # Enable cloud connector
-    result = target_sat.cli.Insights.cloud_connector_enable({})
+    result = target_sat.cli.Insights.cloud_connector_enable({'organization-id': function_org.id})
     assert "Cloud connector enable task started" in result
 
     # Find the job invocation for the 'Configure Cloud Connector' template
