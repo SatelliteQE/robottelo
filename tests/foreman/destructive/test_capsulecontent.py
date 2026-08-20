@@ -19,7 +19,11 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 
-pytestmark = [pytest.mark.destructive]
+pytestmark = [
+    pytest.mark.destructive,
+    # Capsule ↔ Satellite content paths; curated IPv6 overlay.
+    pytest.mark.network_sensitive,
+]
 
 
 @pytest.mark.skip_if_not_set('capsule')

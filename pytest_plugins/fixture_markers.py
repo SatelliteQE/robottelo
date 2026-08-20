@@ -177,6 +177,13 @@ def pytest_collection_modifyitems(session, items, config):
             item.user_properties.append(client_property)
             item.add_marker('content_host')
 
+        # Promote ipv6_provisioning into network_sensitive so IPv6 overlay
+        # (-m 'network_sensitive and not destructive') collects those tests.
+        if not item.get_closest_marker('network_sensitive') and item.get_closest_marker(
+            'ipv6_provisioning'
+        ):
+            item.add_marker(pytest.mark.network_sensitive)
+
         if network_marker := item.get_closest_marker("network"):
             marker_network_types = network_marker.args[0] if network_marker.args else []
             # Skip the test if network_type setting is not set to ipv4 and network marker is set to ipv6

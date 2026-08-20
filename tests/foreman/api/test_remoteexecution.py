@@ -34,6 +34,7 @@ def test_positive_find_capsule_upgrade_playbook(target_sat):
     assert len(templates) > 0
 
 
+@pytest.mark.network_sensitive
 def test_positive_run_capsule_update_playbook(module_capsule_configured, target_sat):
     """Run Capsule Upgrade playbook against an External Capsule
 
