@@ -25,27 +25,10 @@ from robottelo.constants import (
 )
 from robottelo.exceptions import CapsuleHostError
 from robottelo.hosts import Capsule, Satellite
-from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
 
 FOREMANCTL_CERTS_DIR = '/var/lib/foremanctl/certs/certs'
-
-
-def common_sat_install_assertions(satellite):
-    # no errors/failures in journald
-    result = satellite.execute(
-        r'journalctl --quiet --no-pager --boot --grep ERROR -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulp-api" -u "pulp-content" -u "pulp-worker*" -u "valkey" -u "candlepin"'
-    )
-    if is_open('SAT-21086'):
-        assert not list(filter(lambda x: 'PG::' not in x, result.stdout.splitlines()))
-    else:
-        assert not result.stdout
-    # no errors/failures in /var/log/httpd/*
-    result = satellite.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert not result.stdout
-    httpd_log = satellite.execute('journalctl --unit=httpd')
-    assert 'WARNING' not in httpd_log.stdout
 
 
 def common_cap_install_assertions(capsule):
@@ -189,7 +172,7 @@ def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
         1. foremanctl deploy runs successfully
         2. no unexpected errors in logs
     """
-    common_sat_install_assertions(module_sat_ready_rhel)
+    module_sat_ready_rhel.assert_install_assertions()
 
 
 @pytest.mark.e2e
@@ -325,7 +308,7 @@ def test_positive_install_foremanctl_with_custom_certs(module_sat_foremanctl_cus
     :CaseAutomation: Automated
     """
     sat = module_sat_foremanctl_custom_certs
-    common_sat_install_assertions(sat)
+    sat.assert_install_assertions()
     # check the services are up and healthy
     result = sat.execute('hammer ping')
     assert_hammer_ping_ok(result)

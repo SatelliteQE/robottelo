@@ -551,25 +551,28 @@ class InstallationVerification:
         # Check journald for errors using installation-method-aware service list
         services = self.get_service_names()
         service_units = ' '.join([f'-u "{svc}"' for svc in services])
-        result = self.execute(
-            f'journalctl --quiet --no-pager --boot --priority err {service_units}'
-        )
-        assert not result.stdout
-
-        # Check foreman production log
-        result = self.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
-        if not is_open('SAT-21086'):
+        result = self.execute(f'journalctl --quiet --no-pager --boot --grep ERROR {service_units}')
+        if is_open('SAT-21086'):
+            errors = [line for line in result.stdout.splitlines() if 'PG::' not in line]
+            assert not errors
+        else:
             assert not result.stdout
 
         # Check foreman-installer log (only relevant for satellite-installer method)
         if self.install_method == InstallMethod.INSTALLER:
+            result = self.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
+            if not is_open('SAT-21086'):
+                assert not result.stdout
+
             result = self.execute(
                 r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
             )
             assert not result.stdout
 
+            result = self.execute(r'grep -iR "error" /var/log/candlepin/*')
+            assert not result.stdout
+
         # Check httpd logs, filtering expected transient startup errors
-        # (httpd may start before Foreman/containers are ready, causing brief "Connection refused")
         result = self.execute(r'grep -iR "error" /var/log/httpd/*')
         if result.stdout:
             filtered_errors = [
@@ -581,12 +584,12 @@ class InstallationVerification:
             ]
             assert not filtered_errors, f'Unexpected httpd errors:\n{chr(10).join(filtered_errors)}'
 
-        # Check candlepin logs
-        result = self.execute(r'grep -iR "error" /var/log/candlepin/*')
-        assert not result.stdout
-
         httpd_log = self.execute('journalctl --unit=httpd')
         assert 'WARNING' not in httpd_log.stdout
 
-        result = self.cli.Health.check()
+        if self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('satellitectl health')
+        else:
+            result = self.cli.Health.check()
+        assert result.status == 0
         assert 'FAIL' not in result.stdout

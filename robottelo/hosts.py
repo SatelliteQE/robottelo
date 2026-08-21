@@ -1698,12 +1698,18 @@ class ContentHost(Host, ContentHostMixins):
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     product_rpm_name = 'satellite-capsule'
+    container_rpm_name = 'satellitectl'
     upstream_rpm_name = 'foreman-proxy'
     container_rpm_name = 'satellitectl'
 
     def __init__(self, hostname, **kwargs):
         kwargs.setdefault('net_type', settings.capsule.network_type)
         super().__init__(hostname=hostname, **kwargs)
+        self.product_rpm_name = (
+            self.container_rpm_name
+            if settings.server.install_method == InstallMethod.FOREMANCTL
+            else self.product_rpm_name
+        )
 
     @property
     def nailgun_capsule(self):
@@ -1758,8 +1764,10 @@ class Capsule(ContentHost, CapsuleMixins):
         """
         if self.is_upstream:
             return False
+        # satellitectl is currently only available in stream builds
         return (
             'stream' in self.execute(f'rpm -q --qf "%{{RELEASE}}" {self.product_rpm_name}').stdout
+            or self.execute(f'rpm -q {self.container_rpm_name}').status == 0
         )
 
     @cached_property
@@ -2253,7 +2261,7 @@ class Capsule(ContentHost, CapsuleMixins):
                 'Set CONTAINER_REGISTRY.USERNAME and CONTAINER_REGISTRY.PASSWORD in conf/server.yaml'
             )
 
-        # Install foremanctl
+        # Install satellitectl
         assert self.execute('dnf install -y satellitectl').status == 0, (
             'Failed to install satellitectl'
         )
@@ -2451,6 +2459,7 @@ class Capsule(ContentHost, CapsuleMixins):
 
 class Satellite(Capsule, SatelliteMixins):
     product_rpm_name = 'satellite'
+    container_rpm_name = 'satellitectl'
     upstream_rpm_name = 'foreman'
     container_rpm_name = 'satellitectl'
 
