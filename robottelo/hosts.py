@@ -1804,9 +1804,7 @@ class Capsule(ContentHost, CapsuleMixins):
                     )
                 logger.info('remote-execution feature enabled successfully')
 
-            result = self.execute(
-                f"podman exec foreman-proxy bash -c 'cat {self.rex_key_path}'"
-            )
+            result = self.execute(f"podman exec foreman-proxy bash -c 'cat {self.rex_key_path}'")
         else:
             result = self.execute(f'cat {self.rex_key_path}')
         key = result.stdout.strip()
