@@ -33,10 +33,12 @@ def validate_ssh_pub_key(key):
     if not isinstance(key, str):
         raise ValueError(f"Key should be a string type, received: {type(key)}")
 
-    # 1) a valid pub key has 3 parts separated by space
+    # 1) a valid pub key has 2 or 3 parts separated by space (comment is optional)
     # 2) The second part (key string) should be a valid base64
     try:
-        key_type, key_string, _ = key.split()  # need more than one value to unpack
+        # Use extended unpacking: works with both 2 and 3 parts
+        # *_ captures any additional parts (comment, etc.) into a list
+        key_type, key_string, *_ = key.split()
         base64.decodebytes(key_string.encode('ascii'))
         return key_type in ('ecdsa-sha2-nistp256', 'ssh-dss', 'ssh-rsa', 'ssh-ed25519')
     except (ValueError, base64.binascii.Error):
