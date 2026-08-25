@@ -1704,6 +1704,11 @@ class Capsule(ContentHost, CapsuleMixins):
     def __init__(self, hostname, **kwargs):
         kwargs.setdefault('net_type', settings.capsule.network_type)
         super().__init__(hostname=hostname, **kwargs)
+        self.product_rpm_name = (
+            self.container_rpm_name
+            if settings.server.install_method == InstallMethod.FOREMANCTL
+            else self.product_rpm_name
+        )
 
     @property
     def nailgun_capsule(self):
@@ -1758,8 +1763,12 @@ class Capsule(ContentHost, CapsuleMixins):
         """
         if self.is_upstream:
             return False
-        return (
-            'stream' in self.execute(f'rpm -q --qf "%{{RELEASE}}" {self.product_rpm_name}').stdout
+        return 'stream' in self.execute(
+            f'rpm -q --qf "%{{RELEASE}}" {self.product_rpm_name}'
+        ).stdout or (
+            # Workaround for SAT-49552: satellitectl package doesn't include 'stream' in release field
+            # Once SAT-49552 is fixed, remove this condition
+            is_open('SAT-49552') and self.execute(f'rpm -q {self.container_rpm_name}').status == 0
         )
 
     @cached_property
@@ -1808,17 +1817,17 @@ class Capsule(ContentHost, CapsuleMixins):
             )
         return key
 
-    def is_foremanctl_available(self):
-        """Check if foremanctl is installed on the system.
+    def is_satellitectl_available(self):
+        """Check if satellitectl is installed on the system.
 
         Only checks if the command exists, not if the package is available in repos.
         This ensures auto-detection defaults to satellite-installer on clean systems.
 
-        :return: True if foremanctl command is installed
+        :return: True if satellitectl command is installed
         :rtype: bool
         """
-        # Check if foremanctl command exists (already installed)
-        result = self.execute('which foremanctl')
+        # Check if satellitectl command exists (already installed)
+        result = self.execute(f'which {self.container_rpm_name}')
         return result.status == 0
 
     def detect_install_method(self):
@@ -1860,8 +1869,8 @@ class Capsule(ContentHost, CapsuleMixins):
             return InstallMethod.INSTALLER
 
         # Availability detection
-        if self.is_foremanctl_available():
-            logger.info('foremanctl available, using foremanctl method')
+        if self.is_satellitectl_available():
+            logger.info('satellitectl package available, using foremanctl method')
             return InstallMethod.FOREMANCTL
 
         logger.info('Defaulting to satellite-installer method')
@@ -2253,7 +2262,7 @@ class Capsule(ContentHost, CapsuleMixins):
                 'Set CONTAINER_REGISTRY.USERNAME and CONTAINER_REGISTRY.PASSWORD in conf/server.yaml'
             )
 
-        # Install foremanctl
+        # Install satellitectl
         assert self.execute('dnf install -y satellitectl').status == 0, (
             'Failed to install satellitectl'
         )
