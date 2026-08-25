@@ -1564,12 +1564,6 @@ class ContentHost(Host, ContentHostMixins):
             self.disable_repo("rhel-*")
             # add internal rhel repos
             self.create_custom_repos(**settings.repos.get(f'rhel{self.os_version.major}_os'))
-        else:
-            # enable cdn repos
-            for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
-                result = self.enable_repo(repo, force=True)
-                if result.status:
-                    raise ContentHostError(f'Enabling RHEL repos on host failed\n{result.stdout}')
 
     def setup_satellite_repos(self):
         """Setup Satellite repositories on host
