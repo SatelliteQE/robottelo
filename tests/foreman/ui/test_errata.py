@@ -877,8 +877,7 @@ def test_positive_apply_for_all_hosts(
         workflow='deploy-template',
         host_class=ContentHost,
         _count=num_hosts,
-        # TODO(@SatelliteQE/team-artemis): this is best effort for dualstack. This host deployment
-        # should be a part of a fixture
+        # TODO(@SatelliteQE/team-artemis): this host deployment should be a part of a fixture
         deploy_network_type=settings.content_host.network_type,
     ) as hosts:
         if not isinstance(hosts, list) or len(hosts) != num_hosts:
