@@ -170,20 +170,12 @@ Katello:
     katello: 10977
 ```
 
-### Example 12: Running Tests with IPv6 or Dualstack Environment
+### Example 12: Running Tests with IPv6 Environment
 
-
-IPV6
 ```
 trigger: test-robottelo
 pytest: tests/foreman/ui/test_repository.py::test_positive_sync_custom_repo_yum
 network_type: ipv6
-```
-DUALSTACK
-```
-trigger: test-robottelo
-pytest: tests/foreman/ui/test_repository.py::test_positive_sync_custom_repo_yum
-network_type: dualstack
 ```
 
 ---
