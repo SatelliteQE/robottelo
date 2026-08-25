@@ -226,6 +226,17 @@ def smart_proxy_location(module_org, module_target_sat, default_smart_proxy):
 
 
 @pytest.fixture
+def smart_proxy_function_sca_manifest_org(
+    function_org, function_sca_manifest, target_sat, default_smart_proxy
+):
+    """Function-scoped organization with smart proxy assigned and SCA manifest uploaded"""
+    default_smart_proxy.organization.append(target_sat.api.Organization(id=function_org.id))
+    default_smart_proxy.update(['organization'])
+    target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
+    return function_org
+
+
+@pytest.fixture
 def upgrade_entitlement_manifest():
     """Returns a manifest in entitlement mode with subscriptions determined by the
     `manifest_category.entitlement` setting in conf/manifest.yaml. used only for

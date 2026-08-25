@@ -1799,6 +1799,9 @@ class Capsule(ContentHost, CapsuleMixins):
                 )
             else:
                 raise SatelliteHostError('remote-execution feature is not enabled')
+            if 'dynflow' not in self.list_foremanctl_features(enabled=True, internal=True):
+                result = self.execute('foremanctl deploy --add-feature dynflow')
+                assert result.status == 0, f"Failed to enable dynflow: {result.stderr}"
         else:
             result = self.execute(f'cat {self.rex_key_path}')
         key = result.stdout.strip()
@@ -2321,12 +2324,16 @@ class Capsule(ContentHost, CapsuleMixins):
 
         return deploy_features
 
-    def list_foremanctl_features(self, enabled=False):
-        """Get the list of features as a set of feature names"""
-        if enabled:
-            result = self.execute('foremanctl features --list-enabled')
-        else:
-            result = self.execute('foremanctl features')
+    def list_foremanctl_features(self, enabled=False, internal=False):
+        """Get the list of features as a set of feature names
+
+        :param enabled: If True, list only enabled features
+        :param internal: If True, include internal features in the list
+        """
+        cmd = 'foremanctl features --list-enabled' if enabled else 'foremanctl features'
+        if internal:
+            cmd = f'FOREMANCTL_FEATURES_LIST_INTERNAL=true {cmd}'
+        result = self.execute(cmd)
         assert result.status == 0, f'foremanctl features command failed: {result.stderr}'
         return {
             p[0]
