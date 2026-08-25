@@ -16,21 +16,20 @@ class NetworkType(StrEnum):
     """
     Enumeration of host network addressing types.
 
-    This enum represents the different network addressing modes that can be
-    configured for a host.
+    Supported modes are ipv4 and ipv6. Dual-stack Satellite installs are no
+    longer a first-class network type.
     """
 
     IPV4 = 'ipv4'
     IPV6 = 'ipv6'
-    DUALSTACK = 'dualstack'
 
     @property
     def has_ipv4(self):
-        return self in (self.IPV4, self.DUALSTACK)
+        return self == self.IPV4
 
     @property
     def has_ipv6(self):
-        return self in (self.IPV6, self.DUALSTACK)
+        return self == self.IPV6
 
     @classmethod
     def to_yaml(cls, representer, node):
