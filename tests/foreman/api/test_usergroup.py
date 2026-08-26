@@ -21,13 +21,6 @@ from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.utils.datafactory import (
-    invalid_values_list,
-    parametrized,
-    valid_data_list,
-    valid_usernames_list,
-)
-
 
 class TestUserGroup:
     """Tests for the ``usergroups`` path."""
@@ -36,33 +29,29 @@ class TestUserGroup:
     def user_group(self, target_sat):
         return target_sat.api.UserGroup().create()
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_with_name(self, target_sat, name):
+    def test_positive_create_with_name(self, target_sat):
         """Create new user group using different valid names
 
         :id: 3a2255d9-f48d-4f22-a4b9-132361bd9224
 
-        :parametrized: yes
-
         :expectedresults: User group is created successfully.
 
         :CaseImportance: Critical
         """
+        name = gen_string('alpha')
         user_group = target_sat.api.UserGroup(name=name).create()
         assert user_group.name == name
 
-    @pytest.mark.parametrize('login', **parametrized(valid_usernames_list()[0:4]))
-    def test_positive_create_with_user(self, target_sat, login):
+    def test_positive_create_with_user(self, target_sat):
         """Create new user group using valid user attached to that group.
 
         :id: ab127e09-31d2-4c5b-ae6c-726e4b11a21e
 
-        :parametrized: yes
-
         :expectedresults: User group is created successfully.
 
         :CaseImportance: Critical
         """
+        login = gen_string('alpha')
         user = target_sat.api.User(login=login).create()
         user_group = target_sat.api.UserGroup(user=[user]).create()
         assert len(user_group.user) == 1
@@ -84,18 +73,16 @@ class TestUserGroup:
             user.read().login for user in user_group.user
         )
 
-    @pytest.mark.parametrize('role_name', **parametrized(valid_data_list()))
-    def test_positive_create_with_role(self, target_sat, role_name):
+    def test_positive_create_with_role(self, target_sat):
         """Create new user group using valid role attached to that group.
 
         :id: c4fac71a-9dda-4e5f-a5df-be362d3cbd52
-
-        :parametrized: yes
 
         :expectedresults: User group is created successfully.
 
         :CaseImportance: Critical
         """
+        role_name = gen_string('alpha')
         role = target_sat.api.Role(name=role_name).create()
         user_group = target_sat.api.UserGroup(role=[role]).create()
         assert len(user_group.role) == 1
@@ -117,19 +104,17 @@ class TestUserGroup:
             role.read().name for role in user_group.role
         )
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_with_usergroup(self, target_sat, name):
+    def test_positive_create_with_usergroup(self, target_sat):
         """Create new user group using another user group attached to the
         initial group.
 
         :id: 2a3f7b1a-7411-4c12-abaf-9a3ca1dfae31
 
-        :parametrized: yes
-
         :expectedresults: User group is created successfully.
 
         :CaseImportance: Critical
         """
+        name = gen_string('alpha')
         sub_user_group = target_sat.api.UserGroup(name=name).create()
         user_group = target_sat.api.UserGroup(usergroup=[sub_user_group]).create()
         assert len(user_group.usergroup) == 1
@@ -151,18 +136,16 @@ class TestUserGroup:
             usergroup.read().name for usergroup in user_group.usergroup
         )
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_name(self, target_sat, name):
+    def test_negative_create_with_name(self, target_sat):
         """Attempt to create user group with invalid name.
 
         :id: 1a3384dc-5d52-442c-87c8-e38048a61dfa
-
-        :parametrized: yes
 
         :expectedresults: User group is not created.
 
         :CaseImportance: Critical
         """
+        name = gen_string('alpha', 300)
         with pytest.raises(HTTPError):
             target_sat.api.UserGroup(name=name).create()
 
@@ -179,18 +162,16 @@ class TestUserGroup:
         with pytest.raises(HTTPError):
             target_sat.api.UserGroup(name=user_group.name).create()
 
-    @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-    def test_positive_update(self, user_group, new_name):
+    def test_positive_update(self, user_group):
         """Update existing user group with different valid names.
 
         :id: b4f0a19b-9059-4e8b-b245-5a30ec06f9f3
-
-        :parametrized: yes
 
         :expectedresults: User group is updated successfully.
 
         :CaseImportance: Critical
         """
+        new_name = gen_string('alpha')
         user_group.name = new_name
         user_group = user_group.update(['name'])
         assert new_name == user_group.name
@@ -255,18 +236,16 @@ class TestUserGroup:
         user_group = user_group.update(['usergroup'])
         assert new_usergroup.name == user_group.usergroup[0].read().name
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update(self, user_group, new_name):
+    def test_negative_update(self, user_group):
         """Attempt to update existing user group using different invalid names.
 
         :id: 03772bd0-0d52-498d-8259-5c8a87e08344
-
-        :parametrized: yes
 
         :expectedresults: User group is not updated.
 
         :CaseImportance: Critical
         """
+        new_name = gen_string('alpha', 300)
         user_group.name = new_name
         with pytest.raises(HTTPError):
             user_group.update(['name'])

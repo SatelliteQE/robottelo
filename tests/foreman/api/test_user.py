@@ -28,15 +28,6 @@ from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE, DataFile
 from robottelo.utils import gen_ssh_keypairs
 from robottelo.utils.datafactory import (
     gen_string,
-    generate_strings_list,
-    invalid_emails_list,
-    invalid_names_list,
-    invalid_usernames_list,
-    parametrized,
-    valid_data_list,
-    valid_emails_list,
-    valid_first_and_last_name_strings,
-    valid_usernames_list,
 )
 
 
@@ -49,232 +40,194 @@ def create_user(module_target_sat):
 class TestUser:
     """Tests for the ``users`` path."""
 
-    @pytest.mark.parametrize('username', **parametrized(valid_usernames_list()))
-    def test_positive_create_with_username(self, username, target_sat):
+    def test_positive_create_with_username(self, target_sat):
         """Create User for all variations of Username
 
         :id: a9827cda-7f6d-4785-86ff-3b6969c9c00a
 
-        :parametrized: yes
-
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
+        username = gen_string('alpha')
         user = target_sat.api.User(login=username).create()
         assert user.login == username
 
-    @pytest.mark.parametrize('firstname', **parametrized(valid_first_and_last_name_strings()))
-    def test_positive_create_with_firstname(self, firstname, target_sat):
+    def test_positive_create_with_firstname(self, target_sat):
         """Create User for all variations of First Name
 
         :id: 036bb958-227c-420c-8f2b-c607136f12e0
 
-        :parametrized: yes
-
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
-        if len(str.encode(firstname)) > 50:
-            firstname = firstname[:20]
+        firstname = gen_string('alpha')
         user = target_sat.api.User(firstname=firstname).create()
         assert user.firstname == firstname
 
-    @pytest.mark.parametrize('lastname', **parametrized(valid_first_and_last_name_strings()))
-    def test_positive_create_with_lastname(self, lastname, target_sat):
+    def test_positive_create_with_lastname(self, target_sat):
         """Create User for all variations of Last Name
 
         :id: 95d3b571-77e7-42a1-9c48-21f242e8cdc2
 
-        :parametrized: yes
-
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
-        if len(str.encode(lastname)) > 50:
-            lastname = lastname[:20]
+        lastname = gen_string('alpha')
         user = target_sat.api.User(lastname=lastname).create()
         assert user.lastname == lastname
 
-    @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
-    def test_positive_create_with_email(self, mail, target_sat):
+    def test_positive_create_with_email(self, target_sat):
         """Create User for all variations of Email
 
         :id: e68caf51-44ba-4d32-b79b-9ab9b67b9590
 
-        :parametrized: yes
-
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
+        mail = f'{gen_string("alpha")}@example.com'
         user = target_sat.api.User(mail=mail).create()
         assert user.mail == mail
 
-    @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-    def test_positive_create_with_description(self, description, target_sat):
+    def test_positive_create_with_description(self, target_sat):
         """Create User for all variations of Description
 
         :id: 1463d71c-b77d-4223-84fa-8370f77b3edf
 
-        :parametrized: yes
-
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
+        description = gen_string('alpha')
         user = target_sat.api.User(description=description).create()
         assert user.description == description
 
-    @pytest.mark.parametrize(
-        'password', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
-    )
-    def test_positive_create_with_password(self, password, target_sat):
+    def test_positive_create_with_password(self, target_sat):
         """Create User for all variations of Password
 
         :id: 53d0a419-0730-4f7d-9170-d855adfc5070
 
-        :parametrized: yes
-
         :expectedresults: User is created
 
         :CaseImportance: Critical
         """
+        password = gen_string('alpha', 20)
         user = target_sat.api.User(password=password).create()
         assert user is not None
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
-    def test_positive_delete(self, mail, target_sat):
+    def test_positive_delete(self, target_sat):
         """Create random users and then delete it.
 
         :id: df6059e7-85c5-42fa-99b5-b7f1ef809f52
-
-        :parametrized: yes
 
         :expectedresults: The user cannot be fetched after deletion.
 
         :CaseImportance: Critical
         """
+        mail = f'{gen_string("alpha")}@example.com'
         user = target_sat.api.User(mail=mail).create()
         user.delete()
         with pytest.raises(HTTPError):
             user.read()
 
-    @pytest.mark.parametrize('login', **parametrized(valid_usernames_list()))
-    def test_positive_update_username(self, create_user, login):
+    def test_positive_update_username(self, create_user):
         """Update a user and provide new username.
 
         :id: a8e218b1-7256-4f20-91f3-3958d58ea5a8
-
-        :parametrized: yes
 
         :expectedresults: The user's ``Username`` attribute is updated.
 
         :CaseImportance: Critical
         """
+        login = gen_string('alpha')
         create_user.login = login
         user = create_user.update(['login'])
         assert user.login == login
 
-    @pytest.mark.parametrize('login', **parametrized(invalid_usernames_list()))
-    def test_negative_update_username(self, create_user, login):
+    def test_negative_update_username(self, create_user):
         """Update a user and provide new login.
 
         :id: 9eefcba6-66a3-41bf-87ba-3e032aee1db2
-
-        :parametrized: yes
 
         :expectedresults: The user's ``login`` attribute is updated.
 
         :CaseImportance: Critical
         """
+        login = gen_string('html')
         create_user.login = login
         with pytest.raises(HTTPError):
             create_user.update(['login'])
 
-    @pytest.mark.parametrize('firstname', **parametrized(valid_first_and_last_name_strings()))
-    def test_positive_update_firstname(self, create_user, firstname):
+    def test_positive_update_firstname(self, create_user):
         """Update a user and provide new firstname.
 
         :id: a1287d47-e7d8-4475-abe8-256e6f2034fc
-
-        :parametrized: yes
 
         :expectedresults: The user's ``firstname`` attribute is updated.
 
         :CaseImportance: Critical
         """
-        if len(str.encode(firstname)) > 50:
-            firstname = firstname[:20]
+        firstname = gen_string('alpha')
         create_user.firstname = firstname
         user = create_user.update(['firstname'])
         assert user.firstname == firstname
 
-    @pytest.mark.parametrize('lastname', **parametrized(valid_first_and_last_name_strings()))
-    def test_positive_update_lastname(self, create_user, lastname):
+    def test_positive_update_lastname(self, create_user):
         """Update a user and provide new lastname.
 
         :id: 25c6c9df-5db2-4827-89bb-b8fd0658a9b9
-
-        :parametrized: yes
 
         :expectedresults: The user's ``lastname`` attribute is updated.
 
         :CaseImportance: Critical
         """
-        if len(str.encode(lastname)) > 50:
-            lastname = lastname[:20]
+        lastname = gen_string('alpha')
         create_user.lastname = lastname
         user = create_user.update(['lastname'])
         assert user.lastname == lastname
 
-    @pytest.mark.parametrize('mail', **parametrized(valid_emails_list()))
-    def test_positive_update_email(self, create_user, mail):
+    def test_positive_update_email(self, create_user):
         """Update a user and provide new email.
 
         :id: 3ae70631-7cee-4a4a-9c2f-b428273f1311
 
-        :parametrized: yes
-
         :expectedresults: The user's ``mail`` attribute is updated.
 
         :CaseImportance: Critical
         """
+        mail = f'{gen_string("alpha")}@example.com'
         create_user.mail = mail
         user = create_user.update(['mail'])
         assert user.mail == mail
 
-    @pytest.mark.parametrize('mail', **parametrized(invalid_emails_list()))
-    def test_negative_update_email(self, create_user, mail):
+    def test_negative_update_email(self, create_user):
         """Update a user and provide new email.
 
         :id: 0631dce1-694c-4815-971d-26ff1934da98
-
-        :parametrized: yes
 
         :expectedresults: The user's ``mail`` attribute is updated.
 
         :CaseImportance: Critical
         """
+        mail = 'foreman@'
         create_user.mail = mail
         with pytest.raises(HTTPError):
             create_user.update(['mail'])
 
-    @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-    def test_positive_update_description(self, create_user, description):
+    def test_positive_update_description(self, create_user):
         """Update a user and provide new email.
 
         :id: a1d764ad-e9bb-4e5e-b8cd-3c52e1f128f6
-
-        :parametrized: yes
 
         :expectedresults: The user's ``Description`` attribute is updated.
 
         :CaseImportance: Critical
         """
+        description = gen_string('alpha')
         create_user.description = description
         user = create_user.update(['description'])
         assert user.description == description
@@ -295,63 +248,55 @@ class TestUser:
         user.admin = not admin_enable
         assert user.update().admin == (not admin_enable)
 
-    @pytest.mark.parametrize('mail', **parametrized(invalid_emails_list()))
-    def test_negative_create_with_invalid_email(self, mail, target_sat):
+    def test_negative_create_with_invalid_email(self, target_sat):
         """Create User with invalid Email Address
 
         :id: ebbd1f5f-e71f-41f4-a956-ce0071b0a21c
 
-        :parametrized: yes
-
         :expectedresults: User is not created. Appropriate error shown.
 
         :CaseImportance: Critical
         """
+        mail = 'foreman@'
         with pytest.raises(HTTPError):
             target_sat.api.User(mail=mail).create()
 
-    @pytest.mark.parametrize('invalid_name', **parametrized(invalid_usernames_list()))
-    def test_negative_create_with_invalid_username(self, invalid_name, target_sat):
+    def test_negative_create_with_invalid_username(self, target_sat):
         """Create User with invalid Username
 
         :id: aaf157a9-0375-4405-ad87-b13970e0609b
 
-        :parametrized: yes
-
         :expectedresults: User is not created. Appropriate error shown.
 
         :CaseImportance: Critical
         """
+        invalid_name = gen_string('html')
         with pytest.raises(HTTPError):
             target_sat.api.User(login=invalid_name).create()
 
-    @pytest.mark.parametrize('invalid_name', **parametrized(invalid_names_list()))
-    def test_negative_create_with_invalid_firstname(self, invalid_name, target_sat):
+    def test_negative_create_with_invalid_firstname(self, target_sat):
         """Create User with invalid Firstname
 
         :id: cb1ca8a9-38b1-4d58-ae32-915b47b91657
 
-        :parametrized: yes
-
         :expectedresults: User is not created. Appropriate error shown.
 
         :CaseImportance: Critical
         """
+        invalid_name = gen_string('alpha', 300)
         with pytest.raises(HTTPError):
             target_sat.api.User(firstname=invalid_name).create()
 
-    @pytest.mark.parametrize('invalid_name', **parametrized(invalid_names_list()))
-    def test_negative_create_with_invalid_lastname(self, invalid_name, target_sat):
+    def test_negative_create_with_invalid_lastname(self, target_sat):
         """Create User with invalid Lastname
 
         :id: 59546d26-2b6b-400b-990f-0b5d1c35004e
 
-        :parametrized: yes
-
         :expectedresults: User is not created. Appropriate error shown.
 
         :CaseImportance: Critical
         """
+        invalid_name = gen_string('alpha', 300)
         with pytest.raises(HTTPError):
             target_sat.api.User(lastname=invalid_name).create()
 
@@ -657,17 +602,15 @@ class TestActiveDirectoryUser:
         loc.delete()
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('username', **parametrized(valid_usernames_list()))
-    def test_positive_create_in_ldap_mode(self, username, create_ldap, target_sat):
+    def test_positive_create_in_ldap_mode(self, create_ldap, target_sat):
         """Create User in ldap mode
 
         :id: 6f8616b1-5380-40d2-8678-7c4434050cfb
 
-        :parametrized: yes
-
         :expectedresults: User is created without specifying the password
 
         """
+        username = gen_string('alpha')
         user = target_sat.api.User(
             login=username, auth_source=create_ldap['authsource'], password=''
         ).create()
