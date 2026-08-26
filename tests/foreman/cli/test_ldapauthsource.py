@@ -17,7 +17,6 @@ import pytest
 
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.exceptions import CLIReturnCodeError
-from robottelo.utils.datafactory import generate_strings_list, parametrized
 
 
 @pytest.fixture
@@ -40,19 +39,17 @@ class TestADAuthSource:
     """Implements Active Directory feature tests in CLI"""
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     @pytest.mark.usefixtures("ldap_tear_down")
-    def test_positive_create_with_ad(self, ad_data, server_name, module_target_sat):
+    def test_positive_create_with_ad(self, ad_data, module_target_sat):
         """Create/update/delete LDAP authentication with AD using names of different types
 
         :id: 093f6abc-91e7-4449-b484-71e4a14ac808
-
-        :parametrized: yes
 
         :expectedresults: Whether creating/updating/deleting LDAP Auth with AD is successful.
 
         :CaseImportance: Critical
         """
+        server_name = gen_string('alpha')
         ad_data = ad_data()
         auth = module_target_sat.cli_factory.ldap_auth_source(
             {
@@ -160,22 +157,20 @@ class TestIPAAuthSource:
         for user_group in user_groups:
             user_group.delete()
 
-    @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.usefixtures("ldap_tear_down")
-    def test_positive_end_to_end_with_ipa(self, default_ipa_host, server_name, module_target_sat):
+    def test_positive_end_to_end_with_ipa(self, default_ipa_host, module_target_sat):
         """CRUD LDAP authentication with FreeIPA
 
         :id: 6cb54405-b579-4020-bf99-cb811a6aa28b
 
         :expectedresults: Whether creating/updating/deleting LDAP Auth with FreeIPA is successful.
 
-        :parametrized: yes
-
         :CaseImportance: High
 
         """
+        server_name = gen_string('alpha')
         auth = module_target_sat.cli_factory.ldap_auth_source(
             {
                 'name': server_name,
@@ -382,21 +377,17 @@ class TestOpenLdapAuthSource:
     """Implements OpenLDAP Auth Source tests in CLI"""
 
     @pytest.mark.e2e
-    @pytest.mark.parametrize('server_name', **parametrized(generate_strings_list()))
     @pytest.mark.upgrade
-    def test_positive_end_to_end_with_open_ldap(
-        self, open_ldap_data, server_name, module_target_sat
-    ):
+    def test_positive_end_to_end_with_open_ldap(self, open_ldap_data, module_target_sat):
         """CRUD LDAP Operations with OpenLDAP
 
         :id: f84db334-0189-11eb-846c-d46d6dd3b5b2
-
-        :parametrized: yes
 
         :expectedresults: Whether creating/updating/deleting LDAP Auth with OpenLDAP is successful.
 
         :CaseImportance: High
         """
+        server_name = gen_string('alpha')
         auth = module_target_sat.cli_factory.ldap_auth_source(
             {
                 'name': server_name,
