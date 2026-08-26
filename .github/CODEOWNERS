@@ -258,6 +258,7 @@ tests/foreman/cli/test_http_proxy.py @SatelliteQE/team-dragonfly
 tests/foreman/cli/test_logging.py @SatelliteQE/team-dragonfly
 tests/foreman/cli/test_reporttemplates.py @SatelliteQE/team-dragonfly
 tests/foreman/cli/test_settings.py @SatelliteQE/team-dragonfly
+tests/foreman/cli/test_translation.py @SatelliteQE/team-dragonfly
 tests/foreman/cli/test_usage_report.py @SatelliteQE/team-dragonfly
 tests/foreman/ui/test_audit.py @SatelliteQE/team-dragonfly
 tests/foreman/ui/test_bookmarks.py @SatelliteQE/team-dragonfly
