@@ -20,13 +20,6 @@ from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.utils.datafactory import (
-    invalid_environments_list,
-    invalid_names_list,
-    parametrized,
-    valid_environments_list,
-)
-
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
@@ -99,76 +92,66 @@ def test_positive_CRUD_with_attributes(
         environment.read()
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_environments_list()))
-def test_positive_create_with_name(name, session_puppet_enabled_sat):
+def test_positive_create_with_name(session_puppet_enabled_sat):
     """Create an environment and provide a valid name.
 
     :id: 8869ccf8-a511-4fa7-ac36-11494e85f532
 
-    :parametrized: yes
-
     :expectedresults: The environment created successfully and has expected name
     """
+    name = gen_string('alphanumeric', 255)
     env = session_puppet_enabled_sat.api.Environment(name=name).create()
     assert env.name == name
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-def test_negative_create_with_too_long_name(name, session_puppet_enabled_sat):
+def test_negative_create_with_too_long_name(session_puppet_enabled_sat):
     """Create an environment and provide an invalid name.
 
     :id: e2654954-b3a1-4594-a487-bcd0cc8195ad
 
-    :parametrized: yes
-
     :expectedresults: The server returns an error.
     """
+    name = gen_string('alpha', 300)
     with pytest.raises(HTTPError):
         session_puppet_enabled_sat.api.Environment(name=name).create()
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_environments_list()))
-def test_negative_create_with_invalid_characters(name, session_puppet_enabled_sat):
+def test_negative_create_with_invalid_characters(session_puppet_enabled_sat):
     """Create an environment and provide an illegal name.
 
     :id: 8ec57d04-4ce6-48b4-b7f9-79025019ad0f
 
-    :parametrized: yes
-
     :expectedresults: The server returns an error.
     """
+    name = gen_string('latin1')
     with pytest.raises(HTTPError):
         session_puppet_enabled_sat.api.Environment(name=name).create()
 
 
-@pytest.mark.parametrize('new_name', **parametrized(valid_environments_list()))
-def test_positive_update_name(module_puppet_environment, new_name, session_puppet_enabled_sat):
+def test_positive_update_name(module_puppet_environment, session_puppet_enabled_sat):
     """Create environment entity providing the initial name, then
     update its name to another valid name.
 
     :id: ef48e79a-6b6a-4811-b49b-09f2effdd18f
 
-    :parametrized: yes
-
     :expectedresults: Environment entity is created and updated properly
     """
+    new_name = gen_string('alphanumeric', 255)
     env = session_puppet_enabled_sat.api.Environment(
         id=module_puppet_environment.id, name=new_name
     ).update(['name'])
     assert env.name == new_name
 
 
-@pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
-def test_negative_update_name(module_puppet_environment, new_name, session_puppet_enabled_sat):
+def test_negative_update_name(module_puppet_environment, session_puppet_enabled_sat):
     """Create environment entity providing the initial name, then
     try to update its name to invalid one.
 
     :id: 9cd024ab-db3d-4b15-b6da-dd2089321df3
 
-    :parametrized: yes
-
     :expectedresults: Environment entity is not updated
     """
+    new_name = gen_string('alpha', 300)
     with pytest.raises(HTTPError):
         session_puppet_enabled_sat.api.Environment(
             id=module_puppet_environment.id, name=new_name
