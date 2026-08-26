@@ -703,15 +703,16 @@ def test_positive_access_non_admin_user(session, test_name, target_sat):
     )[0]
     user_login = gen_string('alpha')
     user_password = gen_string('alpha')
-    target_sat.api.User(
+    user = target_sat.api.User(
         role=[role],
         admin=False,
         login=user_login,
         password=user_password,
         organization=[org],
         location=[default_loc],
-        default_organization=org,
     ).create()
+    user.default_organization = org
+    user.update(['default_organization'])
 
     with session:
         session.organization.select(org_name=org.name)
