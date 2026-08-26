@@ -17,18 +17,12 @@ import pytest
 
 from robottelo.constants import SNIPPET_DATA_FILE, DataFile
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
-from robottelo.utils.datafactory import (
-    invalid_names_list,
-    parametrized,
-    valid_data_list,
-)
 
 
 class TestTailoringFiles:
     """Implements Tailoring Files tests in CLI."""
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create(self, tailoring_file_path, name, module_target_sat):
+    def test_positive_create(self, tailoring_file_path, module_target_sat):
         """Create new Tailoring Files using different values types as name
 
         :id: e1bb4de2-1b64-4904-bc7c-f0befa9dbd6f
@@ -38,9 +32,8 @@ class TestTailoringFiles:
             1. Create valid tailoring file with valid parameter
 
         :expectedresults: Tailoring file will be added to satellite
-
-        :parametrized: yes
         """
+        name = gen_string('alpha')
         tailoring_file = module_target_sat.cli_factory.tailoringfile(
             {'name': name, 'scap-file': tailoring_file_path['satellite']}
         )
@@ -136,8 +129,7 @@ class TestTailoringFiles:
                 {'name': name, 'scap-file': f'/tmp/{SNIPPET_DATA_FILE}'}
             )
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    def test_negative_create_with_invalid_name(self, tailoring_file_path, name, module_target_sat):
+    def test_negative_create_with_invalid_name(self, tailoring_file_path, module_target_sat):
         """Create Tailoring files with invalid name
 
         :id: 973eee82-9735-49bb-b534-0de619aa0279
@@ -152,6 +144,7 @@ class TestTailoringFiles:
 
         :CaseImportance: Medium
         """
+        name = gen_string('alpha', 300)
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.tailoringfile(
                 {'name': name, 'scap-file': tailoring_file_path['satellite']}

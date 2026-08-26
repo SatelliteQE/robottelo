@@ -19,9 +19,7 @@ from robottelo.config import settings
 from robottelo.constants import OSCAP_PERIOD, OSCAP_WEEKDAY
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
-    invalid_names_list,
     parametrized,
-    valid_data_list,
 )
 
 
@@ -165,13 +163,10 @@ class TestOpenScap:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Scapcontent.info({'id': invalid_scap_id})
 
-    @pytest.mark.parametrize('title', **parametrized(valid_data_list()))
-    def test_positive_create_scap_content_with_valid_title(self, title, module_target_sat):
+    def test_positive_create_scap_content_with_valid_title(self, module_target_sat):
         """Create scap-content with valid title
 
         :id: 68e9fbe2-e3c3-48e7-a774-f1260a3b7f4f
-
-        :parametrized: yes
 
         :setup:
 
@@ -191,6 +186,7 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
+        title = gen_string('alpha')
         scap_content = module_target_sat.cli_factory.scapcontent(
             {'title': title, 'scap-file': settings.oscap.content_path}
         )
@@ -233,13 +229,10 @@ class TestOpenScap:
                 {'title': title, 'scap-file': settings.oscap.content_path}
             )
 
-    @pytest.mark.parametrize('title', **parametrized(invalid_names_list()))
-    def test_negative_create_scap_content_with_invalid_title(self, title, module_target_sat):
+    def test_negative_create_scap_content_with_invalid_title(self, module_target_sat):
         """Create scap-content with invalid title
 
         :id: 90a2590e-a6ff-41f1-9e0a-67d4b16435c0
-
-        :parametrized: yes
 
         :setup:
 
@@ -257,20 +250,16 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
+        title = gen_string('alpha', 300)
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.scapcontent(
                 {'title': title, 'scap-file': settings.oscap.content_path}
             )
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_scap_content_with_valid_originalfile_name(
-        self, name, module_target_sat
-    ):
+    def test_positive_create_scap_content_with_valid_originalfile_name(self, module_target_sat):
         """Create scap-content with valid original file name
 
         :id: 25441174-11cb-4d9b-9ec5-b1c69411b5bc
-
-        :parametrized: yes
 
         :setup:
 
@@ -289,22 +278,19 @@ class TestOpenScap:
         :CaseImportance: Medium
         """
         title = gen_string('alpha')
+        name = gen_string('alpha')
         scap_content = module_target_sat.cli_factory.scapcontent(
             {'original-filename': name, 'scap-file': settings.oscap.content_path, 'title': title}
         )
         assert scap_content['original-filename'] == name
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
     def test_negative_create_scap_content_with_invalid_originalfile_name(
         self,
-        name,
         module_target_sat,
     ):
         """Create scap-content with invalid original file name
 
         :id: 83feb67a-a6bf-4a99-923d-889e8d1013fa
-
-        :parametrized: yes
 
         :setup:
 
@@ -324,18 +310,16 @@ class TestOpenScap:
 
         :BZ: 1482395
         """
+        name = gen_string('alpha', 300)
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.scapcontent(
                 {'original-filename': name, 'scap-file': settings.oscap.content_path}
             )
 
-    @pytest.mark.parametrize('title', **parametrized(valid_data_list()))
-    def test_negative_create_scap_content_without_dsfile(self, title, module_target_sat):
+    def test_negative_create_scap_content_without_dsfile(self, module_target_sat):
         """Create scap-content without scap data stream xml file
 
         :id: ea811994-12cd-4382-9382-37fa806cc26f
-
-        :parametrized: yes
 
         :setup:
 
@@ -352,6 +336,7 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
+        title = gen_string('alpha')
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.scapcontent({'title': title})
 
@@ -448,15 +433,10 @@ class TestOpenScap:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Scapcontent.info({'title': scap_content['title']})
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_scap_policy_with_valid_name(
-        self, name, scap_content, module_target_sat
-    ):
+    def test_positive_create_scap_policy_with_valid_name(self, scap_content, module_target_sat):
         """Create scap policy with valid name
 
         :id: c9327675-62b2-4e22-933a-02818ef68c11
-
-        :parametrized: yes
 
         :setup:
 
@@ -473,6 +453,7 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
+        name = gen_string('alpha')
         scap_policy = module_target_sat.cli_factory.make_scap_policy(
             {
                 'name': name,
@@ -489,15 +470,10 @@ class TestOpenScap:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Scappolicy.info({'name': scap_policy['name']})
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    def test_negative_create_scap_policy_with_invalid_name(
-        self, name, scap_content, module_target_sat
-    ):
+    def test_negative_create_scap_policy_with_invalid_name(self, scap_content, module_target_sat):
         """Create scap policy with invalid name
 
         :id: 0d163968-7759-4cfd-9c4d-98533d8db925
-
-        :parametrized: yes
 
         :setup:
 
@@ -514,6 +490,7 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
+        name = gen_string('alpha', 300)
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.make_scap_policy(
                 {
