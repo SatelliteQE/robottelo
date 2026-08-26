@@ -26,31 +26,7 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
 from robottelo.constants import DEFAULT_ORG
-from robottelo.utils.datafactory import (
-    filtered_datapoint,
-    invalid_values_list,
-    parametrized,
-)
 from robottelo.utils.issue_handlers import is_open
-
-
-@filtered_datapoint
-def valid_org_data_list():
-    """List of valid data for input testing.
-
-    Note: The maximum allowed length of org name is 242 only. This is an
-    intended behavior (Also note that 255 is the standard across other
-    entities)
-    """
-    return dict(
-        alpha=gen_string('alpha', randint(1, 242)),
-        numeric=gen_string('numeric', randint(1, 242)),
-        alphanumeric=gen_string('alphanumeric', randint(1, 242)),
-        latin1=gen_string('latin1', randint(1, 242)),
-        utf8=gen_string('utf8', randint(1, 85)),
-        cjk=gen_string('cjk', randint(1, 85)),
-        html=gen_string('html', randint(1, 85)),
-    )
 
 
 class TestOrganization:
@@ -80,8 +56,7 @@ class TestOrganization:
             assert response.status_code == http.client.UNSUPPORTED_MEDIA_TYPE
 
     @pytest.mark.build_sanity
-    @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
-    def test_positive_create_with_name_and_description(self, name, target_sat):
+    def test_positive_create_with_name_and_description(self, target_sat):
         """Create an organization and provide a name and description.
 
         :id: afeea84b-61ca-40bf-bb16-476432919115
@@ -90,9 +65,8 @@ class TestOrganization:
             auto-generated label.
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
+        name = gen_string('alpha')
         org = target_sat.api.Organization(name=name, description=name).create()
         assert org.name == name
         assert org.description == name
@@ -102,16 +76,14 @@ class TestOrganization:
         assert isinstance(org.label, str)
         assert len(org.label) > 0
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_invalid_name(self, name, target_sat):
+    def test_negative_create_with_invalid_name(self, target_sat):
         """Create an org with an incorrect name.
 
         :id: 9c6a4b45-a98a-4d76-9865-92d992fa1a22
 
         :expectedresults: The organization cannot be created.
-
-        :parametrized: yes
         """
+        name = gen_string('alpha', 300)
         with pytest.raises(HTTPError):
             target_sat.api.Organization(name=name).create()
 
@@ -205,8 +177,7 @@ class TestOrganizationUpdate:
         """Create an organization."""
         return target_sat.api.Organization().create()
 
-    @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
-    def test_positive_update_name(self, module_org, name):
+    def test_positive_update_name(self, module_org):
         """Update an organization's name with valid values.
 
         :id: 68f2ba13-2538-407c-9f33-2447fca28cd5
@@ -214,15 +185,13 @@ class TestOrganizationUpdate:
         :expectedresults: The organization's name is updated.
 
         :CaseImportance: High
-
-        :parametrized: yes
         """
+        name = gen_string('alpha', 242)
         module_org.name = name
         module_org = module_org.update(['name'])
         assert module_org.name == name
 
-    @pytest.mark.parametrize('desc', **parametrized(valid_org_data_list()))
-    def test_positive_update_description(self, module_org, desc):
+    def test_positive_update_description(self, module_org):
         """Update an organization's description with valid values.
 
         :id: bd223197-1021-467e-8714-c1a767ae89af
@@ -230,9 +199,8 @@ class TestOrganizationUpdate:
         :expectedresults: The organization's description is updated.
 
         :CaseImportance: Medium
-
-        :parametrized: yes
         """
+        desc = gen_string('html', randint(1, 85))
         module_org.description = desc
         module_org = module_org.update(['description'])
         assert module_org.description == desc

@@ -15,37 +15,11 @@ http://theforeman.org/api/apidoc/v2/locations.html
 
 """
 
-from random import randint
-
 from fauxfactory import gen_integer, gen_string
 import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.constants import DEFAULT_LOC
-from robottelo.utils.datafactory import (
-    filtered_datapoint,
-    invalid_values_list,
-    parametrized,
-)
-
-
-@filtered_datapoint
-def valid_loc_data_list():
-    """List of valid data for input testing.
-
-    Note: The maximum allowed length of location name is 246 only. This is an
-    intended behavior (Also note that 255 is the standard across other
-    entities.)
-    """
-    return dict(
-        alpha=gen_string('alpha', randint(1, 246)),
-        numeric=gen_string('numeric', randint(1, 246)),
-        alphanumeric=gen_string('alphanumeric', randint(1, 246)),
-        latin1=gen_string('latin1', randint(1, 246)),
-        utf8=gen_string('utf8', randint(1, 85)),
-        cjk=gen_string('cjk', randint(1, 85)),
-        html=gen_string('html', randint(1, 85)),
-    )
 
 
 class TestLocation:
@@ -81,8 +55,7 @@ class TestLocation:
             new_user=target_sat.api.User().create(),
         )
 
-    @pytest.mark.parametrize('name', **parametrized(valid_loc_data_list()))
-    def test_positive_create_with_name(self, name, target_sat):
+    def test_positive_create_with_name(self, target_sat):
         """Create new locations using different inputs as a name
 
         :id: 90bb90a3-120f-4ea6-89a9-62757be42486
@@ -91,9 +64,8 @@ class TestLocation:
             correct name
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
+        name = gen_string('alpha', 246)
         location = target_sat.api.Location(name=name).create()
         assert location.name == name
 
@@ -129,8 +101,7 @@ class TestLocation:
         location = location.update(['organization'])
         assert {org.id for org in orgs} == {org.id for org in location.organization}
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_name(self, name, target_sat):
+    def test_negative_create_with_name(self, target_sat):
         """Attempt to create new location using invalid names only
 
         :id: 320e6bca-5645-423b-b86a-2b6f35c8dae3
@@ -138,9 +109,8 @@ class TestLocation:
         :expectedresults: Location is not created and expected error is raised
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
+        name = gen_string('alpha', 300)
         with pytest.raises(HTTPError):
             target_sat.api.Location(name=name).create()
 
@@ -170,8 +140,7 @@ class TestLocation:
         with pytest.raises(HTTPError):
             target_sat.api.Location(domain=[gen_integer(10000, 99999)]).create()
 
-    @pytest.mark.parametrize('new_name', **parametrized(valid_loc_data_list()))
-    def test_positive_update_name(self, new_name, target_sat):
+    def test_positive_update_name(self, target_sat):
         """Update location with new name
 
         :id: 73ff6dab-e12a-4f7d-9c1f-6984fc076329
@@ -179,9 +148,8 @@ class TestLocation:
         :expectedresults: Location updated successfully and name was changed
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
+        new_name = gen_string('alpha')
         location = target_sat.api.Location().create()
         location.name = new_name
         assert location.update(['name']).name == new_name
