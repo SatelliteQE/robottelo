@@ -30,7 +30,6 @@ from robottelo.constants import LOCALES
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils import gen_ssh_keypairs
 from robottelo.utils.datafactory import (
-    parametrized,
     valid_data_list,
     valid_emails_list,
     valid_usernames_list,
@@ -59,8 +58,7 @@ class TestUser:
         # return stubbed roles
         return {role['id']: role for role in roles_helper()}
 
-    @pytest.mark.parametrize('email', **parametrized(valid_emails_list()))
-    def test_positive_CRUD(self, email, module_target_sat):
+    def test_positive_CRUD(self, module_target_sat):
         """Create User with various parameters, updating and deleting
 
         :id: 2d430243-8512-46ee-8d21-7ccf0c7af807
@@ -70,12 +68,10 @@ class TestUser:
 
         :BZ: 1204667
 
-        :parametrized: yes
-
         :CaseImportance: Critical
         """
         # create with params
-        mail = email
+        mail = '!#$%&*+-/=?^`{|}~@example.com'
         user_params = {
             'login': random.choice(valid_usernames_list()),
             'firstname': random.choice(valid_usernames_list()),
