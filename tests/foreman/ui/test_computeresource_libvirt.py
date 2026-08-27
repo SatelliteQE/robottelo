@@ -212,7 +212,7 @@ def test_positive_provision_end_to_end(
             provisioning_host.wait_for_connection()
             assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
-        session.host_new.delete(name)
+        session.all_hosts.delete(name)
         assert not sat.api.Host().search(query={'search': f'name="{name}"'})
 
 

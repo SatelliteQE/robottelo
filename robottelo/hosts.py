@@ -14,7 +14,7 @@ import subprocess
 import sys
 from tempfile import NamedTemporaryFile
 import time
-from urllib.parse import urljoin, urlparse, urlunsplit
+from urllib.parse import urljoin, urlparse, urlsplit, urlunsplit
 
 import apypie
 from box import Box
@@ -1564,12 +1564,6 @@ class ContentHost(Host, ContentHostMixins):
             self.disable_repo("rhel-*")
             # add internal rhel repos
             self.create_custom_repos(**settings.repos.get(f'rhel{self.os_version.major}_os'))
-        else:
-            # enable cdn repos
-            for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
-                result = self.enable_repo(repo, force=True)
-                if result.status:
-                    raise ContentHostError(f'Enabling RHEL repos on host failed\n{result.stdout}')
 
     def setup_satellite_repos(self):
         """Setup Satellite repositories on host
@@ -1704,6 +1698,11 @@ class Capsule(ContentHost, CapsuleMixins):
     def __init__(self, hostname, **kwargs):
         kwargs.setdefault('net_type', settings.capsule.network_type)
         super().__init__(hostname=hostname, **kwargs)
+        self.product_rpm_name = (
+            self.container_rpm_name
+            if settings.server.install_method == InstallMethod.FOREMANCTL
+            else self.product_rpm_name
+        )
 
     @property
     def nailgun_capsule(self):
@@ -1758,8 +1757,12 @@ class Capsule(ContentHost, CapsuleMixins):
         """
         if self.is_upstream:
             return False
-        return (
-            'stream' in self.execute(f'rpm -q --qf "%{{RELEASE}}" {self.product_rpm_name}').stdout
+        return 'stream' in self.execute(
+            f'rpm -q --qf "%{{RELEASE}}" {self.product_rpm_name}'
+        ).stdout or (
+            # Workaround for SAT-49552: satellitectl package doesn't include 'stream' in release field
+            # Once SAT-49552 is fixed, remove this condition
+            is_open('SAT-49552') and self.execute(f'rpm -q {self.container_rpm_name}').status == 0
         )
 
     @cached_property
@@ -1808,17 +1811,17 @@ class Capsule(ContentHost, CapsuleMixins):
             )
         return key
 
-    def is_foremanctl_available(self):
-        """Check if foremanctl is installed on the system.
+    def is_satellitectl_available(self):
+        """Check if satellitectl is installed on the system.
 
         Only checks if the command exists, not if the package is available in repos.
         This ensures auto-detection defaults to satellite-installer on clean systems.
 
-        :return: True if foremanctl command is installed
+        :return: True if satellitectl command is installed
         :rtype: bool
         """
-        # Check if foremanctl command exists (already installed)
-        result = self.execute('which foremanctl')
+        # Check if satellitectl command exists (already installed)
+        result = self.execute(f'which {self.container_rpm_name}')
         return result.status == 0
 
     def detect_install_method(self):
@@ -1860,8 +1863,8 @@ class Capsule(ContentHost, CapsuleMixins):
             return InstallMethod.INSTALLER
 
         # Availability detection
-        if self.is_foremanctl_available():
-            logger.info('foremanctl available, using foremanctl method')
+        if self.is_satellitectl_available():
+            logger.info('satellitectl package available, using foremanctl method')
             return InstallMethod.FOREMANCTL
 
         logger.info('Defaulting to satellite-installer method')
@@ -2253,7 +2256,7 @@ class Capsule(ContentHost, CapsuleMixins):
                 'Set CONTAINER_REGISTRY.USERNAME and CONTAINER_REGISTRY.PASSWORD in conf/server.yaml'
             )
 
-        # Install foremanctl
+        # Install satellitectl
         assert self.execute('dnf install -y satellitectl').status == 0, (
             'Failed to install satellitectl'
         )
@@ -2646,9 +2649,9 @@ class Satellite(Capsule, SatelliteMixins):
                 yield ui_session
         finally:
             if self.record_property is not None and settings.ui.record_video:
-                video_url = settings.ui.grid_url.replace(
-                    ':4444', f'/videos/{ui_session.ui_session_id}/video.mp4'
-                )
+                grid_url = urlsplit(settings.ui.grid_url)
+                video_path = f'/videos/{ui_session.ui_session_id}/{ui_session.ui_session_id}.mp4'
+                video_url = urlunsplit((grid_url.scheme, grid_url.hostname, video_path, '', ''))
                 self.record_property('video_url', video_url)
                 self.record_property('session_id', ui_session.ui_session_id)
 

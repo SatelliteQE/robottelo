@@ -742,7 +742,7 @@ class TestExport:
         assert "Generated" in result
         assert target_sat.validate_pulp_filepath(module_org, PULP_EXPORT_DIR) != ''
 
-    def test_postive_export_cv_syncable_with_permissions(
+    def test_positive_export_cv_syncable_with_permissions(
         self,
         request,
         target_sat,
@@ -1436,7 +1436,7 @@ class TestExportImport:
     @pytest.mark.e2e
     @pytest.mark.rhel_ver_match('9')
     @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
-    def test_postive_export_import_cv_with_mixed_content_repos(
+    def test_positive_export_import_cv_with_mixed_content_repos(
         self,
         request,
         target_sat,
@@ -1698,7 +1698,7 @@ class TestExportImport:
         assert res.status == 0
         assert 'installed successfully' in res.stdout
 
-    def test_postive_export_import_cv_with_mixed_content_syncable(
+    def test_positive_export_import_cv_with_mixed_content_syncable(
         self,
         target_sat,
         function_org,
@@ -1815,7 +1815,7 @@ class TestExportImport:
         assert import_list[0]['content-view-version'] == importing_cvv['name']
         assert import_list[0]['content-view-version-id'] == importing_cvv['id']
 
-    def test_postive_export_import_cv_with_file_content(
+    def test_positive_export_import_cv_with_file_content(
         self,
         target_sat,
         function_org,
@@ -1989,7 +1989,7 @@ class TestExportImport:
         )['versions']
         assert len(importing_cvv) == 1
 
-    def test_postive_export_import_ansible_collection_repo(
+    def test_positive_export_import_ansible_collection_repo(
         self,
         target_sat,
         function_org,
@@ -2054,7 +2054,7 @@ class TestExportImport:
         assert len(import_product['content']) == 1
         assert import_product['content'][0]['content-type'] == "ansible_collection"
 
-    def test_postive_export_import_repo_with_GPG(
+    def test_positive_export_import_repo_with_GPG(
         self,
         target_sat,
         function_org,
@@ -2121,7 +2121,7 @@ class TestExportImport:
         assert imported_gpg
         assert imported_gpg['content'] == gpg_key.content
 
-    def test_postive_export_import_chunked_repo(
+    def test_positive_export_import_chunked_repo(
         self,
         target_sat,
         function_org,
@@ -2418,7 +2418,7 @@ class TestExportImport:
                 f'{repomd_refs - drive_files}'
             )
 
-    def test_postive_export_import_with_long_name(
+    def test_positive_export_import_with_long_name(
         self,
         target_sat,
         module_org,
@@ -2529,7 +2529,7 @@ class TestExportImport:
             f'Only in import: {sorted(imported_packages - exported_packages)}'
         )
 
-    def test_postive_export_import_large_cv(
+    def test_positive_export_import_large_cv(
         self,
         request,
         target_sat,
@@ -3170,7 +3170,7 @@ class TestExportImport:
         res = rhel_contenthost.execute(f'dnf -y install {filtered_pkg}')
         assert res.status == 0, f'Installation from the import failed:\n{res.stdout}'
 
-    def test_postive_export_import_podman_repo(
+    def test_positive_export_import_podman_repo(
         self,
         target_sat,
         function_org,
@@ -3200,10 +3200,12 @@ class TestExportImport:
         large_image_id = target_sat.execute(f'podman images {REPO_NAME} -q')
         assert large_image_id
         large_repo_cmd = f'{(function_org.label)}/{(function_product.label)}/{REPO_NAME}'.lower()
-        target_sat.execute(
-            f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password}'
+        result = target_sat.execute(
+            f'podman push --tls-verify=false'
+            f' --creds {settings.server.admin_username}:{settings.server.admin_password}'
             f' {large_image_id.stdout.strip()} {target_sat.hostname}/{large_repo_cmd}'
         )
+        assert result.status == 0, f'podman push failed: {result.stderr}'
         repo = target_sat.cli.Repository.info(
             {
                 'organization-id': function_org.id,

@@ -6,7 +6,7 @@ from box import Box
 from nailgun import entities
 
 # This should be updated after each version branch
-SATELLITE_VERSION = "6.20"
+SATELLITE_VERSION = "6.21"
 SATELLITE_OS_VERSION = "9"
 
 # Default system ports
@@ -30,7 +30,7 @@ LOCALES = (
     'zh_CN',
     'zh_TW',
 )
-
+SUPPORTED_LANGUAGES = ('fr', 'ja', 'ko', 'zh_CN')
 
 DISTRO_DEFAULT = 'rhel7'
 DISTROS_SUPPORTED = ['rhel7', 'rhel8', 'rhel9', 'rhel10']
@@ -256,23 +256,6 @@ PRODUCT_KEY_RHEL_EXTRAS = 'rhel7_extra'
 HASH_TYPE = {'sha256': "SHA256", 'sha512': "SHA512", 'base64': "Base64", 'md5': "MD5"}
 
 REPO_TAB = {'rpms': "RPMs", 'kickstarts': "Kickstarts", 'isos': "ISOs", 'ostree': "OSTree"}
-
-OHSNAP_RHEL7_REPOS = (
-    'rhel-7-server-extras-rpms',
-    'rhel-7-server-rpms',
-    'rhel-server-rhscl-7-rpms',
-    'rhel-7-server-ansible-2.9-rpms',
-)
-
-OHSNAP_RHEL8_REPOS = (
-    'rhel-8-for-x86_64-baseos-rpms',
-    'rhel-8-for-x86_64-appstream-rpms',
-)
-
-OHSNAP_RHEL9_REPOS = (
-    'rhel-9-for-x86_64-baseos-rpms',
-    'rhel-9-for-x86_64-appstream-rpms',
-)
 
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository
@@ -1003,6 +986,24 @@ RHEL10_VULNERABLE_MARIADB_CVES = ['CVE-2023-52969', 'CVE-2023-52970', 'CVE-2023-
 RHEL10_MARIADB_ERRATUM = 'RHSA-2026:0136'
 # Use the first CVE as the primary one for single-CVE tests
 RHEL10_VULNERABILITY_CVE_ID = RHEL10_VULNERABLE_MARIADB_CVES[0]
+# Per-version vulnerability data for IoP vulnerability testing
+VULNERABLE_PACKAGES = {
+    8: {
+        'rpm': 'mariadb-10.3.39-1.module+el8.8.0+19673+72b0d35f.x86_64',
+        'cves': ['CVE-2025-13699'],
+        'erratum': 'RHSA-2026:0225',
+    },
+    9: {
+        'rpm': 'mariadb-3:10.5.29-2.el9_6.x86_64',
+        'cves': ['CVE-2025-13699'],
+        'erratum': 'RHSA-2026:0137',
+    },
+    10: {
+        'rpm': RHEL10_VULNERABLE_MARIADB_RPM,
+        'cves': RHEL10_VULNERABLE_MARIADB_CVES,
+        'erratum': RHEL10_MARIADB_ERRATUM,
+    },
+}
 FAKE_1_YUM_REPOS_COUNT = 32
 FAKE_3_YUM_REPOS_COUNT = 78
 FAKE_9_YUM_SECURITY_ERRATUM = [
