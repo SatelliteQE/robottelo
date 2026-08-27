@@ -50,6 +50,69 @@ def _create_backup(sat, subdir, skip_pulp=False):
     return backup_dir[0]
 
 
+def _get_backup_dir(sat, subdir):
+    """Return the timestamped foreman-backup-* subdirectory created under ``subdir``."""
+    result = sat.execute(f'ls -d {subdir}/foreman-backup-*')
+    assert result.status == 0, f'No foreman-backup-* subdirectory found in {subdir}'
+    return result.stdout.strip().splitlines()[0]
+
+
+@pytest.mark.destructive
+def test_positive_capsule_backup_restore(
+    module_target_sat, module_capsule_configured, setup_backup_tests
+):
+    """Verify foremanctl can backup and restore capsule (smart proxy) data
+    from the Satellite using the --target-host option
+
+    :id: 8fc00792-313d-41a8-9dfb-40a2fc200b5d
+
+    :steps:
+        1. Configure a smart proxy (capsule)
+        2. Run foremanctl backup <dir> --target-host proxy from the Satellite
+        3. Verify the backup command completes and the backup directory is created
+        4. Run foremanctl restore <backup_dir> --target-host proxy --force
+        5. Verify the restore command completes successfully
+        6. Verify the capsule is healthy after restore
+
+    :expectedresults:
+        1. Backup command exits with status 0 and creates a backup directory
+        2. Restore command exits with status 0
+        3. Capsule remains healthy after restore
+
+    :Verifies: SAT-45029
+    """
+    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
+
+    # Backup capsule data from the Satellite via --target-host
+    result = module_target_sat.execute(
+        f'foremanctl backup {subdir} --target-host proxy',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl capsule backup failed:\n{result.stdout}\n{result.stderr}'
+    )
+
+    # Verify the backup directory was created
+    result = module_target_sat.execute(f'test -d {subdir}')
+    assert result.status == 0, f'Backup directory {subdir} was not created'
+    backup_dir = _get_backup_dir(module_target_sat, subdir)
+
+    # Restore the capsule data from the backup via --target-host
+    result = module_target_sat.execute(
+        f'foremanctl restore {backup_dir} --target-host proxy --force',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl capsule restore failed:\n{result.stdout}\n{result.stderr}'
+    )
+
+    # Verify the capsule is healthy after restore
+    result = module_capsule_configured.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, (
+        f'foremanctl health check failed on capsule after restore:\n{result.stdout}'
+    )
+
+
 def test_positive_offline_backup(module_target_sat, setup_backup_tests):
     """Verify foremanctl backup creates a backup successfully
 
