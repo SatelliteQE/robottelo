@@ -1800,7 +1800,11 @@ class Capsule(ContentHost, CapsuleMixins):
             else:
                 raise SatelliteHostError('remote-execution feature is not enabled')
             if 'dynflow' not in self.list_foremanctl_features(enabled=True, internal=True):
-                dynflow_result = self.execute('foremanctl deploy --add-feature dynflow')
+                dynflow_result = self.execute(
+                    'flock -w 1800 /var/lock/robottelo-foremanctl-deploy.lock '
+                    'foremanctl deploy --add-feature dynflow',
+                    timeout='30m',
+                )
                 assert dynflow_result.status == 0, (
                     f"Failed to enable dynflow: {dynflow_result.stderr}"
                 )
