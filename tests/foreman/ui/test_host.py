@@ -2369,7 +2369,10 @@ def test_manage_content_source_with_multi_cv(
     result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
-    # Step 5 & 6: Use UI to manage content source with multiple CVEnv assignments
+    # Step 5: Get the default smart proxy for content source
+    default_proxy = module_target_sat.get_default_smart_proxy()
+
+    # Step 6 & 7: Use UI to manage content source with multiple CVEnv assignments
     with module_target_sat.ui_session() as session:
         session.organization.select(module_org.name)
 
@@ -2382,7 +2385,7 @@ def test_manage_content_source_with_multi_cv(
             entities_list=[
                 rhel_contenthost.hostname,
             ],
-            content_source=module_target_sat.hostname,
+            content_source=default_proxy.name,
             cv_env_assignments=[
                 {'content_view': module_cv.name, 'lce': module_lce.name},
                 {'content_view': cv2.name, 'lce': lce2.name},
@@ -2390,17 +2393,16 @@ def test_manage_content_source_with_multi_cv(
             run_job_invocation=True,
         )
         session.jobinvocation.submit_prefilled_view()
-    # Step 7: Verify results using API (more reliable after job invocation navigation)
+    # Step 8: Verify results using API (more reliable after job invocation navigation)
     host = module_target_sat.api.Host().search(
         query={'search': f'name={rhel_contenthost.hostname}'}
     )[0]
     host_content_facet = host.read_json()
     # Verify content source was changed
-    # On containerized Satellite, the smart proxy may have a -pulp suffix
-    content_source_name = host_content_facet['content_facet_attributes']['content_source']['name']
-    assert content_source_name == module_target_sat.hostname or content_source_name.startswith(
-        f'{module_target_sat.hostname}-'
-    ), f'Expected content source to be {module_target_sat.hostname}, got {content_source_name}'
+    content_source_name = host_content_facet['content_facet_attributes']['content_source'][
+        'name'
+    ]
+    assert content_source_name == default_proxy.name
 
     # Verify multiple CVEnv assignments
     cv_envs = host_content_facet['content_facet_attributes']['content_view_environments']
