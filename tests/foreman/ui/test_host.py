@@ -2397,12 +2397,9 @@ def test_manage_content_source_with_multi_cv(
     host_content_facet = host.read_json()
     # Verify content source was changed
     # On containerized Satellite, the smart proxy may have a -pulp suffix
-    content_source_name = host_content_facet['content_facet_attributes']['content_source'][
-        'name'
-    ]
-    assert (
-        content_source_name == module_target_sat.hostname
-        or content_source_name.startswith(f'{module_target_sat.hostname}-')
+    content_source_name = host_content_facet['content_facet_attributes']['content_source']['name']
+    assert content_source_name == module_target_sat.hostname or content_source_name.startswith(
+        f'{module_target_sat.hostname}-'
     ), f'Expected content source to be {module_target_sat.hostname}, got {content_source_name}'
 
     # Verify multiple CVEnv assignments
