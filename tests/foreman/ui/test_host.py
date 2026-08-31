@@ -1295,8 +1295,6 @@ def test_positive_validate_inherited_cvenv_ansiblerole(session, target_sat, modu
     :customerscenario: true
 
     :BZ: 1391656, 2094912
-
-    :BlockedBy: SAT-46639
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
     cv_name = gen_string('alpha')
@@ -1347,8 +1345,8 @@ def test_positive_validate_inherited_cvenv_ansiblerole(session, target_sat, modu
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_host_template.organization.name)
         session.location.select(loc_name=module_host_template.location.name)
-        values = session.host_new.read(host['name'], ['host.content_view_environment'])
-        assert values['host']['content_view_environment'] == f'{lce.name}/{cv.name}'
+        values = session.host_new.read(host['name'], ['host.read_content_view_environment'])
+        assert values['host']['read_content_view_environment'] == f'{lce.name}/{cv.name}'
         matching_hosts = target_sat.api.Host().search(
             query={'search': f'ansible_role="{SELECTED_ROLE}"'}
         )
@@ -2398,10 +2396,14 @@ def test_manage_content_source_with_multi_cv(
     )[0]
     host_content_facet = host.read_json()
     # Verify content source was changed
+    # On containerized Satellite, the smart proxy may have a -pulp suffix
+    content_source_name = host_content_facet['content_facet_attributes']['content_source'][
+        'name'
+    ]
     assert (
-        host_content_facet['content_facet_attributes']['content_source']['name']
-        == module_target_sat.hostname
-    )
+        content_source_name == module_target_sat.hostname
+        or content_source_name.startswith(f'{module_target_sat.hostname}-')
+    ), f'Expected content source to be {module_target_sat.hostname}, got {content_source_name}'
 
     # Verify multiple CVEnv assignments
     cv_envs = host_content_facet['content_facet_attributes']['content_view_environments']
