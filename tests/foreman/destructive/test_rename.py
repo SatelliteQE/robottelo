@@ -127,7 +127,7 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
 
     # check config files (except certs/keys and /etc/template) for occurrences of old hostname
     output = module_target_sat.execute(
-        f'grep "{old_hostname}" /etc -r --exclude=template --exclude-dir={{promtail,pki}} --exclude=*.{{pem,cert,bak}}'
+        f'grep "{old_hostname}" /etc -r --exclude=template --exclude-dir={{promtail,pki}} --exclude=*.{{pem,cert,bak,crt}}'
     ).stdout
     assert old_hostname not in output, (
         'there are remaining instances of the old hostname in the config files'
