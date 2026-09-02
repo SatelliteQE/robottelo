@@ -22,7 +22,7 @@ FOREMANCTL_HEALTH_SKIP_TASKS_CMD = 'foremanctl health --skip-check-foreman-tasks
 
 
 @pytest.mark.e2e
-def test_positive_health_check_all_pass(foremanctl_sat):
+def test_positive_health_check_all_pass(target_sat):
     """Verify foremanctl health passes on a healthy system
 
     :id: 317c3a55-a740-4120-84b1-da0a6e9056c7
@@ -39,7 +39,7 @@ def test_positive_health_check_all_pass(foremanctl_sat):
 
     :Verifies: SAT-44798
     """
-    result = foremanctl_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+    result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
     assert result.status == 0, (
         f'foremanctl health failed unexpectedly:\n{result.stdout}\n{result.stderr}'
     )
@@ -49,42 +49,42 @@ def test_positive_health_check_all_pass(foremanctl_sat):
     assert 'duplicate permission(s) in database' not in result.stdout
 
 
-def test_negative_health_check_services_detects_stopped_service(foremanctl_sat):
+def test_negative_health_check_services_detects_stopped_service(target_sat):
     """Verify check_services detects a stopped service
 
     :id: 805a1e78-3979-4c9d-aad6-8a0fea8156b5
 
     :steps:
-        1. Stop the redis service
+        1. Stop the valkey service
         2. Run foremanctl health
-        3. Restart the redis service
+        3. Restart the valkey service
         4. Verify satellite is healthy after recovery
 
     :expectedresults:
         1. Health check fails with exit code 2
-        2. Output reports redis as inactive (dead)
-        3. Satellite passes health check after redis restart
+        2. Output reports valkey as inactive (dead)
+        3. Satellite passes health check after valkey restart
 
     :Verifies: SAT-44798
     """
     try:
-        foremanctl_sat.execute('systemctl stop redis.service')
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
-        assert result.status == 2, 'Health check should have failed with stopped redis'
+        target_sat.execute('systemctl stop valkey.service')
+        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        assert result.status == 2, 'Health check should have failed with stopped valkey'
         assert 'Some services are not running' in result.stdout
-        assert 'redis: inactive (dead)' in result.stdout
+        assert 'valkey: inactive (dead)' in result.stdout
     finally:
-        foremanctl_sat.execute('systemctl start redis.service')
+        target_sat.execute('systemctl start valkey.service')
         wait_for(
-            lambda: foremanctl_sat.execute('systemctl is-active redis.service').status == 0,
+            lambda: target_sat.execute('systemctl is-active valkey.service').status == 0,
             timeout=30,
             delay=2,
         )
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
-        assert result.status == 0, f'Satellite not healthy after redis restart:\n{result.stdout}'
+        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        assert result.status == 0, f'Satellite not healthy after valkey restart:\n{result.stdout}'
 
 
-def test_negative_health_check_foreman_api_detects_failure(foremanctl_sat):
+def test_negative_health_check_foreman_api_detects_failure(target_sat):
     """Verify check_foreman_api detects API failure when foreman is stopped
 
     :id: 1c1338d8-b41b-4afb-9cee-daabc3f95e2e
@@ -104,25 +104,25 @@ def test_negative_health_check_foreman_api_detects_failure(foremanctl_sat):
     :Verifies: SAT-44798
     """
     try:
-        foremanctl_sat.execute('systemctl stop foreman.service')
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        target_sat.execute('systemctl stop foreman.service')
+        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
         assert result.status == 2, 'Health check should have failed with foreman stopped'
         assert 'Some services are not running' in result.stdout
         assert 'foreman: failed (failed)' in result.stdout
         assert 'Status code was 503' in result.stdout
     finally:
-        foremanctl_sat.execute('systemctl start foreman.service')
+        target_sat.execute('systemctl start foreman.service')
         wait_for(
-            lambda: foremanctl_sat.execute('hammer ping').status == 0,
+            lambda: target_sat.execute('hammer ping').status == 0,
             timeout=300,
             delay=10,
             handle_exception=True,
         )
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
         assert result.status == 0, f'Satellite not healthy after foreman restart:\n{result.stdout}'
 
 
-def test_negative_health_check_foreman_tasks_detects_errors(foremanctl_sat):
+def test_negative_health_check_foreman_tasks_detects_errors(target_sat):
     """Verify check_foreman_tasks detects errored tasks and that
     --skip-check-foreman-tasks allows bypassing the check
 
@@ -151,31 +151,31 @@ def test_negative_health_check_foreman_tasks_detects_errors(foremanctl_sat):
         "'paused', 'error', NOW(), NOW(), NOW())"
     )
     try:
-        result = foremanctl_sat.execute(f'{psql} "{insert_sql}"')
+        result = target_sat.execute(f'{psql} "{insert_sql}"')
         assert result.status == 0, f'Failed to insert test task: {result.stderr}'
 
         # Without skip — should fail
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
         assert result.status == 2, 'Health check should have failed with errored tasks'
         assert 'foreman tasks with errors' in result.stdout
 
         # With skip — should pass
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
         assert result.status == 0, (
             f'Health check failed even with --skip-check-foreman-tasks:\n'
             f'{result.stdout}\n{result.stderr}'
         )
     finally:
         delete_sql = "DELETE FROM foreman_tasks_tasks WHERE label = 'robottelo_test_errored_task'"
-        foremanctl_sat.execute(f'{psql} "{delete_sql}"')
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
+        target_sat.execute(f'{psql} "{delete_sql}"')
+        result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
         assert result.status == 0, (
             f'Health check failed even after cleaning up the errored task:\n'
             f'{result.stdout}\n{result.stderr}'
         )
 
 
-def test_negative_health_check_facts_count_detects_excess(foremanctl_sat):
+def test_negative_health_check_facts_count_detects_excess(target_sat):
     """Verify check_host_facts_count detects hosts exceeding the threshold
     and passes when hosts are within the threshold
 
@@ -196,7 +196,7 @@ def test_negative_health_check_facts_count_detects_excess(foremanctl_sat):
     :Verifies: SAT-44798
     """
     # First verify the check passes with no excessive facts
-    result = foremanctl_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+    result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
     assert result.status == 0
     assert 'exceed the facts count limit' not in result.stdout
 
@@ -208,23 +208,23 @@ def test_negative_health_check_facts_count_detects_excess(foremanctl_sat):
     }
     facts.update({f'robottelo_fact_{i}': f'value_{i}' for i in range(1, 10001)})
     try:
-        foremanctl_sat.api.Host().upload_facts(
+        target_sat.api.Host().upload_facts(
             data={'name': hostname, 'certname': hostname, 'facts': facts}
         )
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
         assert result.status == 2, 'Health check should have failed with excess facts'
         assert 'exceed the facts count limit' in result.stdout
     finally:
-        for host in foremanctl_sat.api.Host().search(query={'search': f'name={hostname}'}):
+        for host in target_sat.api.Host().search(query={'search': f'name={hostname}'}):
             host.delete()
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
         assert result.status == 0, (
             f'Health check failed even after cleaning up the host:\n'
             f'{result.stdout}\n{result.stderr}'
         )
 
 
-def test_negative_health_check_duplicate_permissions_detects_dupes(foremanctl_sat):
+def test_negative_health_check_duplicate_permissions_detects_dupes(target_sat):
     """Verify check_duplicate_permissions detects duplicate permissions
 
     :id: 8deaa9c6-aa9c-4482-851a-a0035642f9da
@@ -245,7 +245,7 @@ def test_negative_health_check_duplicate_permissions_detects_dupes(foremanctl_sa
     psql = 'podman exec postgresql psql -U foreman -d foreman -t -A -c'
 
     # Get an existing permission to duplicate
-    result = foremanctl_sat.execute(f'{psql} "SELECT name, resource_type FROM permissions LIMIT 1"')
+    result = target_sat.execute(f'{psql} "SELECT name, resource_type FROM permissions LIMIT 1"')
     assert result.status == 0, f'Failed to get permission: {result.stderr}'
     perm_name, resource_type = result.stdout.splitlines()[0].strip().split('|')
 
@@ -256,18 +256,18 @@ def test_negative_health_check_duplicate_permissions_detects_dupes(foremanctl_sa
     )
     dup_id = None
     try:
-        result = foremanctl_sat.execute(f'{psql} "{insert_sql}"')
+        result = target_sat.execute(f'{psql} "{insert_sql}"')
         assert result.status == 0, f'Failed to insert duplicate permission: {result.stderr}'
         dup_id = result.stdout.splitlines()[0].strip()
 
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
         assert result.status == 2, 'Health check should have failed with duplicate permissions'
         assert 'duplicate permission(s) in database' in result.stdout
         assert perm_name in result.stdout
     finally:
         if dup_id:
-            foremanctl_sat.execute(f'{psql} "DELETE FROM permissions WHERE id = {dup_id}"')
-        result = foremanctl_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
+            target_sat.execute(f'{psql} "DELETE FROM permissions WHERE id = {dup_id}"')
+        result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
         assert result.status == 0, (
             f'Health check failed even after cleaning up the duplicate permission:\n'
             f'{result.stdout}\n{result.stderr}'
