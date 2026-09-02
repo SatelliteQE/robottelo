@@ -39,7 +39,7 @@ def test_positive_health_check_all_pass(target_sat):
 
     :Verifies: SAT-44798
     """
-    result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+    result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
     assert result.status == 0, (
         f'foremanctl health failed unexpectedly:\n{result.stdout}\n{result.stderr}'
     )
@@ -69,7 +69,7 @@ def test_negative_health_check_services_detects_stopped_service(target_sat):
     """
     try:
         target_sat.execute('systemctl stop valkey.service')
-        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
         assert result.status == 2, 'Health check should have failed with stopped valkey'
         assert 'Some services are not running' in result.stdout
         assert 'valkey: inactive (dead)' in result.stdout
@@ -80,7 +80,7 @@ def test_negative_health_check_services_detects_stopped_service(target_sat):
             timeout=30,
             delay=2,
         )
-        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
         assert result.status == 0, f'Satellite not healthy after valkey restart:\n{result.stdout}'
 
 
@@ -105,7 +105,7 @@ def test_negative_health_check_foreman_api_detects_failure(target_sat):
     """
     try:
         target_sat.execute('systemctl stop foreman.service')
-        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
         assert result.status == 2, 'Health check should have failed with foreman stopped'
         assert 'Some services are not running' in result.stdout
         assert 'foreman: failed (failed)' in result.stdout
@@ -119,7 +119,7 @@ def test_negative_health_check_foreman_api_detects_failure(target_sat):
             delay=10,
             handle_exception=True,
         )
-        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
         assert result.status == 0, f'Satellite not healthy after foreman restart:\n{result.stdout}'
 
 
@@ -197,7 +197,7 @@ def test_negative_health_check_facts_count_detects_excess(target_sat):
     :Verifies: SAT-44798
     """
     # First verify the check passes with no excessive facts
-    result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+    result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
     assert result.status == 0
     assert 'exceed the facts count limit' not in result.stdout
 
@@ -205,14 +205,14 @@ def test_negative_health_check_facts_count_detects_excess(target_sat):
     hostname = f'robottelo-facttest-{gen_string("alpha", 8).lower()}.example.com'
     facts = {
         'operatingsystem': 'RedHat',
-        'operatingsystemrelease': '9.4',
+        'operatingsystemrelease': '9.8',
     }
     facts.update({f'robottelo_fact_{i}': f'value_{i}' for i in range(1, 10001)})
     try:
         target_sat.api.Host().upload_facts(
             data={'name': hostname, 'certname': hostname, 'facts': facts}
         )
-        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
         assert result.status == 2, 'Health check should have failed with excess facts'
         assert 'exceed the facts count limit' in result.stdout
     finally:
@@ -261,7 +261,7 @@ def test_negative_health_check_duplicate_permissions_detects_dupes(target_sat):
         assert result.status == 0, f'Failed to insert duplicate permission: {result.stderr}'
         dup_id = result.stdout.splitlines()[0].strip()
 
-        result = target_sat.execute(FOREMANCTL_HEALTH_SKIP_TASKS_CMD, timeout='5m')
+        result = target_sat.execute(FOREMANCTL_HEALTH_CMD, timeout='5m')
         assert result.status == 2, 'Health check should have failed with duplicate permissions'
         assert 'duplicate permission(s) in database' in result.stdout
         assert perm_name in result.stdout
