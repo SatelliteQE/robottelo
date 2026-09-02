@@ -40,6 +40,7 @@ def create_user(module_target_sat):
 class TestUser:
     """Tests for the ``users`` path."""
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_username(self, target_sat):
         """Create User for all variations of Username
 
@@ -53,6 +54,7 @@ class TestUser:
         user = target_sat.api.User(login=username).create()
         assert user.login == username
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_firstname(self, target_sat):
         """Create User for all variations of First Name
 
@@ -66,6 +68,7 @@ class TestUser:
         user = target_sat.api.User(firstname=firstname).create()
         assert user.firstname == firstname
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_lastname(self, target_sat):
         """Create User for all variations of Last Name
 
@@ -79,6 +82,7 @@ class TestUser:
         user = target_sat.api.User(lastname=lastname).create()
         assert user.lastname == lastname
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_email(self, target_sat):
         """Create User for all variations of Email
 
@@ -92,6 +96,7 @@ class TestUser:
         user = target_sat.api.User(mail=mail).create()
         assert user.mail == mail
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_description(self, target_sat):
         """Create User for all variations of Description
 
@@ -105,6 +110,7 @@ class TestUser:
         user = target_sat.api.User(description=description).create()
         assert user.description == description
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_password(self, target_sat):
         """Create User for all variations of Password
 
@@ -134,6 +140,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             user.read()
 
+    @pytest.mark.migration_candidate
     def test_positive_update_username(self, create_user):
         """Update a user and provide new username.
 
@@ -148,6 +155,7 @@ class TestUser:
         user = create_user.update(['login'])
         assert user.login == login
 
+    @pytest.mark.migration_candidate
     def test_negative_update_username(self, create_user):
         """Update a user and provide new login.
 
@@ -162,6 +170,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             create_user.update(['login'])
 
+    @pytest.mark.migration_candidate
     def test_positive_update_firstname(self, create_user):
         """Update a user and provide new firstname.
 
@@ -176,6 +185,7 @@ class TestUser:
         user = create_user.update(['firstname'])
         assert user.firstname == firstname
 
+    @pytest.mark.migration_candidate
     def test_positive_update_lastname(self, create_user):
         """Update a user and provide new lastname.
 
@@ -190,6 +200,7 @@ class TestUser:
         user = create_user.update(['lastname'])
         assert user.lastname == lastname
 
+    @pytest.mark.migration_candidate
     def test_positive_update_email(self, create_user):
         """Update a user and provide new email.
 
@@ -204,6 +215,7 @@ class TestUser:
         user = create_user.update(['mail'])
         assert user.mail == mail
 
+    @pytest.mark.migration_candidate
     def test_negative_update_email(self, create_user):
         """Update a user and provide new email.
 
@@ -218,6 +230,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             create_user.update(['mail'])
 
+    @pytest.mark.migration_candidate
     def test_positive_update_description(self, create_user):
         """Update a user and provide new email.
 
@@ -248,6 +261,7 @@ class TestUser:
         user.admin = not admin_enable
         assert user.update().admin == (not admin_enable)
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_invalid_email(self, target_sat):
         """Create User with invalid Email Address
 
@@ -261,6 +275,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             target_sat.api.User(mail=mail).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_invalid_username(self, target_sat):
         """Create User with invalid Username
 
@@ -274,6 +289,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             target_sat.api.User(login=invalid_name).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_invalid_firstname(self, target_sat):
         """Create User with invalid Firstname
 
@@ -287,6 +303,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             target_sat.api.User(firstname=invalid_name).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_invalid_lastname(self, target_sat):
         """Create User with invalid Lastname
 
@@ -300,6 +317,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             target_sat.api.User(lastname=invalid_name).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_blank_authorized_by(self, target_sat):
         """Create User with blank authorized by
 

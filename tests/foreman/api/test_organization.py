@@ -76,6 +76,7 @@ class TestOrganization:
         assert isinstance(org.label, str)
         assert len(org.label) > 0
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_invalid_name(self, target_sat):
         """Create an org with an incorrect name.
 
@@ -87,6 +88,7 @@ class TestOrganization:
         with pytest.raises(HTTPError):
             target_sat.api.Organization(name=name).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_same_name(self, target_sat):
         """Create two organizations with identical names.
 
@@ -177,6 +179,7 @@ class TestOrganizationUpdate:
         """Create an organization."""
         return target_sat.api.Organization().create()
 
+    @pytest.mark.migration_candidate
     def test_positive_update_name(self, module_org):
         """Update an organization's name with valid values.
 
@@ -191,6 +194,7 @@ class TestOrganizationUpdate:
         module_org = module_org.update(['name'])
         assert module_org.name == name
 
+    @pytest.mark.migration_candidate
     def test_positive_update_description(self, module_org):
         """Update an organization's description with valid values.
 

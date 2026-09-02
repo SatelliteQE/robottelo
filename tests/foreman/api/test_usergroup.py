@@ -29,6 +29,7 @@ class TestUserGroup:
     def user_group(self, target_sat):
         return target_sat.api.UserGroup().create()
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_name(self, target_sat):
         """Create new user group using different valid names
 
@@ -136,6 +137,7 @@ class TestUserGroup:
             usergroup.read().name for usergroup in user_group.usergroup
         )
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_name(self, target_sat):
         """Attempt to create user group with invalid name.
 
@@ -149,6 +151,7 @@ class TestUserGroup:
         with pytest.raises(HTTPError):
             target_sat.api.UserGroup(name=name).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_same_name(self, target_sat):
         """Attempt to create user group with a name of already existent entity.
 
@@ -162,6 +165,7 @@ class TestUserGroup:
         with pytest.raises(HTTPError):
             target_sat.api.UserGroup(name=user_group.name).create()
 
+    @pytest.mark.migration_candidate
     def test_positive_update(self, user_group):
         """Update existing user group with different valid names.
 
@@ -236,6 +240,7 @@ class TestUserGroup:
         user_group = user_group.update(['usergroup'])
         assert new_usergroup.name == user_group.usergroup[0].read().name
 
+    @pytest.mark.migration_candidate
     def test_negative_update(self, user_group):
         """Attempt to update existing user group using different invalid names.
 
@@ -268,6 +273,7 @@ class TestUserGroup:
             new_user_group.update(['name'])
         assert new_user_group.read().name != name
 
+    @pytest.mark.migration_candidate
     def test_positive_delete(self, target_sat):
         """Create user group with valid name and then delete it
 
