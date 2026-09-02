@@ -109,7 +109,8 @@ def test_negative_health_check_foreman_api_detects_failure(target_sat):
         assert result.status == 2, 'Health check should have failed with foreman stopped'
         assert 'Some services are not running' in result.stdout
         assert 'foreman: failed (failed)' in result.stdout
-        assert 'Status code was 503' in result.stdout
+        assert 'Foreman API is unreachable' in result.stdout
+        assert 'foreman.service may not be running' in result.stdout
     finally:
         target_sat.execute('systemctl start foreman.service')
         wait_for(
