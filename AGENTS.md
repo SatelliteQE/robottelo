@@ -138,6 +138,7 @@ Pytest markers categorize and filter tests.
 - `@pytest.mark.rhel_ver_match()`: Filter by RHEL version using regex or N-x convention
 - `@pytest.mark.rhel_ver_list()`: Filter by specific RHEL version
 - `@pytest.mark.parametrize()`: Parameterize test inputs
+- `@pytest.mark.migration_candidate`: Candidate for migration to Foreman, Katello or any other plugin
 
 Example:
 
@@ -519,6 +520,7 @@ def function_sca_manifest():
 @pytest.mark.stubbed          # Not yet implemented
 @pytest.mark.destructive      # Forces deployment of a new Satellite instance for a particular test case (more expensive)
 @pytest.mark.skip_if_open()   # Skip if BZ/issue open
+@pytest.mark.migration_candidate # Candidate for migration to Foreman, Katello or any other plugin
 ```
 
 **Infrastructure Markers**:
