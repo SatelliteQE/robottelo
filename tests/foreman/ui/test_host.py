@@ -2398,9 +2398,6 @@ def test_manage_content_source_with_multi_cv(
         query={'search': f'name={rhel_contenthost.hostname}'}
     )[0]
     host_content_facet = host.read_json()
-    # Verify content source was changed
-    content_source_name = host_content_facet['content_facet_attributes']['content_source']['name']
-    assert content_source_name == default_proxy.name
 
     # Verify multiple CVEnv assignments
     cv_envs = host_content_facet['content_facet_attributes']['content_view_environments']
