@@ -55,6 +55,7 @@ class TestLocation:
             new_user=target_sat.api.User().create(),
         )
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_name(self, target_sat):
         """Create new locations using different inputs as a name
 
@@ -69,6 +70,7 @@ class TestLocation:
         location = target_sat.api.Location(name=name).create()
         assert location.name == name
 
+    @pytest.mark.migration_candidate
     def test_positive_create_and_delete_with_comma_separated_name(self, target_sat):
         """Create new location using name that has comma inside, delete location
 
@@ -83,6 +85,7 @@ class TestLocation:
         with pytest.raises(HTTPError):
             location.read()
 
+    @pytest.mark.migration_candidate
     def test_positive_create_and_update_with_org(self, make_orgs, target_sat):
         """Create new location with assigned organization to it
 
@@ -101,6 +104,7 @@ class TestLocation:
         location = location.update(['organization'])
         assert {org.id for org in orgs} == {org.id for org in location.organization}
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_name(self, target_sat):
         """Attempt to create new location using invalid names only
 
@@ -114,6 +118,7 @@ class TestLocation:
         with pytest.raises(HTTPError):
             target_sat.api.Location(name=name).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_same_name(self, target_sat):
         """Attempt to create new location using name of existing entity
 
@@ -129,6 +134,7 @@ class TestLocation:
         with pytest.raises(HTTPError):
             target_sat.api.Location(name=name).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_domain(self, target_sat):
         """Attempt to create new location using non-existent domain identifier
 
@@ -140,6 +146,7 @@ class TestLocation:
         with pytest.raises(HTTPError):
             target_sat.api.Location(domain=[gen_integer(10000, 99999)]).create()
 
+    @pytest.mark.migration_candidate
     def test_positive_update_name(self, target_sat):
         """Update location with new name
 
@@ -218,6 +225,7 @@ class TestLocation:
         )
         assert default_loc_id == 2
 
+    @pytest.mark.migration_candidate
     def test_positive_get_location_by_name(self, make_entities, target_sat):
         """test to search location by name
 

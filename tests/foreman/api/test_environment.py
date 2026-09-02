@@ -92,6 +92,7 @@ def test_positive_CRUD_with_attributes(
         environment.read()
 
 
+@pytest.mark.migration_candidate
 def test_positive_create_with_name(session_puppet_enabled_sat):
     """Create an environment and provide a valid name.
 
@@ -104,6 +105,7 @@ def test_positive_create_with_name(session_puppet_enabled_sat):
     assert env.name == name
 
 
+@pytest.mark.migration_candidate
 def test_negative_create_with_too_long_name(session_puppet_enabled_sat):
     """Create an environment and provide an invalid name.
 
@@ -116,6 +118,7 @@ def test_negative_create_with_too_long_name(session_puppet_enabled_sat):
         session_puppet_enabled_sat.api.Environment(name=name).create()
 
 
+@pytest.mark.migration_candidate
 def test_negative_create_with_invalid_characters(session_puppet_enabled_sat):
     """Create an environment and provide an illegal name.
 
@@ -128,6 +131,7 @@ def test_negative_create_with_invalid_characters(session_puppet_enabled_sat):
         session_puppet_enabled_sat.api.Environment(name=name).create()
 
 
+@pytest.mark.migration_candidate
 def test_positive_update_name(module_puppet_environment, session_puppet_enabled_sat):
     """Create environment entity providing the initial name, then
     update its name to another valid name.
@@ -143,6 +147,7 @@ def test_positive_update_name(module_puppet_environment, session_puppet_enabled_
     assert env.name == new_name
 
 
+@pytest.mark.migration_candidate
 def test_negative_update_name(module_puppet_environment, session_puppet_enabled_sat):
     """Create environment entity providing the initial name, then
     try to update its name to invalid one.
