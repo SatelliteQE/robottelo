@@ -1593,25 +1593,48 @@ class ContentHost(Host, ContentHostMixins):
             )
 
     def setup_capsule_repos(self, release=None):
-        """Setup Capsule repositories on host
-        requires registered host if ga source has to be enabled
+        """Setup repositories on host
+
+        Uses the Satellite repository for foremanctl deployment and the Capsule
+        repositories for installer-based deployment.
+        Requires registered host if ga source has to be enabled
 
         Args:
             release: Override capsule version release (Default: settings.capsule.version.release)
         """
-        if settings.capsule.version.source == "ga":
+        # foremanctl Capsules pull satellitectl from the Satellite repo, not the Capsule repo.
+        # satellitectl tracks the Satellite, so key its repo on the server version.
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            product = 'satellite'
+            cdn_repos = [self.SATELLITE_CDN_REPOS['satellite']]
+            version = settings.server.version
+        else:
+            product = 'capsule'
+            cdn_repos = list(self.CAPSULE_CDN_REPOS.values())
+            version = settings.capsule.version
+
+        if version.source == 'ga':
             # enable cdn repos
-            for repo in self.CAPSULE_CDN_REPOS.values():
+            for repo in cdn_repos:
                 result = self.enable_repo(repo, force=True)
                 if result.status:
                     raise ContentHostError(
-                        f'Enabling Capsule repos on host failed\n{result.stdout}'
+                        f'Enabling {product} repos on host failed\n{result.stdout}'
                     )
+        elif version.source == 'nightly':
+            # nightly repos are served from direct URLs, not resolvable via ohsnap
+            if product == 'satellite':
+                self.create_custom_repos(satellite_repo=settings.repos.satellite_repo)
+            else:
+                self.create_custom_repos(
+                    capsule_repo=settings.repos.capsule_repo,
+                    satmaintenance_repo=settings.repos.satmaintenance_repo,
+                )
         else:
             self.download_repofile(
-                product='capsule',
-                release=release or settings.capsule.version.release,
-                snap='' if release else settings.capsule.version.snap,
+                product=product,
+                release=release or version.release,
+                snap='' if release else version.snap,
             )
 
     def ensure_podman_installed(self, enable_ipv6_proxy=False):
@@ -2033,11 +2056,8 @@ class Capsule(ContentHost, CapsuleMixins):
             if settings.server.install_method == InstallMethod.FOREMANCTL
             else self.product_rpm_name
         )
-        # TODO: Remove this condition once foremanctl is available in capsule repos
-        if settings.server.install_method == InstallMethod.INSTALLER:
-            self.setup_capsule_repos(release=release)
-        else:
-            self.setup_satellite_repos()
+        self.setup_capsule_repos(release=release)
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
             # Enable Packit repos
             pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
             if pull_requests:

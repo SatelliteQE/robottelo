@@ -243,16 +243,18 @@ class APIFactory:
         # foremanctl Capsules pull satellitectl from the Satellite repos, so sync
         # those instead of the Capsule repos.
         if settings.server.install_method == InstallMethod.FOREMANCTL:
-            cdn_repos = {'satellite': capsule_host.SATELLITE_CDN_REPOS['satellite']}
+            cdn_repos = [capsule_host.SATELLITE_CDN_REPOS['satellite']]
             repo_variants = [('satellite', 'satellite_repo')]
             dogfood_product = 'satellite'
+            version = settings.server.version
         else:
-            cdn_repos = capsule_host.CAPSULE_CDN_REPOS
+            cdn_repos = list(capsule_host.CAPSULE_CDN_REPOS.values())
             repo_variants = [('capsule', 'capsule_repo'), ('maintenance', 'satmaintenance_repo')]
             dogfood_product = 'capsule'
+            version = settings.capsule.version
 
-        if settings.capsule.version.source == 'ga':
-            for repo in cdn_repos.values():
+        if version.source == 'ga':
+            for repo in cdn_repos:
                 reposet = self._satellite.api.RepositorySet(organization=org.id).search(
                     query={'search': repo}
                 )[0]
@@ -273,16 +275,16 @@ class APIFactory:
         else:
             installer_product = self._satellite.api.Product(organization=org.id).create()
             for repo_variant, repo_default_url in repo_variants:
-                if settings.capsule.version.source == 'nightly':
+                if version.source == 'nightly':
                     repo_url = getattr(settings.repos, repo_default_url)
                 else:
                     repo_url = dogfood_repository(
                         ohsnap=settings.ohsnap,
                         repo=repo_variant,
                         product=dogfood_product,
-                        release=settings.capsule.version.release,
+                        release=version.release,
                         os_release=capsule_host.os_version.major,
-                        snap=settings.capsule.version.snap,
+                        snap=version.snap,
                     ).baseurl
                 repo = self._satellite.api.Repository(
                     organization=org.id,
