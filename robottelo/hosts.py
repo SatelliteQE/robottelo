@@ -1599,17 +1599,25 @@ class ContentHost(Host, ContentHostMixins):
         Args:
             release: Override capsule version release (Default: settings.capsule.version.release)
         """
-        if settings.capsule.version.source == "ga":
+        # foremanctl Capsules pull satellitectl from the Satellite repo, not the Capsule repo.
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            product = 'satellite'
+            cdn_repos = {'satellite': self.SATELLITE_CDN_REPOS['satellite']}
+        else:
+            product = 'capsule'
+            cdn_repos = self.CAPSULE_CDN_REPOS
+
+        if settings.capsule.version.source == 'ga':
             # enable cdn repos
-            for repo in self.CAPSULE_CDN_REPOS.values():
+            for repo in cdn_repos.values():
                 result = self.enable_repo(repo, force=True)
                 if result.status:
                     raise ContentHostError(
-                        f'Enabling Capsule repos on host failed\n{result.stdout}'
+                        f'Enabling {product} repos on host failed\n{result.stdout}'
                     )
         else:
             self.download_repofile(
-                product='capsule',
+                product=product,
                 release=release or settings.capsule.version.release,
                 snap='' if release else settings.capsule.version.snap,
             )
@@ -2027,11 +2035,8 @@ class Capsule(ContentHost, CapsuleMixins):
             if settings.server.install_method == InstallMethod.FOREMANCTL
             else self.product_rpm_name
         )
-        # TODO: Remove this condition once foremanctl is available in capsule repos
-        if settings.server.install_method == InstallMethod.INSTALLER:
-            self.setup_capsule_repos(release=release)
-        else:
-            self.setup_satellite_repos()
+        self.setup_capsule_repos(release=release)
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
             # Enable Packit repos
             pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
             if pull_requests:

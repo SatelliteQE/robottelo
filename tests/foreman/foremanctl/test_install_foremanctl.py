@@ -124,7 +124,7 @@ def module_cap_ready_rhel(request):
         cap.register_to_cdn()
         cap.ensure_podman_installed(enable_ipv6_proxy=True)
         # Install satellitectl package on Capsule
-        cap.setup_satellite_repos()  # Remove this when satellitectl is available in capsule repos
+        cap.setup_capsule_repos()
         # Enable Packit repos for upstream testing
         pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
         if pull_requests:
