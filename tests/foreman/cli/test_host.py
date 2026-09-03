@@ -42,7 +42,9 @@ from robottelo.utils.datafactory import (
 @pytest.fixture(scope="module")
 def module_default_proxy(module_target_sat):
     """Use the default installation smart proxy"""
-    return module_target_sat.cli.Proxy.list({'search': f'url = {module_target_sat.url}:9090'})[0]
+    return module_target_sat.cli.Proxy.list(
+        {'search': f'feature = "Pulpcore" and url ~ {module_target_sat.hostname}'}
+    )[0]
 
 
 @pytest.fixture
