@@ -22,6 +22,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
+from robottelo.enums import InstallMethod
 from robottelo.exceptions import APIResponseError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 from robottelo.utils.ohsnap import dogfood_repository
@@ -239,8 +240,19 @@ class APIFactory:
             ).search()[0]
         sync_tasks.append(self._satellite.api.Product(id=product_rhel.id).sync(synchronous=False))
 
+        # foremanctl Capsules pull satellitectl from the Satellite repos, so sync
+        # those instead of the Capsule repos.
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            cdn_repos = {'satellite': capsule_host.SATELLITE_CDN_REPOS['satellite']}
+            repo_variants = [('satellite', 'satellite_repo')]
+            dogfood_product = 'satellite'
+        else:
+            cdn_repos = capsule_host.CAPSULE_CDN_REPOS
+            repo_variants = [('capsule', 'capsule_repo'), ('maintenance', 'satmaintenance_repo')]
+            dogfood_product = 'capsule'
+
         if settings.capsule.version.source == 'ga':
-            for repo in capsule_host.CAPSULE_CDN_REPOS.values():
+            for repo in cdn_repos.values():
                 reposet = self._satellite.api.RepositorySet(organization=org.id).search(
                     query={'search': repo}
                 )[0]
@@ -259,25 +271,22 @@ class APIFactory:
                     self._satellite.api.Product(id=reposet.product.id).sync(synchronous=False)
                 )
         else:
-            product_capsule = self._satellite.api.Product(organization=org.id).create()
-            for repo_variant, repo_default_url in [
-                ('capsule', 'capsule_repo'),
-                ('maintenance', 'satmaintenance_repo'),
-            ]:
+            installer_product = self._satellite.api.Product(organization=org.id).create()
+            for repo_variant, repo_default_url in repo_variants:
                 if settings.capsule.version.source == 'nightly':
                     repo_url = getattr(settings.repos, repo_default_url)
                 else:
                     repo_url = dogfood_repository(
                         ohsnap=settings.ohsnap,
                         repo=repo_variant,
-                        product='capsule',
+                        product=dogfood_product,
                         release=settings.capsule.version.release,
                         os_release=capsule_host.os_version.major,
                         snap=settings.capsule.version.snap,
                     ).baseurl
                 repo = self._satellite.api.Repository(
                     organization=org.id,
-                    product=product_capsule,
+                    product=installer_product,
                     content_type='yum',
                     url=repo_url,
                 ).create()
@@ -286,7 +295,7 @@ class APIFactory:
                         'content_overrides': [
                             {
                                 'content_label': '_'.join(
-                                    [org.label, product_capsule.label, repo.label]
+                                    [org.label, installer_product.label, repo.label]
                                 ),
                                 'value': '1',
                             }
@@ -294,7 +303,7 @@ class APIFactory:
                     }
                 )
             sync_tasks.append(
-                self._satellite.api.Product(id=product_capsule.id).sync(synchronous=False)
+                self._satellite.api.Product(id=installer_product.id).sync(synchronous=False)
             )
 
         self._satellite.wait_for_tasks(
