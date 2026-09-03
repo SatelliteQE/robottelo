@@ -2,7 +2,7 @@
 
 apypie==0.8.0
 broker[satlab,docker,ssh2_python]==0.8.11
-cryptography==50.0.0
+cryptography==50.0.1
 deepdiff==9.1.0
 dynaconf[vault]==3.2.13
 fastmcp-slim[client]==3.4.7

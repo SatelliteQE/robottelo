@@ -161,6 +161,25 @@ def mod_content_hosts(request):
         yield hosts
 
 
+@pytest.fixture(scope='module')
+def module_registered_contenthost(
+    module_target_sat,
+    module_rhel_contenthost,
+    module_sca_manifest_org,
+    module_location,
+    module_activation_key,
+):
+    """A module-level fixture that registers a content host to Satellite."""
+    result = module_rhel_contenthost.register(
+        target=module_target_sat,
+        org=module_sca_manifest_org,
+        loc=module_location,
+        activation_keys=[module_activation_key.name],
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    return module_rhel_contenthost
+
+
 @pytest.fixture
 def registered_host(
     rhel_contenthost,

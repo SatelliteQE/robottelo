@@ -265,11 +265,11 @@ def test_select_customizable_columns_uncheck_and_checks_all_checkboxes(
             ignore_error_messages=['Danger alert: Katello::Errors::UpstreamConsumerNotFound'],
         )
         headers = session.subscription.filter_columns(checkbox_dict)
-        assert headers == ('Select all rows', 'Name')
+        assert headers == ['Name']
         time.sleep(3)
         checkbox_dict.update((k, True) for k in checkbox_dict)
         col = session.subscription.filter_columns(checkbox_dict)
-        checkbox_dict.update({'Select all rows': '', 'Name': ''})
+        checkbox_dict.update({'Name': ''})
         assert set(col) == set(checkbox_dict)
 
 

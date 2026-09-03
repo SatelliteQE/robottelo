@@ -31,9 +31,11 @@ def module_manifest():
 
 
 @pytest.fixture(scope='module')
-def module_org_with_parameter(module_target_sat, module_manifest):
+def module_org_with_parameter(module_target_sat, module_manifest, default_smart_proxy):
     # adding remote_execution_connect_by_ip=Yes at org level
     org = module_target_sat.api.Organization().create()
+    default_smart_proxy.organization.append(module_target_sat.api.Organization(id=org.id))
+    default_smart_proxy.update(['organization'])
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
@@ -79,6 +81,12 @@ def vm_content_hosts(smart_proxy_location, module_repos_collection, module_targe
             client.add_rex_key(satellite=module_target_sat)
             module_target_sat.api_factory.update_vm_host_location(client, smart_proxy_location.id)
         yield clients
+
+
+@pytest.fixture
+def function_sca_manifest_org(smart_proxy_function_sca_manifest_org):
+    """Override function_sca_manifest_org to use smart proxy enabled organization"""
+    return smart_proxy_function_sca_manifest_org
 
 
 @pytest.fixture

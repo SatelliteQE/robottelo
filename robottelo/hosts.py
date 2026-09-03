@@ -2324,12 +2324,16 @@ class Capsule(ContentHost, CapsuleMixins):
 
         return deploy_features
 
-    def list_foremanctl_features(self, enabled=False):
-        """Get the list of features as a set of feature names"""
-        if enabled:
-            result = self.execute('foremanctl features --list-enabled')
-        else:
-            result = self.execute('foremanctl features')
+    def list_foremanctl_features(self, enabled=False, internal=False):
+        """Get the list of features as a set of feature names
+
+        :param enabled: If True, list only enabled features
+        :param internal: If True, include internal features in the list
+        """
+        cmd = 'foremanctl features --list-enabled' if enabled else 'foremanctl features'
+        if internal:
+            cmd = f'FOREMANCTL_FEATURES_LIST_INTERNAL=true {cmd}'
+        result = self.execute(cmd)
         assert result.status == 0, f'foremanctl features command failed: {result.stderr}'
         return {
             p[0]
@@ -2468,6 +2472,41 @@ class Satellite(Capsule, SatelliteMixins):
         self._cli = type('cli', (), {'_configured': False})
         self._apidoc = None
         self.record_property = None
+
+    def set_foreman_logging_level(self, level='debug', reset=False):
+        """Set (or reset) the Foreman logging level in an install-method-aware way.
+
+        - satellite-installer: uses ``--foreman-logging-level`` /
+          ``--reset-foreman-logging-level``.
+        - foremanctl: re-runs ``foremanctl deploy`` with ``--foreman-log-level``.
+          foremanctl persists parameters between runs (loaded from
+          ``/var/lib/foremanctl/parameters.yaml``), so re-deploying only changes the
+          log level. The default Foreman log level is ``info``, which is used to reset.
+
+        :param str level: Log level to set (e.g. 'debug'). Ignored when ``reset`` is True.
+        :param bool reset: Reset the Foreman logging level back to the default.
+        :return: The command result.
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            level = 'info' if reset else level
+            return self.execute(f'foremanctl deploy --foreman-log-level {level}', timeout=0)
+        if reset:
+            return self.execute('satellite-installer --reset-foreman-logging-level', timeout=0)
+        return self.execute(f'satellite-installer --foreman-logging-level {level}', timeout=0)
+
+    def grep_foreman_log(self, pattern):
+        """Search Foreman's production log for a pattern, install-method-aware.
+
+        - satellite-installer: greps ``/var/log/foreman/production.log``.
+        - foremanctl: Foreman runs as a quadlet container (systemd unit ``foreman``)
+          that logs to journald, so we grep the journal for that unit instead.
+
+        :param str pattern: The pattern to grep for.
+        :return: The command result.
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return self.execute(f'journalctl --no-pager --unit foreman | grep "{pattern}"')
+        return self.execute(f'grep "{pattern}" /var/log/foreman/production.log')
 
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""

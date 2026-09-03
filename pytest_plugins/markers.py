@@ -27,6 +27,7 @@ def pytest_configure(config):
         "no_compose : Skip the marked sanity test for nightly compose",
         "foremanctl: Tests that require foremanctl; deselected when server.install_method is installer",
         "pqc: Post-Quantum Cryptography tests",
+        "migration_candidate: Candidate for migration to Foreman, Katello or any other plugin; informative marker for filtering",
     ]
     markers.extend(module_markers())
     for marker in markers:
