@@ -2524,7 +2524,7 @@ def test_host_status_honors_taxonomies(
 
 
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
+    'module_repos_collection_with_smart_proxy',
     [
         {
             'distro': 'rhel8',
@@ -2553,7 +2553,7 @@ def test_positive_manage_packages(
     request,
     module_target_sat,
     mod_content_hosts,
-    module_repos_collection_with_setup,
+    module_repos_collection_with_smart_proxy,
     number_of_hosts,
     package_management_action,
     finish_via,
@@ -2590,12 +2590,12 @@ def test_positive_manage_packages(
 
     for host in mod_content_hosts:
         host.add_rex_key(module_target_sat)
-        module_repos_collection_with_setup.setup_virtual_machine(host)
+        module_repos_collection_with_smart_proxy.setup_virtual_machine(host)
 
-    product_name = module_repos_collection_with_setup.custom_product.name
+    product_name = module_repos_collection_with_smart_proxy.custom_product.name
 
     with module_target_sat.ui_session() as session:
-        session.organization.select(module_repos_collection_with_setup.organization['name'])
+        session.organization.select(module_repos_collection_with_smart_proxy.organization['name'])
 
         for host in mod_content_hosts:
             if (
