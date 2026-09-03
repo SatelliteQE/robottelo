@@ -228,6 +228,20 @@ class ContentInfo:
         report = "{" + result.stdout.strip().split("{")[1]
         return json.loads(report)[report_key]
 
+    def get_default_smart_proxy(self):
+        """Get the default smart proxy with Pulpcore feature for this Satellite.
+
+        This is useful for tests that need the content source smart proxy, which may
+        have a different name than the satellite hostname in containerized deployments
+        (e.g., hostname-pulp).
+
+        :return: SmartProxy entity with Pulpcore feature
+        :rtype: nailgun.entities.SmartProxy
+        """
+        return self.api.SmartProxy().search(
+            query={'search': f'feature=Pulpcore and url ~ {self.hostname}'}
+        )[0]
+
 
 class SystemInfo:
     """Things that needs access to satellite shell for gaining satellite system configuration"""
