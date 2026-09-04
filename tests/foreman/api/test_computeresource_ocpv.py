@@ -10,6 +10,8 @@
 :CaseImportance: High
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
@@ -18,11 +20,7 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, FOREMAN_PROVIDERS_MODEL
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import (
-    invalid_values_list,
-    parametrized,
-    valid_data_list,
-)
+from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 
 pytestmark = [pytest.mark.skip_if_not_set('ocpv'), pytest.mark.foreman_installer]
 
@@ -157,18 +155,16 @@ def test_positive_userdata_image_provision_end_to_end(
     assert host.build_status_label == 'Installed'
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_create_with_name_description(
-    name, request, module_ocpv_sat, module_org, module_location
+    request, module_ocpv_sat, module_org, module_location
 ):
     """Create compute resources with different names and descriptions
 
     :id: 1e545c56-2f53-44c1-a17e-38c83f8fe0c8
 
     :expectedresults: Compute resources are created with expected names and descriptions
-
-    :parametrized: yes
     """
+    name = random.choice(list(valid_data_list().values()))
     cr = module_ocpv_sat.api.OCPVComputeResource(
         name=name,
         description=name,
@@ -186,16 +182,14 @@ def test_positive_create_with_name_description(
     assert cr.description == name
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_invalid_name(name, module_ocpv_sat, module_org, module_location):
+def test_negative_create_with_invalid_name(module_ocpv_sat, module_org, module_location):
     """Attempt to create compute resources with invalid names
 
     :id: f73bf838-3ffd-46d3-869c-81b334b47b15
 
     :expectedresults: Compute resources are not created
-
-    :parametrized: yes
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(HTTPError):
         module_ocpv_sat.api.OCPVComputeResource(
             name=name,
@@ -251,16 +245,14 @@ def test_negative_create_with_same_name(
         ).create()
 
 
-@pytest.mark.parametrize('hostname', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
-def test_negative_create_with_hostname(module_ocpv_sat, module_org, module_location, hostname):
+def test_negative_create_with_hostname(module_ocpv_sat, module_org, module_location):
     """Attempt to create compute resources with invalid hostname
 
     :id: 37e9bf39-382e-4f02-af54-d3a17e285c2h
 
     :expectedresults: Compute resources are not created
-
-    :parametrized: yes
     """
+    hostname = random.choice([gen_string('alpha'), ''])
     with pytest.raises(HTTPError):
         module_ocpv_sat.api.OCPVComputeResource(
             organization=[module_org],
@@ -274,18 +266,14 @@ def test_negative_create_with_hostname(module_ocpv_sat, module_org, module_locat
         ).create()
 
 
-@pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-def test_negative_update_invalid_name(
-    request, module_ocpv_sat, module_org, module_location, new_name
-):
+def test_negative_update_invalid_name(request, module_ocpv_sat, module_org, module_location):
     """Attempt to update compute resource with invalid names
 
     :id: a6554c1f-e52f-4614-9fc3-2127ced31479
 
     :expectedresults: Compute resource is not updated
-
-    :parametrized: yes
     """
+    new_name = random.choice(invalid_values_list())
     name = gen_string('alphanumeric')
     cr = module_ocpv_sat.api.OCPVComputeResource(
         name=name,
@@ -342,16 +330,14 @@ def test_negative_update_same_name(request, module_ocpv_sat, module_org, module_
     assert new_cr.read().name != name
 
 
-@pytest.mark.parametrize('hostname', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
-def test_negative_update_hostname(hostname, request, module_ocpv_sat, module_org, module_location):
+def test_negative_update_hostname(request, module_ocpv_sat, module_org, module_location):
     """Attempt to update a compute resource with invalid url
 
     :id: b5256090-2ceb-4976-b54e-60d60419fe59
 
     :expectedresults: Compute resources is not updated
-
-    :parametrized: yes
     """
+    hostname = random.choice([gen_string('alpha'), ''])
     cr = module_ocpv_sat.api.OCPVComputeResource(
         organization=[module_org],
         location=[module_location],
