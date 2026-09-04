@@ -1267,3 +1267,46 @@ def test_positive_able_to_disable_and_enable_rhel_repos(
         assert session.redhatrepository.search(
             f'name = "{rhel8_repo_set_name}"', category='Enabled'
         )
+
+
+@pytest.mark.tier2
+def test_positive_python_repo_download_policy_crud(session, module_org, module_prod):
+    """Create and read a Python repository with download policy via UI.
+
+    :id: b6b4bb88-ce31-40b3-98e5-d9f82d514a56
+
+    :Verifies: SAT-36510
+
+    :BlockedBy: SAT-36514
+
+    :steps:
+        1. Create a Python repository with on_demand download policy via UI
+        2. Read back the repository and verify download policy
+        3. Update the download policy to immediate
+        4. Read back and verify the updated policy
+
+    :expectedresults: Python repository can be created and updated with
+        download policy via the UI
+    """
+    repo_name = gen_string('alpha')
+    with session:
+        session.repository.create(
+            module_prod.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['python'],
+                'repo_content.upstream_url': 'https://pypi.org',
+                'repo_content.download_policy': DOWNLOAD_POLICIES['on_demand'],
+            },
+        )
+        assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['on_demand']
+
+        session.repository.update(
+            module_prod.name,
+            repo_name,
+            {'repo_content.download_policy': DOWNLOAD_POLICIES['immediate']},
+        )
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['immediate']
