@@ -12,11 +12,14 @@
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.exceptions import CLIReturnCodeError
+from robottelo.utils.datafactory import generate_strings_list
 
 
 @pytest.fixture
@@ -49,7 +52,7 @@ class TestADAuthSource:
 
         :CaseImportance: Critical
         """
-        server_name = gen_string('alpha')
+        server_name = random.choice(generate_strings_list())
         ad_data = ad_data()
         auth = module_target_sat.cli_factory.ldap_auth_source(
             {
@@ -170,7 +173,7 @@ class TestIPAAuthSource:
         :CaseImportance: High
 
         """
-        server_name = gen_string('alpha')
+        server_name = random.choice(generate_strings_list())
         auth = module_target_sat.cli_factory.ldap_auth_source(
             {
                 'name': server_name,
@@ -387,7 +390,7 @@ class TestOpenLdapAuthSource:
 
         :CaseImportance: High
         """
-        server_name = gen_string('alpha')
+        server_name = random.choice(generate_strings_list())
         auth = module_target_sat.cli_factory.ldap_auth_source(
             {
                 'name': server_name,

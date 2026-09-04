@@ -12,12 +12,15 @@
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 
 from robottelo import ssh
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
+from robottelo.utils.datafactory import invalid_values_list
 
 TEMPLATE_FILE = 'template_file.txt'
 TEMPLATE_FILE_EMPTY = 'template_file_empty.txt'
@@ -79,7 +82,7 @@ def test_negative_create_job_template_with_invalid_name(module_org, module_targe
 
     :CaseImportance: Critical
     """
-    name = gen_string('alpha', 300)
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIFactoryError, match='Could not create the job template:'):
         module_target_sat.cli_factory.job_template(
             {

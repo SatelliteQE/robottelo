@@ -12,6 +12,8 @@
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 
@@ -19,7 +21,9 @@ from robottelo.config import settings
 from robottelo.constants import OSCAP_PERIOD, OSCAP_WEEKDAY
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
+    invalid_names_list,
     parametrized,
+    valid_data_list,
 )
 
 
@@ -186,7 +190,7 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
-        title = gen_string('alpha')
+        title = random.choice(list(valid_data_list().values()))
         scap_content = module_target_sat.cli_factory.scapcontent(
             {'title': title, 'scap-file': settings.oscap.content_path}
         )
@@ -250,7 +254,7 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
-        title = gen_string('alpha', 300)
+        title = random.choice(invalid_names_list())
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.scapcontent(
                 {'title': title, 'scap-file': settings.oscap.content_path}
@@ -277,8 +281,8 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
-        title = gen_string('alpha')
-        name = gen_string('alpha')
+        title = random.choice(list(valid_data_list().values()))
+        name = random.choice(list(valid_data_list().values()))
         scap_content = module_target_sat.cli_factory.scapcontent(
             {'original-filename': name, 'scap-file': settings.oscap.content_path, 'title': title}
         )
@@ -310,7 +314,7 @@ class TestOpenScap:
 
         :BZ: 1482395
         """
-        name = gen_string('alpha', 300)
+        name = random.choice(invalid_names_list())
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.scapcontent(
                 {'original-filename': name, 'scap-file': settings.oscap.content_path}
@@ -336,7 +340,7 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
-        title = gen_string('alpha')
+        title = random.choice(list(valid_data_list().values()))
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.scapcontent({'title': title})
 
@@ -453,7 +457,7 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha')
+        name = random.choice(list(valid_data_list().values()))
         scap_policy = module_target_sat.cli_factory.make_scap_policy(
             {
                 'name': name,
@@ -490,7 +494,7 @@ class TestOpenScap:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha', 300)
+        name = random.choice(invalid_names_list())
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.make_scap_policy(
                 {

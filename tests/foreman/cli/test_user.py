@@ -71,7 +71,7 @@ class TestUser:
         :CaseImportance: Critical
         """
         # create with params
-        mail = '!#$%&*+-/=?^`{|}~@example.com'
+        mail = random.choice(valid_emails_list())
         user_params = {
             'login': random.choice(valid_usernames_list()),
             'firstname': random.choice(valid_usernames_list()),
