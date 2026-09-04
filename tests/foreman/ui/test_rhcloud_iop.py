@@ -394,6 +394,10 @@ def test_iop_recommendations_host_details_e2e(
         assert result.status == 0
         assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
 
+        # Verify that searching by recommendations count is not available in IoP mode SAT-46497
+        result = session.host_new.search_autocomplete('insights_recommendations_count >= 1')
+        assert "Searching by recommendations count is not available in IoP mode" in result[0]
+
         result = session.host_new.get_recommendations(rhel_insights_vm.hostname)
         assert any(row.get('Description') == OPENSSH_RECOMMENDATION for row in result), (
             f"No row found with Recommendation == {OPENSSH_RECOMMENDATION}"
