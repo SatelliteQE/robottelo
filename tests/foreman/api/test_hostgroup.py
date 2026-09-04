@@ -57,6 +57,8 @@ class TestHostGroup:
         :expectedresults: Host inherited 'all_puppetclasses' details from
             HostGroup that was used for such Host create procedure
 
+        :BlockedBy: SAT-40445
+
         :BZ: 1107708, 1222118, 1487586
 
         """
@@ -240,6 +242,8 @@ class TestHostGroup:
 
         :expectedresults: A hostgroup is created with expected properties,
             updated and deleted
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: High
         """
@@ -462,6 +466,8 @@ class TestHostGroup:
 
         :expectedresults: A hostgroup is updated with expected puppet CA proxy
 
+        :BlockedBy: SAT-40445
+
         :CaseImportance: Medium
 
         """
@@ -508,6 +514,8 @@ class TestHostGroup:
         """Update a hostgroup with a new puppet proxy
 
         :id: 86eca603-2cdd-4563-b6f6-aaa5cea1a723
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: Medium
 
@@ -829,6 +837,8 @@ class TestHostGroupMissingAttr:
 
         :id: f93d0866-0073-4577-8777-6d645b63264f
 
+        :BlockedBy: SAT-40445
+
         :CaseImportance: Medium
 
         :expectedresults: Field 'puppet_proxy_name' is returned
@@ -848,6 +858,8 @@ class TestHostGroupMissingAttr:
         response
 
         :id: ab151e09-8e64-4377-95e8-584629750659
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: Medium
 
