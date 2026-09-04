@@ -88,6 +88,25 @@ def assert_job_invocation_status(sat, invocation_command_id, client_hostname, st
         ) from err
 
 
+def create_remote_working_dir(host):
+    """Create a directory on the host that is usable as a remote execution working directory
+    and return its path"""
+    path = f'/tmp/{gen_string("alpha")}'
+    assert host.execute(f'mkdir {path}').status == 0
+    assert host.execute(f'chcon --reference=/var/tmp {path}').status == 0
+    return path
+
+
+def assert_job_ran_in_directory(host, path, expected=True):
+    """Assert whether a remote execution job left its working directory behind in path.
+    Requires the remote_execution_cleanup_working_dirs setting to be disabled."""
+    result = host.execute(f'ls -d {path}/foreman-ssh-cmd-*')
+    if expected:
+        assert result.status == 0, f'No remote execution working directory found in {path}'
+    else:
+        assert result.status != 0, f'Unexpected remote execution working directory found in {path}'
+
+
 def ensure_capsule_has_lifecycle_environment(capsule, activation_key):
     """Ensure the capsule has the lifecycle environment from the activation key."""
     if activation_key.environment.id not in [
@@ -192,6 +211,100 @@ class TestRemoteExecution:
             }
         )
         assert 'Exit status: 23' in out
+
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.parametrize(
+        'multi_setting_update',
+        [['remote_execution_cleanup_working_dirs=false', 'remote_execution_remote_working_dir']],
+        indirect=True,
+    )
+    def test_positive_use_alternate_directory(
+        self, multi_setting_update, rex_contenthost, module_target_sat
+    ):
+        """Use alternate working directory on client to execute rex jobs
+
+        :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
+
+        :steps:
+            1. Create an alternate working directory on the host.
+            2. Set the remote_execution_remote_working_dir setting to that directory.
+            3. Run a job in push mode against the host.
+
+        :expectedresults: The job succeeds and runs in the alternate working directory
+
+        :customerscenario: true
+
+        :Verifies: SAT-49031
+
+        :parametrized: yes
+        """
+        client = rex_contenthost
+        working_dir = create_remote_working_dir(client)
+        working_dir_setting = multi_setting_update[1]
+        working_dir_setting.value = working_dir
+        working_dir_setting.update({'value'})
+
+        invocation_command = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=true',
+                'search-query': f"name = {client.hostname}",
+            }
+        )
+        assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
+        assert_job_ran_in_directory(client, working_dir)
+
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.parametrize(
+        'multi_setting_update',
+        [['remote_execution_cleanup_working_dirs=false', 'remote_execution_remote_working_dir']],
+        indirect=True,
+    )
+    def test_positive_use_alternate_directory_from_host_parameter(
+        self, multi_setting_update, rex_contenthost, module_target_sat
+    ):
+        """Override the alternate working directory for a single host by using a host parameter
+
+        :id: 8db2729c-4d66-4f2f-9489-cd272f0e7450
+
+        :steps:
+            1. Create two alternate working directories on the host.
+            2. Set the remote_execution_remote_working_dir setting to the first directory.
+            3. Set the remote_execution_remote_working_dir parameter on the host to the second
+               directory.
+            4. Run a job in push mode against the host.
+
+        :expectedresults: The job succeeds and runs in the directory from the host parameter,
+            not in the one from the global setting
+
+        :Verifies: SAT-49031
+
+        :parametrized: yes
+        """
+        client = rex_contenthost
+        global_dir = create_remote_working_dir(client)
+        host_dir = create_remote_working_dir(client)
+        working_dir_setting = multi_setting_update[1]
+        working_dir_setting.value = global_dir
+        working_dir_setting.update({'value'})
+        module_target_sat.cli.Host.set_parameter(
+            {
+                'host': client.hostname,
+                'name': 'remote_execution_remote_working_dir',
+                'value': host_dir,
+            }
+        )
+
+        invocation_command = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=true',
+                'search-query': f"name = {client.hostname}",
+            }
+        )
+        assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
+        assert_job_ran_in_directory(client, host_dir)
+        assert_job_ran_in_directory(client, global_dir, expected=False)
 
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_timeout_to_kill(self, module_org, rex_contenthost, module_target_sat):
