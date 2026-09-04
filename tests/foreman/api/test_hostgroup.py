@@ -13,6 +13,7 @@
 """
 
 from copy import copy
+import random
 from random import randint
 
 from fauxfactory import gen_string
@@ -24,7 +25,6 @@ from robottelo.config import get_credentials
 from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS
 from robottelo.utils.datafactory import (
     invalid_values_list,
-    parametrized,
     valid_hostgroups_list,
 )
 
@@ -189,23 +189,23 @@ class TestHostGroup:
             == 'Configuration successfully rebuilt.'
         )
 
-    @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))
-    def test_positive_create_with_name(self, name, module_org, module_location, module_target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_create_with_name(self, module_org, module_location, module_target_sat):
         """Create a hostgroup with different names
 
         :id: fd5d353c-fd0c-4752-8a83-8f399b4c3416
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is created with expected name
 
         :CaseImportance: Critical
         """
+        name = random.choice(valid_hostgroups_list())
         hostgroup = module_target_sat.api.HostGroup(
             location=[module_location], name=name, organization=[module_org]
         ).create()
         assert name == hostgroup.name
 
+    @pytest.mark.migration_candidate
     def test_positive_clone(self, hostgroup, target_sat):
         """Create a hostgroup by cloning an existing one
 
@@ -439,18 +439,17 @@ class TestHostGroup:
         hostgroup = target_sat.api.HostGroup(organization=orgs).create()
         assert {org.name for org in orgs}, {org.read().name for org in hostgroup.organization}
 
-    @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))
-    def test_positive_update_name(self, name, hostgroup):
+    @pytest.mark.migration_candidate
+    def test_positive_update_name(self, hostgroup):
         """Update a hostgroup with a new name
 
         :id: 8abb151f-a058-4f47-a1c1-f60a32cd7572
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is updated with expected name
 
         :CaseImportance: Critical
         """
+        name = random.choice(valid_hostgroups_list())
         hostgroup.name = name
         hostgroup = hostgroup.update(['name'])
         assert name == hostgroup.name
@@ -571,35 +570,33 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['organization'])
         assert {org.name for org in new_orgs} == {org.read().name for org in hostgroup.organization}
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_name(self, name, module_org, module_location, module_target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_name(self, module_org, module_location, module_target_sat):
         """Attempt to create a hostgroup with invalid names
 
         :id: 3f5aa17a-8db9-4fe9-b309-b8ec5e739da1
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is not created
 
         :CaseImportance: Critical
         """
+        name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             module_target_sat.api.HostGroup(
                 location=[module_location], name=name, organization=[module_org]
             ).create()
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, new_name, hostgroup):
+    @pytest.mark.migration_candidate
+    def test_negative_update_name(self, hostgroup):
         """Attempt to update a hostgroup with invalid names
 
         :id: 6d8c4738-a0c4-472b-9a71-27c8a3832335
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is not updated
 
         :CaseImportance: Critical
         """
+        new_name = random.choice(invalid_values_list())
         original_name = hostgroup.name
         hostgroup.name = new_name
         with pytest.raises(HTTPError):
