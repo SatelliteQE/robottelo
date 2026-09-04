@@ -312,6 +312,8 @@ def test_positive_create_and_update_with_puppet_proxy(
 
     :expectedresults: Both hosts are associated with expected puppet proxy assigned
 
+    :BlockedBy: SAT-40445
+
     :CaseImportance: Critical
     """
     # TODO Define the default capsule/SP port + URL on hosts.Capsule
@@ -332,6 +334,8 @@ def test_positive_create_with_puppet_ca_proxy(
     :id: 1b73dd35-c2e8-44bd-b8f8-9e51428a6239
 
     :expectedresults: Both hosts are associated with expected puppet CA proxy assigned
+
+    :BlockedBy: SAT-40445
 
     :CaseImportance: Critical
     """
@@ -358,6 +362,8 @@ def test_positive_end_to_end_with_puppet_class(
     with same associated puppet classes
 
     :id: 2690d6b0-441b-44c5-b7d2-4093616e037e
+
+    :BlockedBy: SAT-40445
 
     :BZ: 2046573
 
@@ -904,6 +910,8 @@ def test_positive_create_and_update_env(
     :id: 87a08dbf-fd4c-4b6c-bf73-98ab70756fc6
 
     :expectedresults: A host is created and updated with expected environment
+
+    :BlockedBy: SAT-40445
     """
     host = session_puppet_enabled_sat.api.Host(
         organization=module_puppet_org,
@@ -1139,6 +1147,8 @@ def test_positive_read_enc_information(
 
     :expectedresults: host ENC information read successfully
 
+    :BlockedBy: SAT-40445
+
     :BZ: 1362372
     """
     lce = (
@@ -1357,6 +1367,8 @@ def test_positive_read_puppet_proxy_name(session_puppet_enabled_sat, session_pup
 
     :expectedresults: Field 'puppet_proxy_name' is returned
 
+    :BlockedBy: SAT-40445
+
     :BZ: 1371900
 
     :CaseImportance: Critical
@@ -1379,6 +1391,8 @@ def test_positive_read_puppet_ca_proxy_name(
     :id: 8941395f-8040-4705-a981-5da21c47efd1
 
     :expectedresults: Field 'puppet_ca_proxy_name' is returned
+
+    :BlockedBy: SAT-40445
 
     :BZ: 1371900
 

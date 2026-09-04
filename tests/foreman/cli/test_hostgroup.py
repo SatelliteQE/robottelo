@@ -109,6 +109,8 @@ def test_positive_create_with_multiple_entities_and_delete(
     :expectedresults: Hostgroup should be created, has all defined
         entities assigned and deleted
 
+    :BlockedBy: SAT-40445
+
     :BZ: 1395254, 1313056
 
     :CaseImportance: Critical
@@ -232,6 +234,8 @@ def test_positive_update_hostgroup_with_puppet(
     :id: c22218a1-4d86-4ac1-ad4b-79b10c9adcde
 
     :customerscenario: true
+
+    :BlockedBy: SAT-40445
 
     :BZ: 1260697, 1313056
 
