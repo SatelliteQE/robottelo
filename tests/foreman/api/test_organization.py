@@ -17,7 +17,7 @@ http://<satellite-host>/apidoc/v2/organizations.html
 
 import http
 import json
-from random import randint
+import random
 
 from fauxfactory import gen_string
 from nailgun import client
@@ -26,6 +26,10 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
 from robottelo.constants import DEFAULT_ORG
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    valid_org_names_list,
+)
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -66,7 +70,7 @@ class TestOrganization:
 
         :CaseImportance: Critical
         """
-        name = gen_string('alpha')
+        name = random.choice(valid_org_names_list())
         org = target_sat.api.Organization(name=name, description=name).create()
         assert org.name == name
         assert org.description == name
@@ -84,7 +88,7 @@ class TestOrganization:
 
         :expectedresults: The organization cannot be created.
         """
-        name = gen_string('alpha', 300)
+        name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             target_sat.api.Organization(name=name).create()
 
@@ -189,7 +193,7 @@ class TestOrganizationUpdate:
 
         :CaseImportance: High
         """
-        name = gen_string('alpha', 242)
+        name = random.choice(valid_org_names_list())
         module_org.name = name
         module_org = module_org.update(['name'])
         assert module_org.name == name
@@ -204,7 +208,7 @@ class TestOrganizationUpdate:
 
         :CaseImportance: Medium
         """
-        desc = gen_string('html', randint(1, 85))
+        desc = random.choice(valid_org_names_list())
         module_org.description = desc
         module_org = module_org.update(['description'])
         assert module_org.description == desc

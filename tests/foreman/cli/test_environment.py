@@ -12,6 +12,7 @@
 
 """
 
+import random
 from random import choice
 
 from fauxfactory import gen_alphanumeric, gen_string
@@ -19,6 +20,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.exceptions import CLIReturnCodeError
+from robottelo.utils.datafactory import invalid_id_list, invalid_values_list
 
 
 @pytest.fixture(scope='module')
@@ -73,7 +75,7 @@ def test_negative_create_with_name(session_puppet_enabled_sat):
 
     :expectedresults: Environment is not created.
     """
-    name = gen_string('alpha', 300)
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIReturnCodeError):
         session_puppet_enabled_sat.cli.Environment.create({'name': name})
 
@@ -160,7 +162,7 @@ def test_negative_delete_by_id(session_puppet_enabled_sat):
 
     :CaseImportance: Medium
     """
-    entity_id = gen_string('alpha')
+    entity_id = random.choice(invalid_id_list())
     with pytest.raises(CLIReturnCodeError):
         session_puppet_enabled_sat.cli.Environment.delete({'id': entity_id})
 
@@ -172,7 +174,7 @@ def test_negative_update_name(session_puppet_enabled_sat):
 
     :expectedresults: Environment is not updated
     """
-    new_name = gen_string('alpha', 300)
+    new_name = random.choice(invalid_values_list())
     environment = session_puppet_enabled_sat.cli.Environment.create({'name': gen_string('alpha')})
     with pytest.raises(CLIReturnCodeError):
         session_puppet_enabled_sat.cli.Environment.update(

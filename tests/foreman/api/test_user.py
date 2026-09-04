@@ -17,6 +17,7 @@ http://<satellite-host>/apidoc/v2/users.html
 """
 
 import json
+import random
 import re
 
 from nailgun.config import ServerConfig
@@ -28,6 +29,14 @@ from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE, DataFile
 from robottelo.utils import gen_ssh_keypairs
 from robottelo.utils.datafactory import (
     gen_string,
+    generate_strings_list,
+    invalid_emails_list,
+    invalid_names_list,
+    invalid_usernames_list,
+    valid_data_list,
+    valid_emails_list,
+    valid_first_and_last_name_strings,
+    valid_usernames_list,
 )
 
 
@@ -50,7 +59,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        username = gen_string('alpha')
+        username = random.choice(valid_usernames_list())
         user = target_sat.api.User(login=username).create()
         assert user.login == username
 
@@ -64,7 +73,9 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        firstname = gen_string('alpha')
+        firstname = random.choice(valid_first_and_last_name_strings())
+        if len(str.encode(firstname)) > 50:
+            firstname = firstname[:20]
         user = target_sat.api.User(firstname=firstname).create()
         assert user.firstname == firstname
 
@@ -78,7 +89,9 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        lastname = gen_string('alpha')
+        lastname = random.choice(valid_first_and_last_name_strings())
+        if len(str.encode(lastname)) > 50:
+            lastname = lastname[:20]
         user = target_sat.api.User(lastname=lastname).create()
         assert user.lastname == lastname
 
@@ -92,7 +105,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        mail = f'{gen_string("alpha")}@example.com'
+        mail = random.choice(valid_emails_list())
         user = target_sat.api.User(mail=mail).create()
         assert user.mail == mail
 
@@ -106,7 +119,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        description = gen_string('alpha')
+        description = random.choice(list(valid_data_list().values()))
         user = target_sat.api.User(description=description).create()
         assert user.description == description
 
@@ -120,7 +133,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        password = gen_string('alpha', 20)
+        password = random.choice(generate_strings_list(exclude_types=['html'], max_length=50))
         user = target_sat.api.User(password=password).create()
         assert user is not None
 
@@ -134,7 +147,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        mail = f'{gen_string("alpha")}@example.com'
+        mail = random.choice(valid_emails_list())
         user = target_sat.api.User(mail=mail).create()
         user.delete()
         with pytest.raises(HTTPError):
@@ -150,7 +163,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        login = gen_string('alpha')
+        login = random.choice(valid_usernames_list())
         create_user.login = login
         user = create_user.update(['login'])
         assert user.login == login
@@ -165,7 +178,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        login = gen_string('html')
+        login = random.choice(invalid_usernames_list())
         create_user.login = login
         with pytest.raises(HTTPError):
             create_user.update(['login'])
@@ -180,7 +193,9 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        firstname = gen_string('alpha')
+        firstname = random.choice(valid_first_and_last_name_strings())
+        if len(str.encode(firstname)) > 50:
+            firstname = firstname[:20]
         create_user.firstname = firstname
         user = create_user.update(['firstname'])
         assert user.firstname == firstname
@@ -195,7 +210,9 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        lastname = gen_string('alpha')
+        lastname = random.choice(valid_first_and_last_name_strings())
+        if len(str.encode(lastname)) > 50:
+            lastname = lastname[:20]
         create_user.lastname = lastname
         user = create_user.update(['lastname'])
         assert user.lastname == lastname
@@ -210,7 +227,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        mail = f'{gen_string("alpha")}@example.com'
+        mail = random.choice(valid_emails_list())
         create_user.mail = mail
         user = create_user.update(['mail'])
         assert user.mail == mail
@@ -225,7 +242,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        mail = 'foreman@'
+        mail = random.choice(invalid_emails_list())
         create_user.mail = mail
         with pytest.raises(HTTPError):
             create_user.update(['mail'])
@@ -240,7 +257,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        description = gen_string('alpha')
+        description = random.choice(list(valid_data_list().values()))
         create_user.description = description
         user = create_user.update(['description'])
         assert user.description == description
@@ -271,7 +288,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        mail = 'foreman@'
+        mail = random.choice(invalid_emails_list())
         with pytest.raises(HTTPError):
             target_sat.api.User(mail=mail).create()
 
@@ -285,7 +302,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        invalid_name = gen_string('html')
+        invalid_name = random.choice(invalid_usernames_list())
         with pytest.raises(HTTPError):
             target_sat.api.User(login=invalid_name).create()
 
@@ -299,7 +316,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        invalid_name = gen_string('alpha', 300)
+        invalid_name = random.choice(invalid_names_list())
         with pytest.raises(HTTPError):
             target_sat.api.User(firstname=invalid_name).create()
 
@@ -313,7 +330,7 @@ class TestUser:
 
         :CaseImportance: Critical
         """
-        invalid_name = gen_string('alpha', 300)
+        invalid_name = random.choice(invalid_names_list())
         with pytest.raises(HTTPError):
             target_sat.api.User(lastname=invalid_name).create()
 
@@ -628,7 +645,7 @@ class TestActiveDirectoryUser:
         :expectedresults: User is created without specifying the password
 
         """
-        username = gen_string('alpha')
+        username = random.choice(valid_usernames_list())
         user = target_sat.api.User(
             login=username, auth_source=create_ldap['authsource'], password=''
         ).create()

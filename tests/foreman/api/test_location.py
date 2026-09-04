@@ -15,11 +15,37 @@ http://theforeman.org/api/apidoc/v2/locations.html
 
 """
 
+import random
+from random import randint
+
 from fauxfactory import gen_integer, gen_string
 import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.constants import DEFAULT_LOC
+from robottelo.utils.datafactory import (
+    filtered_datapoint,
+    invalid_values_list,
+)
+
+
+@filtered_datapoint
+def valid_loc_data_list():
+    """List of valid data for input testing.
+
+    Note: The maximum allowed length of location name is 246 only. This is an
+    intended behavior (Also note that 255 is the standard across other
+    entities.)
+    """
+    return dict(
+        alpha=gen_string('alpha', randint(1, 246)),
+        numeric=gen_string('numeric', randint(1, 246)),
+        alphanumeric=gen_string('alphanumeric', randint(1, 246)),
+        latin1=gen_string('latin1', randint(1, 246)),
+        utf8=gen_string('utf8', randint(1, 85)),
+        cjk=gen_string('cjk', randint(1, 85)),
+        html=gen_string('html', randint(1, 85)),
+    )
 
 
 class TestLocation:
@@ -66,7 +92,7 @@ class TestLocation:
 
         :CaseImportance: Critical
         """
-        name = gen_string('alpha', 246)
+        name = random.choice(list(valid_loc_data_list().values()))
         location = target_sat.api.Location(name=name).create()
         assert location.name == name
 
@@ -114,7 +140,7 @@ class TestLocation:
 
         :CaseImportance: Critical
         """
-        name = gen_string('alpha', 300)
+        name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             target_sat.api.Location(name=name).create()
 
@@ -156,7 +182,7 @@ class TestLocation:
 
         :CaseImportance: Critical
         """
-        new_name = gen_string('alpha')
+        new_name = random.choice(list(valid_loc_data_list().values()))
         location = target_sat.api.Location().create()
         location.name = new_name
         assert location.update(['name']).name == new_name

@@ -16,9 +16,17 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
+
+from robottelo.utils.datafactory import (
+    invalid_environments_list,
+    invalid_names_list,
+    valid_environments_list,
+)
 
 
 @pytest.mark.e2e
@@ -100,7 +108,7 @@ def test_positive_create_with_name(session_puppet_enabled_sat):
 
     :expectedresults: The environment created successfully and has expected name
     """
-    name = gen_string('alphanumeric', 255)
+    name = random.choice(valid_environments_list())
     env = session_puppet_enabled_sat.api.Environment(name=name).create()
     assert env.name == name
 
@@ -113,7 +121,7 @@ def test_negative_create_with_too_long_name(session_puppet_enabled_sat):
 
     :expectedresults: The server returns an error.
     """
-    name = gen_string('alpha', 300)
+    name = random.choice(invalid_names_list())
     with pytest.raises(HTTPError):
         session_puppet_enabled_sat.api.Environment(name=name).create()
 
@@ -126,7 +134,7 @@ def test_negative_create_with_invalid_characters(session_puppet_enabled_sat):
 
     :expectedresults: The server returns an error.
     """
-    name = gen_string('latin1')
+    name = random.choice(invalid_environments_list())
     with pytest.raises(HTTPError):
         session_puppet_enabled_sat.api.Environment(name=name).create()
 
@@ -140,7 +148,7 @@ def test_positive_update_name(module_puppet_environment, session_puppet_enabled_
 
     :expectedresults: Environment entity is created and updated properly
     """
-    new_name = gen_string('alphanumeric', 255)
+    new_name = random.choice(valid_environments_list())
     env = session_puppet_enabled_sat.api.Environment(
         id=module_puppet_environment.id, name=new_name
     ).update(['name'])
@@ -156,7 +164,7 @@ def test_negative_update_name(module_puppet_environment, session_puppet_enabled_
 
     :expectedresults: Environment entity is not updated
     """
-    new_name = gen_string('alpha', 300)
+    new_name = random.choice(invalid_names_list())
     with pytest.raises(HTTPError):
         session_puppet_enabled_sat.api.Environment(
             id=module_puppet_environment.id, name=new_name
