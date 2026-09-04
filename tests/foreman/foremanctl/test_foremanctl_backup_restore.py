@@ -22,9 +22,9 @@ pytestmark = [pytest.mark.foremanctl]
 
 BACKUP_DIR = '/tmp/'
 BACKUP_PREFIX = 'backup-'
-BASIC_FILES = {'foremanctl-state.tar.gz', 'metadata.yml', '.config.snar'}
+BASIC_FILES = {'foremanctl-state.tar.gz', 'metadata.yml', 'config.snar'}
 SAT_FILES = {'candlepin.dump', 'foreman.dump', 'pulp.dump'} | BASIC_FILES
-CONTENT_FILES = {'pulp-content.tar.gz', '.pulp.snar'}
+CONTENT_FILES = {'pulp-content.tar.gz', 'pulp.snar'}
 
 
 @pytest.fixture(autouse=True)
@@ -35,20 +35,32 @@ def cleanup_backup_dir(target_sat):
     target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
 
 
-def get_exp_files(skip_pulp=False):
+def _assert_backup_files(server, backup_dir, skip_pulp=False):
+    """Verify that backup directory contains all expected files.
+
+    :param server: Satellite or Capsule server instance to execute commands on
+    :param backup_dir: Path to the backup directory
+    :param skip_pulp: Whether pulp content was skipped in the backup
+    """
     expected_files = SAT_FILES
     if not skip_pulp:
         expected_files = expected_files | CONTENT_FILES
-    return expected_files
+
+    ls_output = server.execute(f'ls -a {backup_dir}').stdout
+    files = ls_output.split('\n')
+    files = [i for i in files if not re.compile(r'^\.*$').search(i)]
+    assert set(files).issuperset(expected_files), (
+        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
+    )
 
 
-def _create_backup(sat, subdir, skip_pulp=False, incremental=None):
+def _create_backup(sat, subdir, skip_pulp=False, base_backup=None):
     """Run foremanctl backup and return the timestamped backup subdirectory path."""
     cmd = f'foremanctl backup {subdir} --wait-for-tasks'
     if skip_pulp:
         cmd += ' --skip-pulp-content'
-    if incremental:
-        cmd += f' --incremental {incremental}'
+    if base_backup:
+        cmd += f' --base-backup {base_backup}'
     result = sat.execute(cmd, timeout='30m')
     assert result.status == 0, f'foremanctl backup failed:\n{result.stdout}\n{result.stderr}'
     location = re.search(r'Location:\s*(\S+)', result.stdout)
@@ -77,12 +89,7 @@ def test_positive_offline_backup(module_target_sat):
     subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
     backup_dir = _create_backup(module_target_sat, subdir)
 
-    files = module_target_sat.execute(f'ls -a {backup_dir}').stdout.split('\n')
-    files = [i for i in files if not re.compile(r'^\.*$').search(i)]
-    expected_files = get_exp_files()
-    assert set(files).issuperset(expected_files), (
-        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
-    )
+    _assert_backup_files(module_target_sat, backup_dir)
 
     result = module_target_sat.execute('foremanctl health', timeout='5m')
     assert result.status == 0, f'foremanctl health check failed after backup:\n{result.stdout}'
@@ -123,12 +130,7 @@ def test_positive_backup_restore(module_target_sat, module_synced_repos, skip_pu
     subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
     backup_dir = _create_backup(module_target_sat, subdir, skip_pulp=skip_pulp)
 
-    files = module_target_sat.execute(f'ls -a {backup_dir}').stdout.split('\n')
-    files = [i for i in files if not re.compile(r'^\.*$').search(i)]
-    expected_files = get_exp_files(skip_pulp)
-    assert set(files).issuperset(expected_files), (
-        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
-    )
+    _assert_backup_files(module_target_sat, backup_dir, skip_pulp=skip_pulp)
 
     post_backup_repo = module_target_sat.api.Repository(
         url=settings.repos.yum_3.url, product=module_synced_repos['custom'].product
@@ -316,14 +318,9 @@ def test_positive_backup_restore_incremental(target_sat, function_product):
     secondary_repo.sync()
     secondary_repo = secondary_repo.read()
 
-    inc_backup_dir = _create_backup(target_sat, subdir, incremental=init_backup_dir)
+    inc_backup_dir = _create_backup(target_sat, subdir, base_backup=init_backup_dir)
 
-    files = target_sat.execute(f'ls -a {inc_backup_dir}').stdout.split('\n')
-    files = [i for i in files if not re.compile(r'^\.*$').search(i)]
-    expected_files = get_exp_files()
-    assert set(files).issuperset(expected_files), (
-        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
-    )
+    _assert_backup_files(target_sat, inc_backup_dir)
 
     result = target_sat.execute(
         f'foremanctl restore {init_backup_dir} --force',
@@ -359,8 +356,8 @@ def test_negative_backup_incremental_nodir_baddir(target_sat):
     :id: 715a0b22-6b9d-4f0b-b8c3-1ea0713ee68f
 
     :steps:
-        1. Run foremanctl backup with --incremental but no path argument
-        2. Run foremanctl backup with --incremental pointing to a non-existing directory
+        1. Run foremanctl backup with --base-backup but no path argument
+        2. Run foremanctl backup with --base-backup pointing to a non-existing directory
 
     :expectedresults:
         1. Both commands fail with a non-zero exit code
@@ -370,24 +367,18 @@ def test_negative_backup_incremental_nodir_baddir(target_sat):
     """
     subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
 
-    # No directory: --incremental without a path
-    result = target_sat.execute(
-        f'foremanctl backup {subdir} --incremental',
-        timeout='5m',
-    )
+    # No directory: --base-backup without a path
+    result = target_sat.execute(f'foremanctl backup {subdir} --base-backup')
     assert result.status != 0, (
         f'Incremental backup without path should have failed:\n{result.stdout}'
     )
-    assert '--incremental: expected one argument' in result.stderr, (
-        f'Expected --incremental argument error, got:\n{result.stderr}'
+    assert '--base-backup: expected one argument' in result.stderr, (
+        f'Expected --base-backup argument error, got:\n{result.stderr}'
     )
 
-    # Bad directory: --incremental with a non-existing path
+    # Bad directory: --base-backup with a non-existing path
     nonexistent = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
-    result = target_sat.execute(
-        f'foremanctl backup {subdir} --incremental {nonexistent}',
-        timeout='5m',
-    )
+    result = target_sat.execute(f'foremanctl backup {subdir} --base-backup {nonexistent}')
     assert result.status != 0, f'Incremental backup should have failed:\n{result.stdout}'
     assert (
         f'Previous backup directory does not exist or is not a valid foremanctl backup: {nonexistent}'
