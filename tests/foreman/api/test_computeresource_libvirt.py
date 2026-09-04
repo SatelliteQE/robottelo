@@ -16,6 +16,8 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
@@ -24,11 +26,7 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import (
-    invalid_values_list,
-    parametrized,
-    valid_data_list,
-)
+from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 
 pytestmark = [pytest.mark.skip_if_not_set('libvirt'), pytest.mark.foreman_installer]
 
@@ -93,9 +91,8 @@ def test_positive_crud_libvirt_cr(module_target_sat, module_org, module_location
     )
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 def test_positive_create_with_name_description(
-    name, request, module_target_sat, module_org, module_location, libvirt
+    request, module_target_sat, module_org, module_location, libvirt
 ):
     """Create compute resources with different names and descriptions
 
@@ -104,9 +101,8 @@ def test_positive_create_with_name_description(
     :expectedresults: Compute resources are created with expected names and descriptions
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    name = random.choice(list(valid_data_list().values()))
     compresource = module_target_sat.api.LibvirtComputeResource(
         name=name,
         description=name,
@@ -139,10 +135,7 @@ def test_positive_create_with_orgs_and_locs(request, module_target_sat, libvirt)
     assert {loc.name for loc in locs} == {loc.read().name for loc in compresource.location}
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_invalid_name(
-    name, module_target_sat, module_org, module_location, libvirt
-):
+def test_negative_create_with_invalid_name(module_target_sat, module_org, module_location, libvirt):
     """Attempt to create compute resources with invalid names
 
     :id: f73bf838-3ffd-46d3-869c-81b334b47b13
@@ -150,9 +143,8 @@ def test_negative_create_with_invalid_name(
     :expectedresults: Compute resources are not created
 
     :CaseImportance: High
-
-    :parametrized: yes
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(HTTPError):
         module_target_sat.api.LibvirtComputeResource(
             name=name,
@@ -188,8 +180,7 @@ def test_negative_create_with_same_name(
         ).create()
 
 
-@pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
-def test_negative_create_with_url(module_target_sat, module_org, module_location, url):
+def test_negative_create_with_url(module_target_sat, module_org, module_location):
     """Attempt to create compute resources with invalid url
 
     :id: 37e9bf39-382e-4f02-af54-d3a17e285c2a
@@ -197,18 +188,16 @@ def test_negative_create_with_url(module_target_sat, module_org, module_location
     :expectedresults: Compute resources are not created
 
     :CaseImportance: High
-
-    :parametrized: yes
     """
+    url = random.choice([gen_string('alpha'), ''])
     with pytest.raises(HTTPError):
         module_target_sat.api.LibvirtComputeResource(
             location=[module_location], organization=[module_org], url=url
         ).create()
 
 
-@pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
 def test_negative_update_invalid_name(
-    request, module_target_sat, module_org, module_location, new_name, libvirt
+    request, module_target_sat, module_org, module_location, libvirt
 ):
     """Attempt to update compute resource with invalid names
 
@@ -217,9 +206,8 @@ def test_negative_update_invalid_name(
     :expectedresults: Compute resource is not updated
 
     :CaseImportance: High
-
-    :parametrized: yes
     """
+    new_name = random.choice(invalid_values_list())
     name = gen_string('alphanumeric')
     compresource = module_target_sat.api.LibvirtComputeResource(
         location=[module_location], name=name, organization=[module_org], url=libvirt.url
@@ -257,8 +245,7 @@ def test_negative_update_same_name(
     assert new_compresource.read().name != name
 
 
-@pytest.mark.parametrize('url', **parametrized({'random': gen_string('alpha'), 'empty': ''}))
-def test_negative_update_url(url, request, module_target_sat, module_org, module_location, libvirt):
+def test_negative_update_url(request, module_target_sat, module_org, module_location, libvirt):
     """Attempt to update a compute resource with invalid url
 
     :id: b5256090-2ceb-4976-b54e-60d60419fe50
@@ -266,9 +253,8 @@ def test_negative_update_url(url, request, module_target_sat, module_org, module
     :expectedresults: Compute resources is not updated
 
     :CaseImportance: High
-
-    :parametrized: yes
     """
+    url = random.choice([gen_string('alpha'), ''])
     compresource = module_target_sat.api.LibvirtComputeResource(
         location=[module_location], organization=[module_org], url=libvirt.url
     ).create()
