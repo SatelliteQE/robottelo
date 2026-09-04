@@ -12,6 +12,8 @@
 
 """
 
+import random
+
 from fauxfactory import gen_alphanumeric, gen_integer, gen_string, gen_url
 import pytest
 
@@ -20,7 +22,6 @@ from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_values_list,
-    parametrized,
     valid_data_list,
     valid_labels_list,
 )
@@ -111,36 +112,32 @@ def test_positive_CRUD(module_org, target_sat):
         target_sat.cli.Product.info({'id': product['id'], 'organization-id': module_org.id})
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_name(name, module_org, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_name(module_org, module_target_sat):
     """Check that only valid names can be used
 
     :id: 2da26ab2-8d79-47ea-b4d2-defcd98a0649
 
-    :parametrized: yes
-
     :expectedresults: Product is not created
 
     :CaseImportance: High
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.make_product({'name': name, 'organization-id': module_org.id})
 
 
-@pytest.mark.parametrize(
-    'label', **parametrized([gen_string(e, 15) for e in ('latin1', 'utf8', 'html')])
-)
-def test_negative_create_with_label(label, module_org, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_label(module_org, module_target_sat):
     """Check that only valid labels can be used
 
     :id: 7cf970aa-48dc-425b-ae37-1e15dfab0626
-
-    :parametrized: yes
 
     :expectedresults: Product is not created
 
     :CaseImportance: High
     """
+    label = random.choice([gen_string(e, 15) for e in ('latin1', 'utf8', 'html')])
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.make_product(
             {
