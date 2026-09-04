@@ -532,7 +532,7 @@ class TestHostGroup:
 
         """
         new_content_source = target_sat.api.SmartProxy().search(
-            query={'search': f'url = {target_sat.url}:9090'}
+            query={'search': f'feature = "Pulpcore" and url ~ {target_sat.hostname}'}
         )[0]
         hostgroup.content_source = new_content_source
         hostgroup = hostgroup.update(['content_source'])
@@ -699,7 +699,7 @@ class TestHostGroup:
 
         # Get content source, architecture, and operating system objects for hostgroup creation
         content_source = module_target_sat.api.SmartProxy().search(
-            query={'search': f'url = {module_target_sat.url}:9090'}
+            query={'search': f'feature = "Pulpcore" and url ~ {module_target_sat.hostname}'}
         )[0]
         old_os_id = (
             module_target_sat.api.OperatingSystem()
