@@ -22,7 +22,7 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import parametrized, valid_data_list
+from robottelo.utils.datafactory import valid_data_list
 
 
 @pytest.mark.e2e
@@ -112,16 +112,14 @@ def test_positive_end_to_end_register(
 
 
 @pytest.mark.upgrade
-@pytest.mark.parametrize('cv_name', **parametrized(valid_data_list('ui')))
-def test_positive_create_with_cv(session, module_org, cv_name, target_sat):
+def test_positive_create_with_cv(session, module_org, target_sat):
     """Create Activation key for all variations of Content Views
 
     :id: 2ad000f1-6c80-46aa-a61b-9ea62cefe91b
 
-    :parametrized: yes
-
     :expectedresults: Activation key is created
     """
+    cv_name = random.choice(list(valid_data_list('ui').values()))
     name = gen_string('alpha')
     env_name = gen_string('alpha')
     repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
@@ -383,13 +381,10 @@ def test_positive_update_env(session, module_org, target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.parametrize('cv2_name', **parametrized(valid_data_list('ui')))
-def test_positive_update_cv(session, module_org, cv2_name, target_sat):
+def test_positive_update_cv(session, module_org, target_sat):
     """Update Content View in an Activation key
 
     :id: 68880ca6-acb9-4a16-aaa0-ced680126732
-
-    :parametrized: yes
 
     :steps:
         1. Create Activation key
@@ -398,6 +393,7 @@ def test_positive_update_cv(session, module_org, cv2_name, target_sat):
 
     :expectedresults: Activation key is updated
     """
+    cv2_name = random.choice(list(valid_data_list('ui').values()))
     name = gen_string('alpha')
     env1_name = gen_string('alpha')
     env2_name = gen_string('alpha')
