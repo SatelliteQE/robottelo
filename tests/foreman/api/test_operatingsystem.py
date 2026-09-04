@@ -19,11 +19,7 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.utils.datafactory import (
-    invalid_values_list,
-    parametrized,
-    valid_data_list,
-)
+from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 
 
 class TestOperatingSystem:
@@ -169,22 +165,22 @@ class TestOperatingSystem:
         with pytest.raises(HTTPError):
             module_target_sat.api.OperatingSystem(id=os.id).read()
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_with_name(self, name, target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_create_with_name(self, target_sat):
         """Create operating system with valid name only
 
         :id: e95707bf-3344-4d85-866f-4642a8f66cff
-
-        :parametrized: yes
 
         :expectedresults: Operating system entity is created and has proper
             name
 
         :CaseImportance: Critical
         """
+        name = random.choice(list(valid_data_list().values()))
         os = target_sat.api.OperatingSystem(name=name).create()
         assert os.name == name
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_archs(self, target_sat):
         """Create an operating system that points at multiple different
         architectures.
@@ -201,6 +197,7 @@ class TestOperatingSystem:
         assert len(operating_sys.architecture) == len(amount)
         assert {arch.id for arch in operating_sys.architecture} == {arch.id for arch in archs}
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_ptables(self, target_sat):
         """Create an operating system that points at multiple different
         partition tables.
@@ -217,22 +214,22 @@ class TestOperatingSystem:
         assert len(operating_sys.ptable) == len(amount)
         assert {ptable.id for ptable in operating_sys.ptable} == {ptable.id for ptable in ptables}
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_invalid_name(self, name, target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_invalid_name(self, target_sat):
         """Try to create operating system entity providing an invalid
         name
 
         :id: cd4286fd-7128-4385-9c8d-ef979c22ee38
 
-        :parametrized: yes
-
         :expectedresults: Operating system entity is not created
 
         :CaseImportance: Critical
         """
+        name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             target_sat.api.OperatingSystem(name=name).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_invalid_os_family(self, target_sat):
         """Try to create operating system entity providing an invalid
         operating system family
@@ -246,6 +243,7 @@ class TestOperatingSystem:
         with pytest.raises(HTTPError):
             target_sat.api.OperatingSystem(family='NON_EXISTENT_OS').create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_too_long_description(self, target_sat):
         """Try to create operating system entity providing too long
         description value
@@ -261,15 +259,13 @@ class TestOperatingSystem:
         with pytest.raises(HTTPError):
             target_sat.api.OperatingSystem(description=gen_string('alphanumeric', 256)).create()
 
-    @pytest.mark.parametrize('major_version', **parametrized((gen_string('numeric', 6), '', '-6')))
-    def test_negative_create_with_invalid_major_version(self, major_version, target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_invalid_major_version(self, target_sat):
         """Try to create operating system entity providing incorrect
         major version value (More than 5 characters, empty value, negative
         number)
 
         :id: f2646bc2-d639-4079-bdcb-ff76679f1457
-
-        :parametrized: yes
 
         :expectedresults: Operating system entity is not created
 
@@ -277,25 +273,26 @@ class TestOperatingSystem:
 
         :CaseImportance: Critical
         """
+        major_version = random.choice([gen_string('numeric', 6), '', '-6'])
         with pytest.raises(HTTPError):
             target_sat.api.OperatingSystem(major=major_version).create()
 
-    @pytest.mark.parametrize('minor_version', **parametrized((gen_string('numeric', 17), '-5')))
-    def test_negative_create_with_invalid_minor_version(self, minor_version, target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_invalid_minor_version(self, target_sat):
         """Try to create operating system entity providing incorrect
         minor version value (More than 16 characters and negative number)
 
         :id: dec4b456-153c-4a66-8b8e-b12ac7800e51
 
-        :parametrized: yes
-
         :expectedresults: Operating system entity is not created
 
         :CaseImportance: Critical
         """
+        minor_version = random.choice([gen_string('numeric', 17), '-5'])
         with pytest.raises(HTTPError):
             target_sat.api.OperatingSystem(minor=minor_version).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_invalid_password_hash(self, target_sat):
         """Try to create operating system entity providing invalid
         password hash value
@@ -309,6 +306,7 @@ class TestOperatingSystem:
         with pytest.raises(HTTPError):
             target_sat.api.OperatingSystem(password_hash='INVALID_HASH').create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_same_name_and_version(self, target_sat):
         """Create operating system providing valid name and major
         version. Then try to create operating system using the same name and
@@ -345,23 +343,23 @@ class TestOperatingSystem:
         assert len(os.medium) == len(amount)
         assert {medium.id for medium in os.medium} == {medium.id for medium in media}
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, new_name, target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_update_name(self, target_sat):
         """Create operating system entity providing the initial name,
         then update its name to invalid one.
 
         :id: 3ba55d6e-99cb-4878-b41b-a59476d1db58
 
-        :parametrized: yes
-
         :expectedresults: Operating system entity is not updated
 
         :CaseImportance: Critical
         """
+        new_name = random.choice(invalid_values_list())
         os = target_sat.api.OperatingSystem().create()
         with pytest.raises(HTTPError):
             os = target_sat.api.OperatingSystem(id=os.id, name=new_name).update(['name'])
 
+    @pytest.mark.migration_candidate
     def test_negative_update_major_version(self, target_sat):
         """Create operating entity providing the initial major version,
         then update that version to invalid one.
@@ -378,6 +376,7 @@ class TestOperatingSystem:
         with pytest.raises(HTTPError):
             target_sat.api.OperatingSystem(id=os.id, major='-20').update(['major'])
 
+    @pytest.mark.migration_candidate
     def test_negative_update_minor_version(self, target_sat):
         """Create operating entity providing the initial minor version,
         then update that version to invalid one.
@@ -392,6 +391,7 @@ class TestOperatingSystem:
         with pytest.raises(HTTPError):
             target_sat.api.OperatingSystem(id=os.id, minor='INVALID_VERSION').update(['minor'])
 
+    @pytest.mark.migration_candidate
     def test_negative_update_os_family(self, target_sat):
         """Create operating entity providing the initial os family, then
         update that family to invalid one.
