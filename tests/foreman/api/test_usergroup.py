@@ -15,11 +15,17 @@ https://theforeman.org/api/2.0/apidoc/v2/usergroups.html
 
 """
 
+import random
 from random import randint
 
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
+
+from robottelo.utils.datafactory import (
+    invalid_values_list,
+    valid_data_list,
+)
 
 
 class TestUserGroup:
@@ -39,7 +45,7 @@ class TestUserGroup:
 
         :CaseImportance: Critical
         """
-        name = gen_string('alpha')
+        name = random.choice(list(valid_data_list().values()))
         user_group = target_sat.api.UserGroup(name=name).create()
         assert user_group.name == name
 
@@ -147,7 +153,7 @@ class TestUserGroup:
 
         :CaseImportance: Critical
         """
-        name = gen_string('alpha', 300)
+        name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             target_sat.api.UserGroup(name=name).create()
 
@@ -175,7 +181,7 @@ class TestUserGroup:
 
         :CaseImportance: Critical
         """
-        new_name = gen_string('alpha')
+        new_name = random.choice(list(valid_data_list().values()))
         user_group.name = new_name
         user_group = user_group.update(['name'])
         assert new_name == user_group.name
@@ -250,7 +256,7 @@ class TestUserGroup:
 
         :CaseImportance: Critical
         """
-        new_name = gen_string('alpha', 300)
+        new_name = random.choice(invalid_values_list())
         user_group.name = new_name
         with pytest.raises(HTTPError):
             user_group.update(['name'])

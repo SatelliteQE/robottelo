@@ -12,11 +12,14 @@
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 
 from robottelo.constants import SNIPPET_DATA_FILE, DataFile
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
+from robottelo.utils.datafactory import invalid_names_list, valid_data_list
 
 
 class TestTailoringFiles:
@@ -33,7 +36,7 @@ class TestTailoringFiles:
 
         :expectedresults: Tailoring file will be added to satellite
         """
-        name = gen_string('alpha')
+        name = random.choice(list(valid_data_list().values()))
         tailoring_file = module_target_sat.cli_factory.tailoringfile(
             {'name': name, 'scap-file': tailoring_file_path['satellite']}
         )
@@ -144,7 +147,7 @@ class TestTailoringFiles:
 
         :CaseImportance: Medium
         """
-        name = gen_string('alpha', 300)
+        name = random.choice(invalid_names_list())
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.tailoringfile(
                 {'name': name, 'scap-file': tailoring_file_path['satellite']}

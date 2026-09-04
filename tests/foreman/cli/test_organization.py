@@ -12,6 +12,8 @@
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 
@@ -19,6 +21,7 @@ from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
     filtered_datapoint,
+    invalid_values_list,
     valid_data_list,
     valid_org_names_list,
 )
@@ -559,7 +562,7 @@ def test_negative_create_with_invalid_name(module_target_sat):
 
     :expectedresults: organization is not created
     """
-    name = gen_string('alpha', 300)
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.make_org(
             {
@@ -620,7 +623,7 @@ def test_negative_update_name(module_org, module_target_sat):
 
     :expectedresults: organization name is not updated
     """
-    new_name = gen_string('alpha', 300)
+    new_name = random.choice(invalid_values_list())
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.Org.update({'id': module_org.id, 'new-name': new_name})
 
