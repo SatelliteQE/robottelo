@@ -16,16 +16,14 @@ http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.constants import LIBRARY_LCE
-from robottelo.utils.datafactory import (
-    invalid_names_list,
-    parametrized,
-    valid_data_list,
-)
+from robottelo.utils.datafactory import invalid_names_list, valid_data_list
 
 
 @pytest.fixture(scope='module')
@@ -40,8 +38,8 @@ def lce(module_org, module_target_sat):
     return module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(name, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_name(target_sat):
     """Create lifecycle environment with valid name only
 
     :id: ec1d985a-6a39-4de6-b635-c803ecedd832
@@ -49,14 +47,13 @@ def test_positive_create_with_name(name, target_sat):
     :expectedresults: Lifecycle environment is created and has proper name
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    name = random.choice(list(valid_data_list().values()))
     assert target_sat.api.LifecycleEnvironment(name=name).create().name == name
 
 
-@pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
-def test_positive_create_with_description(desc, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_description(target_sat):
     """Create lifecycle environment with valid description
 
     :id: 0bc05510-afc7-4087-ab75-1065ab5ba1d3
@@ -65,9 +62,8 @@ def test_positive_create_with_description(desc, target_sat):
         description
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    desc = random.choice(list(valid_data_list().values()))
     assert target_sat.api.LifecycleEnvironment(description=desc).create().description == desc
 
 
@@ -86,8 +82,8 @@ def test_positive_create_prior(module_org, module_target_sat):
     assert lc_env.prior.read().name == LIBRARY_LCE
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-def test_negative_create_with_invalid_name(name, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_invalid_name(target_sat):
     """Create lifecycle environment providing an invalid name
 
     :id: 7e8ea2e6-5927-4e86-8ea8-04c3feb524a6
@@ -95,32 +91,30 @@ def test_negative_create_with_invalid_name(name, target_sat):
     :expectedresults: Lifecycle environment is not created
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
+    name = random.choice(invalid_names_list())
     with pytest.raises(HTTPError):
         target_sat.api.LifecycleEnvironment(name=name).create()
 
 
-@pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-def test_positive_update_name(module_lce, new_name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_update_name(module_lce, module_target_sat):
     """Create lifecycle environment providing the initial name, then
     update its name to another valid name.
 
     :id: b6715e02-f15e-4ab8-8b13-18a3619fee9e
 
     :expectedresults: Lifecycle environment is created and updated properly
-
-    :parametrized: yes
     """
+    new_name = random.choice(list(valid_data_list().values()))
     module_lce.name = new_name
     module_lce.update(['name'])
     updated = module_target_sat.api.LifecycleEnvironment(id=module_lce.id).read()
     assert new_name == updated.name
 
 
-@pytest.mark.parametrize('new_desc', **parametrized(valid_data_list()))
-def test_positive_update_description(module_lce, new_desc, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_update_description(module_lce, module_target_sat):
     """Create lifecycle environment providing the initial
     description, then update its description to another one.
 
@@ -129,17 +123,16 @@ def test_positive_update_description(module_lce, new_desc, module_target_sat):
     :expectedresults: Lifecycle environment is created and updated properly
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
+    new_desc = random.choice(list(valid_data_list().values()))
     module_lce.description = new_desc
     module_lce.update(['description'])
     updated = module_target_sat.api.LifecycleEnvironment(id=module_lce.id).read()
     assert new_desc == updated.description
 
 
-@pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
-def test_negative_update_name(module_lce, new_name):
+@pytest.mark.migration_candidate
+def test_negative_update_name(module_lce):
     """Update lifecycle environment providing an invalid name
 
     :id: 55723382-9d98-43c8-85fb-df4702ca7478
@@ -148,9 +141,8 @@ def test_negative_update_name(module_lce, new_name):
         corresponding error is raised
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
+    new_name = random.choice(invalid_names_list())
     module_lce.name = new_name
     with pytest.raises(HTTPError):
         module_lce.update(['name'])
@@ -158,9 +150,8 @@ def test_negative_update_name(module_lce, new_name):
     assert lce.name != new_name
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.upgrade
-def test_positive_delete(lce, name, target_sat):
+def test_positive_delete(lce, target_sat):
     """Create lifecycle environment and then delete it.
 
     :id: cd5a97ca-c1e8-41c7-8d6b-f908916b24e1
@@ -168,16 +159,14 @@ def test_positive_delete(lce, name, target_sat):
     :expectedresults: Lifecycle environment is deleted successfully
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
     lce.delete()
     with pytest.raises(HTTPError):
         target_sat.api.LifecycleEnvironment(id=lce.id).read()
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_search_in_org(name, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_search_in_org(target_sat):
     """Search for a lifecycle environment and specify an org ID.
 
     :id: 110e4777-c374-4365-b676-b1db4552fe51
@@ -190,8 +179,6 @@ def test_positive_search_in_org(name, target_sat):
 
     :expectedresults: Only "Library" and the lifecycle environment just
         created are in the search results.
-
-    :parametrized: yes
     """
     new_org = target_sat.api.Organization().create()
     lc_env = target_sat.api.LifecycleEnvironment(organization=new_org).create()
