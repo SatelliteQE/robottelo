@@ -1882,16 +1882,25 @@ class Capsule(ContentHost, CapsuleMixins):
         return self.detect_install_method()
 
     def get_service_names(self):
-        """Get the appropriate service names based on installation method.
+        """Get the appropriate service names based on installation method and host type.
 
         :return: List of service names for current installation method
         :rtype: list
         """
         from robottelo.constants import InstallationServices
 
+        is_satellite = type(self).__name__ == 'Satellite'
         if self.install_method == InstallMethod.FOREMANCTL:
-            return InstallationServices.FOREMANCTL_SERVICES
-        return InstallationServices.INSTALLER_SERVICES
+            return (
+                InstallationServices.FOREMANCTL_SERVICES
+                if is_satellite
+                else InstallationServices.FOREMANCTL_CAPSULE_SERVICES
+            )
+        return (
+            InstallationServices.INSTALLER_SERVICES
+            if is_satellite
+            else InstallationServices.INSTALLER_CAPSULE_SERVICES
+        )
 
     def setup(self):
         logger.debug('START: setting up Capsule host %s', self)
