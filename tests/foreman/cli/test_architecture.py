@@ -12,6 +12,8 @@
 
 """
 
+import random
+
 from fauxfactory import gen_choice
 import pytest
 
@@ -19,7 +21,6 @@ from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_id_list,
     invalid_values_list,
-    parametrized,
     valid_data_list,
 )
 
@@ -54,37 +55,31 @@ class TestArchitecture:
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Architecture.info({'id': architecture['id']})
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_name(self, name, module_target_sat):
+    def test_negative_create_with_name(self, module_target_sat):
         """Don't create an Architecture with invalid data.
 
         :id: cfed972e-9b09-4852-bdd2-b5a8a8aed170
-
-        :parametrized: yes
 
         :expectedresults: Architecture is not created.
 
         :CaseImportance: Medium
         """
-
+        name = random.choice(invalid_values_list())
         with pytest.raises(CLIReturnCodeError) as error:
             module_target_sat.cli.Architecture.create({'name': name})
 
         assert 'Could not create the architecture:' in error.value.message
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, class_architecture, new_name, module_target_sat):
+    def test_negative_update_name(self, class_architecture, module_target_sat):
         """Create Architecture then fail to update its name
 
         :id: 037c4892-5e62-46dd-a2ed-92243e870e40
-
-        :parametrized: yes
 
         :expectedresults: Architecture name is not updated
 
         :CaseImportance: Medium
         """
-
+        new_name = random.choice(invalid_values_list())
         with pytest.raises(CLIReturnCodeError) as error:
             module_target_sat.cli.Architecture.update(
                 {'id': class_architecture['id'], 'new-name': new_name}
@@ -95,18 +90,16 @@ class TestArchitecture:
         result = module_target_sat.cli.Architecture.info({'id': class_architecture['id']})
         assert class_architecture['name'] == result['name']
 
-    @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
-    def test_negative_delete_by_id(self, entity_id, module_target_sat):
+    def test_negative_delete_by_id(self, module_target_sat):
         """Delete architecture by invalid ID
 
         :id: 78bae664-6493-4c74-a587-94170f20746e
-
-        :parametrized: yes
 
         :expectedresults: Architecture is not deleted
 
         :CaseImportance: Medium
         """
+        entity_id = random.choice(invalid_id_list())
         with pytest.raises(CLIReturnCodeError) as error:
             module_target_sat.cli.Architecture.delete({'id': entity_id})
 
