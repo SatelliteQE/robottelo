@@ -488,21 +488,20 @@ class TestRepository:
         [
             {'content_type': content_type, 'download_policy': 'on_demand'}
             for content_type in constants.REPO_TYPE
-            if content_type not in ['yum', 'docker', 'deb', 'file']
+            if content_type not in ['yum', 'docker', 'deb', 'file', 'python']
         ],
         indirect=True,
         ids=lambda x: x['content_type'],
     )
     def test_negative_create_repos_with_download_policy(self, repo_options, target_sat):
-        """Verify that non-YUM, non-docker, non-debian, and non-file repositories cannot be created with
-        download policy
+        """Verify that repositories not supporting download policy cannot be created with one
 
         :id: 8a59cb31-164d-49df-b3c6-9b90634919ce
 
         :parametrized: yes
 
-        :expectedresults: Non-YUM & non-docker repositories are not created with on_demand download
-            policy
+        :expectedresults: Repositories that do not support download policy are not created with
+            on_demand download policy
 
         :CaseImportance: Critical
         """
@@ -2642,7 +2641,7 @@ class TestPythonRepository:
 
         :id: e521a7a4-2502-4fe2-b297-a13fc99e679f
 
-        :BlockedBy: SAT-23430
+        :BlockedBy: SAT-36514
 
         :steps:
             1. Sync python repo
@@ -2654,3 +2653,144 @@ class TestPythonRepository:
         :CaseAutomation: Automated
         """
         repo.sync()
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {
+                'content_type': constants.REPO_TYPE['python'],
+                'url': 'https://pypi.org',
+                'download_policy': policy,
+                'generic_remote_options': '{"includes":["pulp-python"]}',
+            }
+            for policy in constants.DOWNLOAD_POLICIES
+        ],
+        indirect=True,
+        ids=lambda x: x['download_policy'],
+    )
+    def test_positive_create_with_download_policy(self, repo_options, repo):
+        """Create Python repositories with available download policies.
+
+        :id: 08ca23cd-cb5f-458b-b769-f59923e19eb0
+
+        :parametrized: yes
+
+        :Verifies: SAT-36510
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo with each download policy (on_demand, immediate)
+
+        :expectedresults: Python repo is created with the specified download policy
+        """
+        assert repo.download_policy == repo_options['download_policy']
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {
+                'content_type': constants.REPO_TYPE['python'],
+                'url': 'https://pypi.org',
+                'generic_remote_options': '{"includes":["pulp-python"]}',
+            }
+        ],
+        indirect=True,
+    )
+    def test_positive_create_with_default_download_policy(self, repo, target_sat):
+        """Verify the default download policy for a Python repository.
+
+        :id: 9eebf808-df2b-4a89-ae90-76ca8f347b45
+
+        :parametrized: yes
+
+        :Verifies: SAT-36510
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo without specifying download_policy
+            2. Read the default_download_policy setting
+
+        :expectedresults: The Python repo's download policy matches the default setting
+        """
+        default_dl_policy = target_sat.api.Setting().search(
+            query={'search': 'name=default_download_policy'}
+        )
+        assert default_dl_policy
+        assert repo.download_policy == default_dl_policy[0].value
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {
+                'content_type': constants.REPO_TYPE['python'],
+                'url': 'https://pypi.org',
+                'download_policy': 'immediate',
+                'generic_remote_options': '{"includes":["pulp-python"]}',
+            }
+        ],
+        indirect=True,
+    )
+    def test_positive_update_download_policy(self, repo):
+        """Update download policy for a Python repository.
+
+        :id: 9a88c55f-9375-4263-bd0e-1c4d4dc08ad3
+
+        :parametrized: yes
+
+        :Verifies: SAT-36510
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo with immediate download policy
+            2. Update to on_demand
+            3. Update back to immediate
+
+        :expectedresults: Download policy is updated successfully each time
+        """
+        assert repo.download_policy == 'immediate'
+
+        repo.download_policy = 'on_demand'
+        repo = repo.update(['download_policy'])
+        assert repo.download_policy == 'on_demand'
+
+        repo.download_policy = 'immediate'
+        repo = repo.update(['download_policy'])
+        assert repo.download_policy == 'immediate'
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {
+                'content_type': constants.REPO_TYPE['python'],
+                'url': 'https://fixtures.pulpproject.org/python-pypi/',
+                'download_policy': 'on_demand',
+                'generic_remote_options': '{"includes":["shelf-reader"]}',
+            }
+        ],
+        indirect=True,
+    )
+    def test_positive_sync_with_download_policy(self, repo):
+        """Sync a Python repository with a download policy set.
+
+        :id: da18fdfc-20df-4d95-bfb9-ecca9275fe4f
+
+        :parametrized: yes
+
+        :Verifies: SAT-36510
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo with on_demand download policy and includes filter
+            2. Sync the repo
+
+        :expectedresults: Python repo syncs successfully with on_demand policy
+
+        :CaseImportance: Critical
+        """
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['python_package'] > 0
