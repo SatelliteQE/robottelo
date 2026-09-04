@@ -13,6 +13,7 @@
 """
 
 from copy import copy
+import random
 
 from fauxfactory import gen_string
 import pytest
@@ -20,31 +21,27 @@ from requests import HTTPError
 
 from robottelo.constants import DataFile
 from robottelo.constants.repos import RHEL10_BASEOS_MLDSA
-from robottelo.utils.datafactory import (
-    invalid_values_list,
-    parametrized,
-    valid_data_list,
-)
+from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 
 key_content = DataFile.VALID_GPG_KEY_FILE.read_text()
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(module_org, name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_name(module_org, module_target_sat):
     """Create a GPG key with valid name.
 
     :id: 741d969b-28ef-481f-bcf7-ed4cd920b030
-
-    :parametrized: yes
 
     :expectedresults: A GPG key is created with the given name.
 
     :CaseImportance: Critical
     """
+    name = random.choice(list(valid_data_list().values()))
     gpg_key = module_target_sat.api.GPGKey(organization=module_org, name=name).create()
     assert name == gpg_key.name
 
 
+@pytest.mark.migration_candidate
 def test_positive_create_with_content(module_org, module_target_sat):
     """Create a GPG key with valid name and valid gpg key text.
 
@@ -58,24 +55,24 @@ def test_positive_create_with_content(module_org, module_target_sat):
     assert key_content == gpg_key.content
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_name(module_org, name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_name(module_org, module_target_sat):
     """Attempt to create GPG key with invalid names only.
 
     :id: 904a3ed0-7d50-495e-a700-b4f1ae913599
-
-    :parametrized: yes
 
     :expectedresults: A GPG key is not created and 422 error is raised.
 
     :CaseImportance: Critical
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(HTTPError) as error:
         module_target_sat.api.GPGKey(organization=module_org, name=name).create()
     assert error.value.response.status_code == 422
     assert 'Validation failed:' in error.value.response.text
 
 
+@pytest.mark.migration_candidate
 def test_negative_create_with_same_name(module_org, module_target_sat):
     """Attempt to create a GPG key providing a name of already existent
     entity
@@ -94,6 +91,7 @@ def test_negative_create_with_same_name(module_org, module_target_sat):
     assert 'Validation failed:' in error.value.response.text
 
 
+@pytest.mark.migration_candidate
 def test_negative_create_with_content(module_org, module_target_sat):
     """Attempt to create GPG key with empty content.
 
@@ -109,24 +107,24 @@ def test_negative_create_with_content(module_org, module_target_sat):
     assert 'Validation failed:' in error.value.response.text
 
 
-@pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-def test_positive_update_name(module_org, new_name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_update_name(module_org, module_target_sat):
     """Update GPG key name to another valid name.
 
     :id: 9868025d-5346-42c9-b850-916ce37a9541
-
-    :parametrized: yes
 
     :expectedresults: The GPG key name can be updated.
 
     :CaseImportance: Critical
     """
+    new_name = random.choice(list(valid_data_list().values()))
     gpg_key = module_target_sat.api.GPGKey(organization=module_org).create()
     gpg_key.name = new_name
     gpg_key = gpg_key.update(['name'])
     assert new_name == gpg_key.name
 
 
+@pytest.mark.migration_candidate
 def test_positive_update_content(module_org, module_target_sat):
     """Update GPG key content text to another valid one.
 
@@ -145,18 +143,17 @@ def test_positive_update_content(module_org, module_target_sat):
     assert key_content == gpg_key.content
 
 
-@pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-def test_negative_update_name(module_org, new_name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_update_name(module_org, module_target_sat):
     """Attempt to update GPG key name to invalid one
 
     :id: 1a43f610-8969-4f08-967f-fb6af0fca31b
-
-    :parametrized: yes
 
     :expectedresults: GPG key is not updated and 422 error is raised.
 
     :CaseImportance: Critical
     """
+    new_name = random.choice(invalid_values_list())
     gpg_key = module_target_sat.api.GPGKey(organization=module_org).create()
     gpg_key.name = new_name
     with pytest.raises(HTTPError) as error:
@@ -165,6 +162,7 @@ def test_negative_update_name(module_org, new_name, module_target_sat):
     assert 'Validation failed:' in error.value.response.text
 
 
+@pytest.mark.migration_candidate
 def test_negative_update_same_name(module_org, module_target_sat):
     """Attempt to update GPG key name to the name of existing GPG key
     entity
@@ -185,6 +183,7 @@ def test_negative_update_same_name(module_org, module_target_sat):
     assert 'Validation failed:' in error.value.response.text
 
 
+@pytest.mark.migration_candidate
 def test_negative_update_content(module_org, module_target_sat):
     """Attempt to update GPG key content to invalid one
 
@@ -203,6 +202,7 @@ def test_negative_update_content(module_org, module_target_sat):
     assert 'Validation failed:' in error.value.response.text
 
 
+@pytest.mark.migration_candidate
 def test_positive_delete(module_org, module_target_sat):
     """Create a GPG key with different names and then delete it.
 
