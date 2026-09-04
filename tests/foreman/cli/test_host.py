@@ -2410,6 +2410,7 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 @pytest.mark.run_in_one_thread
 @pytest.mark.rhel_ver_match('[9]')
 @pytest.mark.no_containers
+@pytest.mark.network_sensitive
 def test_positive_create_and_update_with_content_source(
     target_sat,
     module_capsule_configured,
@@ -2507,6 +2508,7 @@ def test_positive_create_host_with_lifecycle_environment_name(
 
 
 @pytest.mark.rhel_ver_match('^6')
+@pytest.mark.network_sensitive
 @pytest.mark.parametrize(
     'setting_update', ['validate_host_lce_content_source_coherence'], indirect=False
 )
