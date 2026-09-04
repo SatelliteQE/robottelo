@@ -208,29 +208,30 @@ def test_positive_image_provision_end_to_end(
     """
     sat = module_provisioning_sat.sat
     hostname = gen_string('alpha').lower()
-    host = sat.cli.Host.create(
-        {
-            'name': hostname,
-            'organization': module_sca_manifest_org.name,
-            'location': module_location.name,
-            'hostgroup': module_vmware_hostgroup.name,
-            'compute-resource-id': module_vmware_cr.id,
-            'image': module_vmware_image.name,
-            'ip': None,
-            'mac': None,
-            #'parameters': 'name=package_upgrade,type=boolean,value=false',
-            'typed-parameters': r'name=package_upgrade\,value=false\,parameter_type=boolean',
-            'compute-attributes': f'cluster={settings.vmware.cluster},'
-            f'path=/Datacenters/{settings.vmware.datacenter}/vm/,'
-            'scsi_controller_type=VirtualLsiLogicController,'
-            'guest_id=rhel8_64Guest,firmware=automatic,virtual_tpm=true'
-            'cpus=1,memory_mb=6000, start=1',
-            'interface': 'compute_type=VirtualVmxnet3,'
-            f'compute_network=VLAN {settings.provisioning.vlan_id}',
-            'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,storage_pod={settings.vmware.datastore_cluster}',
-            'provision-method': 'image',
-        }
-    )
+    with sat.hammer_api_timeout():
+        host = sat.cli.Host.create(
+            {
+                'name': hostname,
+                'organization': module_sca_manifest_org.name,
+                'location': module_location.name,
+                'hostgroup': module_vmware_hostgroup.name,
+                'compute-resource-id': module_vmware_cr.id,
+                'image': module_vmware_image.name,
+                'ip': None,
+                'mac': None,
+                #'parameters': 'name=package_upgrade,type=boolean,value=false',
+                'typed-parameters': r'name=package_upgrade\,value=false\,parameter_type=boolean',
+                'compute-attributes': f'cluster={settings.vmware.cluster},'
+                f'path=/Datacenters/{settings.vmware.datacenter}/vm/,'
+                'scsi_controller_type=VirtualLsiLogicController,'
+                'guest_id=rhel8_64Guest,firmware=automatic,virtual_tpm=true'
+                'cpus=1,memory_mb=6000, start=1',
+                'interface': 'compute_type=VirtualVmxnet3,'
+                f'compute_network=VLAN {settings.provisioning.vlan_id}',
+                'volume': f'name=Hard disk,size_gb=10,thin=true,eager_zero=false,storage_pod={settings.vmware.datastore_cluster}',
+                'provision-method': 'image',
+            }
+        )
     # teardown
     request.addfinalizer(lambda: sat.provisioning_cleanup(host['name'], interface='CLI'))
 
