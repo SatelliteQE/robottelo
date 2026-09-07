@@ -1072,7 +1072,7 @@ def test_positive_read_content_source_id(
 
     :BZ: 1339613, 1488130
     """
-    proxy = target_sat.api.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0].read()
+    proxy = target_sat.get_default_smart_proxy().read()
     module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
     host = target_sat.api.Host(
         organization=module_org,
@@ -1106,7 +1106,7 @@ def test_positive_update_content_source_id(
 
     :BZ: 1339613, 1488130
     """
-    proxy = target_sat.api.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0]
+    proxy = target_sat.get_default_smart_proxy()
     module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
     host = target_sat.api.Host(
         organization=module_org,
