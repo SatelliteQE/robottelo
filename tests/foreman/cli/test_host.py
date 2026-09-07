@@ -42,7 +42,9 @@ from robottelo.utils.datafactory import (
 @pytest.fixture(scope="module")
 def module_default_proxy(module_target_sat):
     """Use the default installation smart proxy"""
-    return module_target_sat.cli.Proxy.list({'search': f'url = {module_target_sat.url}:9090'})[0]
+    return module_target_sat.cli.Proxy.list(
+        {'search': f'feature = "Pulpcore" and url ~ {module_target_sat.hostname}'}
+    )[0]
 
 
 @pytest.fixture
@@ -2195,6 +2197,8 @@ def test_positive_host_with_puppet(
 
     :expectedresults: puppet environment
 
+    :BlockedBy: SAT-40445
+
     :CaseImportance: Critical
     """
     update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
@@ -2276,6 +2280,8 @@ def test_positive_list_scparams(
 
     :expectedresults: Overridden sc-param from puppet
         class are listed
+
+    :BlockedBy: SAT-40445
     """
     update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
     # Create hostgroup with associated puppet class
@@ -2326,6 +2332,8 @@ def test_positive_create_with_puppet_class_name(
 
     :expectedresults: Host is created and has puppet class assigned
 
+    :BlockedBy: SAT-40445
+
     :CaseImportance: Critical
     """
     update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
@@ -2366,6 +2374,8 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 
     :expectedresults: Host is updated with new owner
         and puppet class is still assigned and shown
+
+    :BlockedBy: SAT-40445
 
     :CaseImportance: Medium
 

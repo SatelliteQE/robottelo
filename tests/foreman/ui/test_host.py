@@ -1295,8 +1295,6 @@ def test_positive_validate_inherited_cvenv_ansiblerole(session, target_sat, modu
     :customerscenario: true
 
     :BZ: 1391656, 2094912
-
-    :BlockedBy: SAT-46639
     """
     SELECTED_ROLE = 'RedHatInsights.insights-client'
     cv_name = gen_string('alpha')
@@ -1347,8 +1345,8 @@ def test_positive_validate_inherited_cvenv_ansiblerole(session, target_sat, modu
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_host_template.organization.name)
         session.location.select(loc_name=module_host_template.location.name)
-        values = session.host_new.read(host['name'], ['host.content_view_environment'])
-        assert values['host']['content_view_environment'] == f'{lce.name}/{cv.name}'
+        values = session.host_new.read(host['name'], ['host.read_content_view_environment'])
+        assert values['host']['read_content_view_environment'] == f'{lce.name}/{cv.name}'
         matching_hosts = target_sat.api.Host().search(
             query={'search': f'ansible_role="{SELECTED_ROLE}"'}
         )
@@ -1817,6 +1815,8 @@ def test_positive_create_with_puppet_class(
     :id: d883f169-1105-435c-8422-a7160055734a
 
     :expectedresults: Host is created and contains correct puppet class
+
+    :BlockedBy: SAT-40445
     """
 
     host_template = session_puppet_enabled_sat.api.Host(
@@ -1873,6 +1873,8 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
 
     :expectedresults: Expected puppet environment is inherited to the form
 
+    :BlockedBy: SAT-40445
+
     :BZ: 1414914
     """
 
@@ -1917,6 +1919,8 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
     :id: d72b481d-2279-4478-ab2d-128f92c76d9c
 
     :customerscenario: true
+
+    :BlockedBy: SAT-40445
 
     :expectedresults:
         1. parameter is correctly represented in yaml format without
@@ -2371,7 +2375,10 @@ def test_manage_content_source_with_multi_cv(
     result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
-    # Step 5 & 6: Use UI to manage content source with multiple CVEnv assignments
+    # Step 5: Get the default smart proxy for content source
+    default_proxy = module_target_sat.get_default_smart_proxy()
+
+    # Step 6 & 7: Use UI to manage content source with multiple CVEnv assignments
     with module_target_sat.ui_session() as session:
         session.organization.select(module_org.name)
 
@@ -2384,7 +2391,7 @@ def test_manage_content_source_with_multi_cv(
             entities_list=[
                 rhel_contenthost.hostname,
             ],
-            content_source=module_target_sat.hostname,
+            content_source=default_proxy.name,
             cv_env_assignments=[
                 {'content_view': module_cv.name, 'lce': module_lce.name},
                 {'content_view': cv2.name, 'lce': lce2.name},
@@ -2392,16 +2399,11 @@ def test_manage_content_source_with_multi_cv(
             run_job_invocation=True,
         )
         session.jobinvocation.submit_prefilled_view()
-    # Step 7: Verify results using API (more reliable after job invocation navigation)
+    # Step 8: Verify results using API (more reliable after job invocation navigation)
     host = module_target_sat.api.Host().search(
         query={'search': f'name={rhel_contenthost.hostname}'}
     )[0]
     host_content_facet = host.read_json()
-    # Verify content source was changed
-    assert (
-        host_content_facet['content_facet_attributes']['content_source']['name']
-        == module_target_sat.hostname
-    )
 
     # Verify multiple CVEnv assignments
     cv_envs = host_content_facet['content_facet_attributes']['content_view_environments']

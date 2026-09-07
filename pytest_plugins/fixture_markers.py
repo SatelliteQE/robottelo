@@ -1,5 +1,7 @@
-from inspect import getmembers, isfunction
+from inspect import getmembers
 import re
+
+from _pytest.fixtures import FixtureFunctionDefinition
 
 from robottelo.config import settings
 
@@ -121,19 +123,24 @@ def pytest_configure(config):
 def pytest_collection_modifyitems(session, items, config):
     from pytest_fixtures.core import contenthosts
 
-    def chost_rhelver(params):
+    def chost_rhelver(params, matching_fixtures):
         """Helper to retrieve the rhel_version of a client from test params"""
         for param in params:
-            if 'contenthost' in param:
+            if param in matching_fixtures:
                 return params[param].get('rhel_version')
         return None
 
-    content_host_fixture_names = [m[0] for m in getmembers(contenthosts, isfunction)]
+    content_host_fixture_names = {
+        m[0] for m in getmembers(contenthosts, lambda x: isinstance(x, FixtureFunctionDefinition))
+    }
     for item in items:
-        if set(item.fixturenames).intersection(set(content_host_fixture_names)):
+        if matching_fixtures := set(item.fixturenames).intersection(content_host_fixture_names):
             # TODO check param for indirect version parametrization
             if hasattr(item, 'callspec'):
-                client_property = ('ClientOS', str(chost_rhelver(item.callspec.params)))
+                client_property = (
+                    'ClientOS',
+                    str(chost_rhelver(item.callspec.params, matching_fixtures)),
+                )
             else:
                 client_property = ('ClientOS', str(settings.content_host.default_rhel_version))
             item.user_properties.append(client_property)

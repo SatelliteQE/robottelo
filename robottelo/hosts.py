@@ -77,7 +77,6 @@ from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.issue_handlers import is_open
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -1564,12 +1563,6 @@ class ContentHost(Host, ContentHostMixins):
             self.disable_repo("rhel-*")
             # add internal rhel repos
             self.create_custom_repos(**settings.repos.get(f'rhel{self.os_version.major}_os'))
-        else:
-            # enable cdn repos
-            for repo in getattr(constants, f"OHSNAP_RHEL{self.os_version.major}_REPOS"):
-                result = self.enable_repo(repo, force=True)
-                if result.status:
-                    raise ContentHostError(f'Enabling RHEL repos on host failed\n{result.stdout}')
 
     def setup_satellite_repos(self):
         """Setup Satellite repositories on host
@@ -1704,6 +1697,11 @@ class Capsule(ContentHost, CapsuleMixins):
     def __init__(self, hostname, **kwargs):
         kwargs.setdefault('net_type', settings.capsule.network_type)
         super().__init__(hostname=hostname, **kwargs)
+        self.product_rpm_name = (
+            self.container_rpm_name
+            if settings.server.install_method == InstallMethod.FOREMANCTL
+            else self.product_rpm_name
+        )
 
     @property
     def nailgun_capsule(self):
@@ -1808,17 +1806,17 @@ class Capsule(ContentHost, CapsuleMixins):
             )
         return key
 
-    def is_foremanctl_available(self):
-        """Check if foremanctl is installed on the system.
+    def is_satellitectl_available(self):
+        """Check if satellitectl is installed on the system.
 
         Only checks if the command exists, not if the package is available in repos.
         This ensures auto-detection defaults to satellite-installer on clean systems.
 
-        :return: True if foremanctl command is installed
+        :return: True if satellitectl command is installed
         :rtype: bool
         """
-        # Check if foremanctl command exists (already installed)
-        result = self.execute('which foremanctl')
+        # Check if satellitectl command exists (already installed)
+        result = self.execute(f'which {self.container_rpm_name}')
         return result.status == 0
 
     def detect_install_method(self):
@@ -1860,8 +1858,8 @@ class Capsule(ContentHost, CapsuleMixins):
             return InstallMethod.INSTALLER
 
         # Availability detection
-        if self.is_foremanctl_available():
-            logger.info('foremanctl available, using foremanctl method')
+        if self.is_satellitectl_available():
+            logger.info('satellitectl package available, using foremanctl method')
             return InstallMethod.FOREMANCTL
 
         logger.info('Defaulting to satellite-installer method')
@@ -2253,7 +2251,7 @@ class Capsule(ContentHost, CapsuleMixins):
                 'Set CONTAINER_REGISTRY.USERNAME and CONTAINER_REGISTRY.PASSWORD in conf/server.yaml'
             )
 
-        # Install foremanctl
+        # Install satellitectl
         assert self.execute('dnf install -y satellitectl').status == 0, (
             'Failed to install satellitectl'
         )
@@ -2283,16 +2281,6 @@ class Capsule(ContentHost, CapsuleMixins):
             ).status
             == 0
         )
-
-        if is_open('SAT-48790'):
-            # This belongs into the downstream packaging, which isn't ready yet
-            overrides_dir = '/usr/share/foremanctl/src/playbooks/_vendor_overrides/'
-            self.execute(f'mkdir -p {overrides_dir}/deploy/')
-            self.put(
-                'variables:\n  flavor:\n    choices:\n      - satellite',
-                f'{overrides_dir}/deploy/metadata.obsah.yaml',
-                temp_file=True,
-            )
 
         # Install Satellite and return result
 
@@ -2465,6 +2453,41 @@ class Satellite(Capsule, SatelliteMixins):
         self._cli = type('cli', (), {'_configured': False})
         self._apidoc = None
         self.record_property = None
+
+    def set_foreman_logging_level(self, level='debug', reset=False):
+        """Set (or reset) the Foreman logging level in an install-method-aware way.
+
+        - satellite-installer: uses ``--foreman-logging-level`` /
+          ``--reset-foreman-logging-level``.
+        - foremanctl: re-runs ``foremanctl deploy`` with ``--foreman-log-level``.
+          foremanctl persists parameters between runs (loaded from
+          ``/var/lib/foremanctl/parameters.yaml``), so re-deploying only changes the
+          log level. The default Foreman log level is ``info``, which is used to reset.
+
+        :param str level: Log level to set (e.g. 'debug'). Ignored when ``reset`` is True.
+        :param bool reset: Reset the Foreman logging level back to the default.
+        :return: The command result.
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            level = 'info' if reset else level
+            return self.execute(f'foremanctl deploy --foreman-log-level {level}', timeout=0)
+        if reset:
+            return self.execute('satellite-installer --reset-foreman-logging-level', timeout=0)
+        return self.execute(f'satellite-installer --foreman-logging-level {level}', timeout=0)
+
+    def grep_foreman_log(self, pattern):
+        """Search Foreman's production log for a pattern, install-method-aware.
+
+        - satellite-installer: greps ``/var/log/foreman/production.log``.
+        - foremanctl: Foreman runs as a quadlet container (systemd unit ``foreman``)
+          that logs to journald, so we grep the journal for that unit instead.
+
+        :param str pattern: The pattern to grep for.
+        :return: The command result.
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return self.execute(f'journalctl --no-pager --unit foreman | grep "{pattern}"')
+        return self.execute(f'grep "{pattern}" /var/log/foreman/production.log')
 
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
@@ -2786,15 +2809,7 @@ class Satellite(Capsule, SatelliteMixins):
                 raise SatelliteHostError(
                     f'satellitectl auth-bundle failed\n{result.stdout}\n{result.stderr}'
                 )
-            if is_open('SAT-49003'):
-                # This belongs into the downstream packaging, which isn't ready yet
-                overrides_dir = '/usr/share/foremanctl/src/playbooks/_vendor_overrides/'
-                capsule.execute(f'mkdir -p {overrides_dir}/deploy-proxy/')
-                capsule.put(
-                    'variables:\n  flavor:\n    choices:\n      - capsule',
-                    f'{overrides_dir}/deploy-proxy/metadata.obsah.yaml',
-                    temp_file=True,
-                )
+
             install_cmd = (
                 f'satellitectl deploy-proxy --flavor capsule'
                 f' --auth-bundle {cert_file_path}'

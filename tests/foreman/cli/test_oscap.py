@@ -449,7 +449,7 @@ class TestOpenScap:
             module_target_sat.cli.Scapcontent.info({'title': scap_content['title']})
 
     @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_postive_create_scap_policy_with_valid_name(
+    def test_positive_create_scap_policy_with_valid_name(
         self, name, scap_content, module_target_sat
     ):
         """Create scap policy with valid name
