@@ -342,7 +342,7 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
         username=settings.http_proxy.username,
         password=settings.http_proxy.password,
         organization=[module_org],
-        cacert=cacert_path,
+        cacert=cacert,
     ).create()
     repo = target_sat.api.Repository(
         product=module_product,
