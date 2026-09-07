@@ -77,7 +77,6 @@ from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.issue_handlers import is_open
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',

@@ -1815,6 +1815,8 @@ def test_positive_create_with_puppet_class(
     :id: d883f169-1105-435c-8422-a7160055734a
 
     :expectedresults: Host is created and contains correct puppet class
+
+    :BlockedBy: SAT-40445
     """
 
     host_template = session_puppet_enabled_sat.api.Host(
@@ -1871,6 +1873,8 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
 
     :expectedresults: Expected puppet environment is inherited to the form
 
+    :BlockedBy: SAT-40445
+
     :BZ: 1414914
     """
 
@@ -1915,6 +1919,8 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
     :id: d72b481d-2279-4478-ab2d-128f92c76d9c
 
     :customerscenario: true
+
+    :BlockedBy: SAT-40445
 
     :expectedresults:
         1. parameter is correctly represented in yaml format without
