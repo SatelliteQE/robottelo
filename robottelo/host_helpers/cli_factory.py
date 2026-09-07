@@ -503,7 +503,7 @@ class CLIFactory:
         if options is None or 'url' not in options:
             newport = self._satellite.available_capsule_port
             proxy_port = (
-                8443 if settings.server.install_method == InstallMethod.FOREMANCTL else 9090
+                8443 if self._satellite.install_method == InstallMethod.FOREMANCTL else 9090
             )
             try:
                 with self._satellite.default_url_on_new_port(proxy_port, newport) as url:
