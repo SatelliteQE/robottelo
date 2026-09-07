@@ -70,7 +70,9 @@ def puppet_content_source(session_puppet_enabled_sat):
 @pytest.fixture(scope='module')
 def content_source(module_target_sat):
     """Return the proxy."""
-    return module_target_sat.cli.Proxy.list({'search': f'url = {module_target_sat.url}:9090'})[0]
+    return module_target_sat.cli.Proxy.list(
+        {'search': f'feature = "Pulpcore" and url ~ {module_target_sat.hostname}'}
+    )[0]
 
 
 @pytest.fixture(scope='module')
