@@ -29,6 +29,7 @@ from fauxfactory import (
 from robottelo import constants
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
+from robottelo.enums import InstallMethod
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 
@@ -501,8 +502,11 @@ class CLIFactory:
 
         if options is None or 'url' not in options:
             newport = self._satellite.available_capsule_port
+            proxy_port = (
+                8443 if settings.server.install_method == InstallMethod.FOREMANCTL else 9090
+            )
             try:
-                with self._satellite.default_url_on_new_port(9090, newport) as url:
+                with self._satellite.default_url_on_new_port(proxy_port, newport) as url:
                     args['url'] = url
                     return create_object(self._satellite.cli.Proxy, args, options)
             except CapsuleTunnelError as err:
