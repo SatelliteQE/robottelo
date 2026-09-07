@@ -16,6 +16,7 @@ import re
 from fauxfactory import gen_string
 import pytest
 
+from pytest_fixtures.component.maintain import _sync_repositories
 from robottelo.config import settings
 
 pytestmark = [pytest.mark.foremanctl]
@@ -33,6 +34,18 @@ def cleanup_backup_dir(target_sat):
     target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
     yield
     target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+
+
+@pytest.fixture(scope='module')
+def module_synced_repos(module_target_sat, module_sca_manifest):
+    """Sync custom and RH repositories against the foremanctl-managed Satellite.
+
+    Overrides the satellite-maintain fixture of the same name so the repos are
+    synced against ``module_target_sat`` directly, rather than the ``sat_maintain``
+    host, which may resolve to a different instance when ``remotedb.server`` is set.
+    """
+    synced = _sync_repositories(module_target_sat, module_sca_manifest)
+    return {'custom': synced['cust_repo'], 'rh': synced['rh_repo']}
 
 
 def _assert_backup_files(server, backup_dir, skip_pulp=False):
@@ -54,7 +67,9 @@ def _assert_backup_files(server, backup_dir, skip_pulp=False):
     )
 
 
-def _create_backup(server, subdir, skip_pulp=False, base_backup=None, wait_for_tasks=True):
+def _create_backup(
+    server, subdir, skip_pulp=False, base_backup=None, wait_for_tasks=True, tar_volume_size=None
+):
     """Run foremanctl backup and return the timestamped backup subdirectory path."""
     cmd = f'foremanctl backup {subdir}'
     if skip_pulp:
@@ -63,6 +78,8 @@ def _create_backup(server, subdir, skip_pulp=False, base_backup=None, wait_for_t
         cmd += f' --base-backup {base_backup}'
     if wait_for_tasks:
         cmd += ' --wait-for-tasks'
+    if tar_volume_size:
+        cmd += f' --tar-volume-size {tar_volume_size}'
     result = server.execute(cmd, timeout='30m')
     assert result.status == 0, f'foremanctl backup failed:\n{result.stdout}\n{result.stderr}'
     backup_dir = re.search(r'Location:\s*(\S+)', result.stdout)
@@ -95,6 +112,55 @@ def test_positive_offline_backup(module_target_sat):
 
     result = module_target_sat.execute('foremanctl health', timeout='5m')
     assert result.status == 0, f'foremanctl health check failed after backup:\n{result.stdout}'
+
+
+def test_positive_backup_split_tar(module_target_sat, module_synced_repos):
+    """Verify foremanctl backup splits pulp content into multiple volumes with --tar-volume-size
+
+    :id: 789ed846-6abb-442b-ae42-e918fa7e5b39
+
+    :setup:
+        1. Repositories with sufficient content synced to the server
+
+    :steps:
+        1. Run foremanctl backup with --tar-volume-size set to a small value
+        2. Verify backup contains the expected database, config and pulp snapshot files
+        3. Verify pulp content is split into multiple numbered volumes
+        4. Verify each volume respects the requested size cap
+
+    :expectedresults:
+        1. Backup command exits with status 0
+        2. Expected files are present in the backup
+        3. Pulp content is split into multiple pulp-content.tar.gz.partNNNN volumes
+        4. No volume exceeds the requested size
+
+    :Verifies: SAT-44897
+    """
+    set_size_kb = 100
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+    backup_dir = _create_backup(module_target_sat, subdir, tar_volume_size=f'{set_size_kb}k')
+
+    ls_output = module_target_sat.execute(f'ls -a {backup_dir}').stdout
+    files = [f for f in ls_output.split('\n') if not re.compile(r'^\.*$').search(f)]
+
+    # Databases, config files and the pulp snapshot must still be present
+    # (the monolithic pulp-content.tar.gz is replaced by the split volumes)
+    expected_files = SAT_FILES | (CONTENT_FILES - {'pulp-content.tar.gz'})
+    assert set(files).issuperset(expected_files), (
+        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
+    )
+
+    # The pulp content must be split into multiple numbered volumes
+    part_files = [f for f in files if f.startswith('pulp-content.tar.gz.part')]
+    assert len(part_files) > 1, f'Expected multiple pulp-content volumes, found: {part_files}'
+
+    # Each volume must respect the requested size cap
+    sizes = module_target_sat.execute(
+        f'stat -c %s {backup_dir}/pulp-content.tar.gz.part*'
+    ).stdout.split()
+    assert max(int(size) for size in sizes) <= set_size_kb * 1024, (
+        f'A pulp-content volume exceeds the requested size of {set_size_kb}k: {sizes}'
+    )
 
 
 @pytest.mark.destructive
