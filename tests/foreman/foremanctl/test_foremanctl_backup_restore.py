@@ -54,18 +54,20 @@ def _assert_backup_files(server, backup_dir, skip_pulp=False):
     )
 
 
-def _create_backup(sat, subdir, skip_pulp=False, base_backup=None):
+def _create_backup(server, subdir, skip_pulp=False, base_backup=None, wait_for_tasks=True):
     """Run foremanctl backup and return the timestamped backup subdirectory path."""
-    cmd = f'foremanctl backup {subdir} --wait-for-tasks'
+    cmd = f'foremanctl backup {subdir}'
     if skip_pulp:
         cmd += ' --skip-pulp-content'
     if base_backup:
         cmd += f' --base-backup {base_backup}'
-    result = sat.execute(cmd, timeout='30m')
+    if wait_for_tasks:
+        cmd += ' --wait-for-tasks'
+    result = server.execute(cmd, timeout='30m')
     assert result.status == 0, f'foremanctl backup failed:\n{result.stdout}\n{result.stderr}'
-    location = re.search(r'Location:\s*(\S+)', result.stdout)
-    assert location, f'Backup location not found in output:\n{result.stdout}'
-    return location.group(1)
+    backup_dir = re.search(r'Location:\s*(\S+)', result.stdout)
+    assert backup_dir, f'Backup location not found in output:\n{result.stdout}'
+    return backup_dir.group(1)
 
 
 def test_positive_offline_backup(module_target_sat):
