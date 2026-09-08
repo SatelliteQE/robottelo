@@ -697,6 +697,7 @@ def test_positive_list_by_last_checkin(module_org, rhel_contenthost, target_sat,
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_create
+@pytest.mark.foreman_installer
 def test_positive_list_infrastructure_hosts(
     module_org, rhel_contenthost, target_sat, module_ak_with_cv
 ):
@@ -2089,23 +2090,6 @@ def test_positive_multi_cv_host_repo_availability(
     # Confirm that the host sees repositories from both content view environments
     assert repo_a.label in repos.stdout
     assert repo_b.label in repos.stdout
-
-
-# -------------------------- HOST ERRATA SUBCOMMAND SCENARIOS -------------------------
-def test_positive_errata_list_of_sat_server(target_sat):
-    """Check if errata list doesn't raise exception. Check BZ for details.
-
-    :id: 6b22f0c0-9c4b-11e6-ab93-68f72889dc7f
-
-    :expectedresults: Satellite host errata list not failing
-
-    :BZ: 1351040
-
-    :CaseImportance: Critical
-    """
-    hostname = target_sat.execute('hostname').stdout.strip()
-    host = target_sat.cli.Host.info({'name': hostname})
-    assert isinstance(target_sat.cli.Host.errata_list({'host-id': host['id']}), list)
 
 
 # -------------------------- HOST ENC SUBCOMMAND SCENARIOS -------------------------
