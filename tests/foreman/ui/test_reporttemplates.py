@@ -32,6 +32,7 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.utils.datafactory import gen_string
+from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(autouse=True)
@@ -342,6 +343,8 @@ def test_positive_cloud_billing_azure_columns(
         )
         with open(result_json) as json_file:
             data_json = json.load(json_file)
+            if is_open('SAT-50249') and isinstance(data_json, str):
+                data_json = json.loads(data_json)
 
         report_columns = data_json[0].keys()
 
@@ -407,6 +410,8 @@ def test_positive_cloud_billing_aws_columns(
         )
         with open(result_json) as json_file:
             data_json = json.load(json_file)
+            if is_open('SAT-50249') and isinstance(data_json, str):
+                data_json = json.loads(data_json)
 
         report_columns = data_json[0].keys()
 
@@ -476,6 +481,8 @@ def test_positive_cloud_billing_gcp_columns(
         )
         with open(result_json) as json_file:
             data_json = json.load(json_file)
+            if is_open('SAT-50249') and isinstance(data_json, str):
+                data_json = json.loads(data_json)
 
         report_columns = data_json[0].keys()
 
@@ -519,6 +526,8 @@ def test_positive_cloud_billing_inputs_default_false(
         )
         with open(result_json) as json_file:
             data_json = json.load(json_file)
+            if is_open('SAT-50249') and isinstance(data_json, str):
+                data_json = json.loads(data_json)
 
         report_columns = data_json[0].keys()
 
@@ -570,6 +579,8 @@ def test_negative_cloud_billing_azure_false_aws_gcp_true(
         )
         with open(result_json) as json_file:
             data_json = json.load(json_file)
+            if is_open('SAT-50249') and isinstance(data_json, str):
+                data_json = json.loads(data_json)
 
         report_columns = data_json[0].keys()
 
@@ -623,6 +634,8 @@ def test_negative_cloud_billing_aws_false_azure_gcp_true(
         )
         with open(result_json) as json_file:
             data_json = json.load(json_file)
+            if is_open('SAT-50249') and isinstance(data_json, str):
+                data_json = json.loads(data_json)
 
         report_columns = data_json[0].keys()
 
@@ -676,6 +689,8 @@ def test_negative_cloud_billing_gcp_false_azure_aws_true(
         )
         with open(result_json) as json_file:
             data_json = json.load(json_file)
+            if is_open('SAT-50249') and isinstance(data_json, str):
+                data_json = json.loads(data_json)
 
         report_columns = data_json[0].keys()
 
@@ -729,6 +744,8 @@ def test_positive_cloud_billing_multiple_providers_enabled(
         )
         with open(result_json) as json_file:
             data_json = json.load(json_file)
+            if is_open('SAT-50249') and isinstance(data_json, str):
+                data_json = json.loads(data_json)
 
         report_columns = data_json[0].keys()
 
@@ -781,6 +798,8 @@ def test_positive_installed_products_hardware_model_column(
         )
         with open(result_json) as json_file:
             data_json = json.load(json_file)
+            if is_open('SAT-50249') and isinstance(data_json, str):
+                data_json = json.loads(data_json)
 
         report_columns = data_json[0].keys()
 
