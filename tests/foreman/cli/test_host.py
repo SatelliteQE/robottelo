@@ -2443,7 +2443,8 @@ def test_positive_create_and_update_with_content_source(
 
     host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     assert (
-        host['content-information']['content-source']['name'] == target_sat.hostname
+        host['content-information']['content-source']['name']
+        == target_sat.get_default_smart_proxy().name
         or host['content-information']['content-source']['name'] == ''
     )
 
