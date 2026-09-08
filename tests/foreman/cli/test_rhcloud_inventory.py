@@ -675,9 +675,7 @@ def test_positive_cloud_connector_setup_with_foremanctl(target_sat):
         'openssl x509 -in /etc/pki/consumer/cert.pem -noout -subject'
     )
     assert consumer_cert.status == 0, f'Failed to read consumer certificate: {consumer_cert.stderr}'
-    assert 'CN=' in consumer_cert.stdout, (
-        f'Consumer certificate missing CN: {consumer_cert.stdout}'
-    )
+    assert 'CN=' in consumer_cert.stdout, f'Consumer certificate missing CN: {consumer_cert.stdout}'
 
     # Step 6: Verify cloud_connector_user exists with Cloud Connector role
     try:
