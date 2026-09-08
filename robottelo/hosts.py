@@ -1706,7 +1706,13 @@ class Capsule(ContentHost, CapsuleMixins):
 
     @property
     def nailgun_capsule(self):
-        return self.satellite.api.Capsule().search(query={'search': f'name={self.hostname}'})[0]
+        # Containerized installs expose a dedicated content (pulp) capsule named
+        # '<hostname>-pulp', while traditional rpm installs use just '<hostname>'.
+        # Prefer the content capsule when present, otherwise fall back to the plain one.
+        for name in (f'{self.hostname}-pulp', self.hostname):
+            if results := self.satellite.api.Capsule().search(query={'search': f'name={name}'}):
+                return results[0]
+        raise ContentHostError(f'No Capsule found matching hostname {self.hostname}')
 
     @property
     def nailgun_smart_proxy(self):
