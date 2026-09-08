@@ -26,6 +26,29 @@ inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
 generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'
 
 
+def enable_cloud_connector(target_sat):
+    target_sat.register_to_cdn()
+    if 'cloud-connector' not in target_sat.list_foremanctl_features(enabled=True):
+        # Install rhc and related packages (prerequisite for cloud-connector)
+        target_sat.execute('dnf install -y rhc rhc-worker-playbook')
+
+        # Ensure required rhc directories exist (workaround for foremanctl deployment)
+        target_sat.execute('mkdir -p /etc/rhc/workers /usr/libexec/rhc')
+        target_sat.execute('chmod 755 /etc/rhc/workers /usr/libexec/rhc')
+
+        # Enable and start yggdrasil service
+        target_sat.execute('systemctl enable yggdrasil.service')
+        result = target_sat.execute('systemctl start yggdrasil.service')
+        assert result.status == 0, (
+            f'Failed to start yggdrasil.service:\nstdout: {result.stdout}\nstderr: {result.stderr}'
+        )
+
+        # Deploy cloud-connector feature
+        result = target_sat.execute('foremanctl deploy --add-feature cloud-connector')
+        assert result.status == 0, (
+            f'Failed to deploy cloud-connector:\nstdout: {result.stdout}\nstderr: {result.stderr}'
+        )
+
 @pytest.mark.e2e
 def test_positive_inventory_generate_upload_cli(
     rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat
@@ -585,3 +608,88 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
         query={'search': f'{generate_job_name} and started_at >= "{timestamp}"'}
     )
     assert task_output[0].result == "success"
+
+
+def test_positive_cloud_connector_setup_with_foremanctl(target_sat):
+    """Verify cloud connector can be enabled and configured using foremanctl
+
+    :id: 00d8aa09-713e-44d8-9cbd-78c0e4a16e73
+
+    :steps:
+        1. Deploy cloud connector feature using foremanctl
+        2. Verify cloud-connector is in the list of enabled features
+        3. Verify rhcd service is active and running
+        4. Verify /etc/rhc/workers/foreman_rh_cloud.toml has correct service user credentials
+        5. Verify rhc_instance_id setting shows the consumer cert CN
+        6. Verify cloud_connector_user exists with Cloud Connector role
+
+    :expectedresults:
+        1. foremanctl deploy --add-feature cloud-connector completes successfully
+        2. foremanctl features --list-enabled includes cloud-connector
+        3. systemctl status rhcd shows active/running
+        4. foreman_rh_cloud.toml contains service user credentials
+        5. rhc_instance_id setting matches consumer cert CN
+        6. cloud_connector_user has Cloud Connector role
+
+    """
+    # Step 1: Deploy cloud connector feature
+    enable_cloud_connector(target_sat)
+
+    # Step 2: Verify cloud-connector is enabled
+    enabled_features = target_sat.list_foremanctl_features(enabled=True)
+    assert 'cloud-connector' in enabled_features, (
+        f'cloud-connector not in list of enabled features: {enabled_features}'
+    )
+
+    # Step 3: Verify rhcd service is active/running
+    result = target_sat.execute('systemctl status rhcd')
+    assert result.status == 0, f'rhcd service is not running: {result.stderr}'
+    assert 'running' in result.stdout.lower() or 'active (running)' in result.stdout.lower(), (
+        f'rhcd service not running: {result.stdout}'
+    )
+
+    # Step 4: Verify foreman_rh_cloud.toml has correct content
+    toml_path = '/etc/rhc/workers/foreman_rh_cloud.toml'
+    result = target_sat.execute(f'cat {toml_path}')
+    assert result.status == 0, f'Failed to read {toml_path}: {result.stderr}'
+
+    toml_content = result.stdout
+    # Verify service user credentials are present
+    assert 'forwarder_user' in toml_content.lower(), 'forwarder_user not found in foreman_rh_cloud.toml'
+    assert 'forwarder_password' in toml_content.lower(), 'forwarder_password not found in foreman_rh_cloud.toml'
+    assert 'cloud_connector_user' in toml_content or '[authentication]' in toml_content, (
+        'Service user configuration not found in foreman_rh_cloud.toml'
+    )
+
+    # Step 5: Verify rhc_instance_id setting
+    result = target_sat.cli.Settings.info({'name': 'rhc_instance_id'})
+    assert result['value'], 'rhc_instance_id setting is empty'
+
+    # Verify the value matches the consumer cert CN
+    consumer_cert = target_sat.execute(
+        'openssl x509 -in /etc/pki/katello/certs/katello-default-ca.crt -noout -subject'
+    )
+    if consumer_cert.status == 0:
+        # Extract CN from subject line
+        subject = consumer_cert.stdout
+        if 'CN' in subject:
+            cn_value = subject.split('CN=')[-1].strip().split(',')[0]
+            assert cn_value in result['value'] or result['value'] in cn_value, (
+                f"rhc_instance_id ({result['value']}) does not match consumer cert CN ({cn_value})"
+            )
+
+    # Step 6: Verify cloud_connector_user exists with Cloud Connector role
+    try:
+        user_info = target_sat.cli.User.info({'login': 'cloud_connector_user'})
+        assert user_info['login'] == 'cloud_connector_user', (
+            f"User login mismatch: {user_info['login']}"
+        )
+
+        # Verify the user has Cloud Connector role
+        user_roles = user_info.get('roles', [])
+        assert any('cloud connector' in role.lower() for role in user_roles), (
+            f'Cloud Connector role not found in user roles: {user_roles}'
+        )
+    except Exception as e:
+        # If user doesn't exist or command fails, that's an assertion failure
+        pytest.fail(f'Failed to verify cloud_connector_user: {e}')
