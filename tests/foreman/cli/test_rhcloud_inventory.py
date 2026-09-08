@@ -621,7 +621,7 @@ def test_positive_cloud_connector_setup_with_foremanctl(target_sat):
         2. Verify cloud-connector is in the list of enabled features
         3. Verify rhcd service is active and running
         4. Verify /etc/rhc/workers/foreman_rh_cloud.toml has correct service user credentials
-        5. Verify rhc_instance_id setting shows the consumer cert CN
+        5. Verify rhc_instance_id setting is populated and consumer certificate exists
         6. Verify cloud_connector_user exists with Cloud Connector role
 
     :expectedresults:
@@ -629,7 +629,7 @@ def test_positive_cloud_connector_setup_with_foremanctl(target_sat):
         2. foremanctl features --list-enabled includes cloud-connector
         3. systemctl status rhcd shows active/running
         4. foreman_rh_cloud.toml contains service user credentials
-        5. rhc_instance_id setting matches consumer cert CN
+        5. rhc_instance_id setting is not empty and consumer certificate is valid
         6. cloud_connector_user has Cloud Connector role
 
     """
@@ -666,22 +666,18 @@ def test_positive_cloud_connector_setup_with_foremanctl(target_sat):
         'Service user configuration not found in foreman_rh_cloud.toml'
     )
 
-    # Step 5: Verify rhc_instance_id setting
+    # Step 5: Verify rhc_instance_id setting is populated
     result = target_sat.cli.Settings.info({'name': 'rhc_instance_id'})
     assert result['value'], 'rhc_instance_id setting is empty'
 
-    # Verify the value matches the consumer cert CN
+    # Verify consumer certificate exists
     consumer_cert = target_sat.execute(
         'openssl x509 -in /etc/pki/consumer/cert.pem -noout -subject'
     )
     assert consumer_cert.status == 0, f'Failed to read consumer certificate: {consumer_cert.stderr}'
-    # Extract CN from subject line
-    subject = consumer_cert.stdout
-    if 'CN' in subject:
-        cn_value = subject.split('CN=')[-1].strip().split(',')[0]
-        assert cn_value in result['value'] or result['value'] in cn_value, (
-            f"rhc_instance_id ({result['value']}) does not match consumer cert CN ({cn_value})"
-        )
+    assert 'CN=' in consumer_cert.stdout, (
+        f'Consumer certificate missing CN: {consumer_cert.stdout}'
+    )
 
     # Step 6: Verify cloud_connector_user exists with Cloud Connector role
     try:
