@@ -697,6 +697,7 @@ def test_positive_list_by_last_checkin(module_org, rhel_contenthost, target_sat,
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_create
+@pytest.mark.foreman_installer
 def test_positive_list_infrastructure_hosts(
     module_org, rhel_contenthost, target_sat, module_ak_with_cv
 ):
