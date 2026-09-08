@@ -64,6 +64,7 @@ def test_positive_end_to_end(session, module_org, module_location, module_target
         assert not module_target_sat.api.HostGroup().search(query={'search': f'name={new_name}'})
 
 
+@pytest.mark.foreman_installer
 def test_negative_delete_with_discovery_rule(
     session, module_org, module_location, module_target_sat
 ):
@@ -197,7 +198,9 @@ def test_positive_create_new_host(
     """
     name = gen_string('alpha')
     description = gen_string('alpha')
-    capsule = target_sat.nailgun_smart_proxy
+    capsule = target_sat.api.SmartProxy().search(
+        query={'search': f'feature = "Pulpcore" and url ~ {target_sat.hostname}'}
+    )[0]
     capsule.location = [smart_proxy_location]
     capsule.update(['location'])
     capsule.organization = [module_org]
