@@ -672,16 +672,16 @@ def test_positive_cloud_connector_setup_with_foremanctl(target_sat):
 
     # Verify the value matches the consumer cert CN
     consumer_cert = target_sat.execute(
-        'openssl x509 -in /etc/pki/katello/certs/katello-default-ca.crt -noout -subject'
+        'openssl x509 -in /etc/pki/consumer/cert.pem -noout -subject'
     )
-    if consumer_cert.status == 0:
-        # Extract CN from subject line
-        subject = consumer_cert.stdout
-        if 'CN' in subject:
-            cn_value = subject.split('CN=')[-1].strip().split(',')[0]
-            assert cn_value in result['value'] or result['value'] in cn_value, (
-                f"rhc_instance_id ({result['value']}) does not match consumer cert CN ({cn_value})"
-            )
+    assert consumer_cert.status == 0, f'Failed to read consumer certificate: {consumer_cert.stderr}'
+    # Extract CN from subject line
+    subject = consumer_cert.stdout
+    if 'CN' in subject:
+        cn_value = subject.split('CN=')[-1].strip().split(',')[0]
+        assert cn_value in result['value'] or result['value'] in cn_value, (
+            f"rhc_instance_id ({result['value']}) does not match consumer cert CN ({cn_value})"
+        )
 
     # Step 6: Verify cloud_connector_user exists with Cloud Connector role
     try:
