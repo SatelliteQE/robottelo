@@ -49,6 +49,7 @@ def enable_cloud_connector(target_sat):
             f'Failed to deploy cloud-connector:\nstdout: {result.stdout}\nstderr: {result.stderr}'
         )
 
+
 @pytest.mark.e2e
 def test_positive_inventory_generate_upload_cli(
     rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat
@@ -655,8 +656,12 @@ def test_positive_cloud_connector_setup_with_foremanctl(target_sat):
 
     toml_content = result.stdout
     # Verify service user credentials are present
-    assert 'forwarder_user' in toml_content.lower(), 'forwarder_user not found in foreman_rh_cloud.toml'
-    assert 'forwarder_password' in toml_content.lower(), 'forwarder_password not found in foreman_rh_cloud.toml'
+    assert 'forwarder_user' in toml_content.lower(), (
+        'forwarder_user not found in foreman_rh_cloud.toml'
+    )
+    assert 'forwarder_password' in toml_content.lower(), (
+        'forwarder_password not found in foreman_rh_cloud.toml'
+    )
     assert 'cloud_connector_user' in toml_content or '[authentication]' in toml_content, (
         'Service user configuration not found in foreman_rh_cloud.toml'
     )
