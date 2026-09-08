@@ -201,6 +201,12 @@ def ui_user(ui_user, smart_proxy_location, module_target_sat):
 
 
 @pytest.fixture
+def function_sca_manifest_org(smart_proxy_function_sca_manifest_org):
+    """Override function_sca_manifest_org to use smart proxy enabled organization"""
+    return smart_proxy_function_sca_manifest_org
+
+
+@pytest.fixture
 def ui_admin_user(target_sat):
     """Admin user."""
     admin_user = target_sat.api.User().search(
@@ -2893,12 +2899,13 @@ def test_all_hosts_manage_errata(
             host_names=[content_hosts[0].hostname, content_hosts[1].hostname],
             erratas_to_apply_by_id=errata_ids,
             manage_by_customized_rex=manage_by_custom_rex,
+            select_all_hosts=True,
         )
         if errata_to_install == '2':
             errata_ids = f'{errata_ids[0]},{errata_ids[1]}'
         for host in content_hosts:
             task_result = module_target_sat.wait_for_tasks(
-                search_query=(f'"Install errata errata_id ^ ({errata_ids}) on {host.hostname}"'),
+                search_query=(f'Install errata on {host.hostname} and result = "success" '),
                 search_rate=2,
                 max_tries=60,
             )
