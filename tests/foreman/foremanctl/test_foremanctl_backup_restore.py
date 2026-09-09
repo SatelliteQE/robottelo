@@ -27,12 +27,32 @@ SAT_FILES = {'candlepin.dump', 'foreman.dump', 'pulp.dump'} | BASIC_FILES
 CONTENT_FILES = {'pulp-content.tar.gz', 'pulp.snar'}
 
 
+@pytest.fixture(autouse=True, scope='module')
+def install_postgresql_client(module_target_sat):
+    """Ensure the PostgreSQL client (pg_dump/pg_restore) is available on the Satellite.
+
+    foremanctl backup/restore invokes ``pg_dump``/``pg_restore`` on the host, but the RPM does
+    not yet declare ``postgresql`` as a dependency. Until it does, install it here. Skip if
+    the client is already pre-installed.
+
+    TODO: drop this fixture once foremanctl declares postgresql as an RPM dependency.
+    """
+    if module_target_sat.execute('command -v pg_dump').status == 0:
+        return  # client already present
+
+    module_target_sat.register_to_cdn()
+    result = module_target_sat.execute('dnf -y install postgresql')
+    assert result.status == 0, (
+        f'Failed to install postgresql client:\n{result.stdout}\n{result.stderr}'
+    )
+
+
 @pytest.fixture(autouse=True)
-def cleanup_backup_dir(target_sat):
+def cleanup_backup_dir(module_target_sat):
     """Clean up backup directories before and after each test."""
-    target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+    module_target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
     yield
-    target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+    module_target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
 
 
 def _assert_backup_files(server, backup_dir, skip_pulp=False):
@@ -97,7 +117,6 @@ def test_positive_offline_backup(module_target_sat):
     assert result.status == 0, f'foremanctl health check failed after backup:\n{result.stdout}'
 
 
-@pytest.mark.destructive
 @pytest.mark.e2e
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
 def test_positive_backup_restore(module_target_sat, module_synced_repos, skip_pulp):
@@ -280,9 +299,8 @@ def test_negative_restore_no_force(module_target_sat):
     )
 
 
-@pytest.mark.destructive
 @pytest.mark.e2e
-def test_positive_backup_restore_incremental(target_sat, function_product):
+def test_positive_backup_restore_incremental(module_target_sat):
     """Incremental backup/restore end-to-end test using foremanctl.
 
     :id: 2fc57857-bba0-425e-a7f2-e70ff5cafaab
@@ -305,54 +323,64 @@ def test_positive_backup_restore_incremental(target_sat, function_product):
         4. System health checks pass after each restore
         5. Content is present/absent as expected after each restore
     """
-    initial_repo = target_sat.api.Repository(
-        url=settings.repos.yum_1.url, product=function_product
+    product = module_target_sat.api.Product(
+        organization=module_target_sat.api.Organization().create()
+    ).create()
+
+    initial_repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_1.url, product=product
     ).create()
     initial_repo.sync()
     initial_repo = initial_repo.read()
 
     subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
-    init_backup_dir = _create_backup(target_sat, subdir)
+    init_backup_dir = _create_backup(module_target_sat, subdir)
 
-    secondary_repo = target_sat.api.Repository(
-        url=settings.repos.yum_3.url, product=function_product
+    secondary_repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_3.url, product=product
     ).create()
     secondary_repo.sync()
     secondary_repo = secondary_repo.read()
 
-    inc_backup_dir = _create_backup(target_sat, subdir, base_backup=init_backup_dir)
+    inc_backup_dir = _create_backup(module_target_sat, subdir, base_backup=init_backup_dir)
 
-    _assert_backup_files(target_sat, inc_backup_dir)
+    _assert_backup_files(module_target_sat, inc_backup_dir)
 
-    result = target_sat.execute(
+    result = module_target_sat.execute(
         f'foremanctl restore {init_backup_dir} --force',
         timeout='30m',
     )
     assert result.status == 0, f'Initial restore failed:\n{result.stdout}\n{result.stderr}'
 
-    result = target_sat.execute('foremanctl health', timeout='5m')
+    result = module_target_sat.execute('foremanctl health', timeout='5m')
     assert result.status == 0, f'Health check failed after initial restore:\n{result.stdout}'
 
-    result = target_sat.api.Repository().search(query={'search': f'name="{secondary_repo.name}"'})
+    result = module_target_sat.api.Repository().search(
+        query={'search': f'name="{secondary_repo.name}"'}
+    )
     assert len(result) == 0, 'Secondary repo should not exist after restoring initial backup'
 
-    result = target_sat.execute(
+    result = module_target_sat.execute(
         f'foremanctl restore {inc_backup_dir} --force',
         timeout='30m',
     )
     assert result.status == 0, f'Incremental restore failed:\n{result.stdout}\n{result.stderr}'
 
-    result = target_sat.execute('foremanctl health', timeout='5m')
+    result = module_target_sat.execute('foremanctl health', timeout='5m')
     assert result.status == 0, f'Health check failed after incremental restore:\n{result.stdout}'
 
-    repo = target_sat.api.Repository().search(query={'search': f'name="{initial_repo.name}"'})[0]
+    repo = module_target_sat.api.Repository().search(
+        query={'search': f'name="{initial_repo.name}"'}
+    )[0]
     assert repo.id == initial_repo.id
 
-    repo = target_sat.api.Repository().search(query={'search': f'name="{secondary_repo.name}"'})[0]
+    repo = module_target_sat.api.Repository().search(
+        query={'search': f'name="{secondary_repo.name}"'}
+    )[0]
     assert repo.id == secondary_repo.id
 
 
-def test_negative_backup_incremental_nodir_baddir(target_sat):
+def test_negative_backup_incremental_nodir_baddir(module_target_sat):
     """Try to take an incremental backup with missing or non-existing previous backup path.
 
     :id: 715a0b22-6b9d-4f0b-b8c3-1ea0713ee68f
@@ -370,7 +398,7 @@ def test_negative_backup_incremental_nodir_baddir(target_sat):
     subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
 
     # No directory: --base-backup without a path
-    result = target_sat.execute(f'foremanctl backup {subdir} --base-backup')
+    result = module_target_sat.execute(f'foremanctl backup {subdir} --base-backup')
     assert result.status != 0, (
         f'Incremental backup without path should have failed:\n{result.stdout}'
     )
@@ -380,7 +408,7 @@ def test_negative_backup_incremental_nodir_baddir(target_sat):
 
     # Bad directory: --base-backup with a non-existing path
     nonexistent = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
-    result = target_sat.execute(f'foremanctl backup {subdir} --base-backup {nonexistent}')
+    result = module_target_sat.execute(f'foremanctl backup {subdir} --base-backup {nonexistent}')
     assert result.status != 0, f'Incremental backup should have failed:\n{result.stdout}'
     assert (
         f'Previous backup directory does not exist or is not a valid foremanctl backup: {nonexistent}'
@@ -388,5 +416,5 @@ def test_negative_backup_incremental_nodir_baddir(target_sat):
     ), f'Expected error referencing bad path {nonexistent}, got:\n{result.stdout}'
 
     # Verify no backup was created
-    result = target_sat.execute(f'test -d {subdir}')
+    result = module_target_sat.execute(f'test -d {subdir}')
     assert result.status != 0, f'Backup directory {subdir} should not exist after failed backups'
