@@ -201,12 +201,6 @@ def ui_user(ui_user, smart_proxy_location, module_target_sat):
 
 
 @pytest.fixture
-def function_sca_manifest_org(smart_proxy_function_sca_manifest_org):
-    """Override function_sca_manifest_org to use smart proxy enabled organization"""
-    return smart_proxy_function_sca_manifest_org
-
-
-@pytest.fixture
 def ui_admin_user(target_sat):
     """Admin user."""
     admin_user = target_sat.api.User().search(
@@ -2860,7 +2854,7 @@ def test_positive_manage_packages(
 def test_all_hosts_manage_errata(
     session,
     module_target_sat,
-    function_sca_manifest_org,
+    smart_proxy_function_sca_manifest_org,
     content_hosts,
     function_repos_collection_with_manifest,
     manage_by_custom_rex,
@@ -2893,7 +2887,7 @@ def test_all_hosts_manage_errata(
             result = host.run(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}')
             assert result.status == 0
     with module_target_sat.ui_session() as session:
-        session.organization.select(function_sca_manifest_org.name)
+        session.organization.select(smart_proxy_function_sca_manifest_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         session.all_hosts.manage_errata(
             host_names=[content_hosts[0].hostname, content_hosts[1].hostname],
