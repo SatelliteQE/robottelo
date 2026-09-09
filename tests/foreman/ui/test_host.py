@@ -2899,7 +2899,6 @@ def test_all_hosts_manage_errata(
             host_names=[content_hosts[0].hostname, content_hosts[1].hostname],
             erratas_to_apply_by_id=errata_ids,
             manage_by_customized_rex=manage_by_custom_rex,
-            select_all_hosts=True,
         )
         if errata_to_install == '2':
             errata_ids = f'{errata_ids[0]},{errata_ids[1]}'
