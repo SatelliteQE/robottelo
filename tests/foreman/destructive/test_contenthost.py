@@ -16,6 +16,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE, FAKE_1_CUSTOM_PACKAGE
+from robottelo.enums import InstallMethod
 
 pytestmark = pytest.mark.destructive
 
@@ -50,9 +51,17 @@ def test_content_access_after_stopped_foreman(target_sat, rhel_contenthost):
     repos_collection.setup_virtual_machine(rhel_contenthost)
     result = rhel_contenthost.execute(f'yum -y install {FAKE_1_CUSTOM_PACKAGE}')
     assert result.status == 0
-    assert target_sat.cli.Service.stop(options={'only': 'foreman'}).status == 0
-    assert target_sat.cli.Service.status(options={'only': 'foreman'}).status == 1
+    if settings.server.install_method == InstallMethod.FOREMANCTL:
+        assert target_sat.execute('systemctl stop foreman.service').status == 0
+        assert target_sat.execute('systemctl is-active foreman.service').status != 0
+    else:
+        assert target_sat.cli.Service.stop(options={'only': 'foreman'}).status == 0
+        assert target_sat.cli.Service.status(options={'only': 'foreman'}).status == 1
     result = rhel_contenthost.execute(f'yum -y install {FAKE_0_CUSTOM_PACKAGE}')
     assert result.status == 0
-    assert target_sat.cli.Service.start(options={'only': 'foreman'}).status == 0
-    assert target_sat.cli.Service.status(options={'only': 'foreman'}).status == 0
+    if settings.server.install_method == InstallMethod.FOREMANCTL:
+        assert target_sat.execute('systemctl start foreman.service').status == 0
+        assert target_sat.execute('systemctl is-active foreman.service').status == 0
+    else:
+        assert target_sat.cli.Service.start(options={'only': 'foreman'}).status == 0
+        assert target_sat.cli.Service.status(options={'only': 'foreman'}).status == 0
