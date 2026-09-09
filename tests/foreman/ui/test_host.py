@@ -4420,7 +4420,7 @@ def test_cv_env_order(module_target_sat, module_org, module_lce, module_cv_repo,
     # but put them in the same format as the name data from the sub-man CLI command.
     ui_env_list = [
         f'{ui_envs[0]["lce"]}',
-        f'{ui_envs[1]['lce']}/{ui_envs[1]["content_view"]}',
+        f'{ui_envs[1]["lce"]}/{ui_envs[1]["content_view"]}',
     ]
     assert sub_man_env_list == ui_env_list
 
