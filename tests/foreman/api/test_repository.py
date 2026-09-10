@@ -12,6 +12,7 @@
 
 """
 
+import json
 import random
 import re
 from string import punctuation
@@ -2760,20 +2761,11 @@ class TestPythonRepository:
         repo = repo.update(['download_policy'])
         assert repo.download_policy == 'immediate'
 
-    @pytest.mark.parametrize(
-        'repo_options',
-        [
-            {
-                'content_type': constants.REPO_TYPE['python'],
-                'url': 'https://fixtures.pulpproject.org/python-pypi/',
-                'download_policy': 'on_demand',
-                'generic_remote_options': '{"includes":["shelf-reader"]}',
-            }
-        ],
-        indirect=True,
-    )
-    def test_positive_sync_with_download_policy(self, repo):
-        """Sync a Python repository with a download policy set.
+    @pytest.mark.parametrize('download_policy', constants.DOWNLOAD_POLICIES)
+    def test_positive_sync_with_download_policy(
+        self, download_policy, module_org, module_product, target_sat
+    ):
+        """Sync a Python repository and verify its Pulp remote download policy.
 
         :id: da18fdfc-20df-4d95-bfb9-ecca9275fe4f
 
@@ -2784,13 +2776,34 @@ class TestPythonRepository:
         :BlockedBy: SAT-36514
 
         :steps:
-            1. Create a Python repo with on_demand download policy and includes filter
-            2. Sync the repo
+            1. Create a Python repo with a download policy and includes filter.
+            2. Sync the repository.
+            3. Get the repository's Pulp remote.
+            4. Verify that the remote uses the requested download policy.
 
-        :expectedresults: Python repo syncs successfully with on_demand policy
+        :expectedresults: The Python repo syncs successfully and its Pulp remote uses the
+            requested download policy.
 
         :CaseImportance: Critical
         """
+        repo = target_sat.api.Repository(
+            content_type=constants.REPO_TYPE['python'],
+            download_policy=download_policy,
+            includes=['shelf-reader'],
+            organization=module_org,
+            product=module_product,
+            url=settings.repos.python.pypi.url,
+        ).create()
         repo.sync()
         repo = repo.read()
         assert repo.content_counts['python_package'] > 0
+
+        remote_href = target_sat.execute(
+            f'echo "::Katello::Repository.find({repo.id}).remote_href" | foreman-rake console'
+        ).stdout.split('"')[1]
+        remote_result = target_sat.execute(
+            f'pulp --refresh-api python remote show --href "{remote_href}"'
+        )
+        assert remote_result.status == 0, remote_result.stderr
+        remote = json.loads(remote_result.stdout)
+        assert remote['policy'] == download_policy
