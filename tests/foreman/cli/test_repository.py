@@ -1840,6 +1840,112 @@ class TestRepository:
         )
         assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 
+    def test_positive_orphaned_custom_repository(self, repo, target_sat):
+        """Verify custom repository shows orphaned field as 'no'
+
+        :id: 107556f1-7de8-430e-8a76-44f0c4d9dc5a
+
+        :steps:
+            1. Create a custom repository
+            2. Get repository info via hammer
+            3. List repositories and check orphaned column
+
+        :expectedresults:
+            1. Repository info contains 'orphaned' field with value 'no'
+            2. Repository list shows orphaned as 'false'
+
+        :Verifies: SAT-41070
+
+        :CaseImportance: Critical
+        """
+        # Test hammer repository info
+        repo_info = target_sat.cli.Repository.info({'id': repo['id']})
+        assert 'orphaned' in repo_info, "orphaned field not found in repository info"
+        assert repo_info['orphaned'] == 'no', (
+            f"Expected custom repository orphaned='no', got '{repo_info['orphaned']}'"
+        )
+
+        # Test hammer repository list
+        repo_list = target_sat.cli.Repository.list(
+            {'organization': repo['organization'], 'product': repo['product']['name']}
+        )
+        matching_repo = [r for r in repo_list if r['id'] == repo['id']][0]
+        assert matching_repo['orphaned'] == 'false', (
+            f"Expected custom repository orphaned='false' in list, got '{matching_repo['orphaned']}'"
+        )
+
+    def test_positive_orphaned_rh_repository(self, function_sca_manifest_org, module_target_sat):
+        """Verify Red Hat repository orphaned field changes based on manifest state
+
+        :id: 796161ec-e839-45d5-bf22-5d7c13f8dcf4
+
+        :steps:
+            1. Upload manifest to organization
+            2. Enable a Red Hat repository
+            3. Verify orphaned field with valid manifest
+            4. Delete the manifest
+            5. Verify orphaned field after manifest deletion
+
+        :expectedresults:
+            1. With manifest: info shows orphaned='no', list shows orphaned='false'
+            2. After deletion: info shows orphaned='yes', list shows orphaned='true'
+
+        :Verifies: SAT-41070
+
+        :CaseImportance: Critical
+        """
+        # Enable a RH repository
+        rh_repo_set_id = module_target_sat.cli.RepositorySet.list(
+            {'organization-id': function_sca_manifest_org.id}
+        )[0]['id']
+
+        module_target_sat.cli.RepositorySet.enable(
+            {
+                'organization-id': function_sca_manifest_org.id,
+                'basearch': 'x86_64',
+                'id': rh_repo_set_id,
+            }
+        )
+
+        repos = module_target_sat.cli.Repository.list(
+            {'organization-id': function_sca_manifest_org.id}
+        )
+        assert len(repos) > 0, "No repositories found after enabling"
+        rh_repo = repos[0]
+
+        # Test with valid manifest - info command
+        repo_info = module_target_sat.cli.Repository.info({'id': rh_repo['id']})
+        assert 'orphaned' in repo_info, "orphaned field not found in repository info"
+        assert repo_info['orphaned'] == 'no', (
+            f"Expected RH repository orphaned='no', got '{repo_info['orphaned']}'"
+        )
+
+        # Test with valid manifest - list command
+        assert rh_repo['orphaned'] == 'false', (
+            f"Expected RH repository orphaned='false' in list, got '{rh_repo['orphaned']}'"
+        )
+
+        # Delete the manifest
+        module_target_sat.cli.Subscription.delete_manifest(
+            {'organization-id': function_sca_manifest_org.id}
+        )
+
+        # Test after manifest deletion - info command
+        repo_info = module_target_sat.cli.Repository.info({'id': rh_repo['id']})
+        assert repo_info['orphaned'] == 'yes', (
+            f"Expected orphaned='yes' after manifest deletion, got '{repo_info['orphaned']}'"
+        )
+
+        # Test after manifest deletion - list command
+        repos = module_target_sat.cli.Repository.list(
+            {'organization-id': function_sca_manifest_org.id}
+        )
+        orphaned_repo = [r for r in repos if r['id'] == rh_repo['id']][0]
+        assert orphaned_repo['orphaned'] == 'true', (
+            f"Expected orphaned='true' in list after manifest deletion, "
+            f"got '{orphaned_repo['orphaned']}'"
+        )
+
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_accessible_content_status(
         self, module_org, module_ak_with_synced_repo, rhel_contenthost, target_sat
