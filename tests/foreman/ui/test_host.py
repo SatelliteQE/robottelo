@@ -1501,7 +1501,7 @@ def test_positive_host_details_read_templates(
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
+    'module_repos_collection_with_smart_proxy',
     [{'YumRepository': {'url': settings.repos.yum_3.url}}],
     ids=['yum_3'],
     indirect=True,
@@ -1510,7 +1510,7 @@ def test_positive_update_delete_package(
     session,
     target_sat,
     rhel_contenthost,
-    module_repos_collection_with_setup,
+    module_repos_collection_with_smart_proxy,
     module_org,
 ):
     """Update a package on a host using the new Content tab
@@ -1532,11 +1532,11 @@ def test_positive_update_delete_package(
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+    module_repos_collection_with_smart_proxy.setup_virtual_machine(client, enable_custom_repos=True)
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
-        product_name = module_repos_collection_with_setup.custom_product.name
+        product_name = module_repos_collection_with_smart_proxy.custom_product.name
 
         session.host_new.override_repo_sets(client.hostname, product_name, "Override to disabled")
         repos = session.host_new.get_repo_sets(client.hostname, product_name)
@@ -1694,7 +1694,7 @@ def test_positive_apply_erratum(
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
+    'module_repos_collection_with_smart_proxy',
     [{'YumRepository': {'url': settings.repos.module_stream_1.url}}],
     ids=['module_stream_1'],
     indirect=True,
@@ -1703,7 +1703,7 @@ def test_positive_crud_module_streams(
     session,
     target_sat,
     rhel_contenthost,
-    module_repos_collection_with_setup,
+    module_repos_collection_with_smart_proxy,
     module_org,
 ):
     """CRUD test for the Module streams new UI tab
@@ -1725,7 +1725,7 @@ def test_positive_crud_module_streams(
     module_name = 'duck'
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+    module_repos_collection_with_smart_proxy.setup_virtual_machine(client, enable_custom_repos=True)
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
