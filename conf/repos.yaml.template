@@ -203,7 +203,7 @@ REPOS:
 
   PYTHON:
     PYPI:
-      URL: 'https://pypi.org/project/pytest'
+      URL: 'https://fixtures.pulpproject.org/python-pypi/'
 
   RPM_MISSING_FILELISTS:
     URL: ''
