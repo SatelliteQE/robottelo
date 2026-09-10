@@ -1489,8 +1489,9 @@ def test_all_hosts_manage_columns(target_sat):
             assert (column in displayed_columns) is is_displayed
 
 
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_host_details_read_templates(
-    session, target_sat, current_sat_org, current_sat_location
+    session, target_sat, rhel_contenthost, module_org, module_ak_with_cv
 ):
     """Check if all assigned host provisioning templates are correctly reported
     in host detail / Details tab / Provisioning templates card.
@@ -1498,10 +1499,11 @@ def test_positive_host_details_read_templates(
     :id: 43ca722e-d28a-11ed-8970-000c2989e153
 
     :steps:
-        1. Go to Hosts page and select the Satellite host machine.
-        2. Go to the Details tab.
-        3. Gather all names from the `Provisioning templates` card.
-        4. Compare them with the host provisioning templates obtained via API.
+        1. Register a RHEL content host.
+        2. Go to Hosts page and select the registered host.
+        3. Go to the Details tab.
+        4. Gather all names from the `Provisioning templates` card.
+        5. Compare them with the host provisioning templates obtained via API.
 
     :expectedresults: Provisioning templates reported via API and in UI should match.
 
@@ -1509,12 +1511,16 @@ def test_positive_host_details_read_templates(
 
     :customerscenario: true
     """
-    host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
+    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    host = target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[0]
     api_templates = [template['name'] for template in host.list_provisioning_templates()]
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=current_sat_org.name)
-        session.location.select(loc_name=current_sat_location.name)
-        host_detail = session.host_new.get_details(target_sat.hostname, widget_names='details')
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        host_detail = session.host_new.get_details(
+            rhel_contenthost.hostname, widget_names='details'
+        )
         ui_templates = [
             row['column1'].strip()
             for row in host_detail['details']['provisioning_templates']['templates_table']
