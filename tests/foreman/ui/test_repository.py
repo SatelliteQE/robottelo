@@ -1269,9 +1269,8 @@ def test_positive_able_to_disable_and_enable_rhel_repos(
         )
 
 
-@pytest.mark.tier2
-def test_positive_python_repo_download_policy_crud(session, module_org, module_prod):
-    """Create and read a Python repository with download policy via UI.
+def test_positive_python_repo_crud(session, module_prod):
+    """Create, read, update, and delete a Python repository via UI.
 
     :id: b6b4bb88-ce31-40b3-98e5-d9f82d514a56
 
@@ -1280,33 +1279,55 @@ def test_positive_python_repo_download_policy_crud(session, module_org, module_p
     :BlockedBy: SAT-36514
 
     :steps:
-        1. Create a Python repository with on_demand download policy via UI
-        2. Read back the repository and verify download policy
-        3. Update the download policy to immediate
-        4. Read back and verify the updated policy
+        1. Create a Python repository with its content-specific fields via UI.
+        2. Read the repository and verify the content-specific fields.
+        3. Update the content-specific fields.
+        4. Read the repository and verify the updated fields.
+        5. Delete the repository.
 
-    :expectedresults: Python repository can be created and updated with
-        download policy via the UI
+    :expectedresults: Python repository CRUD operations succeed and its content-specific
+        fields are persisted.
     """
     repo_name = gen_string('alpha')
+    create_values = {
+        'download_policy': DOWNLOAD_POLICIES['on_demand'],
+        'includes': 'shelf-reader\npulp-python',
+        'excludes': 'django~=2.0',
+        'package_types': 'bdist_wheel,sdist',
+    }
+    # The API returns includes as a single string with spaces instead of newlines
+    create_read_values = create_values | {'includes': create_values['includes'].replace('\n', ' ')}
+    update_values = {
+        'download_policy': DOWNLOAD_POLICIES['immediate'],
+        'includes': 'shelf-reader~=0.1',
+        'excludes': 'pulp-python',
+        'package_types': 'bdist_wheel',
+    }
     with session:
         session.repository.create(
             module_prod.name,
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['python'],
-                'repo_content.upstream_url': 'https://pypi.org',
-                'repo_content.download_policy': DOWNLOAD_POLICIES['on_demand'],
+                'repo_content.upstream_url': settings.repos.python.pypi.url,
+                **{f'repo_content.{field}': value for field, value in create_values.items()},
             },
         )
         assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
         repo_values = session.repository.read(module_prod.name, repo_name)
-        assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['on_demand']
+        assert {
+            field: repo_values['repo_content'][field] for field in create_read_values
+        } == create_read_values
 
         session.repository.update(
             module_prod.name,
             repo_name,
-            {'repo_content.download_policy': DOWNLOAD_POLICIES['immediate']},
+            {f'repo_content.{field}': value for field, value in update_values.items()},
         )
         repo_values = session.repository.read(module_prod.name, repo_name)
-        assert repo_values['repo_content']['download_policy'] == DOWNLOAD_POLICIES['immediate']
+        assert {
+            field: repo_values['repo_content'][field] for field in update_values
+        } == update_values
+
+        session.repository.delete(module_prod.name, repo_name)
+        assert not session.repository.search(module_prod.name, repo_name)
