@@ -1418,8 +1418,10 @@ def test_positive_list_hosts_thin_all(module_target_sat):
 
     :customerscenario: true
     """
+    # Create a host to ensure at least one host exists for thin listing
+    created_host = module_target_sat.api.Host().create()
     hosts = module_target_sat.api.Host().search(query={'thin': 'true', 'per_page': 'all'})
-    assert module_target_sat.hostname in [host.name for host in hosts]
+    assert created_host.name in [host.name for host in hosts]
     keys = dir(hosts[0])
     assert 'id' in keys
     assert 'name' in keys
