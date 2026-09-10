@@ -201,6 +201,12 @@ def ui_user(ui_user, smart_proxy_location, module_target_sat):
 
 
 @pytest.fixture
+def function_sca_manifest_org(smart_proxy_function_sca_manifest_org):
+    """Override function_sca_manifest_org to use smart proxy enabled organization"""
+    return smart_proxy_function_sca_manifest_org
+
+
+@pytest.fixture
 def ui_admin_user(target_sat):
     """Admin user."""
     admin_user = target_sat.api.User().search(
@@ -1610,7 +1616,7 @@ def test_positive_update_delete_package(
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
+    'module_repos_collection_with_smart_proxy',
     [{'YumRepository': {'url': settings.repos.yum_3.url}}],
     ids=['yum3'],
     indirect=True,
@@ -1619,8 +1625,8 @@ def test_positive_apply_erratum(
     session,
     target_sat,
     rhel_contenthost,
-    module_repos_collection_with_setup,
-    module_org,
+    module_repos_collection_with_smart_proxy,
+    smart_proxy_module_org,
 ):
     """Apply an erratum on a host using the new Errata tab
 
@@ -1641,13 +1647,13 @@ def test_positive_apply_erratum(
     # install package
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+    module_repos_collection_with_smart_proxy.setup_virtual_machine(client, enable_custom_repos=True)
     errata_id = settings.repos.yum_3.errata[25]
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
     assert result.status == 0
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=smart_proxy_module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         assert session.host_new.search(client.hostname)[0]['Name'] == client.hostname
         # read widget on overview page
@@ -2898,7 +2904,7 @@ def test_all_hosts_manage_errata(
             errata_ids = f'{errata_ids[0]},{errata_ids[1]}'
         for host in content_hosts:
             task_result = module_target_sat.wait_for_tasks(
-                search_query=(f'"Install errata errata_id ^ ({errata_ids}) on {host.hostname}"'),
+                search_query=(f'Install errata on {host.hostname} and result = "success" '),
                 search_rate=2,
                 max_tries=60,
             )
