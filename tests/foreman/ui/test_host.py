@@ -228,22 +228,24 @@ def host_ui_default(target_sat):
 
 
 @pytest.fixture
-def ui_view_hosts_user(target_sat, current_sat_org, current_sat_location, expected_permissions):
+def ui_view_hosts_user(target_sat, expected_permissions):
     """User with View hosts role."""
-    role = target_sat.api.Role(organization=[current_sat_org]).create()
+    default_org = target_sat.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
+    default_loc = target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
+    role = target_sat.api.Role(organization=[default_org]).create()
     target_sat.api_factory.create_role_permissions(
         role,
         {
             'Host': ['view_hosts'],
-            'Organization': expected_permissions['Organization'],
-            'Location': expected_permissions['Location'],
+            'Organization': ['view_organizations'],
+            'Location': ['view_locations'],
         },
     )
     password = gen_string('alphanumeric')
     user = target_sat.api.User(
         admin=False,
-        location=[current_sat_location],
-        organization=[current_sat_org],
+        organization=[default_org],
+        location=[default_loc],
         role=[role],
         password=password,
     ).create()
@@ -608,7 +610,7 @@ def test_positive_assign_taxonomies(
 @pytest.mark.skipif(
     (settings.ui.webdriver != 'chrome'), reason='Currently only chrome is supported'
 )
-def test_positive_export_selected_columns(request, target_sat, current_sat_location):
+def test_positive_export_selected_columns(request, target_sat):
     """Select certain columns in the hosts table and check that they are exported in the CSV file.
 
     :id: 2b65c1d6-0b94-11ef-a4b7-000c2989e153
@@ -658,8 +660,20 @@ def test_positive_export_selected_columns(request, target_sat, current_sat_locat
         Box(ui='Recommendations', csv='Recommendations', displayed=True),
     )
 
+    fake_host = target_sat.cli_factory.make_fake_host(
+        {
+            'organization': DEFAULT_ORG,
+            'location': DEFAULT_LOC,
+        }
+    )
+
+    @request.addfinalizer
+    def _cleanup():
+        target_sat.api.Host().search(query={"search": f'name={fake_host.name}'})[0].delete()
+
     with target_sat.ui_session() as session:
-        session.location.select(loc_name=current_sat_location.name)
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=DEFAULT_LOC)
         # Save original column settings
         original_headers = session.all_hosts.get_displayed_table_headers()
         original_columns = {header: True for header in original_headers if header is not None}
@@ -667,7 +681,8 @@ def test_positive_export_selected_columns(request, target_sat, current_sat_locat
         def restore_columns():
             """Restore original column settings after test"""
             with target_sat.ui_session() as restore_session:
-                restore_session.location.select(loc_name=current_sat_location.name)
+                restore_session.organization.select(org_name=DEFAULT_ORG)
+                restore_session.location.select(loc_name=DEFAULT_LOC)
                 wait_for(lambda: restore_session.browser.refresh(), timeout=5)
                 all_possible_columns = {column.ui: False for column in columns}
                 all_possible_columns.update(original_columns)
@@ -1385,9 +1400,7 @@ def test_positive_read_details_page_from_new_ui(target_sat, host_ui_options):
         assert values['overview']['details']['details']['comment'] == 'Host with fake data'
 
 
-def test_positive_manage_table_columns(
-    target_sat, test_name, ui_hosts_columns_user, current_sat_org, current_sat_location
-):
+def test_positive_manage_table_columns(request, target_sat, test_name, ui_hosts_columns_user):
     """Set custom columns of the hosts table.
 
     :id: e5e18982-cc43-11ed-8562-000c2989e153
@@ -1420,11 +1433,22 @@ def test_positive_manage_table_columns(
         'Boot time': True,
         'Recommendations': False,
     }
+    fake_host = target_sat.cli_factory.make_fake_host(
+        {
+            'organization': DEFAULT_ORG,
+            'location': DEFAULT_LOC,
+        }
+    )
+
+    @request.addfinalizer
+    def _cleanup():
+        target_sat.api.Host().search(query={"search": f'name={fake_host.name}'})[0].delete()
+
     with target_sat.ui_session(
         test_name, ui_hosts_columns_user.login, ui_hosts_columns_user.password
     ) as session:
-        session.organization.select(org_name=current_sat_org.name)
-        session.location.select(loc_name=current_sat_location.name)
+        session.organization.select(DEFAULT_ORG)
+        session.location.select(DEFAULT_LOC)
         session.all_hosts.manage_table_columns(columns)
         displayed_columns = session.host.get_displayed_table_headers()
         for column, is_displayed in columns.items():
@@ -1465,8 +1489,9 @@ def test_all_hosts_manage_columns(target_sat):
             assert (column in displayed_columns) is is_displayed
 
 
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_host_details_read_templates(
-    session, target_sat, current_sat_org, current_sat_location
+    session, target_sat, rhel_contenthost, module_org, module_ak_with_cv
 ):
     """Check if all assigned host provisioning templates are correctly reported
     in host detail / Details tab / Provisioning templates card.
@@ -1474,10 +1499,11 @@ def test_positive_host_details_read_templates(
     :id: 43ca722e-d28a-11ed-8970-000c2989e153
 
     :steps:
-        1. Go to Hosts page and select the Satellite host machine.
-        2. Go to the Details tab.
-        3. Gather all names from the `Provisioning templates` card.
-        4. Compare them with the host provisioning templates obtained via API.
+        1. Register a RHEL content host.
+        2. Go to Hosts page and select the registered host.
+        3. Go to the Details tab.
+        4. Gather all names from the `Provisioning templates` card.
+        5. Compare them with the host provisioning templates obtained via API.
 
     :expectedresults: Provisioning templates reported via API and in UI should match.
 
@@ -1485,12 +1511,16 @@ def test_positive_host_details_read_templates(
 
     :customerscenario: true
     """
-    host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
+    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    host = target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[0]
     api_templates = [template['name'] for template in host.list_provisioning_templates()]
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=current_sat_org.name)
-        session.location.select(loc_name=current_sat_location.name)
-        host_detail = session.host_new.get_details(target_sat.hostname, widget_names='details')
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        host_detail = session.host_new.get_details(
+            rhel_contenthost.hostname, widget_names='details'
+        )
         ui_templates = [
             row['column1'].strip()
             for row in host_detail['details']['provisioning_templates']['templates_table']
