@@ -675,7 +675,7 @@ def test_positive_export_selected_columns(request, target_sat):
         def restore_columns():
             """Restore original column settings after test"""
             with target_sat.ui_session() as restore_session:
-                session.organization.select(org_name=DEFAULT_ORG)
+                restore_session.organization.select(org_name=DEFAULT_ORG)
                 restore_session.location.select(loc_name=DEFAULT_LOC)
                 wait_for(lambda: restore_session.browser.refresh(), timeout=5)
                 all_possible_columns = {column.ui: False for column in columns}
