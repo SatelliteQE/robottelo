@@ -97,8 +97,7 @@ def test_positive_puppet_bootstrap(
 
 @pytest.mark.on_premises_provisioning
 @pytest.mark.rhel_ver_match(
-    f'[{"" if is_open("SAT-41340") else "7"}89]'  # Skip EL7 for provisioning test as UEFI is not supported yet
-    f'{"" if is_open("SAT-30237") else "|10"}'  # Skip EL10 for provisioning test as openvox-agent is not delivered yet
+    f'[{"" if is_open("SAT-41340") else "7"}89]|10'  # Skip EL7 for provisioning test as UEFI is not supported yet
 )
 def test_host_provisioning_with_external_puppetserver(
     request,
