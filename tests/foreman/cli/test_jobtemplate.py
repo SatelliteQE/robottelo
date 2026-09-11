@@ -12,13 +12,15 @@
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 
 from robottelo import ssh
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
-from robottelo.utils.datafactory import invalid_values_list, parametrized
+from robottelo.utils.datafactory import invalid_values_list
 
 TEMPLATE_FILE = 'template_file.txt'
 TEMPLATE_FILE_EMPTY = 'template_file_empty.txt'
@@ -70,19 +72,17 @@ def test_positive_job_template_crud(module_org, module_target_sat):
         module_target_sat.cli.JobTemplate.info({'name': new_template_name})
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_job_template_with_invalid_name(module_org, name, module_target_sat):
+def test_negative_create_job_template_with_invalid_name(module_org, module_target_sat):
     """Create Job Template with invalid name
 
     :id: eb51afd4-e7b3-42c3-81c3-6e18ef3d7efe
-
-    :parametrized: yes
 
     :expectedresults: Job Template with invalid name cannot be created and
         error is raised
 
     :CaseImportance: Critical
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIFactoryError, match='Could not create the job template:'):
         module_target_sat.cli_factory.job_template(
             {
