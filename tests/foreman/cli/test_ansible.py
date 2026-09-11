@@ -54,8 +54,14 @@ class TestAnsibleCfgMgmt:
     @pytest.mark.e2e
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.parametrize('setting_update', ['foreman_tasks_proxy_batch_trigger'], indirect=True)
     def test_positive_ansible_e2e(
-        self, target_sat, module_sca_manifest_org, module_ak_with_cv, rhel_contenthost
+        self,
+        target_sat,
+        module_sca_manifest_org,
+        module_ak_with_cv,
+        rhel_contenthost,
+        setting_update,
     ):
         """
         Test successful execution of Ansible Job on host.

@@ -390,6 +390,7 @@ def test_failed_inventory_upload():
 
 @pytest.mark.run_in_one_thread
 def test_rhcloud_global_parameters(
+    request,
     inventory_settings,
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -424,6 +425,12 @@ def test_rhcloud_global_parameters(
         module_target_sat.api.CommonParameter()
         .search(query={'search': 'name=host_registration_insights_inventory'})[0]
         .read()
+    )
+    original_cp_value = insights_cp.value
+    request.addfinalizer(
+        lambda: module_target_sat.api.CommonParameter(
+            id=insights_cp.id, value=original_cp_value
+        ).update(['value'])
     )
     module_target_sat.api.CommonParameter(id=insights_cp.id, value='false').update(['value'])
     with module_target_sat.ui_session() as session:
