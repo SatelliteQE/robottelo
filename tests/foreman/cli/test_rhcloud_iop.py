@@ -88,21 +88,21 @@ def test_positive_install_iop_custom_certs(
     satellite.install_satellite_or_capsule_package()
 
     # Set up firewall
-    result = satellite.execute(
-        "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+    satellite.configure_firewall(
+        ports=[
+            '53/udp',
+            '53/tcp',
+            '67/udp',
+            '69/udp',
+            '80/tcp',
+            '443/tcp',
+            '5647/tcp',
+            '8000/tcp',
+            '9090/tcp',
+            '8140/tcp',
+        ],
+        verify=False,
     )
-    assert result.status == 0, "firewalld is not present and can't be installed"
-
-    result = satellite.execute(
-        'firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
-        '--add-port="69/udp" --add-port="80/tcp" --add-port="443/tcp" '
-        '--add-port="5647/tcp" --add-port="8000/tcp" --add-port="9090/tcp" '
-        '--add-port="8140/tcp"'
-    )
-    assert result.status == 0
-
-    result = satellite.execute('firewall-cmd --runtime-to-permanent')
-    assert result.status == 0
 
     # Set IPv6 proxy for podman to pull images
     satellite.enable_ipv6_podman_proxy()
