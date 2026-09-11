@@ -73,6 +73,7 @@ from robottelo.host_helpers import (
     ContentHostMixins,
     SatelliteMixins,
 )
+from robottelo.host_helpers.capsule_mixins import configure_firewall
 from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
@@ -2061,14 +2062,12 @@ class Capsule(ContentHost, CapsuleMixins):
         # Update system, firewall services and check capsule is already installed from template
         # Setups firewall on Capsule
         self.execute('dnf -y update', timeout=0)
-        assert (
-            self.execute(
-                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
-            ).status
-            == 0
-        ), "firewalld is not present and can't be installed"
-        self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
-        self.execute('firewall-cmd --runtime-to-permanent')
+        configure_firewall(
+            self,
+            ports=['8000/tcp', '8443/tcp'],
+            services=['http', 'https'],
+            verify=False,
+        )
 
         # Generate certificate, copy it to Capsule, run installer, check it succeeds
         if not capsule_cert_opts:
@@ -2280,17 +2279,11 @@ class Capsule(ContentHost, CapsuleMixins):
             assert self.is_fips_enabled()
 
         # Configure Satellite firewall to open communication
-        assert (
-            self.execute(
-                '(which firewall-cmd || dnf -y install firewalld) && systemctl enable --now firewalld'
-            ).status
-            == 0
-        ), 'firewalld is not present and can\'t be installed'
-        assert (
-            self.execute(
-                'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
-            ).status
-            == 0
+        configure_firewall(
+            self,
+            ports=['80/tcp', '443/tcp', '8000/tcp', '8443/tcp'],
+            services=['http', 'https'],
+            verify=True,
         )
 
         # Install Satellite and return result
@@ -2798,22 +2791,22 @@ class Satellite(Capsule, SatelliteMixins):
 
     def setup_firewall(self):
         # Setups firewall on Satellite
-        assert (
-            self.execute(
-                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
-            ).status
-            == 0
-        ), "firewalld is not present and can't be installed"
-        assert (
-            self.execute(
-                command='firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
-                '--add-port="69/udp" --add-port="80/tcp" --add-port="443/tcp" '
-                '--add-port="5647/tcp" --add-port="8000/tcp" --add-port="9090/tcp" '
-                '--add-port="8140/tcp"'
-            ).status
-            == 0
+        configure_firewall(
+            self,
+            ports=[
+                '53/udp',
+                '53/tcp',
+                '67/udp',
+                '69/udp',
+                '80/tcp',
+                '443/tcp',
+                '5647/tcp',
+                '8000/tcp',
+                '9090/tcp',
+                '8140/tcp',
+            ],
+            verify=False,
         )
-        assert self.execute(command='firewall-cmd --runtime-to-permanent').status == 0
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
         """Generate capsule certs, returning the cert path, installer command stdout and args"""

@@ -124,15 +124,7 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
         assert satellite.execute('rpm -q foreman-proxy-fapolicyd').status == 0
         assert satellite.execute('systemctl is-active fapolicyd').status == 0
     # Configure Satellite firewall to open communication
-    assert (
-        satellite.execute(
-            "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
-        ).status
-        == 0
-    ), "firewalld is not present and can't be installed"
-    satellite.execute(
-        'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
-    )
+    satellite.configure_firewall(services=['RH-Satellite-6'], verify=False)
     # Install Satellite and return result
     return satellite.execute(
         InstallerCommand(installer_args=installer_args).get_command(),
@@ -288,14 +280,7 @@ def test_capsule_installation(
     assert len(result.stdout) == 0
 
     # Enabling firewall
-    assert (
-        cap_ready_rhel.execute(
-            "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
-        ).status
-        == 0
-    ), "firewalld is not present and can't be installed"
-    cap_ready_rhel.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
-    cap_ready_rhel.execute('firewall-cmd --runtime-to-permanent')
+    cap_ready_rhel.configure_firewall(services=['RH-Satellite-6-capsule'], verify=False)
 
     result = cap_ready_rhel.cli.Health.check()
     assert 'FAIL' not in result.stdout
