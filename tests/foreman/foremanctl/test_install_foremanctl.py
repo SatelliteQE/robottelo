@@ -16,61 +16,17 @@ from broker import Broker
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.cli import hammer
 from robottelo.config import settings
 from robottelo.constants import (
     FOREMANCTL_PARAMETERS_FILE,
     FOREMANCTL_POSTGRESQL_TUNING_PROFILES,
     InstallationServices,
 )
-from robottelo.exceptions import CapsuleHostError
 from robottelo.hosts import Capsule, Satellite
-from robottelo.utils.issue_handlers import is_open
 
 pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
 
 FOREMANCTL_CERTS_DIR = '/var/lib/foremanctl/certs/certs'
-
-
-def common_sat_install_assertions(satellite):
-    # no errors/failures in journald
-    result = satellite.execute(
-        r'journalctl --quiet --no-pager --boot --grep ERROR -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulp-api" -u "pulp-content" -u "pulp-worker*" -u "valkey" -u "candlepin"'
-    )
-    if is_open('SAT-21086'):
-        assert not list(filter(lambda x: 'PG::' not in x, result.stdout.splitlines()))
-    else:
-        assert not result.stdout
-    # no errors/failures in /var/log/httpd/*
-    result = satellite.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert not result.stdout
-    httpd_log = satellite.execute('journalctl --unit=httpd')
-    assert 'WARNING' not in httpd_log.stdout
-
-
-def common_cap_install_assertions(capsule):
-    result = capsule.execute('systemctl status foreman-proxy.service foreman.target')
-    if 'inactive (dead)' in result.stdout:
-        raise CapsuleHostError(
-            f'foreman-proxy service is not running on the capsule:\n{result.stdout}'
-        )
-    # no errors/failures in journald
-    result = capsule.execute(
-        r'journalctl --quiet --no-pager --boot --grep ERROR -u "foreman-proxy" -u "httpd" -u "postgresql" -u "pulp-api" -u "pulp-content" -u "pulp-worker*" -u "valkey"'
-    )
-    assert not result.stdout
-    # no errors/failures in /var/log/httpd/*
-    result = capsule.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert not result.stdout
-    httpd_log = capsule.execute('journalctl --unit=httpd')
-    assert 'WARNING' not in httpd_log.stdout
-
-
-def assert_hammer_ping_ok(result):
-    assert result.status == 0, 'hammer ping failed'
-    services = hammer.parse_ping(result.stdout)
-    for status in services.values():
-        assert status == 'ok'
 
 
 def assert_postgresql_tuning(sat, tuning):
@@ -189,7 +145,7 @@ def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
         1. foremanctl deploy runs successfully
         2. no unexpected errors in logs
     """
-    common_sat_install_assertions(module_sat_ready_rhel)
+    module_sat_ready_rhel.assert_install_assertions()
 
 
 @pytest.mark.e2e
@@ -245,12 +201,7 @@ def test_capsule_installation_with_foremanctl(
         query={'search': f'name={module_cap_ready_rhel.hostname}'}
     )[0]
 
-    common_cap_install_assertions(module_cap_ready_rhel)
-
-    result = module_cap_ready_rhel.execute('satellitectl health')
-    assert result.status == 0
-    assert 'FAIL' not in result.stdout
-    assert 'Some services are not running' not in result.stdout
+    module_cap_ready_rhel.assert_install_assertions()
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
@@ -283,7 +234,7 @@ def test_positive_check_installer_hammer_ping(module_sat_ready_rhel):
     """
     # check status reported by hammer ping command
     result = module_sat_ready_rhel.execute('hammer ping')
-    assert_hammer_ping_ok(result)
+    module_sat_ready_rhel.assert_hammer_ping_ok(result)
 
 
 @pytest.fixture(scope='module')
@@ -325,10 +276,10 @@ def test_positive_install_foremanctl_with_custom_certs(module_sat_foremanctl_cus
     :CaseAutomation: Automated
     """
     sat = module_sat_foremanctl_custom_certs
-    common_sat_install_assertions(sat)
+    sat.assert_install_assertions()
     # check the services are up and healthy
     result = sat.execute('hammer ping')
-    assert_hammer_ping_ok(result)
+    sat.assert_hammer_ping_ok(result)
     # Verify the custom certificate works and there are no errors
     result = sat.execute(
         'curl --output /dev/null --write-out "%{http_code}" --cacert /root/cacert.crt '
@@ -533,7 +484,7 @@ def test_positive_foremanctl_certificate_custom_validity_and_renewal(module_sat_
 
     # API: Verify services are healthy
     result = sat.execute('hammer ping')
-    assert_hammer_ping_ok(result)
+    sat.assert_hammer_ping_ok(result)
 
     # API: Verify operations work over TLS with custom-validity certs
     org_name = gen_string('alpha')
@@ -588,7 +539,7 @@ def test_positive_foremanctl_certificate_custom_validity_and_renewal(module_sat_
 
     # API: Verify services remain healthy after renewal
     result = sat.execute('hammer ping')
-    assert_hammer_ping_ok(result)
+    sat.assert_hammer_ping_ok(result)
 
     # API: Verify CRUD still works with renewed certificates
     org = sat.api.Organization(id=org.id).read()
