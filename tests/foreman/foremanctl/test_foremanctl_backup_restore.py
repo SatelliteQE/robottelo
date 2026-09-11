@@ -17,6 +17,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.hosts import Capsule, Satellite
 
 pytestmark = [pytest.mark.foremanctl]
 
@@ -24,6 +25,8 @@ BACKUP_DIR = '/tmp/'
 BACKUP_PREFIX = 'backup-'
 BASIC_FILES = {'foremanctl-state.tar.gz', 'metadata.yml', 'config.snar'}
 SAT_FILES = {'candlepin.dump', 'foreman.dump', 'pulp.dump'} | BASIC_FILES
+# A smart proxy carries pulp only, it has no candlepin/foreman databases of its own
+CAPS_FILES = {'container_gateway.dump', 'pulp.dump'} | BASIC_FILES
 CONTENT_FILES = {'pulp-content.tar.gz', 'pulp.snar'}
 
 
@@ -62,7 +65,7 @@ def _assert_backup_files(server, backup_dir, skip_pulp=False):
     :param backup_dir: Path to the backup directory
     :param skip_pulp: Whether pulp content was skipped in the backup
     """
-    expected_files = SAT_FILES
+    expected_files = SAT_FILES if type(server) is Satellite else CAPS_FILES
     if not skip_pulp:
         expected_files = expected_files | CONTENT_FILES
 
@@ -77,12 +80,15 @@ def _assert_backup_files(server, backup_dir, skip_pulp=False):
 def _create_backup(server, subdir, skip_pulp=False, base_backup=None, wait_for_tasks=True):
     """Run foremanctl backup and return the timestamped backup subdirectory path."""
     cmd = f'foremanctl backup {subdir}'
+    is_capsule = True if type(server) is Capsule else None
     if skip_pulp:
         cmd += ' --skip-pulp-content'
     if base_backup:
         cmd += f' --base-backup {base_backup}'
     if wait_for_tasks:
         cmd += ' --wait-for-tasks'
+    if is_capsule:
+        cmd += ' --target-host proxy'
     result = server.execute(cmd, timeout='30m')
     assert result.status == 0, f'foremanctl backup failed:\n{result.stdout}\n{result.stderr}'
     backup_dir = re.search(r'Location:\s*(\S+)', result.stdout)
@@ -90,7 +96,59 @@ def _create_backup(server, subdir, skip_pulp=False, base_backup=None, wait_for_t
     return backup_dir.group(1)
 
 
-def test_positive_offline_backup(module_target_sat):
+@pytest.mark.destructive
+def test_positive_backup_restore_on_proxy(
+    module_target_sat, module_capsule_configured, setup_backup_tests
+):
+    """Verify backup and restore can perform on capsule (smart proxy)
+
+    :id: 8fc00792-313d-41a8-9dfb-40a2fc200b5d
+
+    :steps:
+        1. Configure a smart proxy (capsule)
+        2. Run foremanctl backup <dir> --target-host proxy on proxy server
+        3. Verify the backup command completes and the backup directory is created
+        4. Verify the backup directory contains the expected backup files
+        5. Run foremanctl restore <backup_dir> --target-host proxy --force on proxy server
+        6. Verify the restore command completes successfully
+        7. Verify the capsule is healthy after restore
+
+    :expectedresults:
+        1. Backup command exits with status 0 and creates a backup directory
+        2. Backup directory contains the expected database dumps and configuration files
+        3. Restore command exits with status 0
+        4. Capsule remains healthy after restore
+
+    :Verifies: SAT-45029
+    """
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+
+    # Take a backup of capsule data using '--target-host proxy' option.
+    # A smart proxy runs no Foreman tasks, so there is nothing for --wait-for-tasks to wait on.
+    backup_dir = _create_backup(module_capsule_configured, subdir, wait_for_tasks=False)
+
+    # Verify the backup directory was created
+    result = module_capsule_configured.execute(f'test -d {backup_dir}')
+    assert result.status == 0, f'Backup directory {backup_dir} was not created'
+    _assert_backup_files(module_capsule_configured, backup_dir)
+
+    # Restore the capsule data from the backup via --target-host
+    result = module_capsule_configured.execute(
+        f'foremanctl restore {backup_dir} --target-host proxy --force',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl restore failed on capsule:\n{result.stdout}\n{result.stderr}'
+    )
+
+    # Verify the capsule is healthy after restore
+    result = module_capsule_configured.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, (
+        f'foremanctl health check failed on capsule after restore:\n{result.stdout}'
+    )
+
+
+def test_positive_offline_backup(module_target_sat, setup_backup_tests):
     """Verify foremanctl backup creates a backup successfully
 
     :id: e9eafa8a-4f1b-458c-b24b-c31d4bc04c4b
