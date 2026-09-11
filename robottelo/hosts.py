@@ -2504,6 +2504,16 @@ class Satellite(Capsule, SatelliteMixins):
             return self.execute(f'journalctl --no-pager --unit foreman | grep "{pattern}"')
         return self.execute(f'grep "{pattern}" /var/log/foreman/production.log')
 
+    def grep_dynflow_log(self, pattern):
+        """Search Dynflow worker logs for a pattern.
+
+        Dynflow runs as a separate container (``dynflow-sidekiq-worker``) in containerized deployments.
+
+        :param str pattern: The pattern to grep for.
+        :return: The command result.
+        """
+        return self.execute(f'podman logs dynflow-sidekiq-worker 2>&1 | grep "{pattern}"')
+
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
 
