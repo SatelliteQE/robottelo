@@ -12,6 +12,7 @@
 
 """
 
+import random
 from random import randint
 
 from fauxfactory import gen_string
@@ -24,13 +25,10 @@ from robottelo.utils.datafactory import generate_strings_list, parametrized
 class TestPartitionTable:
     """Partition Table CLI tests."""
 
-    @pytest.mark.parametrize('name', **parametrized(generate_strings_list(length=1)))
-    def test_positive_create_with_one_character_name(self, name, target_sat):
+    def test_positive_create_with_one_character_name(self, target_sat):
         """Create Partition table with 1 character in name
 
         :id: cfec857c-ed6e-4472-93bb-70e1d4f39bae
-
-        :parametrized: yes
 
         :expectedresults: Partition table was created
 
@@ -38,6 +36,7 @@ class TestPartitionTable:
 
         :CaseImportance: Medium
         """
+        name = random.choice(generate_strings_list(length=1))
         ptable = target_sat.cli_factory.make_partition_table({'name': name})
         assert ptable['name'] == name
         target_sat.cli.PartitionTable.delete({'id': ptable['id']})

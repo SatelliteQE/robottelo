@@ -12,6 +12,8 @@
 
 """
 
+import random
+
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 
@@ -21,7 +23,6 @@ from robottelo.constants import DEFAULT_ARCHITECTURE, PRDS, REPOS, REPOSET
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_values_list,
-    parametrized,
     valid_data_list,
 )
 
@@ -34,8 +35,7 @@ def get_default_env(module_org, module_target_sat):
     )
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(module_target_sat, module_sca_manifest_org, name):
+def test_positive_create_with_name(module_target_sat, module_sca_manifest_org):
     """Create Activation key for all variations of Activation key
     name
 
@@ -44,17 +44,15 @@ def test_positive_create_with_name(module_target_sat, module_sca_manifest_org, n
     :expectedresults: Activation key is created with chosen name
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    name = random.choice(list(valid_data_list().values()))
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_sca_manifest_org.id, 'name': name}
     )
     assert new_ak['name'] == name
 
 
-@pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
-def test_positive_create_with_description(desc, module_org, module_target_sat):
+def test_positive_create_with_description(module_org, module_target_sat):
     """Create Activation key for all variations of Description
 
     :id: 5a5ca7f9-1449-4365-ac8a-978605620bf2
@@ -62,9 +60,8 @@ def test_positive_create_with_description(desc, module_org, module_target_sat):
     :expectedresults: Activation key is created with chosen description
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    desc = random.choice(list(valid_data_list().values()))
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id, 'description': desc}
     )
@@ -135,17 +132,15 @@ def test_positive_create_with_default_lce_by_name(
     assert new_ak_env.content_view_environments[0].name == lce['name']
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_cv(name, module_org, get_default_env, module_target_sat):
+def test_positive_create_with_cv(module_org, get_default_env, module_target_sat):
     """Create Activation key for all variations of Content Views
 
     :id: ec7b1af5-c3f4-40c3-b1df-c69c02a3b9a7
 
     :expectedresults: Activation key is created and has proper content view
         assigned
-
-    :parametrized: yes
     """
+    name = random.choice(list(valid_data_list().values()))
     new_cv = module_target_sat.cli_factory.make_content_view(
         {'name': name, 'organization-id': module_org.id}
     )
@@ -210,8 +205,7 @@ def test_positive_create_content_and_check_enabled(module_org, module_target_sat
     assert content[0]['default-enabled?'] == 'false'
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_invalid_name(name, module_org, module_target_sat):
+def test_negative_create_with_invalid_name(module_org, module_target_sat):
     """Create Activation key with invalid Name
 
     :id: d9b7e3a9-1d24-4e47-bd4a-dce75772d829
@@ -220,9 +214,8 @@ def test_negative_create_with_invalid_name(name, module_org, module_target_sat):
         shown.
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIFactoryError) as raise_ctx:
         module_target_sat.cli_factory.make_activation_key(
             {'organization-id': module_org.id, 'name': name}
@@ -233,11 +226,7 @@ def test_negative_create_with_invalid_name(name, module_org, module_target_sat):
         assert 'Name is too long (maximum is 255 characters)' in str(raise_ctx)
 
 
-@pytest.mark.parametrize(
-    'limit',
-    **parametrized([value for value in invalid_values_list() if not value.isdigit()] + [0.5]),
-)
-def test_negative_create_with_usage_limit_with_not_integers(module_org, limit, module_target_sat):
+def test_negative_create_with_usage_limit_with_not_integers(module_org, module_target_sat):
     """Create Activation key with non integers Usage Limit
 
     :id: 247ebc2e-c80f-488b-aeaf-6bf5eba55375
@@ -246,12 +235,11 @@ def test_negative_create_with_usage_limit_with_not_integers(module_org, limit, m
         shown.
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
     # exclude numeric values from invalid values list
     # invalid_values = [value for value in invalid_values_list() if not value.isdigit()]
     # invalid_values.append(0.5)
+    limit = random.choice([value for value in invalid_values_list() if not value.isdigit()] + [0.5])
     with pytest.raises(CLIFactoryError) as raise_ctx:
         module_target_sat.cli_factory.make_activation_key(
             {'organization-id': module_org.id, 'max-hosts': limit}
@@ -262,10 +250,7 @@ def test_negative_create_with_usage_limit_with_not_integers(module_org, limit, m
         assert 'Numeric value is required.' in str(raise_ctx)
 
 
-@pytest.mark.parametrize('invalid_values', ['-1', '-500', 0])
-def test_negative_create_with_usage_limit_with_invalid_integers(
-    module_org, invalid_values, module_target_sat
-):
+def test_negative_create_with_usage_limit_with_invalid_integers(module_org, module_target_sat):
     """Create Activation key with invalid integers Usage Limit
 
     :id: 9089f756-fda8-4e28-855c-cf8273f7c6cd
@@ -274,9 +259,8 @@ def test_negative_create_with_usage_limit_with_invalid_integers(
         shown.
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
+    invalid_values = random.choice(['-1', '-500', 0])
     with pytest.raises(CLIFactoryError) as raise_ctx:
         module_target_sat.cli_factory.make_activation_key(
             {'organization-id': module_org.id, 'max-hosts': invalid_values}
@@ -284,8 +268,7 @@ def test_negative_create_with_usage_limit_with_invalid_integers(
     assert 'Failed to create ActivationKey with data:' in str(raise_ctx)
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_delete_by_name(name, module_org, module_target_sat):
+def test_positive_delete_by_name(module_org, module_target_sat):
     """Create Activation key and delete it for all variations of
     Activation key name
 
@@ -294,9 +277,8 @@ def test_positive_delete_by_name(name, module_org, module_target_sat):
     :expectedresults: Activation key is deleted
 
     :CaseImportance: High
-
-    :parametrized: yes
     """
+    name = random.choice(list(valid_data_list().values()))
     new_ak = module_target_sat.cli_factory.make_activation_key(
         {'name': name, 'organization-id': module_org.id}
     )
@@ -387,8 +369,7 @@ def test_positive_delete_with_lce(
         module_target_sat.cli.ActivationKey.info({'id': new_ak['id']})
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_update_name_by_id(module_org, name, module_target_sat):
+def test_positive_update_name_by_id(module_org, module_target_sat):
     """Update Activation Key Name in Activation key searching by ID
 
     :id: bc304894-fd9b-4622-96e3-57c2257e26ca
@@ -396,9 +377,8 @@ def test_positive_update_name_by_id(module_org, name, module_target_sat):
     :expectedresults: Activation key is updated
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    name = random.choice(list(valid_data_list().values()))
     activation_key = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id}
     )
@@ -430,8 +410,7 @@ def test_positive_update_name_by_name(module_org, module_target_sat):
     assert updated_ak['name'] == new_name
 
 
-@pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-def test_positive_update_description(description, module_org, module_target_sat):
+def test_positive_update_description(module_org, module_target_sat):
     """Update Description in an Activation key
 
     :id: 60a4e860-d99c-431e-b70b-9b0fa90d839b
@@ -439,9 +418,8 @@ def test_positive_update_description(description, module_org, module_target_sat)
     :expectedresults: Activation key is updated
 
     :CaseImportance: High
-
-    :parametrized: yes
     """
+    description = random.choice(list(valid_data_list().values()))
     activation_key = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id}
     )
@@ -565,8 +543,7 @@ def test_positive_update_usage_limit_to_unlimited(module_org, module_target_sat)
     assert updated_ak['host-limit'] == '0 of Unlimited'
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_update_name(module_org, name, module_target_sat):
+def test_negative_update_name(module_org, module_target_sat):
     """Try to update Activation Key using invalid value for its name
 
     :id: b75e7c38-fde2-4110-ba65-4157319fc159
@@ -575,9 +552,8 @@ def test_negative_update_name(module_org, name, module_target_sat):
         shown.
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
+    name = random.choice(invalid_values_list())
     new_ak = module_target_sat.cli_factory.make_activation_key({'organization-id': module_org.id})
     with pytest.raises(CLIReturnCodeError) as raise_ctx:
         module_target_sat.cli.ActivationKey.update(
@@ -649,8 +625,7 @@ def test_positive_usage_limit(module_org, module_location, target_sat, content_h
     assert f"Max Hosts ({max_hosts}) reached for activation key '{new_ak.name}'" in result.stderr
 
 
-@pytest.mark.parametrize('host_col_name', **parametrized(valid_data_list()))
-def test_positive_update_host_collection(module_org, host_col_name, module_target_sat):
+def test_positive_update_host_collection(module_org, module_target_sat):
     """Test that host collections can be associated to Activation
     Keys
 
@@ -660,9 +635,8 @@ def test_positive_update_host_collection(module_org, host_col_name, module_targe
 
     :expectedresults: Host collections are successfully associated to
         Activation key
-
-    :parametrized: yes
     """
+    host_col_name = random.choice(list(valid_data_list().values()))
     activation_key = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id}
     )
@@ -871,8 +845,7 @@ def test_positive_update_aks_to_chost_in_one_command(module_org):
     """
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_list_by_name(module_org, name, module_target_sat):
+def test_positive_list_by_name(module_org, module_target_sat):
     """List Activation key for all variations of Activation key name
 
     :id: 644b70d9-86c1-4e26-b38e-6aafab3efa34
@@ -880,9 +853,8 @@ def test_positive_list_by_name(module_org, name, module_target_sat):
     :expectedresults: Activation key is listed
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    name = random.choice(list(valid_data_list().values()))
     module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id, 'name': name}
     )
@@ -994,8 +966,7 @@ def test_positive_remove_host_collection_by_id(module_org, module_target_sat):
     )
 
 
-@pytest.mark.parametrize('host_col', **parametrized(valid_data_list()))
-def test_positive_remove_host_collection_by_name(module_org, host_col, module_target_sat):
+def test_positive_remove_host_collection_by_name(module_org, module_target_sat):
     """Test that hosts associated to Activation Keys can be removed
     using name of that host collection
 
@@ -1013,9 +984,8 @@ def test_positive_remove_host_collection_by_name(module_org, host_col, module_ta
         key
 
     :BZ: 1336716
-
-    :parametrized: yes
     """
+    host_col = random.choice(list(valid_data_list().values()))
     activation_key = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id}
     )
@@ -1153,8 +1123,7 @@ def test_update_ak_with_syspurpose_values(module_sca_manifest_org, module_target
     assert updated_ak['system-purpose']['service-level'] == "Premium"
 
 
-@pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-def test_positive_copy_by_parent_id(module_org, new_name, module_target_sat):
+def test_positive_copy_by_parent_id(module_org, module_target_sat):
     """Copy Activation key for all valid Activation Key name
     variations
 
@@ -1163,9 +1132,8 @@ def test_positive_copy_by_parent_id(module_org, new_name, module_target_sat):
     :expectedresults: Activation key is successfully copied
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    new_name = random.choice(list(valid_data_list().values()))
     parent_ak = module_target_sat.cli_factory.make_activation_key(
         {'organization-id': module_org.id}
     )
