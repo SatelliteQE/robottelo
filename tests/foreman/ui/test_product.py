@@ -13,18 +13,14 @@
 """
 
 from datetime import timedelta
+import random
 
-from fauxfactory import gen_choice
+from fauxfactory import gen_choice, gen_string
 import pytest
 
 from robottelo.config import settings
 from robottelo.constants import REPO_TYPE, SYNC_INTERVAL, DataFile
-from robottelo.utils.datafactory import (
-    gen_string,
-    parametrized,
-    valid_cron_expressions,
-    valid_data_list,
-)
+from robottelo.utils.datafactory import valid_cron_expressions, valid_data_list
 
 
 @pytest.fixture(scope='module')
@@ -94,17 +90,15 @@ def test_positive_end_to_end(session, module_org, module_target_sat):
         assert session.product.search(new_product_name)[0]['Name'] != new_product_name
 
 
-@pytest.mark.parametrize('product_name', **parametrized(valid_data_list('ui')))
-def test_positive_create_in_different_orgs(session, product_name, module_target_sat):
+def test_positive_create_in_different_orgs(session, module_target_sat):
     """Create Product with same name but in different organizations
 
     :id: 469fc036-a48a-4c0a-9da9-33e73f903479
 
-    :parametrized: yes
-
     :expectedresults: Product is created successfully in both
         organizations.
     """
+    product_name = random.choice(list(valid_data_list().values()))
     orgs = [module_target_sat.api.Organization().create() for _ in range(2)]
     with session:
         for org in orgs:

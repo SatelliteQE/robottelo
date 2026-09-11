@@ -20,11 +20,7 @@ import pytest
 from robottelo.cli.defaults import Defaults
 from robottelo.config import settings
 from robottelo.exceptions import CLIReturnCodeError
-from robottelo.utils.datafactory import (
-    invalid_values_list,
-    parametrized,
-    valid_data_list,
-)
+from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 
 
 @pytest.fixture(scope='module')
@@ -46,10 +42,9 @@ def content_view(module_org, sync_repo, module_target_sat):
 class TestContentViewFilter:
     """Content View Filter CLI tests"""
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
     @pytest.mark.parametrize('filter_content_type', ['rpm', 'package_group', 'erratum', 'modulemd'])
     def test_positive_create_with_name_by_cv_id(
-        self, name, filter_content_type, module_org, content_view, module_target_sat
+        self, filter_content_type, module_org, content_view, module_target_sat
     ):
         """Create new content view filter and assign it to existing content
         view by id. Use different value types as a name and random filter
@@ -64,6 +59,7 @@ class TestContentViewFilter:
 
         :CaseImportance: Critical
         """
+        name = random.choice(list(valid_data_list().values()))
         module_target_sat.cli.ContentView.filter.create(
             {
                 'content-view-id': content_view['id'],
@@ -448,20 +444,16 @@ class TestContentViewFilter:
         for repo in cvf['repositories']:
             assert repo['id'] in repos
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_invalid_name(
-        self, name, module_org, content_view, module_target_sat
-    ):
+    def test_negative_create_with_invalid_name(self, module_org, content_view, module_target_sat):
         """Try to create content view filter using invalid names only
 
         :id: f3497a23-6e34-4fee-9964-f95762fc737c
-
-        :parametrized: yes
 
         :expectedresults: Content view filter is not created
 
         :CaseImportance: Low
         """
+        name = random.choice(invalid_values_list())
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.ContentView.filter.create(
                 {
@@ -556,21 +548,19 @@ class TestContentViewFilter:
                 },
             )
 
-    @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-    def test_positive_update_name(self, new_name, module_org, content_view, module_target_sat):
+    def test_positive_update_name(self, module_org, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
         view by id. Try to update that filter using different value types as a
         name
 
         :id: 70ba8916-5898-4911-9de8-21d2e0fb3df9
 
-        :parametrized: yes
-
         :expectedresults: Content view filter updated successfully and has
             proper and expected name
 
         :CaseImportance: Critical
         """
+        new_name = random.choice(list(valid_data_list().values()))
         cvf_name = gen_string('utf8')
         cvf = module_target_sat.cli.ContentView.filter.create(
             {
@@ -735,18 +725,16 @@ class TestContentViewFilter:
         )
         assert cvf['inclusion'] == 'false'
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_with_name(self, new_name, content_view, module_target_sat):
+    def test_negative_update_with_name(self, content_view, module_target_sat):
         """Try to update content view filter using invalid names only
 
         :id: 6c40e452-f786-4e28-9f03-b1935b55b33a
-
-        :parametrized: yes
 
         :expectedresults: Content view filter is not updated
 
         :CaseImportance: Critical
         """
+        new_name = random.choice(invalid_values_list())
         cvf_name = gen_string('utf8')
         module_target_sat.cli.ContentView.filter.create(
             {'content-view-id': content_view['id'], 'name': cvf_name, 'type': 'rpm'}
@@ -826,20 +814,18 @@ class TestContentViewFilter:
                 }
             )
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_delete_by_name(self, name, module_org, content_view, module_target_sat):
+    def test_positive_delete_by_name(self, module_org, content_view, module_target_sat):
         """Create new content view filter and assign it to existing content
         view by id. Try to delete that filter using different value types as a
         name
 
         :id: a01baf17-9c3c-4923-bfe0-865a4cbc4223
 
-        :parametrized: yes
-
         :expectedresults: Content view filter deleted successfully
 
         :CaseImportance: Critical
         """
+        name = random.choice(list(valid_data_list().values()))
         module_target_sat.cli.ContentView.filter.create(
             {
                 'content-view-id': content_view['id'],
