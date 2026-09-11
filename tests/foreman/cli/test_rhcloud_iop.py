@@ -16,6 +16,7 @@ import pytest
 import yaml
 
 from robottelo.config import settings
+from robottelo.enums import InstallMethod
 from robottelo.utils.installer import InstallerCommand
 
 IOP_SERVICES = [
@@ -113,24 +114,39 @@ def test_positive_install_iop_custom_certs(
     )
     assert result.status == 0, f'Error logging in to container registry: {result.stdout}'
 
-    # Set up container image path overrides
-    custom_hiera_yaml = yaml.dump(
-        {f'iop::{service}::image': path for service, path in iop_settings.image_paths.items()}
-    )
-    satellite.execute(f'echo "{custom_hiera_yaml}" > /etc/foreman-installer/custom-hiera.yaml')
+    if satellite.install_method == InstallMethod.FOREMANCTL:
+        for service, image in iop_settings.image_paths.items():
+            quadlet_name = f'iop-{service.replace("_", "-")}'
+            satellite.execute(
+                f"sed -i 's|^Image=.*|Image={image}|' /etc/containers/systemd/{quadlet_name}.image"
+            )
+        result = satellite.execute(
+            'foremanctl deploy --add-feature iop'
+            f' --certificate-source=custom_server'
+            f' --certificate-server-certificate /root/{certs_data["cert_file_name"]}'
+            f' --certificate-server-key /root/{certs_data["key_file_name"]}'
+            f' --certificate-server-ca-certificate /root/{certs_data["ca_bundle_file_name"]}',
+            timeout='30m',
+        )
+    else:
+        # Set up container image path overrides
+        custom_hiera_yaml = yaml.dump(
+            {f'iop::{service}::image': path for service, path in iop_settings.image_paths.items()}
+        )
+        satellite.execute(f'echo "{custom_hiera_yaml}" > /etc/foreman-installer/custom-hiera.yaml')
 
-    command = InstallerCommand(
-        'enable-iop',
-        'certs-update-server',
-        'certs-update-server-ca',
-        scenario='satellite',
-        certs_server_cert=f'/root/{certs_data["cert_file_name"]}',
-        certs_server_key=f'/root/{certs_data["key_file_name"]}',
-        certs_server_ca_cert=f'/root/{certs_data["ca_bundle_file_name"]}',
-        foreman_initial_admin_password=settings.server.admin_password,
-    ).get_command()
+        command = InstallerCommand(
+            'enable-iop',
+            'certs-update-server',
+            'certs-update-server-ca',
+            scenario='satellite',
+            certs_server_cert=f'/root/{certs_data["cert_file_name"]}',
+            certs_server_key=f'/root/{certs_data["key_file_name"]}',
+            certs_server_ca_cert=f'/root/{certs_data["ca_bundle_file_name"]}',
+            foreman_initial_admin_password=settings.server.admin_password,
+        ).get_command()
 
-    result = satellite.execute(command, timeout='30m')
+        result = satellite.execute(command, timeout='30m')
     assert result.status == 0
 
     result = satellite.execute('hammer ping')
@@ -222,8 +238,11 @@ def test_disable_enable_iop(module_satellite_iop, module_sca_manifest, rhel_cont
     assert result.status == 0, 'Initial insights-client upload failed'
 
     # Disable IoP
-    command = InstallerCommand(iop_ensure='absent').get_command()
-    result = satellite.execute(command, timeout='10m')
+    if satellite.install_method == InstallMethod.FOREMANCTL:
+        result = satellite.execute('foremanctl deploy --remove-feature iop', timeout='30m')
+    else:
+        command = InstallerCommand(iop_ensure='absent').get_command()
+        result = satellite.execute(command, timeout='10m')
     assert result.status == 0, 'Failed to disable IoP'
 
     result = satellite.execute('satellite-maintain service restart')
@@ -260,8 +279,11 @@ def test_disable_enable_iop(module_satellite_iop, module_sca_manifest, rhel_cont
     assert result.status == 0, 'Failed to unregister from Red Hat Lightspeed'
 
     # Re-enable IoP
-    command = InstallerCommand(iop_ensure='present').get_command()
-    result = satellite.execute(command, timeout='10m')
+    if satellite.install_method == InstallMethod.FOREMANCTL:
+        result = satellite.execute('foremanctl deploy --add-feature iop', timeout='30m')
+    else:
+        command = InstallerCommand(iop_ensure='present').get_command()
+        result = satellite.execute(command, timeout='10m')
     assert result.status == 0, 'Failed to re-enable IoP'
 
     result = satellite.execute('satellite-maintain service restart')
@@ -352,6 +374,7 @@ def process_iop_log_options(installer_output):
     return options_dict
 
 
+@pytest.mark.foreman_installer
 def test_set_iop_log_level_via_installer(module_satellite_iop):
     """Set IoP log level to DEBUG using satellite-installer options.
 
@@ -369,6 +392,7 @@ def test_set_iop_log_level_via_installer(module_satellite_iop):
 
     :Verifies: SAT-41750
     """
+
     NEW_LOG_LEVEL = 'DEBUG'
 
     # Retrieve the IoP log level settings from satellite-installer help output
