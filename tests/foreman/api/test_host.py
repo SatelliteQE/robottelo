@@ -1407,7 +1407,7 @@ def test_positive_read_puppet_ca_proxy_name(
     assert session_puppet_enabled_proxy.name == host['puppet_ca_proxy_name']
 
 
-def test_positive_list_hosts_thin_all(module_target_sat):
+def test_positive_list_hosts_thin_all(module_target_sat, request):
     """List hosts with thin=true and per_page=all
 
     :id: 00b7e603-aed5-4b19-bfec-1a179fad6743
@@ -1420,6 +1420,7 @@ def test_positive_list_hosts_thin_all(module_target_sat):
     """
     # Create a host to ensure at least one host exists for thin listing
     created_host = module_target_sat.api.Host().create()
+    request.addfinalizer(created_host.delete)
     hosts = module_target_sat.api.Host().search(query={'thin': 'true', 'per_page': 'all'})
     assert created_host.name in [host.name for host in hosts]
     keys = dir(hosts[0])
