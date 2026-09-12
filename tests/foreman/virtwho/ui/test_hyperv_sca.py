@@ -13,6 +13,7 @@
 
 import pytest
 
+from robottelo.config import settings
 from robottelo.utils.virtwho import (
     deploy_configure_by_script,
     get_configure_file,
@@ -23,7 +24,6 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtwhoConfigforHyperv:
-    @pytest.mark.parametrize('deploy_type_ui', ['script'], indirect=True)
     def test_positive_deploy_configure_by_script(
         self,
         module_sca_manifest_org,
@@ -51,6 +51,39 @@ class TestVirtwhoConfigforHyperv:
         assert org_session.virtwho_configure.search(form_data_ui['name'])[0]['Status'] == 'ok'
 
         # Check Hypervisor host subscription status and hypervisor host and virtual guest mapping in UI
+        hypervisor_guest_mapping_newcontent_ui(
+            org_session, default_location, hypervisor_name, guest_name
+        )
+
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+    def test_positive_deploy_configure_by_job(
+        self,
+        module_sca_manifest_org,
+        org_session,
+        deploy_via_job_ui,
+        default_location,
+    ):
+        """Verify virt-who configuration deployed via Ansible REX job.
+
+        :id: 5043cd87-33de-411d-8a73-7731f62d8fa8
+
+        :steps:
+            1. Run the 'Deploy virt-who Config' Ansible REX job targeting the Satellite
+            2. Verify virt-who service is running and reporting
+            3. Check hypervisor and guest mapping in UI
+
+        :expectedresults:
+            1. Ansible REX job completes successfully
+            2. virt-who service reports hypervisor-guest mapping
+            3. Hypervisor host and virtual guest are visible in UI
+
+        :Verifies: SAT-46996
+
+        :CaseImportance: High
+        """
+        hypervisor_name, guest_name = deploy_via_job_ui
+        org_session.organization.select(org_name=module_sca_manifest_org.name)
         hypervisor_guest_mapping_newcontent_ui(
             org_session, default_location, hypervisor_name, guest_name
         )

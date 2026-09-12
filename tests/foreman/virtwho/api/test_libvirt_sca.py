@@ -13,6 +13,7 @@
 
 import pytest
 
+from robottelo.config import settings
 from robottelo.utils.virtwho import (
     deploy_configure_by_script,
     get_configure_file,
@@ -21,7 +22,33 @@ from robottelo.utils.virtwho import (
 
 
 class TestVirtWhoConfigforLibvirt:
-    @pytest.mark.parametrize('deploy_type_api', ['script'], indirect=True)
+    @pytest.mark.no_containers
+    @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+    def test_positive_deploy_configure_by_job(
+        self,
+        module_sca_manifest_org,
+        deploy_via_job_api,
+    ):
+        """Verify virt-who configuration deployed via Ansible REX job using API.
+
+        :id: e895d3bc-df40-47f5-b793-7223ab7067c9
+
+        :steps:
+            1. Run the 'Deploy virt-who Config' Ansible REX job targeting the Satellite via API
+            2. Verify virt-who service is running and reporting
+
+        :expectedresults:
+            1. Ansible REX job completes successfully
+            2. virt-who service reports hypervisor-guest mapping
+
+        :Verifies: SAT-46996
+
+        :CaseImportance: High
+        """
+        hypervisor_name, guest_name = deploy_via_job_api
+        assert hypervisor_name
+        assert guest_name
+
     def test_positive_deploy_configure_by_script(
         self,
         module_sca_manifest_org,
