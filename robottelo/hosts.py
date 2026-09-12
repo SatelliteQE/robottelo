@@ -3293,8 +3293,17 @@ class Satellite(Capsule, SatelliteMixins):
 
     @property
     def iop_enabled(self):
-        """Return boolean indicating whether IoP (local Red Hat Lightspeed) is enabled."""
-        return self.api.RHCloud().advisor_engine_config()['use_iop_mode']
+        """Return boolean indicating whether IoP (local Red Hat Lightspeed) is enabled.
+
+        Returns False when the advisor_engine_config endpoint does not exist (404),
+        which means the foreman_rh_cloud plugin is absent or predates IoP support.
+        """
+        try:
+            return self.api.RHCloud().advisor_engine_config()['use_iop_mode']
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                return False
+            raise
 
 
 class SSOHost(Host):
