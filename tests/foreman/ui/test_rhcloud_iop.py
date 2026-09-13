@@ -418,6 +418,73 @@ def test_iop_recommendations_host_details_e2e(
         )
 
 
+@pytest.mark.e2e
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match(r'^(?!7).*')
+@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
+def test_iop_pathways_remediation_e2e(
+    rhel_insights_vm,
+    rhcloud_manifest_org,
+    module_target_sat_insights,
+):
+    """Set up Satellite with iop enabled, create conditions that cause advisor recommendations
+    to be grouped into a pathway, then remediate an affected system from the pathway's Systems tab.
+
+    :id: 0f6c2c6a-3c0d-4a3d-9c0e-1a2b3c4d5e6f
+
+    :steps:
+        1. Set up Satellite with iop enabled and register a host.
+        2. Create conditions that violate advisor rules and get grouped into a pathway.
+        3. In Satellite UI, go to Red Hat Lightspeed > Recommendations > Pathways tab.
+        4. Open a pathway's details page by clicking its name.
+        5. Switch to the Systems tab and verify the affected host is listed.
+        6. Remediate the affected host and verify the remediation job completes successfully.
+
+    :expectedresults:
+        1. At least one pathway is listed on the Pathways tab.
+        2. The affected host is listed on the pathway's Systems tab.
+        3. The remediation job finished successfully.
+
+    :parametrized: yes
+
+    :CaseAutomation: Automated
+    """
+    org_name = rhcloud_manifest_org.name
+
+    # Prepare misconfigured machine and upload data to Insights.
+    create_insights_recommendation(rhel_insights_vm)
+
+    # TODO: Trigger grouping of the recommendations into an IoP pathway. The mechanism is owned
+    # by dev and is still being defined; once available, invoke it here (see
+    # airgun PathwaysEntity.group_recommendations_into_pathways).
+
+    with module_target_sat_insights.ui_session() as session:
+        session.organization.select(org_name=org_name)
+
+        # # Verify that we can see the rule hit via insights-client.
+        # result = rhel_insights_vm.execute('insights-client --diagnosis')
+        # assert result.status == 0
+        # assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
+
+        # Verify at least one pathway is listed on the Pathways tab.
+        pathways = session.pathways.read(widget_names='table')['table']
+        assert pathways, 'No pathways were listed on the Pathways tab'
+        pathway_name = pathways[0]['Name']
+
+        # Verify the affected host is listed on the pathway's Systems tab.
+        systems = session.pathways.read_systems(pathway_name)
+        assert any(row['Name'] == rhel_insights_vm.hostname for row in systems), (
+            f'{rhel_insights_vm.hostname} is not listed under pathway {pathway_name}'
+        )
+
+        # Remediate the affected system from the pathway's Systems tab.
+        result = session.pathways.remediate_system(pathway_name, rhel_insights_vm.hostname)
+
+        # Verify that the remediation job Succeeded.
+        assert result['status']['Succeeded'] != 0
+        assert result['overall_status']['is_success']
+
+
 @pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)
 def test_iop_negative_rhcloud_inventory_upload_not_displayed(module_target_sat_insights):
     """Verify that the 'Red Hat Lightspeed > Inventory Upload' navigation item is not available
