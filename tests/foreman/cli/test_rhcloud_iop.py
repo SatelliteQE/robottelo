@@ -501,7 +501,6 @@ def test_set_iop_log_level_via_installer(module_satellite_iop):
 
     :Verifies: SAT-41750
     """
-
     NEW_LOG_LEVEL = 'DEBUG'
 
     # Retrieve the IoP log level settings from satellite-installer help output
