@@ -494,13 +494,21 @@ class IoPSetup:
         self.enable_ipv6_podman_proxy()
 
         if self.install_method == InstallMethod.FOREMANCTL:
+            # deploy creates the iop-*.image quadlet files, so it must run before we
+            # can override the images they point at.
+            result = self.execute('foremanctl deploy --add-feature iop', timeout='30m')
+            if result.status != 0:
+                raise SatelliteHostError(f'Failed to configure IoP: {result.stdout}')
+            # Now the .image files exist, point each at our override image, then reload
+            # systemd and restart the units so they re-pull the overridden images.
             for service, image in settings.rh_cloud.iop.image_paths.items():
                 quadlet_name = f'iop-{service.replace("_", "-")}'
                 self.execute(
                     f"sed -i 's|^Image=.*|Image={image}|' "
                     f"/etc/containers/systemd/{quadlet_name}.image"
                 )
-            result = self.execute('foremanctl deploy --add-feature iop', timeout='30m')
+            self.execute('systemctl daemon-reload')
+            result = self.execute("systemctl restart 'iop-*'")
         else:
             # Set up container image path overrides for satellite-installer
             if image_paths := self.get_iop_image_paths():
