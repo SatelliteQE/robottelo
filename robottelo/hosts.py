@@ -2056,12 +2056,10 @@ class Capsule(ContentHost, CapsuleMixins):
         self._satellite = satellite
         self.setup_rhel_repos()
         product_rpm_name = (
-            self.container_rpm_name
-            if settings.server.install_method == InstallMethod.FOREMANCTL
-            else self.product_rpm_name
+            self.container_rpm_name if method == InstallMethod.FOREMANCTL else self.product_rpm_name
         )
         # TODO: Remove this condition once foremanctl is available in capsule repos
-        if settings.server.install_method == InstallMethod.INSTALLER:
+        if method == InstallMethod.INSTALLER:
             self.setup_capsule_repos(release=release)
         else:
             self.setup_satellite_repos()
@@ -2100,7 +2098,7 @@ class Capsule(ContentHost, CapsuleMixins):
         certs_tar, _, installer = self.satellite.capsule_certs_generate(self, **capsule_cert_opts)
         self.satellite.session.remote_copy(certs_tar, self)
 
-        if settings.server.install_method == InstallMethod.INSTALLER:
+        if method == InstallMethod.INSTALLER:
             installer.update(**installer_kwargs)
             result = self.install(installer)
             if result.status:
