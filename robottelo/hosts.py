@@ -2049,7 +2049,11 @@ class Capsule(ContentHost, CapsuleMixins):
     def capsule_setup(
         self, sat_host=None, capsule_cert_opts=None, release=None, **installer_kwargs
     ):
-        """Prepare the host and run the capsule installer
+        """Set up the Capsule host according to the installation method.
+
+        For the ``foremanctl`` method, wait for the existing Katello Capsule record
+        to appear. This path does not prepare the host or run the Capsule installer.
+        For the installer method, prepare the host and run the Capsule installer.
 
         Args:
             sat_host: Satellite host object
