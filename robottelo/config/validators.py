@@ -104,6 +104,10 @@ VALIDATORS = dict(
         Validator('capsule.deploy_workflows', must_exist=True, is_type_of=dict),
         Validator('capsule.deploy_workflows.product', must_exist=True),
         Validator('capsule.deploy_workflows.os', must_exist=True),
+        Validator(
+            'capsule.deploy_workflows.foremanctl',
+            default='deploy-foreman-proxy',
+        ),
         Validator('capsule.deploy_arguments', must_exist=True, is_type_of=dict, default={}),
     ],
     libvirt=[
