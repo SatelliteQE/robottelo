@@ -44,9 +44,7 @@ def prepare_capsule_checkout(satellite=None, workflow=None, **broker_args):
         deploy_args = settings.capsule.get('deploy_arguments') or {}
         if hasattr(deploy_args, 'to_dict'):
             deploy_args = deploy_args.to_dict()
-        for key in ('deploy_rhel_version', 'deploy_network_type', 'deploy_flavor'):
-            if key in deploy_args and key not in broker_args:
-                broker_args[key] = deploy_args[key]
+        broker_args = {**deploy_args, **broker_args}
         sat_fqdn = (
             broker_args.get('foreman_proxy_foreman_fqdn')
             or getattr(satellite, 'hostname', None)
@@ -266,15 +264,13 @@ def large_capsule_configured(large_capsule_host, target_sat):
 @pytest.fixture(scope='module')
 def module_capsule_configured(request, module_capsule_host, module_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    sanity = 'build_sanity' in request.config.option.markexpr
-    run_setup = not request.config.option.n_minus and not sanity
-    _bind_satellite_and_wait_for_capsule(
+    # Sanity reuses the Capsule from the installer test; _target_capsule_host yields None.
+    if 'build_sanity' in request.config.option.markexpr:
+        return Capsule.get_host_by_hostname(settings.capsule.hostname)
+    run_setup = not request.config.option.n_minus
+    return _bind_satellite_and_wait_for_capsule(
         module_capsule_host, module_target_sat, run_setup=run_setup
     )
-    # The capsule is being set here by capsule installation test of `test_installer.py` for sanity
-    if sanity:
-        return Capsule.get_host_by_hostname(settings.capsule.hostname)
-    return module_capsule_host
 
 
 @pytest.fixture(scope='module')
@@ -337,14 +333,19 @@ def module_lb_capsules(module_target_sat, retry_limit=3, delay=300, **broker_arg
     """A fixture that spins 2 capsule for loadbalancer
     :return: List of capsules
     """
+    if str(module_target_sat.install_method) == 'foremanctl':
+        pytest.skip(
+            'Capsule load-balancer setup uses satellite-installer '
+            'and is not supported on foremanctl.'
+        )
     if settings.capsule.get('deploy_arguments'):
         resolved = resolve_deploy_args(settings.capsule.deploy_arguments)
         settings.set('capsule.deploy_arguments', resolved)
+        broker_args.update(settings.capsule.deploy_arguments)
         timeout = (1200 + delay) * retry_limit
-        workflow, broker_args = prepare_capsule_checkout(satellite=module_target_sat, **broker_args)
         hosts = Broker(
             host_class=Capsule,
-            workflow=workflow,
+            workflow=settings.capsule.deploy_workflows.product,
             _count=2,
             **broker_args,
         )
