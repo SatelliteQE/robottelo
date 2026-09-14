@@ -271,6 +271,12 @@ def test_negative_capsule_without_registration_enabled(
 
     :expectedresults: Registration fails with HTTP error code 422 and an error message.
     """
+    if str(module_target_sat.install_method) == 'foremanctl':
+        pytest.skip(
+            'Cannot disable Registration on a foremanctl Capsule '
+            '(deploy-proxy --add-feature / --remove-feature is not available).'
+        )
+
     org = module_sca_manifest_org
 
     nc = module_capsule_configured.nailgun_smart_proxy

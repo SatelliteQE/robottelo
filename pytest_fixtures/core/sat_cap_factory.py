@@ -1,4 +1,4 @@
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from functools import lru_cache
 
 from broker import Broker
@@ -7,6 +7,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import configure_airgun, configure_nailgun, settings
+from robottelo.exceptions import ContentHostError
 from robottelo.hosts import (
     Capsule,
     IPAHost,
@@ -24,6 +25,66 @@ def resolve_deploy_args(args_dict):
             # Args transformed into small letters and existing capital args removed
             args_dict[key.lower()] = settings.get(args_dict.pop(key).replace('this.', ''))
     return args_dict
+
+
+def prepare_capsule_checkout(satellite=None, workflow=None, **broker_args):
+    """Return (workflow, broker_args) for a Capsule Broker checkout.
+
+    Foremanctl uses ``deploy-foreman-proxy`` and requires the Satellite FQDN at
+    checkout time. Installer keeps ``capsule.deploy_workflows.product``.
+    """
+    if satellite is not None:
+        install_method = str(satellite.install_method)
+    else:
+        install_method = str(settings.server.get('install_method', 'auto'))
+
+    if workflow is None and install_method == 'foremanctl':
+        workflows = settings.capsule.deploy_workflows
+        workflow = workflows.get('foremanctl') or 'deploy-foreman-proxy'
+        deploy_args = settings.capsule.get('deploy_arguments') or {}
+        if hasattr(deploy_args, 'to_dict'):
+            deploy_args = deploy_args.to_dict()
+        for key in ('deploy_rhel_version', 'deploy_network_type', 'deploy_flavor'):
+            if key in deploy_args and key not in broker_args:
+                broker_args[key] = deploy_args[key]
+        sat_fqdn = (
+            broker_args.get('foreman_proxy_foreman_fqdn')
+            or getattr(satellite, 'hostname', None)
+            or settings.server.hostname
+        )
+        if not sat_fqdn:
+            raise ValueError(
+                'deploy-foreman-proxy requires a Satellite hostname '
+                '(satellite= or settings.server.hostname).'
+            )
+        broker_args['foreman_proxy_foreman_fqdn'] = sat_fqdn
+        return workflow, broker_args
+
+    if settings.capsule.deploy_arguments:
+        broker_args.update(settings.capsule.deploy_arguments)
+    return workflow or settings.capsule.deploy_workflows.product, broker_args
+
+
+def _bind_satellite_and_wait_for_capsule(capsule_host, satellite, *, run_setup):
+    """Bind the Capsule to Satellite and wait until Katello lists it."""
+    capsule_host._satellite = satellite
+    if run_setup:
+        capsule_host.capsule_setup(sat_host=satellite)
+
+    def _capsule_registered():
+        with suppress(IndexError, ContentHostError):
+            _ = capsule_host.nailgun_capsule
+            return True
+        return False
+
+    wait_for(
+        _capsule_registered,
+        timeout=600,
+        delay=15,
+        handle_exception=True,
+        fail_condition=False,
+    )
+    return capsule_host
 
 
 @contextmanager
@@ -47,9 +108,9 @@ def cached_capsule_cdn_register(hostname=None):
 
 
 @contextmanager
-def _target_capsule_host(request, capsule_factory):
+def _target_capsule_host(request, capsule_factory, sat_host=None):
     if 'sanity' not in request.config.option.markexpr and not request.config.option.n_minus:
-        new_cap = capsule_factory()
+        new_cap = capsule_factory(satellite=sat_host)
         new_cap.enable_ipv6_dnf_and_rhsm_proxy()
         yield new_cap
         new_cap.teardown()
@@ -96,9 +157,9 @@ def satellite_factory():
 
 
 @pytest.fixture
-def large_capsule_host(capsule_factory):
+def large_capsule_host(capsule_factory, target_sat):
     """A fixture that provides a Capsule based on config settings"""
-    new_cap = capsule_factory(deploy_flavor=settings.flavors.custom_db)
+    new_cap = capsule_factory(satellite=target_sat, deploy_flavor=settings.flavors.custom_db)
     new_cap.enable_ipv6_dnf_and_rhsm_proxy()
     yield new_cap
     new_cap.teardown()
@@ -113,12 +174,14 @@ def capsule_factory():
         settings.set('capsule.deploy_arguments', resolved)
         logger.debug(f'Resolved deploy arguments for cap: {settings.capsule.deploy_arguments}')
 
-    def factory(retry_limit=3, delay=300, workflow=None, **broker_args):
-        if settings.capsule.deploy_arguments:
-            broker_args.update(settings.capsule.deploy_arguments)
+    def factory(retry_limit=3, delay=300, workflow=None, satellite=None, **broker_args):
+        workflow, broker_args = prepare_capsule_checkout(
+            satellite=satellite, workflow=workflow, **broker_args
+        )
+        logger.debug('Checking out Capsule with workflow %s and args %s', workflow, broker_args)
         vmb = Broker(
             host_class=Capsule,
-            workflow=workflow or settings.capsule.deploy_workflows.product,
+            workflow=workflow,
             **broker_args,
         )
         timeout = (1200 + delay) * retry_limit
@@ -166,32 +229,31 @@ def module_satellite_mqtt(module_target_sat):
 
 
 @pytest.fixture
-def capsule_host(request, capsule_factory):
+def capsule_host(request, capsule_factory, target_sat):
     """A fixture that provides a Capsule based on config settings"""
-    with _target_capsule_host(request, capsule_factory) as cap:
+    with _target_capsule_host(request, capsule_factory, sat_host=target_sat) as cap:
         yield cap
 
 
 @pytest.fixture(scope='module')
-def module_capsule_host(request, capsule_factory):
+def module_capsule_host(request, capsule_factory, module_target_sat):
     """A fixture that provides a Capsule based on config settings"""
-    with _target_capsule_host(request, capsule_factory) as cap:
+    with _target_capsule_host(request, capsule_factory, sat_host=module_target_sat) as cap:
         yield cap
 
 
 @pytest.fixture(scope='session')
-def session_capsule_host(request, capsule_factory):
+def session_capsule_host(request, capsule_factory, session_target_sat):
     """A fixture that provides a Capsule based on config settings"""
-    with _target_capsule_host(request, capsule_factory) as cap:
+    with _target_capsule_host(request, capsule_factory, sat_host=session_target_sat) as cap:
         yield cap
 
 
 @pytest.fixture
 def capsule_configured(request, capsule_host, target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    if not request.config.option.n_minus:
-        capsule_host.capsule_setup(sat_host=target_sat)
-    return capsule_host
+    run_setup = not request.config.option.n_minus
+    return _bind_satellite_and_wait_for_capsule(capsule_host, target_sat, run_setup=run_setup)
 
 
 @pytest.fixture
@@ -204,10 +266,13 @@ def large_capsule_configured(large_capsule_host, target_sat):
 @pytest.fixture(scope='module')
 def module_capsule_configured(request, module_capsule_host, module_target_sat):
     """Configure the capsule instance with the satellite from settings.server.hostname"""
-    if not any([request.config.option.n_minus, 'build_sanity' in request.config.option.markexpr]):
-        module_capsule_host.capsule_setup(sat_host=module_target_sat)
+    sanity = 'build_sanity' in request.config.option.markexpr
+    run_setup = not request.config.option.n_minus and not sanity
+    _bind_satellite_and_wait_for_capsule(
+        module_capsule_host, module_target_sat, run_setup=run_setup
+    )
     # The capsule is being set here by capsule installation test of `test_installer.py` for sanity
-    if 'build_sanity' in request.config.option.markexpr:
+    if sanity:
         return Capsule.get_host_by_hostname(settings.capsule.hostname)
     return module_capsule_host
 
@@ -268,18 +333,18 @@ def module_capsule_configured_mqtt(request, module_capsule_configured_ansible):
 
 
 @pytest.fixture(scope='module')
-def module_lb_capsules(retry_limit=3, delay=300, **broker_args):
+def module_lb_capsules(module_target_sat, retry_limit=3, delay=300, **broker_args):
     """A fixture that spins 2 capsule for loadbalancer
     :return: List of capsules
     """
     if settings.capsule.get('deploy_arguments'):
         resolved = resolve_deploy_args(settings.capsule.deploy_arguments)
         settings.set('capsule.deploy_arguments', resolved)
-        broker_args.update(settings.capsule.deploy_arguments)
         timeout = (1200 + delay) * retry_limit
+        workflow, broker_args = prepare_capsule_checkout(satellite=module_target_sat, **broker_args)
         hosts = Broker(
             host_class=Capsule,
-            workflow=settings.capsule.deploy_workflows.product,
+            workflow=workflow,
             _count=2,
             **broker_args,
         )
