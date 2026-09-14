@@ -19,6 +19,9 @@ from robottelo.utils.virtwho import (
     get_configure_option,
 )
 
+# TODO: Remove this marker when SAT-44794 is complete.
+pytestmark = pytest.mark.foreman_installer
+
 
 class TestVirtWhoConfigforLibvirt:
     @pytest.mark.parametrize('deploy_type_api', ['script'], indirect=True)
