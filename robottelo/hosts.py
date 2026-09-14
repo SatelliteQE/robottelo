@@ -2030,8 +2030,9 @@ class Capsule(ContentHost, CapsuleMixins):
         Kwargs:
             installer_kwargs: Additional installer arguments
         """
-        self._satellite = sat_host or Satellite()
-        method = self.satellite.install_method
+        satellite = sat_host or Satellite()
+        self._satellite = satellite
+        method = satellite.install_method
 
         # deploy-foreman-proxy already registers the host. Wait for that to
         # show up in Katello; do not CDN-register or run deploy-proxy again.
@@ -2039,7 +2040,7 @@ class Capsule(ContentHost, CapsuleMixins):
             logger.info(
                 'Waiting for Capsule %s to register on %s.',
                 self.hostname,
-                self.satellite.hostname,
+                satellite.hostname,
             )
             wait_for(
                 lambda: self.nailgun_capsule,
@@ -2051,6 +2052,8 @@ class Capsule(ContentHost, CapsuleMixins):
             return
 
         self.register_to_cdn()
+        # register_to_cdn() -> reset_rhsm() clears _satellite; rebind sat_host.
+        self._satellite = satellite
         self.setup_rhel_repos()
         product_rpm_name = (
             self.container_rpm_name
