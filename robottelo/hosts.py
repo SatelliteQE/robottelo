@@ -2088,12 +2088,10 @@ class Capsule(ContentHost, CapsuleMixins):
         self._satellite = satellite
         self.setup_rhel_repos()
         product_rpm_name = (
-            self.container_rpm_name
-            if settings.server.install_method == InstallMethod.FOREMANCTL
-            else self.product_rpm_name
+            self.container_rpm_name if method == InstallMethod.FOREMANCTL else self.product_rpm_name
         )
         self.setup_capsule_repos(release=release)
-        if settings.server.install_method == InstallMethod.FOREMANCTL:
+        if method == InstallMethod.FOREMANCTL:
             # Enable Packit repos
             pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
             if pull_requests:
@@ -2129,7 +2127,7 @@ class Capsule(ContentHost, CapsuleMixins):
         certs_tar, _, installer = self.satellite.capsule_certs_generate(self, **capsule_cert_opts)
         self.satellite.session.remote_copy(certs_tar, self)
 
-        if settings.server.install_method == InstallMethod.INSTALLER:
+        if method == InstallMethod.INSTALLER:
             installer.update(**installer_kwargs)
             result = self.install(installer)
             if result.status:
