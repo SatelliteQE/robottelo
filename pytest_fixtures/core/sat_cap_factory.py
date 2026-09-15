@@ -241,9 +241,9 @@ def module_capsule_host(request, capsule_factory, module_target_sat):
 
 
 @pytest.fixture(scope='session')
-def session_capsule_host(request, capsule_factory, session_target_sat):
-    """A fixture that provides a Capsule based on config settings"""
-    with _target_capsule_host(request, capsule_factory, sat_host=session_target_sat) as cap:
+def session_capsule_host(request, capsule_factory, session_satellite_host):
+    """Session Capsule checked out against ``session_satellite_host``."""
+    with _target_capsule_host(request, capsule_factory, sat_host=session_satellite_host) as cap:
         yield cap
 
 
