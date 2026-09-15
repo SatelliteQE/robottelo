@@ -12,8 +12,115 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
 )
 from robottelo.enums import NetworkType
+from robottelo.exceptions import CapsuleHostError
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
+
+
+class InstallationVerification:
+    """Installation verification helper methods for Satellite and Capsule hosts."""
+
+    @staticmethod
+    def assert_hammer_ping_ok(result):
+        """Assert that 'hammer ping' output shows all services as ok.
+
+        :param result: Command result from executing 'hammer ping'
+        """
+        from robottelo.cli import hammer
+
+        assert result.status == 0, 'hammer ping failed'
+        services = hammer.parse_ping(result.stdout)
+        for service_name, status in services.items():
+            assert status == 'ok', f'Service {service_name} status is {status}, expected ok'
+
+    def assert_install_assertions(self):
+        """Assert common post-installation health checks.
+
+        Works for both Satellite and Capsule hosts, with both satellite-installer
+        and foremanctl installation methods. Checks logs, services, and overall
+        system health.
+        """
+        from robottelo.config import settings
+        from robottelo.enums import InstallMethod
+        from robottelo.utils.issue_handlers import is_open
+
+        is_satellite = type(self).__name__ == 'Satellite'
+
+        if is_satellite:
+            sat_version = 'stream' if self.is_stream else self.version
+            if settings.server.version.source != 'nightly':
+                assert settings.server.version.release == sat_version
+
+        # Check foreman-proxy service status (relevant for containerized Capsule)
+        if not is_satellite and self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('systemctl status foreman-proxy.service foreman.target')
+            if 'inactive (dead)' in result.stdout:
+                raise CapsuleHostError(f'foreman-proxy service is not running:\n{result.stdout}')
+
+        # Check journald for errors using installation-method-aware service list
+        services = self.get_service_names()
+        service_units = ' '.join([f'-u "{svc}"' for svc in services])
+        result = self.execute(f'journalctl --quiet --no-pager --boot --grep ERROR {service_units}')
+        if is_open('SAT-21086') and is_satellite:
+            errors = [line for line in result.stdout.splitlines() if 'PG::' not in line]
+            if is_open('SAT-49648'):
+                errors = [
+                    line
+                    for line in errors
+                    if 'Control server error: [Errno 13] Permission denied' not in line
+                ]
+            assert not errors
+        else:
+            assert not result.stdout
+
+        # Log file checks only for satellite-installer (Not applicable for containers)
+        if self.install_method == InstallMethod.INSTALLER:
+            result = self.execute(
+                r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
+            )
+            assert not result.stdout
+
+            if is_satellite:
+                result = self.execute(
+                    r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log'
+                )
+                if not is_open('SAT-21086'):
+                    assert not result.stdout
+
+                result = self.execute(r'grep -iR "error" /var/log/candlepin/*')
+                assert not result.stdout
+
+            if not is_satellite:
+                result = self.execute(
+                    r'grep "\[ERROR" --context=100 /var/log/foreman-installer/capsule.log'
+                )
+                assert not result.stdout
+
+                result = self.execute(r'grep -iR "error" /var/log/foreman-proxy/*')
+                assert not result.stdout
+
+        # Check httpd logs, filtering expected transient startup errors
+        result = self.execute(r'grep -iR "error" /var/log/httpd/*')
+        if result.stdout:
+            filtered_errors = [
+                line
+                for line in result.stdout.splitlines()
+                if 'Connection refused' not in line
+                and 'attempt to connect to 127.0.0.1:3000' not in line
+                and 'failed to make connection to backend: localhost' not in line
+            ]
+            assert not filtered_errors, f'Unexpected httpd errors:\n{chr(10).join(filtered_errors)}'
+
+        httpd_log = self.execute('journalctl --unit=httpd')
+        assert 'WARNING' not in httpd_log.stdout
+
+        if self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('satellitectl health')
+        else:
+            result = self.cli.Health.check()
+        assert result.status == 0
+        assert 'FAIL' not in result.stdout
+        assert 'Some services are not running' not in result.stdout
 
 
 class EnablePluginsCapsule:
