@@ -55,8 +55,11 @@ def _setup_mcp_server(target_sat, image_settings):
     )
     assert target_sat.execute('firewall-cmd --reload').status == 0
     target_sat.ensure_podman_installed()
+
     authfile_arg = ''
-    network_arg = '--network ipv6' if not target_sat.network_type.has_ipv4 else ''
+    network_arg = ''
+    pull_proxy_env = ''
+    mcp_host = '0.0.0.0'
     ca_mountpoint = '/app/ca.pem'
 
     if image_settings.get('registry_username') and image_settings.get('registry_password'):
@@ -69,8 +72,11 @@ def _setup_mcp_server(target_sat, image_settings):
 
     if not target_sat.network_type.has_ipv4:
         target_sat.execute('podman network create --ipv6 ipv6')
+        network_arg = '--network ipv6'
+        mcp_host = '::'
+        pull_proxy_env = f'https_proxy={settings.http_proxy.http_proxy_ipv6_url} '
 
-    pull_cmd = f'podman pull {authfile_arg} {image_settings.registry_url}/{image_settings.image_path}:{image_settings.image_tag}'
+    pull_cmd = f'{pull_proxy_env}podman pull {authfile_arg} {image_settings.registry_url}/{image_settings.image_path}:{image_settings.image_tag}'
     assert target_sat.execute(pull_cmd).status == 0
 
     run_cmd = (
@@ -78,7 +84,7 @@ def _setup_mcp_server(target_sat, image_settings):
         f'-d --pull=never -it -p {settings.foreman_mcp.port}:8080 '
         f'-v /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:{ca_mountpoint}:ro,Z '
         f'{image_name}:{image_settings.image_tag} '
-        f'--foreman-url https://{target_sat.hostname} --host 0.0.0.0 '
+        f'--foreman-url https://{target_sat.hostname} --host {mcp_host} '
         f'--allowed-rex-features "katello_errata_install,katello_package_install" '
         f'--allowed-cv-actions "publish,promote,incremental_update"'
     )
@@ -86,7 +92,13 @@ def _setup_mcp_server(target_sat, image_settings):
     assert run_result.status == 0
     container_id = run_result.stdout.strip()[:12]
     wait_for(
-        lambda: target_sat.execute(f'curl localhost:{settings.foreman_mcp.port}/mcp/').status == 0,
+        lambda: (
+            target_sat.execute(
+                f'curl -H "Accept: text/event-stream" '
+                f'http://{target_sat.hostname}:{settings.foreman_mcp.port}/mcp'
+            ).status
+            == 0
+        ),
         timeout=60,
         delay=2,
     )
