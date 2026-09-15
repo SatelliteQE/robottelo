@@ -2633,6 +2633,7 @@ class InstallationServices:
         'valkey',
     ]
 
+
     FOREMANCTL_CAPSULE_SERVICES = [
         'foreman-proxy',
         'httpd',

@@ -1937,7 +1937,6 @@ class Capsule(ContentHost, CapsuleMixins):
         :rtype: list
         """
         from robottelo.constants import InstallationServices
-
         is_satellite = type(self).__name__ == 'Satellite'
         if self.install_method == InstallMethod.FOREMANCTL:
             services = list(
@@ -2009,16 +2008,15 @@ class Capsule(ContentHost, CapsuleMixins):
         result = self.execute(f'systemctl is-active {service_name}')
         return result.status == 0
 
-    def verify_services_running(self, service_list=None, include_iop=False):
+    def verify_services_running(self, service_list=None):
         """Verify all expected services are running.
 
         :param service_list: Optional list. If None, uses services for detected method.
-        :param include_iop: When True and service_list is None, include IoP services.
         :return: Dict with service names as keys and status as values
         :rtype: dict
         """
         if service_list is None:
-            service_list = self.get_service_names(include_iop=include_iop)
+            service_list = self.get_service_names()
 
         results = {}
         for service in service_list:
@@ -2026,14 +2024,13 @@ class Capsule(ContentHost, CapsuleMixins):
 
         return results
 
-    def get_failed_services(self, include_iop=False):
+    def get_failed_services(self):
         """Get list of services that are not running.
 
-        :param include_iop: When True, also check the IoP services.
         :return: List of service names that are not active
         :rtype: list
         """
-        service_status = self.verify_services_running(include_iop=include_iop)
+        service_status = self.verify_services_running()
         return [svc for svc, running in service_status.items() if not running]
 
     def restart_services(self):
