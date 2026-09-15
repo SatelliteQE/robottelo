@@ -672,6 +672,11 @@ def test_global_registration_with_capsule_host(
 
     :CaseAutomation: Automated
     """
+    if str(target_sat.install_method) == 'foremanctl':
+        pytest.skip(
+            'Foremanctl UI registration form does not list capsules '
+            '(form_data / smart-proxy dropdown). Follow-up PR.'
+        )
     client = rhel_contenthost
     repo = target_sat.api.Repository(
         url=settings.repos.yum_1.url,

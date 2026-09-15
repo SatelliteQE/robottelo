@@ -1720,7 +1720,7 @@ class Capsule(ContentHost, CapsuleMixins):
 
     @property
     def satellite(self):
-        if not self._satellite:
+        if self._satellite is None:
             try:
                 # get the Capsule answer file
                 data = self.session.sftp_read(constants.CAPSULE_ANSWER_FILE, return_data=True)
@@ -2017,7 +2017,11 @@ class Capsule(ContentHost, CapsuleMixins):
     def capsule_setup(
         self, sat_host=None, capsule_cert_opts=None, release=None, **installer_kwargs
     ):
-        """Prepare the host and run the capsule installer
+        """Set up the Capsule host according to the installation method.
+
+        For the ``foremanctl`` method, wait for the existing Katello Capsule record
+        to appear. This path does not prepare the host or run the Capsule installer.
+        For the installer method, prepare the host and run the Capsule installer.
 
         Args:
             sat_host: Satellite host object
@@ -2026,15 +2030,36 @@ class Capsule(ContentHost, CapsuleMixins):
         Kwargs:
             installer_kwargs: Additional installer arguments
         """
+        satellite = sat_host or Satellite()
+        self._satellite = satellite
+        method = satellite.install_method
+
+        # deploy-foreman-proxy already registers the host. Wait for that to
+        # show up in Katello; do not CDN-register or run deploy-proxy again.
+        if method == InstallMethod.FOREMANCTL:
+            logger.info(
+                'Waiting for Capsule %s to register on %s.',
+                self.hostname,
+                satellite.hostname,
+            )
+            wait_for(
+                lambda: self.nailgun_capsule,
+                timeout=600,
+                delay=15,
+                handle_exception=True,
+                fail_condition=False,
+            )
+            return
+
         self.register_to_cdn()
+        # register_to_cdn() -> reset_rhsm() clears _satellite; rebind sat_host.
+        self._satellite = satellite
         self.setup_rhel_repos()
         product_rpm_name = (
-            self.container_rpm_name
-            if settings.server.install_method == InstallMethod.FOREMANCTL
-            else self.product_rpm_name
+            self.container_rpm_name if method == InstallMethod.FOREMANCTL else self.product_rpm_name
         )
         # TODO: Remove this condition once foremanctl is available in capsule repos
-        if settings.server.install_method == InstallMethod.INSTALLER:
+        if method == InstallMethod.INSTALLER:
             self.setup_capsule_repos(release=release)
         else:
             self.setup_satellite_repos()
@@ -2055,9 +2080,6 @@ class Capsule(ContentHost, CapsuleMixins):
         if result.status:
             raise CapsuleHostError(f'The {product_rpm_name} package was not found\n{result.stdout}')
 
-        # After capsule registration to cdn, it should be initialized with the Satellite.
-        self._satellite = sat_host or Satellite()
-
         # Update system, firewall services and check capsule is already installed from template
         # Setups firewall on Capsule
         self.execute('dnf -y update', timeout=0)
@@ -2076,7 +2098,7 @@ class Capsule(ContentHost, CapsuleMixins):
         certs_tar, _, installer = self.satellite.capsule_certs_generate(self, **capsule_cert_opts)
         self.satellite.session.remote_copy(certs_tar, self)
 
-        if settings.server.install_method == InstallMethod.INSTALLER:
+        if method == InstallMethod.INSTALLER:
             installer.update(**installer_kwargs)
             result = self.install(installer)
             if result.status:
@@ -2089,25 +2111,6 @@ class Capsule(ContentHost, CapsuleMixins):
                     f'Foreman installer failed at capsule host\n{result.stdout}\n{result.stderr}'
                 )
             result = self.execute('satellite-maintain service status')
-            if 'inactive (dead)' in result.stdout:
-                raise CapsuleHostError(
-                    f'A core service is not running at capsule host\n{result.stdout}'
-                )
-        if settings.server.install_method == InstallMethod.FOREMANCTL:
-            result = self.execute(installer)
-            if result.status:
-                # before exit download the logs file for further investigation
-                self.execute(
-                    'journalctl --since "1 hour ago" -u foreman-proxy -u pulp-api -u pulp-content -u httpd -u postgresql -u valkey > /tmp/deploy-proxy-failure.log'
-                )
-                self.session.sftp_read(
-                    '/tmp/deploy-proxy-failure.log',
-                    f'{settings.robottelo.tmp_dir}/deploy-proxy-failure-{self.ip_addr}.log',
-                )
-                raise CapsuleHostError(
-                    f'foremanctl deploy-proxy failed at capsule host\n{result.stdout}\n{result.stderr}'
-                )
-            result = self.execute('systemctl status foreman-proxy.service foreman.target')
             if 'inactive (dead)' in result.stdout:
                 raise CapsuleHostError(
                     f'A core service is not running at capsule host\n{result.stdout}'
