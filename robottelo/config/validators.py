@@ -369,7 +369,7 @@ VALIDATORS = dict(
             'repos.python.pypi.url',
             must_exist=True,
             is_type_of=str,
-            default='https://pypi.org/project/pytest',
+            default='https://fixtures.pulpproject.org/python-pypi/',
         ),
     ],
     rhev=[
