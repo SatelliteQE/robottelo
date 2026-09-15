@@ -2256,6 +2256,10 @@ class Capsule(ContentHost, CapsuleMixins):
             assert auth_result.status == 0, (
                 f'Container registry authentication failed:\n{auth_result.stderr}'
             )
+            # When authenticating to the stage registry, configure Podman to pull the
+            # stage images from the production registry so foremanctl deploy/pull uses stage images.
+            if registry_url == 'registry.stage.redhat.io':
+                self.configure_stage_registry_override()
         else:
             logger.warning(
                 'Container registry credentials not configured. '
