@@ -94,17 +94,21 @@ def function_enc_host(target_sat):
         'root-password': host_template.root_pass,
         ip_prefix: ip_address,
     }
-    host = target_sat.cli_factory.make_host(host_options)
-    target_sat.cli.Host.set_parameter(
-        {
-            'host-id': host['id'],
-            'name': 'remote_execution_ssh_keys',
-            'value': ssh_key,
-        }
-    )
+    host = None
+    try:
+        host = target_sat.cli_factory.make_host(host_options)
+        target_sat.cli.Host.set_parameter(
+            {
+                'host-id': host['id'],
+                'name': 'remote_execution_ssh_keys',
+                'value': ssh_key,
+            }
+        )
 
-    yield host, ip_prefix, ip_address, ssh_key
-    target_sat.cli.Host.delete({'id': host['id']})
+        yield host, ip_prefix, ip_address, ssh_key
+    finally:
+        if host is not None:
+            target_sat.cli.Host.delete({'id': host['id']})
 
 
 @pytest.fixture
