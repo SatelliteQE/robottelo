@@ -169,9 +169,12 @@ def test_positive_backup_split_tar(module_target_sat, module_synced_repos):
     assert set(files).issuperset(expected_files), (
         f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
     )
+    assert 'pulp-content.tar.gz' not in files, (
+        'Monolithic pulp-content.tar.gz should be replaced by the split volumes'
+    )
 
     # The pulp content must be split into multiple numbered volumes
-    part_files = [f for f in files if f.startswith('pulp-content.tar.gz.part')]
+    part_files = [f for f in files if re.fullmatch(r'pulp-content\.tar\.gz\.part\d+', f)]
     assert len(part_files) > 1, f'Expected multiple pulp-content volumes, found: {part_files}'
 
     # Each volume must respect the requested size cap
