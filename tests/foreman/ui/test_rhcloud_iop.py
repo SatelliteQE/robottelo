@@ -85,6 +85,26 @@ def create_rbac_user(
     return user, user_password
 
 
+def create_pathways_recommendation(host):
+    """Create conditions that cause advisor recommendations to be grouped into a pathway.
+
+    Enabling 'PermitEmptyPasswords' in sshd_config and restarting sshd triggers advisor
+    recommendations that roll up into an IoP pathway once the data is uploaded to Insights.
+    """
+    # Back up sshd_config and enable PermitEmptyPasswords to trigger the advisor rule.
+    host.run('cp /etc/ssh/sshd_config /etc/ssh/sshd_config.qebak')
+    host.run("sed -i 's/^#*PermitEmptyPasswords.*/PermitEmptyPasswords yes/' /etc/ssh/sshd_config")
+    host.run(
+        "grep -q '^PermitEmptyPasswords' /etc/ssh/sshd_config "
+        "|| echo 'PermitEmptyPasswords yes' >> /etc/ssh/sshd_config"
+    )
+    host.run('systemctl restart sshd')
+
+    # Upload insights data to Satellite
+    result = host.run('insights-client')
+    assert result.status == 0
+
+
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.pit_client
@@ -451,20 +471,11 @@ def test_iop_pathways_remediation_e2e(
     """
     org_name = rhcloud_manifest_org.name
 
-    # Prepare misconfigured machine and upload data to Insights.
-    create_insights_recommendation(rhel_insights_vm)
-
-    # TODO: Trigger grouping of the recommendations into an IoP pathway. The mechanism is owned
-    # by dev and is still being defined; once available, invoke it here (see
-    # airgun PathwaysEntity.group_recommendations_into_pathways).
+    # Prepare misconfigured machine so its recommendations are grouped into a pathway.
+    create_pathways_recommendation(rhel_insights_vm)
 
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
-
-        # # Verify that we can see the rule hit via insights-client.
-        # result = rhel_insights_vm.execute('insights-client --diagnosis')
-        # assert result.status == 0
-        # assert 'OPENSSH_HARDENING_CONFIG_PERMS' in result.stdout
 
         # Verify at least one pathway is listed on the Pathways tab.
         pathways = session.pathways.read(widget_names='table')['table']
