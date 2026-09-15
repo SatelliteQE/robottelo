@@ -557,6 +557,8 @@ def test_positive_create_with_lce_and_cv(
     )
 
 
+# TODO: Remove @foreman_installer once OPENSCAP is supported in foremanctl (SAT-40441 & SAT-44682)
+@pytest.mark.foreman_installer
 @pytest.mark.cli_host_create
 def test_positive_create_with_openscap_proxy_id(
     module_default_proxy, module_org, module_target_sat
@@ -619,6 +621,8 @@ def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv, 
         )
 
 
+# TODO: Remove @foreman_installer once OPENSCAP is supported in formanctl (SAT-40441 & SAT-44682)
+@pytest.mark.foreman_installer
 @pytest.mark.cli_host_create
 @pytest.mark.upgrade
 def test_positive_katello_and_openscap_loaded(target_sat):
