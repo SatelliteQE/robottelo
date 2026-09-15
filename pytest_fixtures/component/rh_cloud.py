@@ -82,6 +82,10 @@ def rhcloud_manifest_org(module_target_sat_insights, module_sca_manifest):
     """A module level fixture to get organization with manifest."""
     org = module_target_sat_insights.api.Organization().create()
     module_target_sat_insights.upload_manifest(org.id, module_sca_manifest.content)
+    proxy = module_target_sat_insights.nailgun_smart_proxy.read()
+    if org.id not in [proxy_org.id for proxy_org in proxy.organization]:
+        proxy.organization = [*proxy.organization, org]
+        proxy.update(['organization'])
     return org
 
 
