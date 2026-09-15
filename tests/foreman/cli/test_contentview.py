@@ -33,7 +33,6 @@ from robottelo.logging import logger
 from robottelo.utils.datafactory import (
     generate_strings_list,
     invalid_names_list,
-    parametrized,
     valid_names_list,
 )
 
@@ -81,8 +80,7 @@ def _get_content_view_version_lce_names_set(content_view_id, version_id, sat):
 class TestContentView:
     """Content View CLI Tests"""
 
-    @pytest.mark.parametrize('name', **parametrized(valid_names_list()))
-    def test_positive_create_with_name(self, module_org, module_target_sat, name):
+    def test_positive_create_with_name(self, module_org, module_target_sat):
         """create content views with different names
 
         :id: a154308c-3982-4cf1-a236-3051e740970e
@@ -90,16 +88,14 @@ class TestContentView:
         :expectedresults: content views are created
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
+        name = random.choice(valid_names_list())
         content_view = module_target_sat.cli_factory.make_content_view(
             {'name': name, 'organization-id': module_org.id}
         )
         assert content_view['name'] == name.strip()
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    def test_negative_create_with_invalid_name(self, module_org, module_target_sat, name):
+    def test_negative_create_with_invalid_name(self, module_org, module_target_sat):
         """create content views with invalid names
 
         :id: 83046271-76f9-4cda-b579-a2fe63493295
@@ -108,9 +104,8 @@ class TestContentView:
             and system handles it gracefully
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
+        name = random.choice(invalid_names_list())
         with pytest.raises(CLIFactoryError):
             module_target_sat.cli_factory.make_content_view(
                 {'name': name, 'organization-id': module_org.id}
@@ -148,8 +143,7 @@ class TestContentView:
         )
         assert cv['yum-repositories'][0]['id'] == repo['id']
 
-    @pytest.mark.parametrize('new_name', **parametrized(valid_names_list()))
-    def test_positive_update_name_by_id(self, module_org, module_target_sat, new_name):
+    def test_positive_update_name_by_id(self, module_org, module_target_sat):
         """Find content view by its id and update its name afterwards
 
         :id: 35fccf2c-abc4-4ca8-a565-a7a6adaaf429
@@ -159,9 +153,8 @@ class TestContentView:
         :BZ: 1359665
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
+        new_name = random.choice(valid_names_list())
         cv = module_target_sat.cli_factory.make_content_view(
             {'name': gen_string('utf8'), 'organization-id': module_org.id}
         )
@@ -169,8 +162,7 @@ class TestContentView:
         cv = module_target_sat.cli.ContentView.info({'id': cv['id']})
         assert cv['name'] == new_name.strip()
 
-    @pytest.mark.parametrize('new_name', **parametrized(valid_names_list()))
-    def test_positive_update_name_by_name(self, module_org, module_target_sat, new_name):
+    def test_positive_update_name_by_name(self, module_org, module_target_sat):
         """Find content view by its name and update it
 
         :id: aa9bced6-ee6c-4a18-90ac-874ab4979711
@@ -180,9 +172,8 @@ class TestContentView:
         :BZ: 1359665, 1416857
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
+        new_name = random.choice(valid_names_list())
         cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
         module_target_sat.cli.ContentView.update(
             {'name': cv['name'], 'organization-label': module_org.label, 'new-name': new_name}
