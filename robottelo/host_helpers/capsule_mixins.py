@@ -245,3 +245,52 @@ class CapsuleInfo:
         ).stdout.strip()
         # assert that proxy has been used
         assert satellite_ip in diff
+
+    def configure_firewall(self, ports=None, services=None, verify=True):
+        """Wrapper method to call the configure_firewall function."""
+        return configure_firewall(self, ports=ports, services=services, verify=verify)
+
+
+def configure_firewall(host, ports=None, services=None, verify=True):
+    """
+    Configure firewall with specified ports and services.
+
+    Args:
+        host: Satellite or Capsule instance with execute() method
+        ports (list): List of port specifications (e.g., ['80/tcp', '443/tcp', '8000/tcp', '8443/tcp'])
+        services (list): List of firewall services (e.g., ['http', 'https', 'RH-Satellite-6'])
+        verify (bool): Whether to verify and log firewall configuration after setup
+
+    Returns:
+        bool: True if successful
+
+    """
+    # Install and enable firewalld
+    result = host.execute(
+        "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
+    )
+    assert result.status == 0, "firewalld is not present and can't be installed"
+
+    # Add ports if specified
+    if ports:
+        ports_str = ' '.join([f'--add-port="{port}"' for port in ports])
+        result = host.execute(f'firewall-cmd {ports_str}')
+        assert result.status == 0, f"Failed to add ports: {ports}"
+
+    # Add services if specified
+    if services:
+        services_str = ' '.join([f'--add-service={service}' for service in services])
+        result = host.execute(f'firewall-cmd {services_str}')
+        assert result.status == 0, f"Failed to add services: {services}"
+
+    # Make changes persistent
+    result = host.execute('firewall-cmd --runtime-to-permanent')
+    assert result.status == 0, "Failed to make firewall changes permanent"
+
+    # Verify configuration if requested
+    if verify:
+        firewall_status = host.execute('firewall-cmd --list-all')
+        assert firewall_status.status == 0, 'Failed to verify firewall configuration'
+        logger.info(f'Firewall configuration:\n{firewall_status.stdout}')
+
+    return True

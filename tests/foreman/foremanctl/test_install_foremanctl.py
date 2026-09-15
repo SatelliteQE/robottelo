@@ -140,14 +140,11 @@ def module_cap_ready_rhel(request):
         # Unregister capsule in case it's registered to CDN
         cap.unregister()
         # Setup firewall to allow Satellite-Capsule communication
-        assert (
-            cap.execute(
-                'which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld'
-            ).status
-            == 0
-        ), "firewalld is not present and can't be installed"
-        cap.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
-        cap.execute('firewall-cmd --runtime-to-permanent')
+        cap.configure_firewall(
+            ports=['8000/tcp', '8443/tcp'],
+            services=['http', 'https'],
+            verify=False,
+        )
         yield cap
 
 
