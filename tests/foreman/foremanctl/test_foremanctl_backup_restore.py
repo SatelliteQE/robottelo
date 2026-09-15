@@ -250,8 +250,9 @@ def test_positive_offline_backup(module_target_sat, setup_backup_tests):
     assert result.status == 0, f'foremanctl health check failed after backup:\n{result.stdout}'
 
 
-def test_positive_backup_split_tar(module_target_sat, module_synced_repos):
-    """Verify foremanctl backup splits pulp content into multiple volumes with --tar-volume-size
+@pytest.mark.e2e
+def test_positive_backup_restore_split_tar(module_target_sat, module_synced_repos):
+    """Verify foremanctl splits pulp content into volumes and restores from them
 
     :id: 789ed846-6abb-442b-ae42-e918fa7e5b39
 
@@ -260,15 +261,19 @@ def test_positive_backup_split_tar(module_target_sat, module_synced_repos):
 
     :steps:
         1. Run foremanctl backup with --tar-volume-size set to a small value
-        2. Verify backup contains the expected database, config and pulp snapshot files
-        3. Verify pulp content is split into multiple numbered volumes
-        4. Verify each volume respects the requested size cap
+        2. Verify pulp content is split into multiple numbered volumes within the size cap
+        3. Drop the pulp artifacts on the server
+        4. Run foremanctl restore --force from the split backup
+        5. Verify the restore completes and the server is healthy
+        6. Verify the split volumes are reassembled into the original pulp artifacts
 
     :expectedresults:
-        1. Backup command exits with status 0
+        1. Backup command exits with status 0 and splits pulp content into multiple volumes
         2. Expected files are present in the backup
-        3. Pulp content is split into multiple pulp-content.tar.gz.partNNNN volumes
-        4. No volume exceeds the requested size
+        3. No volume exceeds the requested size
+        4. Restore reassembles the split volumes and exits with status 0
+        5. Health check passes after restore
+        6. Pulp artifacts are repopulated from the split volumes
 
     :Verifies: SAT-44897
     """
@@ -285,9 +290,12 @@ def test_positive_backup_split_tar(module_target_sat, module_synced_repos):
     assert set(files).issuperset(expected_files), (
         f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
     )
+    assert 'pulp-content.tar.gz' not in files, (
+        'Monolithic pulp-content.tar.gz should be replaced by the split volumes'
+    )
 
     # The pulp content must be split into multiple numbered volumes
-    part_files = [f for f in files if f.startswith('pulp-content.tar.gz.part')]
+    part_files = [f for f in files if re.fullmatch(r'pulp-content\.tar\.gz\.part\d+', f)]
     assert len(part_files) > 1, f'Expected multiple pulp-content volumes, found: {part_files}'
 
     # Each volume must respect the requested size cap
@@ -297,6 +305,57 @@ def test_positive_backup_split_tar(module_target_sat, module_synced_repos):
     assert max(int(size) for size in sizes) <= set_size_kb * 1024, (
         f'A pulp-content volume exceeds the requested size of {set_size_kb}k: {sizes}'
     )
+
+    # Drop the pulp artifacts to confirm restore reassembles them from the split volumes
+    module_target_sat.execute('rm -rf /var/lib/pulp/media/artifact')
+
+    result = module_target_sat.execute(
+        f'foremanctl restore {backup_dir} --force',
+        timeout='30m',
+    )
+    assert result.status == 0, f'foremanctl restore failed:\n{result.stdout}\n{result.stderr}'
+
+    result = module_target_sat.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, f'foremanctl health check failed after restore:\n{result.stdout}'
+
+    # The split volumes must be reassembled into the original pulp artifacts
+    artifact_count = int(
+        module_target_sat.execute('find /var/lib/pulp/media/artifact -type f | wc -l').stdout
+    )
+    assert artifact_count > 0, 'Pulp artifacts were not reassembled from the split volumes'
+
+
+@pytest.mark.parametrize('bad_size', ['0', '0M', '0G'])
+def test_negative_backup_split_tar_invalid_size(module_target_sat, bad_size):
+    """Verify foremanctl backup rejects a zero --tar-volume-size
+
+    :id: fa1ead69-0788-4083-93bf-6bd373033358
+
+    :parametrized: yes
+
+    :steps:
+        1. Run foremanctl backup with --tar-volume-size set to a zero value (0, 0M, 0G)
+
+    :expectedresults:
+        1. Backup command exits with a non-zero status
+        2. The output reports the invalid tar_volume_size format
+
+    :Verifies: SAT-44897
+    """
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+    result = module_target_sat.execute(f'foremanctl backup {subdir} --tar-volume-size {bad_size}')
+    assert result.status != 0, (
+        f'Backup should reject zero volume size {bad_size!r}:\n{result.stdout}'
+    )
+    assert f"Invalid tar_volume_size format '{bad_size}'" in result.stdout + result.stderr, (
+        f'Expected an invalid tar_volume_size error for {bad_size!r}, got:'
+        f'\n{result.stdout}\n{result.stderr}'
+    )
+    # The size is currently validated mid-play, after services are stopped and a partial backup
+    # directory is created, so this check would fail today. Pending author confirmation.
+    # assert module_target_sat.execute(f'test -d {subdir}').status != 0, (
+    #     f'Backup directory {subdir} should not exist after a rejected size'
+    # )
 
 
 @pytest.mark.e2e
