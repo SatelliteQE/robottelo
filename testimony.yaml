@@ -67,7 +67,7 @@ CaseComponent:
     - katello-tracer
     - Leappintegration
     - LifecycleEnvironments
-    - LocalizationInternationalization
+    - LocalizationandInternationalization
     - Logging
     - Navigation
     - Networking
