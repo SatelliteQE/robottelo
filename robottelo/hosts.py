@@ -1741,6 +1741,19 @@ class Capsule(ContentHost, CapsuleMixins):
     def nailgun_smart_proxy(self):
         return self.satellite.api.SmartProxy().search(query={'search': f'name={self.hostname}'})[0]
 
+    @cached_property
+    def content_hostname(self):
+        """Return the hostname used for content/pulp operations.
+
+        In containerized (foremanctl) deployments, the content service runs on a
+        separate proxy with a '-pulp' suffix. Traditional installs use the base hostname.
+        """
+        # Check if a -pulp capsule exists (containerized install)
+        pulp_hostname = f'{self.hostname}-pulp'
+        if self.satellite.api.Capsule().search(query={'search': f'name={pulp_hostname}'}):
+            return pulp_hostname
+        return self.hostname
+
     @property
     def satellite(self):
         if not self._satellite:
