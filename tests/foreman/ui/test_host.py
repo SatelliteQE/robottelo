@@ -818,7 +818,7 @@ def test_positive_remove_parameter_non_admin_user(
         role,
         {
             'Parameter': expected_permissions['Parameter'],
-            'Host': expected_permissions['Host'],
+            'Host': ['view_hosts', 'edit_hosts'],
             'Operatingsystem': ['view_operatingsystems'],
             'Organization': expected_permissions['Organization'],
             'Location': expected_permissions['Location'],
