@@ -2114,6 +2114,8 @@ class Capsule(ContentHost, CapsuleMixins):
                     f'A core service is not running at capsule host\n{result.stdout}'
                 )
         if settings.server.install_method == InstallMethod.FOREMANCTL:
+            # Capsule needs registry auth to pull deploy-proxy images
+            self.setup_foremanctl_container_registry()
             result = self.execute(installer)
             if result.status:
                 # before exit download the logs file for further investigation
@@ -2220,42 +2222,13 @@ class Capsule(ContentHost, CapsuleMixins):
         self.enable_satellite_or_capsule_module_for_rhel8()
         assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
 
-    def install_satellite_foremanctl(
-        self, enable_fapolicyd=False, enable_fips=False, parameters=None
-    ):
-        """Install Satellite using foremanctl deploy method.
+    def setup_foremanctl_container_registry(self):
+        """Install podman and authenticate to the foremanctl container registry.
 
-        Handles full installation path including:
-        - Container runtime (podman) installation
-        - Container registry authentication
-        - foremanctl package installation
-        - Satellite deployment via foremanctl
-
-        :param enable_fapolicyd: Enable fapolicyd
-        :param enable_fips: Enable FIPS mode
-        :param parameters: Additional parameters for foremanctl deploy
-        :return: Result of final foremanctl deploy command
+        Required on any host that runs a foremanctl deploy/deploy-proxy so the
+        container images can be pulled. When using the stage registry, also
+        configures Podman to pull the stage images from the production registry.
         """
-        # Add IPv6 proxy for IPv6 communication
-        self.enable_ipv6_dnf_and_rhsm_proxy()
-        self.enable_ipv6_system_proxy()
-        # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
-        self.ensure_podman_installed(enable_ipv6_proxy=True)
-        # Enable RHEL and Satellite repos
-        self.register_to_cdn()
-        self.setup_rhel_repos()
-        self.setup_satellite_repos()
-
-        # Enable Packit repos
-        pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
-        if pull_requests:
-            Broker(
-                job_template='upstream-pr-install',
-                target_vm=self.name,
-                pull_requests=pull_requests,
-                deploy_network_type=settings.server.network_type,
-            ).execute()
-
         # Install podman (required for foremanctl container operations)
         assert self.execute('dnf install -y podman').status == 0, 'Failed to install podman'
 
@@ -2285,6 +2258,44 @@ class Capsule(ContentHost, CapsuleMixins):
                 'Container registry credentials not configured. '
                 'Set CONTAINER_REGISTRY.USERNAME and CONTAINER_REGISTRY.PASSWORD in conf/server.yaml'
             )
+
+    def install_satellite_foremanctl(
+        self, enable_fapolicyd=False, enable_fips=False, parameters=None
+    ):
+        """Install Satellite using foremanctl deploy method.
+
+        Handles full installation path including:
+        - Container runtime (podman) installation
+        - Container registry authentication
+        - foremanctl package installation
+        - Satellite deployment via foremanctl
+
+        :param enable_fapolicyd: Enable fapolicyd
+        :param enable_fips: Enable FIPS mode
+        :param parameters: Additional parameters for foremanctl deploy
+        :return: Result of final foremanctl deploy command
+        """
+        # Add IPv6 proxy for IPv6 communication
+        self.enable_ipv6_dnf_and_rhsm_proxy()
+        self.enable_ipv6_system_proxy()
+        # Enable RHEL and Satellite repos
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_satellite_repos()
+        # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
+        self.ensure_podman_installed(enable_ipv6_proxy=True)
+        # Authenticate to the container registry to pull deploy images
+        self.setup_foremanctl_container_registry()
+
+        # Enable Packit repos
+        pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
+        if pull_requests:
+            Broker(
+                job_template='upstream-pr-install',
+                target_vm=self.name,
+                pull_requests=pull_requests,
+                deploy_network_type=settings.server.network_type,
+            ).execute()
 
         # Install satellitectl
         assert self.execute('dnf install -y satellitectl').status == 0, (

@@ -123,6 +123,8 @@ def module_cap_ready_rhel(request):
         # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
         cap.register_to_cdn()
         cap.ensure_podman_installed(enable_ipv6_proxy=True)
+        # Capsule needs registry auth to pull deploy-proxy images
+        cap.setup_foremanctl_container_registry()
         # Install satellitectl package on Capsule
         cap.setup_capsule_repos()
         # Enable Packit repos for upstream testing
