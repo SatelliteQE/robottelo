@@ -14,7 +14,7 @@ import subprocess
 import sys
 from tempfile import NamedTemporaryFile
 import time
-from urllib.parse import urljoin, urlparse, urlunsplit
+from urllib.parse import urljoin, urlparse, urlsplit, urlunsplit
 
 import apypie
 from box import Box
@@ -2201,9 +2201,9 @@ class Satellite(Capsule, SatelliteMixins):
                 yield ui_session
         finally:
             if self.record_property is not None and settings.ui.record_video:
-                video_url = settings.ui.grid_url.replace(
-                    ':4444', f'/videos/{ui_session.ui_session_id}/video.mp4'
-                )
+                grid_url = urlsplit(settings.ui.grid_url)
+                video_path = f'/videos/{ui_session.ui_session_id}/{ui_session.ui_session_id}.mp4'
+                video_url = urlunsplit((grid_url.scheme, grid_url.hostname, video_path, '', ''))
                 self.record_property('video_url', video_url)
                 self.record_property('session_id', ui_session.ui_session_id)
 

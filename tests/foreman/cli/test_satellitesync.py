@@ -1454,7 +1454,7 @@ class TestContentViewSync:
     @pytest.mark.e2e
     @pytest.mark.rhel_ver_match('9')
     @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
-    def test_postive_export_import_cv_with_mixed_content_repos(
+    def test_positive_export_import_cv_with_mixed_content_repos(
         self,
         request,
         complete_export_import_cleanup,
@@ -1715,7 +1715,7 @@ class TestContentViewSync:
         assert res.status == 0
         assert 'installed successfully' in res.stdout
 
-    def test_postive_export_import_cv_with_mixed_content_syncable(
+    def test_positive_export_import_cv_with_mixed_content_syncable(
         self,
         export_import_cleanup_function,
         target_sat,
@@ -1814,7 +1814,7 @@ class TestContentViewSync:
         assert import_list[0]['content-view-version'] == importing_cvv['name']
         assert import_list[0]['content-view-version-id'] == importing_cvv['id']
 
-    def test_postive_export_cv_syncable_with_permissions(
+    def test_positive_export_cv_syncable_with_permissions(
         self,
         request,
         export_import_cleanup_function,
@@ -1884,7 +1884,7 @@ class TestContentViewSync:
             ]
         ), 'Unexpected permission for one or more exported files'
 
-    def test_postive_export_import_cv_with_file_content(
+    def test_positive_export_import_cv_with_file_content(
         self,
         target_sat,
         config_export_import_settings,
@@ -2062,7 +2062,7 @@ class TestContentViewSync:
         )['versions']
         assert len(importing_cvv) == 1
 
-    def test_postive_export_import_ansible_collection_repo(
+    def test_positive_export_import_ansible_collection_repo(
         self,
         target_sat,
         config_export_import_settings,
@@ -2124,7 +2124,7 @@ class TestContentViewSync:
         assert len(import_product['content']) == 1
         assert import_product['content'][0]['content-type'] == "ansible_collection"
 
-    def test_postive_export_import_repo_with_GPG(
+    def test_positive_export_import_repo_with_GPG(
         self,
         target_sat,
         config_export_import_settings,
@@ -2190,7 +2190,7 @@ class TestContentViewSync:
         assert imported_gpg
         assert imported_gpg['content'] == gpg_key.content
 
-    def test_postive_export_import_chunked_repo(
+    def test_positive_export_import_chunked_repo(
         self,
         target_sat,
         config_export_import_settings,
@@ -2487,7 +2487,7 @@ class TestContentViewSync:
                 f'{repomd_refs - drive_files}'
             )
 
-    def test_postive_export_import_with_long_name(
+    def test_positive_export_import_with_long_name(
         self,
         target_sat,
         config_export_import_settings,
@@ -2586,7 +2586,7 @@ class TestContentViewSync:
         )
         assert exported_packages == imported_packages
 
-    def test_postive_export_import_large_cv(
+    def test_positive_export_import_large_cv(
         self,
         request,
         export_import_cleanup_function,
@@ -3382,7 +3382,7 @@ class TestPodman:
     :team: Artemis
     """
 
-    def test_postive_export_import_podman_repo(
+    def test_positive_export_import_podman_repo(
         self,
         target_sat,
         config_export_import_settings,

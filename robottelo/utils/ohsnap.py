@@ -54,8 +54,11 @@ def ohsnap_repo_url(ohsnap, request_type, product, release, os_release, snap='')
             if (streams := [stream for stream in res.json() if stream['id'] == release]) and len(
                 streams[0]['release_ids']
             ) > 0:
-                # get the recent snap id (last in the list)
-                release = streams[0]['release_ids'][-1]
+                # get the release/stream snap id
+                if release == 'stream':
+                    release = streams[0]['release_ids']['stream']
+                else:
+                    release = streams[0]['ga_release_id']
             else:
                 logger.warning(f'Ohsnap returned no releases for the given stream: {release}')
 

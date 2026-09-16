@@ -122,10 +122,7 @@ Example:
 @pytest.fixture
 def activation_key(module_org, module_target_sat):
     """Create an activation key for testing"""
-    ak = module_target_sat.api.ActivationKey(
-        organization=module_org,
-        name='test-ak'
-    ).create()
+    ak = module_target_sat.api.ActivationKey(organization=module_org, name='test-ak').create()
     return ak  # or yield when a cleanup step comes next
 ```
 
@@ -145,9 +142,7 @@ Example:
 @pytest.mark.rhel_ver_match(r'^(9|10)')
 def test_positive_create_ak(module_org, module_target_sat):
     """Test activation key creation"""
-    ak = module_target_sat.api.ActivationKey(
-        organization=module_org
-    ).create()
+    ak = module_target_sat.api.ActivationKey(organization=module_org).create()
 ```
 
 ### 3. **Host Helpers**
@@ -258,34 +253,33 @@ Examples:
 
 Use **reStructuredText** format with required fields, Reference `testimony.yaml` for complete field definitions:
 
-```python
-def test_positive_create_activation_key(module_org, module_target_sat):
-    """Create activation key with valid name
-
-    :id: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d <generated uuid>
-
-    :steps:
-        1. Create organization
-        2. Create activation key with valid name
-        3. Verify activation key exists
-
-    :expectedresults: Activation key is created successfully
-
-    :CaseAutomation: Automated
-    """
-    ak = module_target_sat.api.ActivationKey(
-        organization=module_org,
-        name=gen_string('alpha')
-    ).create()
-```
-
 **Required Fields**:
-- `:id:` - Unique test UUID. Use `python -c 'import uuid; print(uuid.uuid4())'` to generate it
+- `:id:` - Unique test UUID (see [UUID Generation](#uuid-generation) below)
 - `:steps:` - Test execution steps
 - `:expectedresults:` - Expected outcome
 
 **Optional fields**:
 - `:Verifies:` - When the test verifies a Bug (Use as :Verifies: SAT-12345) (Formerly there was :BZ: tag, don't use that anymore)
+
+### UUID Generation
+
+> **MANDATORY RULE: Never invent, type, or generate UUIDs yourself.**
+>
+> LLMs produce UUIDs with obvious patterns (e.g. `1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d`,
+> sequential hex like `bcde`, `defa`) that are immediately recognizable during code review.
+> These will be rejected.
+
+**How to generate a UUID:**
+```bash
+python -c 'import uuid; print(uuid.uuid4())'
+```
+
+Run this command in a shell for **each** test that needs an `:id:`. Copy and paste the output
+directly into the docstring. Do not modify it.
+
+**Validation:** Run `make uuid-check` to detect empty, duplicate, or malformatted `:id:` tags.
+Run `make uuid-fix` to auto-fill empty `:id:` tags or replace duplicates.
+
 ---
 
 ## Testing Patterns
@@ -301,10 +295,7 @@ def test_positive_create_ak_via_ui(module_org, module_target_sat):
         session.organization.select(org_name=module_org.name)
 
         # Create via UI
-        session.activationkey.create({
-            'name': ak_name,
-            'lce': {'value': 'Library'}
-        })
+        session.activationkey.create({'name': ak_name, 'lce': {'value': 'Library'}})
 
         # Verify in UI
         ak_values = session.activationkey.read(ak_name)
@@ -319,36 +310,32 @@ def test_positive_create_ak_via_cli(module_org, module_target_sat):
     ak_name = gen_string('alpha')
 
     # Create via CLI
-    result = module_target_sat.cli.ActivationKey.create({
-        'name': ak_name,
-        'organization-id': module_org.id,
-        'lifecycle-environment': 'Library'
-    })
+    result = module_target_sat.cli.ActivationKey.create(
+        {'name': ak_name, 'organization-id': module_org.id, 'lifecycle-environment': 'Library'}
+    )
 
     # Verify
     assert result['name'] == ak_name
 
     # Read via CLI
-    ak_info = module_target_sat.cli.ActivationKey.info({
-        'id': result['id']
-    })
+    ak_info = module_target_sat.cli.ActivationKey.info({'id': result['id']})
     assert ak_info['name'] == ak_name
 ```
 
 ### Pattern 3: Parametrized Test
 
 ```python
-@pytest.mark.parametrize('name', [
-    gen_string('alpha'),
-    gen_string('numeric'),
-    gen_string('alphanumeric'),
-])
+@pytest.mark.parametrize(
+    'name',
+    [
+        gen_string('alpha'),
+        gen_string('numeric'),
+        gen_string('alphanumeric'),
+    ],
+)
 def test_positive_create_with_different_names(name, module_org, module_target_sat):
     """Test activation key creation with various name types"""
-    ak = module_target_sat.api.ActivationKey(
-        organization=module_org,
-        name=name
-    ).create()
+    ak = module_target_sat.api.ActivationKey(organization=module_org, name=name).create()
     assert ak.name == name
 ```
 
@@ -369,25 +356,16 @@ def test_positive_create_with_different_names(name, module_org, module_target_sa
 ```python
 @pytest.mark.e2e
 def test_positive_content_host_e2e(
-    module_org,
-    module_lce,
-    module_cv,
-    rhel_contenthost,
-    module_target_sat
+    module_org, module_lce, module_cv, rhel_contenthost, module_target_sat
 ):
     """End-to-end content host registration and package installation"""
     # Create activation key
     ak = module_target_sat.api.ActivationKey(
-        organization=module_org,
-        environment=module_lce,
-        content_view=module_cv
+        organization=module_org, environment=module_lce, content_view=module_cv
     ).create()
 
     # Register content host
-    rhel_contenthost.register_contenthost(
-        org=module_org,
-        activation_key=ak.name
-    )
+    rhel_contenthost.register_contenthost(org=module_org, activation_key=ak.name)
 
     # Verify registration
     result = rhel_contenthost.execute('subscription-manager identity')
@@ -417,11 +395,13 @@ def target_sat(request):
     """Provides a Satellite instance for testing"""
     ...
 
+
 # Module-scoped Satellite
 @pytest.fixture(scope='module')
 def module_target_sat(request):
     """Module-scoped Satellite instance"""
     ...
+
 
 # Satellite with specific configuration
 @pytest.fixture(scope='module')
@@ -439,16 +419,18 @@ def rhel_contenthost(request):
     """Provides a RHEL content host"""
     ...
 
+
 # Parametrized for N latest RHEL versions only (N-0 = latest, N-1 = latest two, etc.)
 @pytest.mark.rhel_ver_match('N-1')
-def test_latest_two_rhels(rhel_contenthost):
-    ...
+def test_latest_two_rhels(rhel_contenthost): ...
+
 
 # If there is no need for multiple RHEL versions to be tested, use only RHEL host of the default version specified in settings.
 from robottelo.config import settings
+
+
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
-def test_with_default_rhel(rhel_contenthost):
-    ...
+def test_with_default_rhel(rhel_contenthost): ...
 ```
 
 ### Component Fixtures
@@ -460,9 +442,7 @@ def test_with_default_rhel(rhel_contenthost):
 def module_ak_with_cv(module_org, module_lce, module_cv, module_target_sat):
     """Activation key with content view attached"""
     return module_target_sat.api.ActivationKey(
-        organization=module_org,
-        environment=module_lce,
-        content_view=module_cv
+        organization=module_org, environment=module_lce, content_view=module_cv
     ).create()
 ```
 
@@ -473,6 +453,7 @@ def module_ak_with_cv(module_org, module_lce, module_cv, module_target_sat):
 def module_org(module_target_sat):
     """Module-scoped organization"""
     return module_target_sat.api.Organization().create()
+
 
 @pytest.fixture
 def function_org(target_sat):
@@ -487,6 +468,7 @@ def function_org(target_sat):
 def module_sca_manifest():
     """Module-scoped SCA manifest"""
     ...
+
 
 @pytest.fixture
 def function_sca_manifest():
@@ -526,6 +508,12 @@ def function_sca_manifest():
 Content hosts are deployed in containers by default. If the host needs to run as a VM, use the `no_containers` marker.
 ```python
 @pytest.mark.no_containers    # Cannot run in containers
+```
+
+Tests that require a specific Satellite install method should use `foreman_installer` or `foremanctl` markers. Collection automatically deselects incompatible tests based on `server.install_method` in `conf/server.yaml` (or `ROBOTTELO_SERVER__INSTALL_METHOD`). When `install_method` is `auto`, `server.deploy_arguments.deploy_container` is used as a fallback.
+```python
+@pytest.mark.foreman_installer    # Requires satellite-installer
+@pytest.mark.foremanctl        # Requires foremanctl
 ```
 
 ### RHEL Version Markers
@@ -583,10 +571,12 @@ Uses `SharedResource` for single-test upgrade scenarios:
 ```python
 from robottelo.utils.shared_resource import SharedResource
 
+
 def setup_scenario(sat_instance):
     """Setup logic before upgrade"""
     org = sat_instance.api.Organization().create()
     return {'org_id': org.id}
+
 
 @pytest.mark.content_upgrades
 def test_content_view_upgrade(upgrade_shared_satellite):
@@ -601,9 +591,7 @@ def test_content_view_upgrade(upgrade_shared_satellite):
         setup_result = setup_data.ready()
 
         # Verify after upgrade
-        org = upgrade_shared_satellite.api.Organization(
-            id=setup_result['org_id']
-        ).read()
+        org = upgrade_shared_satellite.api.Organization(id=setup_result['org_id']).read()
         assert org.id == setup_result['org_id']
 ```
 
@@ -644,10 +632,7 @@ target_sat.wait_for_tasks(
 
 ```python
 # Register with activation key
-rhel_contenthost.register_contenthost(
-    org=module_org,
-    activation_key=ak.name
-)
+rhel_contenthost.register_contenthost(org=module_org, activation_key=ak.name)
 
 # Verify registration
 result = rhel_contenthost.execute('subscription-manager status')
@@ -659,10 +644,7 @@ assert module_org.label in result.stdout
 
 ```python
 # Create and sync repository
-repo = target_sat.api.Repository(
-    product=product,
-    url=settings.repos.yum_3.url
-).create()
+repo = target_sat.api.Repository(product=product, url=settings.repos.yum_3.url).create()
 
 # Trigger sync
 repo.sync()
@@ -676,9 +658,7 @@ assert repo.content_counts['packages'] > 0
 
 ```python
 # Create content view
-cv = target_sat.api.ContentView(
-    organization=module_org
-).create()
+cv = target_sat.api.ContentView(organization=module_org).create()
 
 # Add repository
 cv.repository = [repository]
@@ -721,7 +701,7 @@ When asked to write a PR comment for changes made, use this markdown pattern:
 [Describe how the change solves the problem]
 
 ### PRT Example
-[Create Pull Request Testing instructions following the PRT documentation](docs/agents_docs/PRT_DOCS.MD) ([upstream wiki](https://github.com/SatelliteQE/robottelo/wiki/Robottelo-Pull-Request-Testing-(PRT)-Process))
+[Create Pull Request Testing instructions following the PRT documentation](docs/agents_docs/PRT_DOCS.md) ([upstream wiki](https://github.com/SatelliteQE/robottelo/wiki/Robottelo-Pull-Request-Testing-(PRT)-Process))
 - If adding/modifying tests, provide PRT commands for these tests
 - If deleting tests, explain what tests were removed
 ```
@@ -765,7 +745,7 @@ wait_for(
     lambda: condition_check(),
     timeout=300,  # 5 minutes
     delay=10,
-    logger=logger
+    logger=logger,
 )
 ```
 
@@ -794,17 +774,12 @@ broker checkout --workflow deploy-rhel --rhel-version 9
 - Ensure correct activation key is used
 
 ```python
-
 # Verify hostname resolution
 result = rhel_contenthost.execute(f'ping -c 1 {target_sat.hostname}')
 assert result.status == 0
 
 # Register with proper parameters
-rhel_contenthost.register_contenthost(
-    org=org,
-    activation_key=ak.name,
-    target=target_sat
-)
+rhel_contenthost.register_contenthost(org=org, activation_key=ak.name, target=target_sat)
 ```
 
 #### 5. **UI Test Element Not Found**
@@ -870,7 +845,7 @@ repo_url = settings.repos.yum_3.url
     - Action: `create`, `update`, `delete`, `list`
 
 *   **Test Documentation:** Every test must have:
-    - Unique `:id:` UUID (use `python -c 'import uuid; print(uuid.uuid4())'`)
+    - Unique `:id:` UUID (see [UUID Generation](#uuid-generation) — **never generate UUIDs yourself, always use the shell command**)
     - Clear `:steps:`
     - Expected `:expectedresults:`
 
@@ -918,5 +893,5 @@ repo_url = settings.repos.yum_3.url
 
 ---
 
-**Last Updated**: 2026-04-28
-**Maintainers**: Cole Higgins
+**Last Updated**: 2026-06-25
+**Maintainers**: Cole Higgins, Ian Ballou

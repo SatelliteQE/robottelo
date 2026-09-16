@@ -2246,6 +2246,113 @@ class TestCapsuleContentManagement:
         sync_status = nailgun_capsule.content_sync(timeout='90m')
         assert sync_status['result'] == 'success'
 
+    @pytest.mark.e2e
+    @pytest.mark.parametrize('module_autosync_setting', [True], indirect=True)
+    def test_positive_capsule_with_rolling_content_source(
+        self,
+        module_target_sat,
+        module_autosync_setting,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce_library,
+    ):
+        """Auto capsule sync is triggered when a rolling content view is refreshed
+        by a repository sync or content upload, not just during initial creation.
+
+        :id: 496d197c-d1c4-48f1-96f5-b958bf29867b
+
+        :steps:
+            1. Create a rolling CV with a custom repository and assign it to Library LCE.
+            2. Associate Library LCE with the capsule.
+            3. Sync the repository to trigger initial rolling CV refresh.
+            4. Verify auto capsule sync is triggered and content reaches the capsule.
+            5. Upload a new RPM to the repository.
+            6. Verify auto capsule sync is triggered automatically and the new package
+               is present on the capsule.
+
+        :expectedresults:
+            1. Initial repo sync triggers rolling CV refresh and auto capsule sync.
+            2. Uploading new content triggers rolling CV refresh and auto capsule sync
+               without requiring a manual repo sync.
+            3. The newly uploaded RPM is present on the capsule after the automatic sync.
+
+        :Verifies: SAT-45316
+
+        :customerscenario: true
+
+        """
+        repo = module_target_sat.api.Repository(
+            product=function_product, url=settings.repos.yum_1.url
+        ).create()
+        module_target_sat.wait_for_tasks(
+            search_query='Actions::Katello::Repository::MetadataGenerate'
+            f' and resource_id = {repo.id}'
+            ' and resource_type = Katello::Repository',
+            max_tries=6,
+            search_rate=10,
+        )
+        rolling_cv = module_target_sat.api.ContentView(
+            organization=function_org,
+            repository=[repo],
+            rolling=True,
+            environment=[function_lce_library],
+        ).create()
+        rolling_cv = rolling_cv.read()
+        assert len(rolling_cv.version) == 1
+        assert len(rolling_cv.environment) == 1
+
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce_library.id}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Initial repo sync triggers rolling CV refresh and auto capsule sync
+        timestamp = datetime.now(UTC).replace(microsecond=0)
+        repo.sync()
+        repo = repo.read()
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        rolling_cv = rolling_cv.read()
+        rolling_version = rolling_cv.version[0].read()
+
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
+            org=function_org.label,
+            lce=function_lce_library.label,
+            cv=rolling_cv.label,
+            prod=function_product.label,
+            repo=repo.label,
+        )
+        sat_repo_url = module_target_sat.get_published_repo_url(
+            org=function_org.label,
+            lce=function_lce_library.label,
+            cv=rolling_cv.label,
+            prod=function_product.label,
+            repo=repo.label,
+        )
+        sat_files = get_repo_files_by_url(sat_repo_url)
+        caps_files = get_repo_files_by_url(caps_repo_url)
+        assert sat_files == caps_files
+
+        # Upload a new RPM to trigger automatic capsule sync via rolling CV refresh
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+
+        timestamp = datetime.now(UTC).replace(microsecond=0)
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        rolling_cv = rolling_cv.read()
+        new_rolling_version = rolling_cv.version[0].read()
+        assert new_rolling_version.id == rolling_version.id
+        assert repo.read().content_counts['rpm'] > FAKE_1_YUM_REPOS_COUNT
+
+        caps_files_after = get_repo_files_by_url(caps_repo_url)
+        sat_files_after = get_repo_files_by_url(sat_repo_url)
+        assert sat_files_after == caps_files_after
+        assert len(caps_files_after) == FAKE_1_YUM_REPOS_COUNT + 1
+        assert RPM_TO_UPLOAD in caps_files_after
+
 
 class TestPodman:
     """Tests specific to using podman push/pull on Satellite

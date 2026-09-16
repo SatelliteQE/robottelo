@@ -18,7 +18,6 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.exceptions import CLIReturnCodeError
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture(scope='module')
@@ -84,9 +83,6 @@ def test_positive_install_configure_host(
 
     :Verifies: SAT-25418
     """
-    if agent == 'openvox' and content_hosts[0].os_version.major == 10 and is_open('SAT-30237'):
-        pytest.skip('Skipping as openvox-agent for EL10 is still not delivered')
-
     if agent == 'puppet' and content_hosts[0].os_version.major == 10:
         pytest.skip('Skipping as there is no puppet-agent for EL10')
 
@@ -145,9 +141,6 @@ def test_positive_run_puppet_agent_generate_report_when_no_message(
     :BZ: 2192939, 2257327, 2257314
     :parametrized: yes
     """
-    if agent == 'openvox' and rhel_contenthost.os_version.major == 10 and is_open('SAT-30237'):
-        pytest.skip('Skipping as openvox-agent for EL10 is still not delivered')
-
     if agent == 'puppet' and rhel_contenthost.os_version.major == 10:
         pytest.skip('Skipping as there is no puppet-agent for EL10')
 
