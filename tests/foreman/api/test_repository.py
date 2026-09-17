@@ -2687,113 +2687,43 @@ class TestPythonRepository:
         """
         assert repo.download_policy == repo_options['download_policy']
 
-    @pytest.mark.parametrize(
-        'repo_options',
-        [
-            {
-                'content_type': constants.REPO_TYPE['python'],
-                'url': 'https://pypi.org',
-                'generic_remote_options': '{"includes":["pulp-python"]}',
-            }
-        ],
-        indirect=True,
-    )
-    def test_positive_create_with_default_download_policy(self, repo, target_sat):
-        """Verify the default download policy for a Python repository.
+    def test_positive_download_policy_lifecycle(self, module_org, module_product, target_sat):
+        """Verify the default and updated download policies through Python repository syncs.
 
-        :id: 9eebf808-df2b-4a89-ae90-76ca8f347b45
-
-        :parametrized: yes
+        :id: da18fdfc-20df-4d95-bfb9-ecca9275fe4f
 
         :Verifies: SAT-36510
 
         :BlockedBy: SAT-36514
 
         :steps:
-            1. Create a Python repo without specifying download_policy
-            2. Read the default_download_policy setting
+            1. Create a Python repo without specifying a download policy.
+            2. Sync the repository and verify that its Pulp remote uses the default policy.
+               -> Specify shelf-reader in the includes to limit the number of synced packages.
+            3. Update the repository to the other supported download policy.
+            4. Sync the repository again and verify that its Pulp remote uses the new policy.
 
-        :expectedresults: The Python repo's download policy matches the default setting
+        :expectedresults: The Python repo syncs successfully with both the default and updated
+            download policies.
+
+        :CaseImportance: Critical
         """
         default_dl_policy = target_sat.api.Setting().search(
             query={'search': 'name=default_download_policy'}
         )
         assert default_dl_policy
-        assert repo.download_policy == default_dl_policy[0].value
+        default_policy = default_dl_policy[0].value
+        updated_policy = 'on_demand' if default_policy == 'immediate' else 'immediate'
 
-    @pytest.mark.parametrize(
-        'repo_options',
-        [
-            {
-                'content_type': constants.REPO_TYPE['python'],
-                'url': 'https://pypi.org',
-                'download_policy': 'immediate',
-                'generic_remote_options': '{"includes":["pulp-python"]}',
-            }
-        ],
-        indirect=True,
-    )
-    def test_positive_update_download_policy(self, repo):
-        """Update download policy for a Python repository.
-
-        :id: 9a88c55f-9375-4263-bd0e-1c4d4dc08ad3
-
-        :parametrized: yes
-
-        :Verifies: SAT-36510
-
-        :BlockedBy: SAT-36514
-
-        :steps:
-            1. Create a Python repo with immediate download policy
-            2. Update to on_demand
-            3. Update back to immediate
-
-        :expectedresults: Download policy is updated successfully each time
-        """
-        assert repo.download_policy == 'immediate'
-
-        repo.download_policy = 'on_demand'
-        repo = repo.update(['download_policy'])
-        assert repo.download_policy == 'on_demand'
-
-        repo.download_policy = 'immediate'
-        repo = repo.update(['download_policy'])
-        assert repo.download_policy == 'immediate'
-
-    @pytest.mark.parametrize('download_policy', constants.DOWNLOAD_POLICIES)
-    def test_positive_sync_with_download_policy(
-        self, download_policy, module_org, module_product, target_sat
-    ):
-        """Sync a Python repository and verify its Pulp remote download policy.
-
-        :id: da18fdfc-20df-4d95-bfb9-ecca9275fe4f
-
-        :parametrized: yes
-
-        :Verifies: SAT-36510
-
-        :BlockedBy: SAT-36514
-
-        :steps:
-            1. Create a Python repo with a download policy and includes filter.
-            2. Sync the repository.
-            3. Get the repository's Pulp remote.
-            4. Verify that the remote uses the requested download policy.
-
-        :expectedresults: The Python repo syncs successfully and its Pulp remote uses the
-            requested download policy.
-
-        :CaseImportance: Critical
-        """
         repo = target_sat.api.Repository(
             content_type=constants.REPO_TYPE['python'],
-            download_policy=download_policy,
             includes=['shelf-reader'],
             organization=module_org,
             product=module_product,
             url=settings.repos.python.pypi.url,
         ).create()
+        assert repo.download_policy == default_policy
+
         repo.sync()
         repo = repo.read()
         assert repo.content_counts['python_package'] > 0
@@ -2802,8 +2732,23 @@ class TestPythonRepository:
             f'echo "::Katello::Repository.find({repo.id}).remote_href" | foreman-rake console'
         ).stdout.split('"')[1]
         remote_result = target_sat.execute(
-            f'pulp --refresh-api python remote show --href "{remote_href}"'
+            f'pulp --no-verify-ssl --refresh-api python remote show --href "{remote_href}"'
         )
         assert remote_result.status == 0, remote_result.stderr
         remote = json.loads(remote_result.stdout)
-        assert remote['policy'] == download_policy
+        assert remote['policy'] == default_policy
+
+        repo.download_policy = updated_policy
+        repo = repo.update(['download_policy'])
+        assert repo.download_policy == updated_policy
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['python_package'] > 0
+
+        remote_result = target_sat.execute(
+            f'pulp --no-verify-ssl --refresh-api python remote show --href "{remote_href}"'
+        )
+        assert remote_result.status == 0, remote_result.stderr
+        remote = json.loads(remote_result.stdout)
+        assert remote['policy'] == updated_policy
