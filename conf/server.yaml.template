@@ -78,6 +78,26 @@ SERVER:
   # Can also be set via environment variable: ROBOTTELO_SERVER_INSTALL_METHOD
   INSTALL_METHOD: auto
 
+  # ISO images used by the disconnected (offline) installation tests.
+  # Both are downloaded onto the host before it is cut off from the network.
+  DISCONNECTED:
+    # Host serving the Satellite and RHEL compose trees the ISO images are pulled from
+    COMPOSE_HOST: http://compose.example.com
+    # Satellite release the ISO is pulled for. Derived from SERVER.VERSION.RELEASE, so
+    # master pulls Stream while z-stream branches like 6.20.z pull 6.20.
+    RELEASE: '@jinja {{ "Stream" if this.server.version.release | lower == "stream" else this.server.version.release.split(".")[:2] | join(".") }}'
+
+    # Compose directories. Robottelo resolves the newest matching ISO from these paths.
+    SATELLITE_COMPOSE: '@jinja {{ this.server.disconnected.compose_host }}/rhel-{{ this.server.version.rhel_version | int }}/nightly/Satellite/{{ this.server.disconnected.release }}/latest-Satellite-{{ this.server.disconnected.release }}{{ ".None" if this.server.disconnected.release == "Stream" else "" }}-RHEL-{{ this.server.version.rhel_version | int }}'
+    RHEL_COMPOSE: '@jinja {{ this.server.disconnected.compose_host }}/rhel-{{ this.server.version.rhel_version | int }}/nightly/RHEL-{{ this.server.version.rhel_version | int }}/latest-RHEL-{{ this.server.version.rhel_version }}'
+
+    # Point either URL at an .iso file instead to install one specific image.
+    SATELLITE_ISO_URL: '@jinja {{ this.server.disconnected.satellite_compose }}/compose/Satellite/x86_64/iso/'
+    RHEL_ISO_URL: '@jinja {{ this.server.disconnected.rhel_compose }}/compose/BaseOS/x86_64/iso/'
+
+    # Stream composes are unsigned; released composes should keep GPG checks enabled.
+    NOGPGCHECK: '@jinja {{ this.server.disconnected.release == "Stream" }}'
+
   # Container registry credentials for foremanctl installations
   # These are required when using foremanctl deploy method
   CONTAINER_REGISTRY:
