@@ -30,7 +30,7 @@ LOCALES = (
     'zh_CN',
     'zh_TW',
 )
-
+SUPPORTED_LANGUAGES = ('fr', 'ja', 'ko', 'zh_CN')
 
 DISTRO_DEFAULT = 'rhel7'
 DISTROS_SUPPORTED = ['rhel7', 'rhel8', 'rhel9', 'rhel10']
@@ -2588,6 +2588,16 @@ class InstallationServices:
         'tomcat',
     ]
 
+    INSTALLER_CAPSULE_SERVICES = [
+        'foreman-proxy',
+        'httpd',
+        'postgresql',
+        'pulpcore-api',
+        'pulpcore-content',
+        'pulpcore-worker@*',
+        'redis',
+    ]
+
     # foremanctl quadlet container services
     FOREMANCTL_SERVICES = [
         'candlepin',
@@ -2596,6 +2606,16 @@ class InstallationServices:
         'dynflow-sidekiq@worker-hosts-queue',
         'foreman-proxy',
         'foreman',
+        'httpd',
+        'postgresql',
+        'pulp-api',
+        'pulp-content',
+        'pulp-worker@*',
+        'valkey',
+    ]
+
+    FOREMANCTL_CAPSULE_SERVICES = [
+        'foreman-proxy',
         'httpd',
         'postgresql',
         'pulp-api',
