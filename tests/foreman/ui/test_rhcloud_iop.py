@@ -98,7 +98,8 @@ def create_pathways_recommendation(host):
         "grep -q '^PermitEmptyPasswords' /etc/ssh/sshd_config "
         "|| echo 'PermitEmptyPasswords yes' >> /etc/ssh/sshd_config"
     )
-    host.run('systemctl restart sshd')
+    result = host.run('systemctl restart sshd')
+    assert result.status == 0
 
     # Upload insights data to Satellite
     result = host.run('insights-client')
@@ -441,7 +442,7 @@ def test_iop_recommendations_host_details_e2e(
 @pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(r'^(?!7).*')
-@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
+@pytest.mark.parametrize('module_target_sat_insights', [True], ids=['local'], indirect=True)
 def test_iop_pathways_remediation_e2e(
     rhel_insights_vm,
     rhcloud_manifest_org,
@@ -450,7 +451,7 @@ def test_iop_pathways_remediation_e2e(
     """Set up Satellite with iop enabled, create conditions that cause advisor recommendations
     to be grouped into a pathway, then remediate an affected system from the pathway's Systems tab.
 
-    :id: 0f6c2c6a-3c0d-4a3d-9c0e-1a2b3c4d5e6f
+    :id: 9a2e31cb-dd64-41e9-8751-82d518dddae5
 
     :steps:
         1. Set up Satellite with iop enabled and register a host.
@@ -466,8 +467,6 @@ def test_iop_pathways_remediation_e2e(
         3. The remediation job finished successfully.
 
     :parametrized: yes
-
-    :CaseAutomation: Automated
     """
     org_name = rhcloud_manifest_org.name
 
@@ -477,19 +476,23 @@ def test_iop_pathways_remediation_e2e(
     with module_target_sat_insights.ui_session() as session:
         session.organization.select(org_name=org_name)
 
-        # Verify at least one pathway is listed on the Pathways tab.
+        # Find the pathway that actually contains our host. Fixtures here are module-scoped,
+        # so earlier tests seed other pathways; relying on ordering (pathways[0]) is fragile.
         pathways = session.pathways.read(widget_names='table')['table']
         assert pathways, 'No pathways were listed on the Pathways tab'
-        pathway_name = pathways[0]['Name']
 
-        # Verify the affected host is listed on the pathway's Systems tab.
-        systems = session.pathways.read_systems(pathway_name)
-        assert any(row['Name'] == rhel_insights_vm.hostname for row in systems), (
-            f'{rhel_insights_vm.hostname} is not listed under pathway {pathway_name}'
-        )
+        pathway_name = None
+        for pathway in pathways:
+            systems = session.pathways.read_systems(pathway['Name'])
+            if any(row['Name'] == rhel_insights_vm.hostname for row in systems):
+                pathway_name = pathway['Name']
+                break
+        assert pathway_name, f'No pathway contains {rhel_insights_vm.hostname}'
 
         # Remediate the affected system from the pathway's Systems tab.
-        result = session.pathways.remediate_system(pathway_name, rhel_insights_vm.hostname)
+        result = session.pathways.remediate_system_via_pathways(
+            pathway_name, rhel_insights_vm.hostname
+        )
 
         # Verify that the remediation job Succeeded.
         assert result['status']['Succeeded'] != 0
