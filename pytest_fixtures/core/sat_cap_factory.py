@@ -30,36 +30,26 @@ def resolve_deploy_args(args_dict):
 def prepare_capsule_checkout(satellite=None, workflow=None, **broker_args):
     """Return (workflow, broker_args) for a Capsule Broker checkout.
 
-    Foremanctl uses ``deploy-foreman-proxy`` and requires the Satellite FQDN at
-    checkout time. Installer keeps ``capsule.deploy_workflows.product``.
+    Always uses ``capsule.deploy_workflows.product`` (``deploy-capsule``).
+    For a foremanctl Satellite, pass ``deploy_container=True`` so Tower deploys
+    a containerized Capsule (satlab-tower MR 1617).
     """
+    deploy_args = settings.capsule.get('deploy_arguments') or {}
+    if hasattr(deploy_args, 'to_dict'):
+        deploy_args = deploy_args.to_dict()
+    broker_args = {**dict(deploy_args), **broker_args}
+
     if satellite is not None:
         install_method = str(satellite.install_method)
     else:
         install_method = str(settings.server.get('install_method', 'auto'))
 
-    if workflow is None and install_method == 'foremanctl':
-        workflows = settings.capsule.deploy_workflows
-        workflow = workflows.get('foremanctl') or 'deploy-foreman-proxy'
-        deploy_args = settings.capsule.get('deploy_arguments') or {}
-        if hasattr(deploy_args, 'to_dict'):
-            deploy_args = deploy_args.to_dict()
-        broker_args = {**deploy_args, **broker_args}
-        sat_fqdn = (
-            broker_args.get('foreman_proxy_foreman_fqdn')
-            or getattr(satellite, 'hostname', None)
-            or settings.server.hostname
-        )
-        if not sat_fqdn:
-            raise ValueError(
-                'deploy-foreman-proxy requires a Satellite hostname '
-                '(satellite= or settings.server.hostname).'
-            )
-        broker_args['foreman_proxy_foreman_fqdn'] = sat_fqdn
-        return workflow, broker_args
+    containerized = install_method == 'foremanctl' or (
+        install_method == 'auto' and settings.server.deploy_arguments.get('deploy_container')
+    )
+    if containerized:
+        broker_args['deploy_container'] = True
 
-    if settings.capsule.deploy_arguments:
-        broker_args.update(settings.capsule.deploy_arguments)
     return workflow or settings.capsule.deploy_workflows.product, broker_args
 
 
