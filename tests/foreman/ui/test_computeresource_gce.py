@@ -28,8 +28,6 @@ from robottelo.constants import (
     GCE_NETWORK_DEFAULT,
 )
 
-pytestmark = pytest.mark.foreman_installer
-
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
@@ -145,7 +143,6 @@ def test_positive_default_end_to_end_with_custom_profile(
 @pytest.mark.e2e
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
-@pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
 def test_positive_gce_provision_end_to_end(
     request,
     sat_gce,
@@ -238,7 +235,6 @@ def test_positive_gce_provision_end_to_end(
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
-@pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
 def test_positive_gce_cloudinit_provision_end_to_end(
     request,
     sat_gce,
