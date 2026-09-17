@@ -41,11 +41,7 @@ from robottelo.constants import (
     DataFile,
 )
 from robottelo.constants.repos import CUSTOM_RPM_SHA_512, FEDORA_OSTREE_REPO, RHEL10_BASEOS_MLDSA
-from robottelo.utils.datafactory import (
-    invalid_names_list,
-    parametrized,
-    valid_data_list,
-)
+from robottelo.utils.datafactory import invalid_names_list, valid_data_list
 
 # Some tests repeatedly publish content views or promote content view versions.
 # How many times should that be done? A higher number means a more interesting
@@ -609,7 +605,7 @@ class TestRollingContentView:
         assert read_cv == rolling_cv
 
         # Update rolling CV with Library environment and description
-        cv_desc = valid_data_list()['utf8']
+        cv_desc = random.choice(list(valid_data_list().values()))
         rolling_cv.description = cv_desc
         rolling_cv.environment = [function_org.library]
         update_cv = rolling_cv.update(['description', 'environment'])
@@ -1506,32 +1502,30 @@ class TestRollingContentView:
 class TestContentViewCreate:
     """Create tests for content views."""
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_with_name(self, name, target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_create_with_name(self, target_sat):
         """Create empty content-view with random names.
 
         :id: 80d36498-2e71-4aa9-b696-f0a45e86267f
-
-        :parametrized: yes
 
         :expectedresults: Content-view is created and had random name.
 
         :CaseImportance: Critical
         """
+        name = random.choice(list(valid_data_list().values()))
         assert target_sat.api.ContentView(name=name).create().name == name
 
-    @pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
-    def test_positive_create_with_description(self, desc, target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_create_with_description(self, target_sat):
         """Create empty content view with random description.
 
         :id: 068e3e7c-34ac-47cb-a1bb-904d12c74cc7
-
-        :parametrized: yes
 
         :expectedresults: Content-view is created and has random description.
 
         :CaseImportance: High
         """
+        desc = random.choice(list(valid_data_list().values()))
         assert target_sat.api.ContentView(description=desc).create().description == desc
 
     def test_positive_clone(self, content_view, module_org, module_target_sat):
@@ -1553,18 +1547,17 @@ class TestContentViewCreate:
             del cloned_cv[key]
         assert cv_origin == cloned_cv
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-    def test_negative_create_with_invalid_name(self, name, target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_invalid_name(self, target_sat):
         """Create content view providing an invalid name.
 
         :id: 261376ca-7d12-41b6-9c36-5f284865243e
-
-        :parametrized: yes
 
         :expectedresults: Content View is not created
 
         :CaseImportance: High
         """
+        name = random.choice(invalid_names_list())
         with pytest.raises(HTTPError):
             target_sat.api.ContentView(name=name).create()
 
@@ -2591,37 +2584,35 @@ class TestContentViewUpdate:
         content_view = module_cv.update({key})
         assert getattr(content_view, key) == value
 
-    @pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-    def test_positive_update_name(self, module_cv, new_name, module_target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_update_name(self, module_cv, module_target_sat):
         """Create content view providing the initial name, then update
         its name to another valid name.
 
         :id: 15e6fa3a-1a65-4e7d-8d32-3a81227ac1c8
 
-        :parametrized: yes
-
         :expectedresults: Content View is created, and its name can be updated.
 
         :CaseImportance: Critical
         """
+        new_name = random.choice(list(valid_data_list().values()))
         module_cv.name = new_name
         module_cv.update(['name'])
         updated = module_target_sat.api.ContentView(id=module_cv.id).read()
         assert new_name == updated.name
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
-    def test_negative_update_name(self, module_cv, new_name, module_target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_update_name(self, module_cv, module_target_sat):
         """Create content view then update its name to an
         invalid name.
 
         :id: 69a2ce8d-19b2-49a3-97db-a1fdebbb16be
 
-        :parametrized: yes
-
         :expectedresults: Content View is created, and its name is not updated.
 
         :CaseImportance: Critical
         """
+        new_name = random.choice(invalid_names_list())
         module_cv.name = new_name
         with pytest.raises(HTTPError):
             module_cv.update(['name'])
