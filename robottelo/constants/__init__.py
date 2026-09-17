@@ -30,7 +30,7 @@ LOCALES = (
     'zh_CN',
     'zh_TW',
 )
-
+SUPPORTED_LANGUAGES = ('fr', 'ja', 'ko', 'zh_CN')
 
 DISTRO_DEFAULT = 'rhel7'
 DISTROS_SUPPORTED = ['rhel7', 'rhel8', 'rhel9', 'rhel10']
