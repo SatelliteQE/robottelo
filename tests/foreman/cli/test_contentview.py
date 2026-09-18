@@ -3283,6 +3283,101 @@ class TestContentView:
         actual_cv_names = {cve_info[key]['content-view-name'] for key in cve_info}
         assert actual_cv_names == {cv1['name'], cv2['name']}
 
+    def test_positive_hostgroup_count_in_cv_environment(self, module_org, module_target_sat):
+        """Verify that hostgroups count is displayed correctly in content-view-environment list
+        and info commands when a hostgroup is associated with a content view environment.
+
+        :id: dfd549d8-6473-4411-b6c1-182b4b2c96e8
+
+        :steps:
+            1. Create a lifecycle environment
+            2. Create a content view
+            3. Publish the content view
+            4. Promote the content view to the lifecycle environment
+            5. Get the content-view-environment ID
+            6. Create a hostgroup with the content view environment
+            7. List content-view-environments and verify hostgroups count
+            8. Get content-view-environment info and verify hostgroups count
+
+        :expectedresults:
+            1. Content view environment is created successfully
+            2. Hostgroup is created with the content view environment
+            3. Hostgroups count is 1 in content-view-environment list output
+            4. Hostgroups count is 1 in content-view-environment info output
+            5. Content-view-environment info shows correct details
+
+        :Verifies: SAT-44616
+        """
+        # Step 1: Create a lifecycle environment
+        lce = module_target_sat.cli_factory.make_lifecycle_environment(
+            {'organization-id': module_org.id}
+        )
+
+        # Step 2: Create a content view
+        cv = module_target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
+
+        # Step 3: Publish the content view
+        module_target_sat.cli.ContentView.publish({'id': cv['id']})
+
+        # Step 4: Promote the content view to the lifecycle environment
+        cv_info = module_target_sat.cli.ContentView.info({'id': cv['id']})
+        module_target_sat.cli.ContentView.version_promote(
+            {
+                'id': cv_info['versions'][0]['id'],
+                'to-lifecycle-environment-id': lce['id'],
+            }
+        )
+
+        # Step 5: Get the content-view-environment ID
+        cvenv_id = module_target_sat.api_factory.get_cvenv_id(cv['id'], lce['id'])
+
+        # Verify content-view-environment exists before creating hostgroup
+        cvenv_list = module_target_sat.cli.ContentViewEnvironment.list(
+            {'content-view-id': cv['id'], 'lifecycle-environment-id': lce['id']}
+        )
+        assert len(cvenv_list) > 0, 'Content view environment not found'
+        cvenv_entry = [entry for entry in cvenv_list if str(entry['id']) == str(cvenv_id)][0]
+        assert cvenv_entry['hostgroups-count'] == '0', (
+            f'Expected hostgroups count to be 0, got {cvenv_entry["hostgroups-count"]}'
+        )
+
+        # Step 6: Create a hostgroup with the content view environment
+        hostgroup = module_target_sat.cli_factory.make_hostgroup(
+            {
+                'organization-ids': module_org.id,
+                'content-view-environment-id': cvenv_id,
+            }
+        )
+
+        # Step 7: List content-view-environments and verify hostgroups count
+        cvenv_list = module_target_sat.cli.ContentViewEnvironment.list(
+            {'content-view-id': cv['id'], 'lifecycle-environment-id': lce['id']}
+        )
+        assert len(cvenv_list) > 0, 'Content view environment not found in list'
+
+        # Find the specific content-view-environment entry
+        cvenv_entry = [entry for entry in cvenv_list if str(entry['id']) == str(cvenv_id)][0]
+        assert cvenv_entry['hostgroups-count'] == '1', (
+            f'Expected hostgroups count to be 1 in list, got {cvenv_entry["hostgroups-count"]}'
+        )
+        assert cvenv_entry['content-view'] == cv['name']
+        assert cvenv_entry['lifecycle-environment'] == lce['name']
+
+        # Step 8: Get content-view-environment info and verify details
+        cvenv_info = module_target_sat.cli.ContentViewEnvironment.info({'id': cvenv_id})
+
+        # Verify all important fields in info output
+        assert cvenv_info['id'] == str(cvenv_id)
+        assert cvenv_info['content-view'] == cv['name']
+        assert cvenv_info['content-view-id'] == str(cv['id'])
+        assert cvenv_info['lifecycle-environment'] == lce['name']
+        assert cvenv_info['lifecycle-environment-id'] == str(lce['id'])
+        assert cvenv_info['hostgroups-count'] == '1', (
+            f'Expected hostgroups count to be 1 in info, got {cvenv_info["hostgroups-count"]}'
+        )
+        assert cvenv_info['organization'] == module_org.name
+        assert cvenv_info['organization-id'] == str(module_org.id)
+
 
 class TestRollingContentView:
     """Hammer testing for Rolling Content Views."""
