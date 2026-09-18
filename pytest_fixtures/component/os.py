@@ -11,17 +11,21 @@ def default_os(
     default_pxetemplate,
     session_target_sat,
 ):
-    """Returns an Operating System entity read from searching for supportability.content_host.default_os_name"""
+    """Return or create the configured default OS and attach provisioning defaults."""
     search_string = f'name="{settings.supportability.content_hosts.default_os_name}"'
 
-    try:
-        os = (
-            session_target_sat.api.OperatingSystem()
-            .search(query={'search': search_string})[0]
-            .read()
-        )
-    except IndexError as e:
-        raise RuntimeError(f"Could not find operating system for '{search_string}'") from e
+    operating_systems = session_target_sat.api.OperatingSystem().search(
+        query={'search': search_string}
+    )
+    if operating_systems:
+        os = operating_systems[0].read()
+    else:
+        os = session_target_sat.api.OperatingSystem(
+            name=settings.supportability.content_hosts.default_os_name,
+            family='Redhat',
+            major=str(settings.server.version.rhel_version),
+            minor='0',
+        ).create()
 
     os.architecture.append(default_architecture)
     os.ptable.append(default_partitiontable)
