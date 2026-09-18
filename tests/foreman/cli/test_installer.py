@@ -21,7 +21,7 @@ from robottelo.hosts import Satellite
 
 SATELLITE_FIREWALL_PORTS = [8000, 8443]
 SATELLITE_LOCAL_DIR = '/opt/satellite'
-SATELLITE_LOCAL_REPO_FILE = '/etc/yum.repos.d/satellite.repo'
+SATELLITE_LOCAL_REPO_FILE = '/etc/yum.repos.d/satellite-local.repo'
 SATELLITE_LOCAL_REPO_NAME = 'Satellite-local'
 
 pytestmark = [pytest.mark.foremanctl]
