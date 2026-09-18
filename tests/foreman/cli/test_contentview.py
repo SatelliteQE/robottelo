@@ -3342,7 +3342,7 @@ class TestContentView:
         )
 
         # Step 6: Create a hostgroup with the content view environment
-        hostgroup = module_target_sat.cli_factory.make_hostgroup(
+        module_target_sat.cli_factory.make_hostgroup(
             {
                 'organization-ids': module_org.id,
                 'content-view-environment-id': cvenv_id,
