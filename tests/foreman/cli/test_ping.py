@@ -14,6 +14,8 @@
 
 import pytest
 
+from robottelo.utils.datafactory import gen_string
+
 
 @pytest.mark.pit_server
 @pytest.mark.upgrade
@@ -36,7 +38,12 @@ def test_positive_ping(target_sat, switch_user):
 
     :customerscenario: true
     """
-    result = target_sat.execute(f"su - {'postgres' if switch_user else 'root'} -c 'hammer ping'")
+    test_user = gen_string('alpha')
+    user = target_sat.execute(f"getent passwd {test_user} || adduser {test_user}")
+    assert user.status == 0
+    result = target_sat.execute(
+        f"su - {f'{test_user}' if switch_user else 'root'} -c 'hammer ping'"
+    )
     assert result.stderr == ''
 
     # Filter lines containing status
