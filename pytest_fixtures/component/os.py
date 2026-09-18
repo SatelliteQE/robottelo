@@ -13,7 +13,7 @@ def default_os(
 ):
     """Returns an Operating System entity read from searching for supportability.content_host.default_os_name"""
     # Use partial match (~) instead of exact match to handle OS names like "RedHat 9.4"
-    search_string = f'name ~ {settings.supportability.content_hosts.default_os_name}'
+    search_string = f'name="{settings.supportability.content_hosts.default_os_name}"'
 
     try:
         os = (
