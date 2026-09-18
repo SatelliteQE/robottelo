@@ -23,7 +23,7 @@ def default_os(
         os = session_target_sat.api.OperatingSystem(
             name=settings.supportability.content_hosts.default_os_name,
             family='Redhat',
-            major=str(settings.content_host.default_rhel_version),
+            major=str(settings.server.version.rhel_version),
             minor='0',
         ).create()
 
