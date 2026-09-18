@@ -21,7 +21,7 @@ from robottelo.hosts import Satellite
 
 SATELLITE_FIREWALL_PORTS = [8000, 8443]
 SATELLITE_LOCAL_DIR = '/opt/satellite'
-SATELLITE_LOCAL_REPO_FILE = '/etc/yum.repos.d/satellite.repo'
+SATELLITE_LOCAL_REPO_FILE = '/etc/yum.repos.d/satellite-local.repo'
 SATELLITE_LOCAL_REPO_NAME = 'Satellite-local'
 
 pytestmark = [pytest.mark.foremanctl]
@@ -84,24 +84,27 @@ def install_satellite_disconnected_iso(
     # prepare_system copies the whole ISO to /opt/satellite, configures a local repo
     # out of it and skopeo-imports every container image into local storage.
     sat.mount_iso(satellite_iso, satellite_mount_point)
-    prepare_system = f'./prepare_system{" --nogpgcheck" if nogpgcheck else ""}'
-    result = sat.execute(f'cd {satellite_mount_point} && {prepare_system}', timeout='60m')
-    sat.execute(f'umount {satellite_mount_point}')
-    assert result.status == 0, (
-        f'prepare_system failed with exit code {result.status}:\n{result.stdout}\n{result.stderr}'
-    )
-    assert "Please run satellitectl deploy" in result.stdout, (
-        f'prepare_system did not finish the installation:\n{result.stdout}'
-    )
+    try:
+        prepare_system = f'./prepare_system{" --nogpgcheck" if nogpgcheck else ""}'
+        result = sat.execute(f'cd {satellite_mount_point} && {prepare_system}', timeout='60m')
+        assert result.status == 0, (
+            f'prepare_system failed with exit code {result.status}:\n{result.stdout}\n{result.stderr}'
+        )
+        assert "Please run satellitectl deploy" in result.stdout, (
+            f'prepare_system did not finish the installation:\n{result.stdout}'
+        )
+    finally:
+        sat.execute(f'umount {satellite_mount_point}')
+
     # The ISO content now lives in SATELLITE_LOCAL_DIR, reclaim the space it took
     sat.execute(f'rm -f {satellite_iso}')
 
-    # satellitectl deploy requires the FQDN of the host to resolve locally
+    # Verify the FQDN of the host resolves locally
     assert sat.execute('ping -c1 localhost && ping -c1 $(hostname -f)').status == 0, (
         f'The hostname of {sat.hostname} does not resolve'
     )
 
-    # Configure Satellite firewall to open communication
+    # Configure firewall to open communication
     assert (
         sat.execute(
             '(which firewall-cmd || dnf -y install firewalld) && systemctl enable --now firewalld'
