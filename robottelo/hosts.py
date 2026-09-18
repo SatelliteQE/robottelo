@@ -944,6 +944,10 @@ class ContentHost(Host, ContentHostMixins):
             self.enable_ipv6_rhsm_proxy()
             self.enable_ipv6_dnf_proxy()
 
+    def is_fips_enabled(self):
+        """Check if FIPS mode is enabled on the system."""
+        return int(self.execute('cat /proc/sys/crypto/fips_enabled').stdout)
+
     def add_authorized_key(self, pub_key):
         """Inject a public key into the authorized keys file
 
@@ -2845,10 +2849,6 @@ class Satellite(Capsule, SatelliteMixins):
         return (
             self.execute(f'grep "db_manage: false" {constants.SATELLITE_ANSWER_FILE}').status == 0
         )
-
-    def is_fips_enabled(self):
-        """Check if FIPS mode is enabled on the system."""
-        return int(self.execute('cat /proc/sys/crypto/fips_enabled').stdout)
 
     def setup_firewall(self):
         # Setups firewall on Satellite
