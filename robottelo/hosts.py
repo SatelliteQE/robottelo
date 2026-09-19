@@ -1654,35 +1654,48 @@ class ContentHost(Host, ContentHostMixins):
             self.enable_ipv6_podman_proxy()
 
     def podman_login(self, username=None, password=None, registry=None):
-        """Login to a podman registry."""
+        """Login to a podman registry.
+
+        Merges the new credentials into any existing authfile so that logins to
+        multiple registries accumulate instead of overwriting one another (the
+        core Satellite images and the IoP images live in different registries).
+        """
         iop_settings = settings.rh_cloud.iop
         username = username or iop_settings.username
         password = password or iop_settings.token
         registry = registry or iop_settings.registry
-        if registry and username and password:
-            auth_str = f'{username}:{password}'
-            auth_b64 = base64.b64encode(auth_str.encode()).decode()
-            auth_data = {'auths': {f'{registry}': {'auth': auth_b64}}}
-            local_authfile_path = f'{robottelo_tmp_dir}/podman-auth.json'
-            with open(local_authfile_path, 'w') as f:
-                json.dump(auth_data, f)
-            self.put(local_authfile_path, constants.PODMAN_AUTHFILE_PATH)
-            if self.execute(f'[ -f {constants.PODMAN_AUTHFILE_PATH} ]').status != 0:
-                raise FileNotFoundError(
-                    f'The Podman auth file in path {constants.PODMAN_AUTHFILE_PATH} is not found in satellite.'
-                )
-            # Use HTTPS_PROXY to reach container registry for IPv6
-            self.enable_ipv6_system_proxy()
-            # Log in to container registry
-            cmd_result = self.execute(
-                f'podman login --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
-            )
-            if cmd_result.status != 0:
-                raise ContentHostError(
-                    f'Error logging in to container registry {registry}: {cmd_result.stdout}'
-                )
-        else:
+        if not (registry and username and password):
             logger.error('Podman login skipped: missing registry, username, or token.')
+            return
+        auth_b64 = base64.b64encode(f'{username}:{password}'.encode()).decode()
+        # Preserve credentials for any registries already present in the authfile
+        auth_data = {'auths': {}}
+        existing = self.execute(f'cat {constants.PODMAN_AUTHFILE_PATH}')
+        if existing.status == 0 and existing.stdout.strip():
+            try:
+                auth_data = json.loads(existing.stdout)
+                auth_data.setdefault('auths', {})
+            except json.JSONDecodeError:
+                auth_data = {'auths': {}}
+        auth_data['auths'][registry] = {'auth': auth_b64}
+        local_authfile_path = f'{robottelo_tmp_dir}/podman-auth.json'
+        with open(local_authfile_path, 'w') as f:
+            json.dump(auth_data, f)
+        self.put(local_authfile_path, constants.PODMAN_AUTHFILE_PATH)
+        if self.execute(f'[ -f {constants.PODMAN_AUTHFILE_PATH} ]').status != 0:
+            raise FileNotFoundError(
+                f'The Podman auth file in path {constants.PODMAN_AUTHFILE_PATH} is not found in satellite.'
+            )
+        # Use HTTPS_PROXY to reach container registry for IPv6
+        self.enable_ipv6_system_proxy()
+        # Log in to container registry
+        cmd_result = self.execute(
+            f'podman login --authfile {constants.PODMAN_AUTHFILE_PATH} {registry}'
+        )
+        if cmd_result.status != 0:
+            raise ContentHostError(
+                f'Error logging in to container registry {registry}: {cmd_result.stdout}'
+            )
 
     def is_podman_logged_in(self, registry=None):
         """Check if podman is logged into a registry."""
@@ -2011,7 +2024,13 @@ class Capsule(ContentHost, CapsuleMixins):
         return [svc for svc, running in service_status.items() if not running]
 
     def restart_services(self):
-        """Restart services, returning True if passed and stdout if not"""
+        """Restart services, returning True if passed and stdout if not. foremanctl
+        deployments have no satellite-maintain, so restart the quadlet service
+        units directly with systemctl."""
+        if self.install_method == InstallMethod.FOREMANCTL:
+            units = ' '.join(f"'{svc}'" for svc in self.get_service_names())
+            result = self.execute(f'systemctl restart {units}')
+            return True if result.status == 0 else result.stdout
         result = self.execute('satellite-maintain service restart')
         return True if result.status == 0 else result.stdout
 
@@ -3348,7 +3367,11 @@ class Satellite(Capsule, SatelliteMixins):
     @property
     def iop_enabled(self):
         """Return boolean indicating whether IoP (local Red Hat Lightspeed) is enabled."""
-        return self.api.RHCloud().advisor_engine_config()['use_iop_mode']
+
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return 'iop' in self.list_foremanctl_features(enabled=True)
+        result = self.execute('systemctl is-active iop-core-engine')
+        return result.status == 0
 
 
 class SSOHost(Host):
