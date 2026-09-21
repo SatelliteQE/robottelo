@@ -30,6 +30,8 @@ SAT_FILES = {'candlepin.dump', 'foreman.dump', 'pulp.dump'} | BASIC_FILES
 # A smart proxy carries pulp only, it has no candlepin/foreman databases of its own
 CAPS_FILES = {'container_gateway.dump', 'pulp.dump'} | BASIC_FILES
 CONTENT_FILES = {'pulp-content.tar.gz', 'pulp.snar'}
+# Capsule fixtures a test may pull in, and on which a backup can therefore be taken
+CAPSULE_FIXTURES = ('capsule_configured', 'module_capsule_configured', 'large_capsule_configured')
 
 
 @pytest.fixture(autouse=True, scope='module')
@@ -53,11 +55,24 @@ def install_postgresql_client(module_target_sat):
 
 
 @pytest.fixture(autouse=True)
-def cleanup_backup_dir(module_target_sat):
-    """Clean up backup directories before and after each test."""
-    module_target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+def cleanup_backup_dir(request, module_target_sat):
+    """Clean up backup directories before and after each test.
+
+    A backup can be taken on the Satellite or on a Capsule, so clean up every capsule
+    the test pulls in as well, not just the Satellite.
+    """
+    hosts = [module_target_sat]
+    hosts.extend(
+        request.getfixturevalue(name) for name in CAPSULE_FIXTURES if name in request.fixturenames
+    )
+
+    for host in hosts:
+        host.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+
     yield
-    module_target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+
+    for host in hosts:
+        host.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
 
 
 def _assert_backup_files(server, backup_dir, skip_pulp=False):
