@@ -378,9 +378,6 @@ def configure_realm(module_target_sat, default_ipa_host):
         f'--foreman-proxy-realm-principal realm-proxy@{realm} '
         f'--foreman-proxy-dhcp-nameservers {socket.gethostbyname(default_ipa_host.hostname)}'
     )
-    module_target_sat.execute('cp /etc/ipa/ca.crt /etc/pki/ca-trust/source/anchors/ipa.crt')
-    module_target_sat.execute('update-ca-trust enable ; update-ca-trust')
-    module_target_sat.execute('service foreman-proxy restart')
 
 
 @pytest.fixture(scope="module")
