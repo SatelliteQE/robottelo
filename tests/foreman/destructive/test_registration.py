@@ -15,7 +15,11 @@ import pytest
 
 from robottelo.config import settings
 
-pytestmark = pytest.mark.destructive
+pytestmark = [
+    pytest.mark.destructive,
+    # Client ↔ Satellite/Capsule MQTT; curated IPv6 overlay.
+    pytest.mark.network_sensitive,
+]
 
 
 @pytest.mark.no_containers

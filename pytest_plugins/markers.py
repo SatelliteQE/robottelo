@@ -25,6 +25,7 @@ def pytest_configure(config):
         "manifester: Tests that require manifester",
         "ldap: Tests related to ldap authentication",
         "no_compose : Skip the marked sanity test for nightly compose",
+        "network_sensitive: Address-family / multi-host protocol path (IPv6 overlay)",
         "foremanctl: Tests that require foremanctl; deselected when server.install_method is installer",
         "pqc: Post-Quantum Cryptography tests",
     ]
