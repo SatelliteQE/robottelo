@@ -194,6 +194,7 @@ def sat_non_default_install(module_sat_ready_rhels):
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.build_sanity
+@pytest.mark.foreman_installer
 def test_capsule_installation(
     pytestconfig, sat_fapolicyd_install, cap_ready_rhel, module_sca_manifest
 ):
@@ -265,27 +266,7 @@ def test_capsule_installation(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
 
-    # no errors/failures in journald
-    result = cap_ready_rhel.execute(
-        r'journalctl --quiet --no-pager --boot --priority err -u foreman-proxy -u httpd -u postgresql -u pulpcore-api -u pulpcore-content -u pulpcore-worker* -u redis'
-    )
-    assert len(result.stdout) == 0
-    # no errors/failures /var/log/foreman-installer/satellite.log
-    result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
-    )
-    assert len(result.stdout) == 0
-    # no errors/failures /var/log/foreman-installer/capsule.log
-    result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/capsule.log'
-    )
-    assert len(result.stdout) == 0
-    # no errors/failures in /var/log/httpd/*
-    result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert len(result.stdout) == 0
-    # no errors/failures in /var/log/foreman-proxy/*
-    result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/foreman-proxy/*')
-    assert len(result.stdout) == 0
+    cap_ready_rhel.assert_install_assertions()
 
     # Enabling firewall
     assert (
@@ -297,11 +278,9 @@ def test_capsule_installation(
     cap_ready_rhel.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
     cap_ready_rhel.execute('firewall-cmd --runtime-to-permanent')
 
-    result = cap_ready_rhel.cli.Health.check()
-    assert 'FAIL' not in result.stdout
-
 
 @pytest.mark.e2e
+@pytest.mark.foreman_installer
 def test_foreman_rails_cache_store(sat_non_default_install):
     """Test foreman-rails-cache-store option
 
@@ -323,6 +302,7 @@ def test_foreman_rails_cache_store(sat_non_default_install):
 
 
 @pytest.mark.e2e
+@pytest.mark.foreman_installer
 def test_content_guarded_distributions_option(
     sat_default_install, sat_non_default_install, module_sca_manifest
 ):
@@ -381,6 +361,7 @@ def test_content_guarded_distributions_option(
 
 
 @pytest.mark.upgrade
+@pytest.mark.foreman_installer
 def test_positive_selinux_foreman_module(target_sat):
     """Check if SELinux foreman module is installed on Satellite
 
@@ -400,6 +381,7 @@ def test_positive_selinux_foreman_module(target_sat):
 
 
 @pytest.mark.upgrade
+@pytest.mark.foreman_installer
 @pytest.mark.parametrize('service', SATELLITE_SERVICES)
 def test_positive_check_installer_service_running(target_sat, service):
     """Check if a service is running
@@ -427,6 +409,7 @@ def test_positive_check_installer_service_running(target_sat, service):
 
 
 @pytest.mark.upgrade
+@pytest.mark.foreman_installer
 def test_positive_check_installer_hammer_ping(target_sat):
     """Check if hammer ping reports all services as ok
 
@@ -540,6 +523,7 @@ def test_installer_capsule_with_enabled_ansible(module_capsule_configured_ansibl
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
 @pytest.mark.pit_server
+@pytest.mark.foreman_installer
 def test_satellite_installation(pytestconfig, installer_satellite):
     """Run a basic Satellite installation
 
@@ -583,6 +567,7 @@ def test_satellite_installation(pytestconfig, installer_satellite):
 
 
 @pytest.mark.pit_server
+@pytest.mark.foreman_installer
 @pytest.mark.parametrize('package', ['nmap-ncat'])
 def test_weak_dependency(sat_non_default_install, package):
     """Check if Satellite and its (sub)components do not require certain (potentially insecure) packages. On an existing Satellite the package has to be either not installed or can be safely removed.

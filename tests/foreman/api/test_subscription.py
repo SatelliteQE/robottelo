@@ -445,14 +445,17 @@ def test_positive_async_endpoint_for_manifest_refresh(target_sat, function_sca_m
     """
     sub = target_sat.api.Subscription(organization=function_sca_manifest_org)
     # set log level to 'debug' and restart services
-    result = target_sat.execute("satellite-installer --foreman-logging-level debug")
-    assert result.status == 0, "satellite-installer failed to enable Foreman debug logging"
+    result = target_sat.set_foreman_logging_level(level='debug')
+    assert result.status == 0, "Failed to enable Foreman debug logging"
+    # Wait for services to be healthy after deploy
+    health = target_sat.execute('foremanctl health', timeout='5m')
+    assert health.status == 0, f"Services not healthy after log level change: {health.stderr}"
     # refresh manifest and assert new log message to confirm async endpoint
     sub.refresh_manifest(data={'organization_id': function_sca_manifest_org.id})
-    results = target_sat.execute(
-        'grep "Sending GET request to upstream Candlepin" /var/log/foreman/production.log'
-    )
-    assert 'Sending GET request to upstream Candlepin' in str(results)
+    # Manifest refresh runs in Dynflow worker, so check dynflow logs
+    results = target_sat.grep_dynflow_log('Sending GET request to upstream Candlepin')
+    assert results.status == 0, f"Debug log message not found in Dynflow logs: {results.stderr}"
+    assert 'Sending GET request to upstream Candlepin' in str(results.stdout)
     # set log level back to default
-    result = target_sat.execute("satellite-installer --reset-foreman-logging-level")
-    assert result.status == 0, "satellite-installer failed to reset Foreman logging level"
+    result = target_sat.set_foreman_logging_level(reset=True)
+    assert result.status == 0, "Failed to reset Foreman logging level"

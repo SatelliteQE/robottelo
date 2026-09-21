@@ -45,7 +45,7 @@ def test_positive_check_eol_date(target_sat):
             if p['name'] == 'Maintenance support'
         ]
         if api_date[0][0] == 'string':
-            assert eol_datetime.strftime("%B, %Y") in api_date[0][1]
+            assert any(eol_datetime.strftime(fmt) in api_date[0][1] for fmt in ("%b, %Y", "%B, %Y"))
         elif api_date[0][0] == 'date':
             assert eol_datetime.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + 'Z' == api_date[0][1]
         else:

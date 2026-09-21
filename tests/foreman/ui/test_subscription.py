@@ -380,7 +380,7 @@ def test_positive_populate_future_date_subcription(
         # Get subscription Start Date and compare with current date
         subscriptions = session.subscription.read_subscriptions()
         if not any(
-            datetime.strptime(sub['Start date'], '%b %d, %Y').date() > current_date
+            datetime.strptime(sub['Start date'], '%B %d, %Y at %I:%M %p').date() > current_date
             for sub in subscriptions
         ):
             raise AssertionError('Subscription start date is not in the future')

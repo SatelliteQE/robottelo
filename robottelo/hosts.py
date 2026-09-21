@@ -77,7 +77,6 @@ from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.issue_handlers import is_open
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -1593,25 +1592,48 @@ class ContentHost(Host, ContentHostMixins):
             )
 
     def setup_capsule_repos(self, release=None):
-        """Setup Capsule repositories on host
-        requires registered host if ga source has to be enabled
+        """Setup repositories on host
+
+        Uses the Satellite repository for foremanctl deployment and the Capsule
+        repositories for installer-based deployment.
+        Requires registered host if ga source has to be enabled
 
         Args:
             release: Override capsule version release (Default: settings.capsule.version.release)
         """
-        if settings.capsule.version.source == "ga":
+        # foremanctl Capsules pull satellitectl from the Satellite repo, not the Capsule repo.
+        # satellitectl tracks the Satellite, so key its repo on the server version.
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            product = 'satellite'
+            cdn_repos = [self.SATELLITE_CDN_REPOS['satellite']]
+            version = settings.server.version
+        else:
+            product = 'capsule'
+            cdn_repos = list(self.CAPSULE_CDN_REPOS.values())
+            version = settings.capsule.version
+
+        if version.source == 'ga':
             # enable cdn repos
-            for repo in self.CAPSULE_CDN_REPOS.values():
+            for repo in cdn_repos:
                 result = self.enable_repo(repo, force=True)
                 if result.status:
                     raise ContentHostError(
-                        f'Enabling Capsule repos on host failed\n{result.stdout}'
+                        f'Enabling {product} repos on host failed\n{result.stdout}'
                     )
+        elif version.source == 'nightly':
+            # nightly repos are served from direct URLs, not resolvable via ohsnap
+            if product == 'satellite':
+                self.create_custom_repos(satellite_repo=settings.repos.satellite_repo)
+            else:
+                self.create_custom_repos(
+                    capsule_repo=settings.repos.capsule_repo,
+                    satmaintenance_repo=settings.repos.satmaintenance_repo,
+                )
         else:
             self.download_repofile(
-                product='capsule',
-                release=release or settings.capsule.version.release,
-                snap='' if release else settings.capsule.version.snap,
+                product=product,
+                release=release or version.release,
+                snap='' if release else version.snap,
             )
 
     def ensure_podman_installed(self, enable_ipv6_proxy=False):
@@ -1706,7 +1728,13 @@ class Capsule(ContentHost, CapsuleMixins):
 
     @property
     def nailgun_capsule(self):
-        return self.satellite.api.Capsule().search(query={'search': f'name={self.hostname}'})[0]
+        # Containerized installs expose a dedicated content (pulp) capsule named
+        # '<hostname>-pulp', while traditional rpm installs use just '<hostname>'.
+        # Prefer the content capsule when present, otherwise fall back to the plain one.
+        for name in (f'{self.hostname}-pulp', self.hostname):
+            if results := self.satellite.api.Capsule().search(query={'search': f'name={name}'}):
+                return results[0]
+        raise ContentHostError(f'No Capsule found matching hostname {self.hostname}')
 
     @property
     def nailgun_smart_proxy(self):
@@ -1878,16 +1906,25 @@ class Capsule(ContentHost, CapsuleMixins):
         return self.detect_install_method()
 
     def get_service_names(self):
-        """Get the appropriate service names based on installation method.
+        """Get the appropriate service names based on installation method and host type.
 
         :return: List of service names for current installation method
         :rtype: list
         """
         from robottelo.constants import InstallationServices
 
+        is_satellite = type(self).__name__ == 'Satellite'
         if self.install_method == InstallMethod.FOREMANCTL:
-            return InstallationServices.FOREMANCTL_SERVICES
-        return InstallationServices.INSTALLER_SERVICES
+            return (
+                InstallationServices.FOREMANCTL_SERVICES
+                if is_satellite
+                else InstallationServices.FOREMANCTL_CAPSULE_SERVICES
+            )
+        return (
+            InstallationServices.INSTALLER_SERVICES
+            if is_satellite
+            else InstallationServices.INSTALLER_CAPSULE_SERVICES
+        )
 
     def setup(self):
         logger.debug('START: setting up Capsule host %s', self)
@@ -2023,11 +2060,8 @@ class Capsule(ContentHost, CapsuleMixins):
             if settings.server.install_method == InstallMethod.FOREMANCTL
             else self.product_rpm_name
         )
-        # TODO: Remove this condition once foremanctl is available in capsule repos
-        if settings.server.install_method == InstallMethod.INSTALLER:
-            self.setup_capsule_repos(release=release)
-        else:
-            self.setup_satellite_repos()
+        self.setup_capsule_repos(release=release)
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
             # Enable Packit repos
             pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
             if pull_requests:
@@ -2084,6 +2118,8 @@ class Capsule(ContentHost, CapsuleMixins):
                     f'A core service is not running at capsule host\n{result.stdout}'
                 )
         if settings.server.install_method == InstallMethod.FOREMANCTL:
+            # Capsule needs registry auth to pull deploy-proxy images
+            self.setup_foremanctl_container_registry()
             result = self.execute(installer)
             if result.status:
                 # before exit download the logs file for further investigation
@@ -2190,42 +2226,13 @@ class Capsule(ContentHost, CapsuleMixins):
         self.enable_satellite_or_capsule_module_for_rhel8()
         assert self.execute(f'dnf -y install {self.product_rpm_name}').status == 0
 
-    def install_satellite_foremanctl(
-        self, enable_fapolicyd=False, enable_fips=False, parameters=None
-    ):
-        """Install Satellite using foremanctl deploy method.
+    def setup_foremanctl_container_registry(self):
+        """Install podman and authenticate to the foremanctl container registry.
 
-        Handles full installation path including:
-        - Container runtime (podman) installation
-        - Container registry authentication
-        - foremanctl package installation
-        - Satellite deployment via foremanctl
-
-        :param enable_fapolicyd: Enable fapolicyd
-        :param enable_fips: Enable FIPS mode
-        :param parameters: Additional parameters for foremanctl deploy
-        :return: Result of final foremanctl deploy command
+        Required on any host that runs a foremanctl deploy/deploy-proxy so the
+        container images can be pulled. When using the stage registry, also
+        configures Podman to pull the stage images from the production registry.
         """
-        # Add IPv6 proxy for IPv6 communication
-        self.enable_ipv6_dnf_and_rhsm_proxy()
-        self.enable_ipv6_system_proxy()
-        # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
-        self.ensure_podman_installed(enable_ipv6_proxy=True)
-        # Enable RHEL and Satellite repos
-        self.register_to_cdn()
-        self.setup_rhel_repos()
-        self.setup_satellite_repos()
-
-        # Enable Packit repos
-        pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
-        if pull_requests:
-            Broker(
-                job_template='upstream-pr-install',
-                target_vm=self.name,
-                pull_requests=pull_requests,
-                deploy_network_type=settings.server.network_type,
-            ).execute()
-
         # Install podman (required for foremanctl container operations)
         assert self.execute('dnf install -y podman').status == 0, 'Failed to install podman'
 
@@ -2246,11 +2253,53 @@ class Capsule(ContentHost, CapsuleMixins):
             assert auth_result.status == 0, (
                 f'Container registry authentication failed:\n{auth_result.stderr}'
             )
+            # When authenticating to the stage registry, configure Podman to pull the
+            # stage images from the production registry so foremanctl deploy/pull uses stage images.
+            if registry_url == 'registry.stage.redhat.io':
+                self.configure_stage_registry_override()
         else:
             logger.warning(
                 'Container registry credentials not configured. '
                 'Set CONTAINER_REGISTRY.USERNAME and CONTAINER_REGISTRY.PASSWORD in conf/server.yaml'
             )
+
+    def install_satellite_foremanctl(
+        self, enable_fapolicyd=False, enable_fips=False, parameters=None
+    ):
+        """Install Satellite using foremanctl deploy method.
+
+        Handles full installation path including:
+        - Container runtime (podman) installation
+        - Container registry authentication
+        - foremanctl package installation
+        - Satellite deployment via foremanctl
+
+        :param enable_fapolicyd: Enable fapolicyd
+        :param enable_fips: Enable FIPS mode
+        :param parameters: Additional parameters for foremanctl deploy
+        :return: Result of final foremanctl deploy command
+        """
+        # Add IPv6 proxy for IPv6 communication
+        self.enable_ipv6_dnf_and_rhsm_proxy()
+        self.enable_ipv6_system_proxy()
+        # Enable RHEL and Satellite repos
+        self.register_to_cdn()
+        self.setup_rhel_repos()
+        self.setup_satellite_repos()
+        # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
+        self.ensure_podman_installed(enable_ipv6_proxy=True)
+        # Authenticate to the container registry to pull deploy images
+        self.setup_foremanctl_container_registry()
+
+        # Enable Packit repos
+        pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
+        if pull_requests:
+            Broker(
+                job_template='upstream-pr-install',
+                target_vm=self.name,
+                pull_requests=pull_requests,
+                deploy_network_type=settings.server.network_type,
+            ).execute()
 
         # Install satellitectl
         assert self.execute('dnf install -y satellitectl').status == 0, (
@@ -2283,16 +2332,6 @@ class Capsule(ContentHost, CapsuleMixins):
             == 0
         )
 
-        if is_open('SAT-48790'):
-            # This belongs into the downstream packaging, which isn't ready yet
-            overrides_dir = '/usr/share/foremanctl/src/playbooks/_vendor_overrides/'
-            self.execute(f'mkdir -p {overrides_dir}/deploy/')
-            self.put(
-                'variables:\n  flavor:\n    choices:\n      - satellite',
-                f'{overrides_dir}/deploy/metadata.obsah.yaml',
-                temp_file=True,
-            )
-
         # Install Satellite and return result
 
         default_parameters = [
@@ -2320,12 +2359,16 @@ class Capsule(ContentHost, CapsuleMixins):
 
         return deploy_features
 
-    def list_foremanctl_features(self, enabled=False):
-        """Get the list of features as a set of feature names"""
-        if enabled:
-            result = self.execute('foremanctl features --list-enabled')
-        else:
-            result = self.execute('foremanctl features')
+    def list_foremanctl_features(self, enabled=False, internal=False):
+        """Get the list of features as a set of feature names
+
+        :param enabled: If True, list only enabled features
+        :param internal: If True, include internal features in the list
+        """
+        cmd = 'foremanctl features --list-enabled' if enabled else 'foremanctl features'
+        if internal:
+            cmd = f'FOREMANCTL_FEATURES_LIST_INTERNAL=true {cmd}'
+        result = self.execute(cmd)
         assert result.status == 0, f'foremanctl features command failed: {result.stderr}'
         return {
             p[0]
@@ -2464,6 +2507,51 @@ class Satellite(Capsule, SatelliteMixins):
         self._cli = type('cli', (), {'_configured': False})
         self._apidoc = None
         self.record_property = None
+
+    def set_foreman_logging_level(self, level='debug', reset=False):
+        """Set (or reset) the Foreman logging level in an install-method-aware way.
+
+        - satellite-installer: uses ``--foreman-logging-level`` /
+          ``--reset-foreman-logging-level``.
+        - foremanctl: re-runs ``foremanctl deploy`` with ``--foreman-log-level``.
+          foremanctl persists parameters between runs (loaded from
+          ``/var/lib/foremanctl/parameters.yaml``), so re-deploying only changes the
+          log level. The default Foreman log level is ``info``, which is used to reset.
+
+        :param str level: Log level to set (e.g. 'debug'). Ignored when ``reset`` is True.
+        :param bool reset: Reset the Foreman logging level back to the default.
+        :return: The command result.
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            level = 'info' if reset else level
+            return self.execute(f'foremanctl deploy --foreman-log-level {level}', timeout=0)
+        if reset:
+            return self.execute('satellite-installer --reset-foreman-logging-level', timeout=0)
+        return self.execute(f'satellite-installer --foreman-logging-level {level}', timeout=0)
+
+    def grep_foreman_log(self, pattern):
+        """Search Foreman's production log for a pattern, install-method-aware.
+
+        - satellite-installer: greps ``/var/log/foreman/production.log``.
+        - foremanctl: Foreman runs as a quadlet container (systemd unit ``foreman``)
+          that logs to journald, so we grep the journal for that unit instead.
+
+        :param str pattern: The pattern to grep for.
+        :return: The command result.
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return self.execute(f'journalctl --no-pager --unit foreman | grep "{pattern}"')
+        return self.execute(f'grep "{pattern}" /var/log/foreman/production.log')
+
+    def grep_dynflow_log(self, pattern):
+        """Search Dynflow worker logs for a pattern.
+
+        Dynflow runs as a separate container (``dynflow-sidekiq-worker``) in containerized deployments.
+
+        :param str pattern: The pattern to grep for.
+        :return: The command result.
+        """
+        return self.execute(f'podman logs dynflow-sidekiq-worker 2>&1 | grep "{pattern}"')
 
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
@@ -2785,15 +2873,7 @@ class Satellite(Capsule, SatelliteMixins):
                 raise SatelliteHostError(
                     f'satellitectl auth-bundle failed\n{result.stdout}\n{result.stderr}'
                 )
-            if is_open('SAT-49003'):
-                # This belongs into the downstream packaging, which isn't ready yet
-                overrides_dir = '/usr/share/foremanctl/src/playbooks/_vendor_overrides/'
-                capsule.execute(f'mkdir -p {overrides_dir}/deploy-proxy/')
-                capsule.put(
-                    'variables:\n  flavor:\n    choices:\n      - capsule',
-                    f'{overrides_dir}/deploy-proxy/metadata.obsah.yaml',
-                    temp_file=True,
-                )
+
             install_cmd = (
                 f'satellitectl deploy-proxy --flavor capsule'
                 f' --auth-bundle {cert_file_path}'

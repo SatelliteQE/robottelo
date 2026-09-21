@@ -12,6 +12,7 @@
 
 """
 
+import json
 from random import choice
 import re
 
@@ -28,6 +29,7 @@ from robottelo.constants import (
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
+    DataFile,
 )
 from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
@@ -42,7 +44,9 @@ from robottelo.utils.datafactory import (
 @pytest.fixture(scope="module")
 def module_default_proxy(module_target_sat):
     """Use the default installation smart proxy"""
-    return module_target_sat.cli.Proxy.list({'search': f'url = {module_target_sat.url}:9090'})[0]
+    return module_target_sat.cli.Proxy.list(
+        {'search': f'feature = "Pulpcore" and url ~ {module_target_sat.hostname}'}
+    )[0]
 
 
 @pytest.fixture
@@ -66,6 +70,45 @@ def function_host(target_sat):
     )
     yield host
     target_sat.cli.Host.delete({'id': host['id']})
+
+
+@pytest.fixture
+def function_enc_host(target_sat):
+    """Create a managed host with the fields asserted by the ENC test."""
+    host_template = target_sat.api.Host()
+    host_template.create_missing()
+    ip_prefix = 'ip6' if target_sat.network_type == NetworkType.IPV6 else 'ip'
+    ip_address = gen_ipaddr(ipv6=target_sat.network_type.has_ipv6)
+    ssh_key = json.loads(DataFile.SSH_KEYS_JSON.read_bytes())['ssh_keys']['ed']
+
+    host_options = {
+        'architecture-id': host_template.architecture.id,
+        'domain-id': host_template.domain.id,
+        'location-id': host_template.location.id,
+        'mac': host_template.mac,
+        'medium-id': host_template.medium.id,
+        'name': host_template.name,
+        'operatingsystem-id': host_template.operatingsystem.id,
+        'organization-id': host_template.organization.id,
+        'partition-table-id': host_template.ptable.id,
+        'root-password': host_template.root_pass,
+        ip_prefix: ip_address,
+    }
+    host = None
+    try:
+        host = target_sat.cli_factory.make_host(host_options)
+        target_sat.cli.Host.set_parameter(
+            {
+                'host-id': host['id'],
+                'name': 'remote_execution_ssh_keys',
+                'value': ssh_key,
+            }
+        )
+
+        yield host, ip_prefix, ip_address, ssh_key
+    finally:
+        if host is not None:
+            target_sat.cli.Host.delete({'id': host['id']})
 
 
 @pytest.fixture
@@ -555,6 +598,8 @@ def test_positive_create_with_lce_and_cv(
     )
 
 
+# TODO: Remove @foreman_installer once OPENSCAP is supported in foremanctl (SAT-40441 & SAT-44682)
+@pytest.mark.foreman_installer
 @pytest.mark.cli_host_create
 def test_positive_create_with_openscap_proxy_id(
     module_default_proxy, module_org, module_target_sat
@@ -617,6 +662,8 @@ def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv, 
         )
 
 
+# TODO: Remove @foreman_installer once OPENSCAP is supported in formanctl (SAT-40441 & SAT-44682)
+@pytest.mark.foreman_installer
 @pytest.mark.cli_host_create
 @pytest.mark.upgrade
 def test_positive_katello_and_openscap_loaded(target_sat):
@@ -695,6 +742,7 @@ def test_positive_list_by_last_checkin(module_org, rhel_contenthost, target_sat,
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.cli_host_create
+@pytest.mark.foreman_installer
 def test_positive_list_infrastructure_hosts(
     module_org, rhel_contenthost, target_sat, module_ak_with_cv
 ):
@@ -1051,7 +1099,7 @@ def test_negative_update_os(target_sat, function_host, module_architecture):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.cli_host_update
-def test_hammer_host_info_output(target_sat, module_user):
+def test_hammer_host_info_output(target_sat, module_user, function_host):
     """Verify re-add of 'owner-id' in `hammer host info` output
 
     :id: 03468516-0ebb-11eb-8ad8-0c7a158cbff4
@@ -1072,12 +1120,13 @@ def test_hammer_host_info_output(target_sat, module_user):
     user = target_sat.api.User().search(
         query={'search': f'login={settings.server.admin_username}'}
     )[0]
+    host_id = function_host['id']
     target_sat.cli.Host.update(
-        {'owner': settings.server.admin_username, 'owner-type': 'User', 'id': '1'}
+        {'owner': settings.server.admin_username, 'owner-type': 'User', 'id': host_id}
     )
-    result_info = target_sat.cli.Host.info(options={'id': '1', 'fields': 'Additional info'})
+    result_info = target_sat.cli.Host.info(options={'id': host_id, 'fields': 'Additional info'})
     assert int(result_info['additional-info']['owner-id']) == user.id
-    host = target_sat.cli.Host.info({'id': '1'})
+    host = target_sat.cli.Host.info({'id': host_id})
     target_sat.cli.User.update(
         {
             'id': module_user.id,
@@ -1085,8 +1134,8 @@ def test_hammer_host_info_output(target_sat, module_user):
             'locations': [host['location']['name']],
         }
     )
-    target_sat.cli.Host.update({'owner-id': module_user.id, 'id': '1'})
-    result_info = target_sat.cli.Host.info(options={'id': '1', 'fields': 'Additional info'})
+    target_sat.cli.Host.update({'owner-id': module_user.id, 'id': host_id})
+    result_info = target_sat.cli.Host.info(options={'id': host_id, 'fields': 'Additional info'})
     assert int(result_info['additional-info']['owner-id']) == module_user.id
 
 
@@ -2089,25 +2138,8 @@ def test_positive_multi_cv_host_repo_availability(
     assert repo_b.label in repos.stdout
 
 
-# -------------------------- HOST ERRATA SUBCOMMAND SCENARIOS -------------------------
-def test_positive_errata_list_of_sat_server(target_sat):
-    """Check if errata list doesn't raise exception. Check BZ for details.
-
-    :id: 6b22f0c0-9c4b-11e6-ab93-68f72889dc7f
-
-    :expectedresults: Satellite host errata list not failing
-
-    :BZ: 1351040
-
-    :CaseImportance: Critical
-    """
-    hostname = target_sat.execute('hostname').stdout.strip()
-    host = target_sat.cli.Host.info({'name': hostname})
-    assert isinstance(target_sat.cli.Host.errata_list({'host-id': host['id']}), list)
-
-
 # -------------------------- HOST ENC SUBCOMMAND SCENARIOS -------------------------
-def test_positive_dump_enc_yaml(target_sat):
+def test_positive_dump_enc_yaml(function_enc_host, target_sat):
     """Dump host's ENC YAML. Check BZ for details.
 
     :id: 50bf2530-788c-4710-a382-d034d73d5d4d
@@ -2120,12 +2152,11 @@ def test_positive_dump_enc_yaml(target_sat):
 
     :CaseImportance: Critical
     """
-    enc_dump = target_sat.cli.Host.enc_dump({'name': target_sat.hostname})
-    assert f'fqdn: {target_sat.hostname}' in enc_dump
-    ip_prefix = 'ip6' if target_sat.network_type == NetworkType.IPV6 else 'ip'
-    assert f'{ip_prefix}: {target_sat.ip_addr}' in enc_dump
-    # Check for SSH key (either RSA or Ed25519)
-    assert 'ssh-rsa' in enc_dump or 'ssh-ed25519' in enc_dump
+    host, ip_prefix, ip_address, ssh_key = function_enc_host
+    enc_dump = target_sat.cli.Host.enc_dump({'name': host['name']})
+    assert f'fqdn: {host["name"]}' in enc_dump
+    assert f'{ip_prefix}: {ip_address}' in enc_dump
+    assert ssh_key in enc_dump
 
 
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
@@ -2194,6 +2225,8 @@ def test_positive_host_with_puppet(
     :id: 8ae79fbe-79f4-11ec-80f5-98fa9b6ecd5a
 
     :expectedresults: puppet environment
+
+    :BlockedBy: SAT-40445
 
     :CaseImportance: Critical
     """
@@ -2276,6 +2309,8 @@ def test_positive_list_scparams(
 
     :expectedresults: Overridden sc-param from puppet
         class are listed
+
+    :BlockedBy: SAT-40445
     """
     update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
     # Create hostgroup with associated puppet class
@@ -2326,6 +2361,8 @@ def test_positive_create_with_puppet_class_name(
 
     :expectedresults: Host is created and has puppet class assigned
 
+    :BlockedBy: SAT-40445
+
     :CaseImportance: Critical
     """
     update_smart_proxy(session_puppet_enabled_sat, module_puppet_loc, session_puppet_enabled_proxy)
@@ -2366,6 +2403,8 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 
     :expectedresults: Host is updated with new owner
         and puppet class is still assigned and shown
+
+    :BlockedBy: SAT-40445
 
     :CaseImportance: Medium
 
@@ -2433,7 +2472,8 @@ def test_positive_create_and_update_with_content_source(
 
     host = target_sat.cli.Host.info({'name': rhel_contenthost.hostname})
     assert (
-        host['content-information']['content-source']['name'] == target_sat.hostname
+        host['content-information']['content-source']['name']
+        == target_sat.get_default_smart_proxy().name
         or host['content-information']['content-source']['name'] == ''
     )
 

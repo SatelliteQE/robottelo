@@ -14,6 +14,7 @@
 """
 
 import http
+import random
 
 from fauxfactory import gen_integer, gen_string
 from nailgun import client
@@ -23,25 +24,22 @@ from requests.exceptions import HTTPError
 from robottelo.config import get_credentials, user_nailgun_config
 from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.utils.datafactory import (
-    filtered_datapoint,
     invalid_names_list,
-    parametrized,
     valid_data_list,
 )
 
 
-@filtered_datapoint
 def _good_max_hosts():
     """Return a list of valid ``max_hosts`` values."""
     return [gen_integer(*limits) for limits in ((1, 20), (10000, 20000))]
 
 
-@filtered_datapoint
 def _bad_max_hosts():
     """Return a list of invalid ``max_hosts`` values."""
     return [gen_integer(-100, -1), 0, gen_string('alpha')]
 
 
+@pytest.mark.migration_candidate
 def test_positive_create_unlimited_hosts(target_sat):
     """Create a plain vanilla activation key.
 
@@ -55,8 +53,8 @@ def test_positive_create_unlimited_hosts(target_sat):
     assert target_sat.api.ActivationKey().create().unlimited_hosts is True
 
 
-@pytest.mark.parametrize('max_host', **parametrized(_good_max_hosts()))
-def test_positive_create_limited_hosts(max_host, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_limited_hosts(target_sat):
     """Create an activation key with limited hosts.
 
     :id: 9bbba620-fd98-4139-a44b-af8ce330c7a4
@@ -65,16 +63,15 @@ def test_positive_create_limited_hosts(max_host, target_sat):
         number is limited
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    max_host = random.choice(_good_max_hosts())
     act_key = target_sat.api.ActivationKey(max_hosts=max_host, unlimited_hosts=False).create()
     assert act_key.max_hosts == max_host
     assert act_key.unlimited_hosts is False
 
 
-@pytest.mark.parametrize('key_name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(key_name, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_name(target_sat):
     """Create an activation key providing the initial name.
 
     :id: 749e0d28-640e-41e5-89d6-b92411ce73a3
@@ -82,27 +79,26 @@ def test_positive_create_with_name(key_name, target_sat):
     :expectedresults: Activation key is created and contains provided name.
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    key_name = random.choice(list(valid_data_list().values()))
     act_key = target_sat.api.ActivationKey(name=key_name).create()
     assert key_name == act_key.name
 
 
-@pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
-def test_positive_create_with_description(desc, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_description(target_sat):
     """Create an activation key and provide a description.
 
     :id: 64d93726-6f96-4a2e-ab29-eb5bfa2ff8ff
 
     :expectedresults: Created entity contains the provided description.
-
-    :parametrized: yes
     """
+    desc = random.choice(list(valid_data_list().values()))
     act_key = target_sat.api.ActivationKey(description=desc).create()
     assert desc == act_key.description
 
 
+@pytest.mark.migration_candidate
 def test_negative_create_with_no_host_limit(target_sat):
     """Create activation key without providing limitation for hosts number
 
@@ -116,8 +112,8 @@ def test_negative_create_with_no_host_limit(target_sat):
         target_sat.api.ActivationKey(unlimited_hosts=False).create()
 
 
-@pytest.mark.parametrize('max_host', **parametrized(_bad_max_hosts()))
-def test_negative_create_with_invalid_host_limit(max_host, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_invalid_host_limit(target_sat):
     """Create activation key with invalid limit values for hosts number.
 
     :id: c018b177-2074-4f1a-a7e0-9f38d6c9a1a6
@@ -125,15 +121,14 @@ def test_negative_create_with_invalid_host_limit(max_host, target_sat):
     :expectedresults: Activation key is not created
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
+    max_host = random.choice(_bad_max_hosts())
     with pytest.raises(HTTPError):
         target_sat.api.ActivationKey(max_hosts=max_host, unlimited_hosts=False).create()
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-def test_negative_create_with_invalid_name(name, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_invalid_name(target_sat):
     """Create activation key providing an invalid name.
 
     :id: 5f7051be-0320-4d37-9085-6904025ad909
@@ -141,23 +136,21 @@ def test_negative_create_with_invalid_name(name, target_sat):
     :expectedresults: Activation key is not created
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
+    name = random.choice(invalid_names_list())
     with pytest.raises(HTTPError):
         target_sat.api.ActivationKey(name=name).create()
 
 
-@pytest.mark.parametrize('max_host', **parametrized(_good_max_hosts()))
-def test_positive_update_limited_host(max_host, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_update_limited_host(target_sat):
     """Create activation key then update it to limited hosts.
 
     :id: 34ca8303-8135-4694-9cf7-b20f8b4b0a1e
 
     :expectedresults: Activation key is created, updated to limited host
-
-    :parametrized: yes
     """
+    max_host = random.choice(_good_max_hosts())
     # unlimited_hosts defaults to True.
     act_key = target_sat.api.ActivationKey().create()
     want = {'max_hosts': max_host, 'unlimited_hosts': False}
@@ -168,8 +161,8 @@ def test_positive_update_limited_host(max_host, target_sat):
     assert want == actual
 
 
-@pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-def test_positive_update_name(new_name, target_sat, module_org):
+@pytest.mark.migration_candidate
+def test_positive_update_name(target_sat, module_org):
     """Create activation key providing the initial name, then update
     its name to another valid name.
 
@@ -177,9 +170,8 @@ def test_positive_update_name(new_name, target_sat, module_org):
 
     :expectedresults: Activation key is created, and its name can be
         updated.
-
-    :parametrized: yes
     """
+    new_name = random.choice(list(valid_data_list().values()))
     act_key = target_sat.api.ActivationKey(organization=module_org).create()
     updated = target_sat.api.ActivationKey(
         id=act_key.id, organization=module_org, name=new_name
@@ -187,8 +179,8 @@ def test_positive_update_name(new_name, target_sat, module_org):
     assert new_name == updated.name
 
 
-@pytest.mark.parametrize('max_host', **parametrized(_bad_max_hosts()))
-def test_negative_update_limit(max_host, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_update_limit(target_sat):
     """Create activation key then update its limit to invalid value.
 
     :id: 0f857d2f-81ed-4b8b-b26e-34b4f294edbc
@@ -200,9 +192,8 @@ def test_negative_update_limit(max_host, target_sat):
         3. Record is not changed
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
+    max_host = random.choice(_bad_max_hosts())
     act_key = target_sat.api.ActivationKey().create()
     want = {'max_hosts': act_key.max_hosts, 'unlimited_hosts': act_key.unlimited_hosts}
     act_key.max_hosts = max_host
@@ -214,8 +205,8 @@ def test_negative_update_limit(max_host, target_sat):
     assert want == actual
 
 
-@pytest.mark.parametrize('new_name', **parametrized(invalid_names_list()))
-def test_negative_update_name(new_name, target_sat, module_org):
+@pytest.mark.migration_candidate
+def test_negative_update_name(target_sat, module_org):
     """Create activation key then update its name to an invalid name.
 
     :id: da85a32c-942b-4ab8-a133-36b028208c4d
@@ -224,9 +215,8 @@ def test_negative_update_name(new_name, target_sat, module_org):
         updated.
 
     :CaseImportance: Low
-
-    :parametrized: yes
     """
+    new_name = random.choice(invalid_names_list())
     act_key = target_sat.api.ActivationKey(organization=module_org).create()
     with pytest.raises(HTTPError):
         target_sat.api.ActivationKey(id=act_key.id, organization=module_org, name=new_name).update(
@@ -237,6 +227,7 @@ def test_negative_update_name(new_name, target_sat, module_org):
     assert new_key.name == act_key.name
 
 
+@pytest.mark.migration_candidate
 def test_negative_update_max_hosts(target_sat, module_org):
     """Create an activation key with ``max_hosts == 1``, then update that
     field with a string value.
@@ -284,6 +275,7 @@ def test_positive_get_releases_content(target_sat):
     assert isinstance(response['results'], list)
 
 
+@pytest.mark.migration_candidate
 def test_positive_add_host_collections(module_org, module_target_sat):
     """Associate an activation key with several host collections.
 
@@ -351,8 +343,7 @@ def test_positive_remove_host_collection(module_org, module_target_sat):
 
 
 @pytest.mark.upgrade
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_delete(name, target_sat):
+def test_positive_delete(target_sat):
     """Create activation key and then delete it.
 
     :id: aa28d8fb-e07d-45fa-b43a-fc90c706d633
@@ -360,9 +351,8 @@ def test_positive_delete(name, target_sat):
     :expectedresults: Activation key is successfully deleted.
 
     :CaseImportance: Critical
-
-    :parametrized: yes
     """
+    name = random.choice(list(valid_data_list().values()))
     act_key = target_sat.api.ActivationKey(name=name).create()
     act_key.delete()
     with pytest.raises(HTTPError):

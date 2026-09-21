@@ -30,7 +30,7 @@ LOCALES = (
     'zh_CN',
     'zh_TW',
 )
-
+SUPPORTED_LANGUAGES = ('fr', 'ja', 'ko', 'zh_CN')
 
 DISTRO_DEFAULT = 'rhel7'
 DISTROS_SUPPORTED = ['rhel7', 'rhel8', 'rhel9', 'rhel10']
@@ -878,7 +878,6 @@ CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
-CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
 CONTAINER_CERTS_PATH = "/etc/containers/certs.d/"
 CERT_DATA = {
     'capsule_hostname': 'capsule.example.com',
@@ -2588,6 +2587,16 @@ class InstallationServices:
         'tomcat',
     ]
 
+    INSTALLER_CAPSULE_SERVICES = [
+        'foreman-proxy',
+        'httpd',
+        'postgresql',
+        'pulpcore-api',
+        'pulpcore-content',
+        'pulpcore-worker@*',
+        'redis',
+    ]
+
     # foremanctl quadlet container services
     FOREMANCTL_SERVICES = [
         'candlepin',
@@ -2596,6 +2605,16 @@ class InstallationServices:
         'dynflow-sidekiq@worker-hosts-queue',
         'foreman-proxy',
         'foreman',
+        'httpd',
+        'postgresql',
+        'pulp-api',
+        'pulp-content',
+        'pulp-worker@*',
+        'valkey',
+    ]
+
+    FOREMANCTL_CAPSULE_SERVICES = [
+        'foreman-proxy',
         'httpd',
         'postgresql',
         'pulp-api',

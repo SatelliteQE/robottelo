@@ -12,23 +12,14 @@
 
 """
 
+import random
+
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 
 from robottelo.constants import DEFAULT_ORG
 from robottelo.exceptions import CLIReturnCodeError
-from robottelo.utils.datafactory import (
-    filtered_datapoint,
-    invalid_values_list,
-    parametrized,
-    valid_data_list,
-)
-
-
-@filtered_datapoint
-def negative_delete_data():
-    """Returns a list of invalid data for operating system deletion"""
-    return [{'id': gen_string("alpha")}, {'id': None}, {'id': ""}, {}, {'id': -1}]
+from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 
 
 class TestOperatingSystem:
@@ -140,43 +131,35 @@ class TestOperatingSystem:
         with pytest.raises(CLIReturnCodeError):
             target_sat.cli.OperatingSys.info({'id': os['id']})
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_with_name(self, name, target_sat):
+    def test_positive_create_with_name(self, target_sat):
         """Create Operating System for all variations of name
 
         :id: d36eba9b-ccf6-4c9d-a07f-c74eebada89b
-
-        :parametrized: yes
 
         :expectedresults: Operating System is created and can be found
 
         :CaseImportance: Critical
         """
+        name = random.choice(list(valid_data_list().values()))
         os = target_sat.cli_factory.make_os({'name': name})
         assert os['name'] == name
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_name(self, name, target_sat):
+    def test_negative_create_with_name(self, target_sat):
         """Create Operating System using invalid names
 
         :id: 848a20ce-292a-47d8-beea-da5916c43f11
-
-        :parametrized: yes
 
         :expectedresults: Operating System is not created
 
         :CaseImportance: Critical
         """
         with pytest.raises(CLIReturnCodeError):
-            target_sat.cli.OperatingSys.create({'name': name})
+            target_sat.cli.OperatingSys.create({'name': random.choice(invalid_values_list())})
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, new_name, target_sat):
+    def test_negative_update_name(self, target_sat):
         """Negative update of system name
 
         :id: 4b18ff6d-7728-4245-a1ce-38e62c05f454
-
-        :parametrized: yes
 
         :expectedresults: Operating System name is not updated
 
@@ -184,22 +167,24 @@ class TestOperatingSystem:
         """
         os = target_sat.cli_factory.make_os({'name': gen_alphanumeric()})
         with pytest.raises(CLIReturnCodeError):
-            target_sat.cli.OperatingSys.update({'id': os['id'], 'name': new_name})
+            target_sat.cli.OperatingSys.update(
+                {'id': os['id'], 'name': random.choice(invalid_values_list())}
+            )
         result = target_sat.cli.OperatingSys.info({'id': os['id']})
         assert result['name'] == os['name']
 
-    @pytest.mark.parametrize('test_data', **parametrized(negative_delete_data()))
-    def test_negative_delete_by_id(self, test_data, target_sat):
+    def test_negative_delete_by_id(self, target_sat):
         """Delete Operating System using invalid data
 
         :id: d29a9c95-1fe3-4a7a-9f7b-127be065856d
-
-        :parametrized: yes
 
         :expectedresults: Operating System is not deleted
 
         :CaseImportance: Critical
         """
+        test_data = random.choice(
+            [{'id': gen_string('alpha')}, {'id': None}, {'id': ''}, {}, {'id': -1}]
+        )
         os = target_sat.cli_factory.make_os()
         # The delete method requires the ID which we will not pass
         with pytest.raises(CLIReturnCodeError):

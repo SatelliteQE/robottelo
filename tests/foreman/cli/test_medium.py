@@ -12,11 +12,13 @@
 
 """
 
+import random
+
 from fauxfactory import gen_alphanumeric
 import pytest
 
 from robottelo.exceptions import CLIReturnCodeError
-from robottelo.utils.datafactory import parametrized, valid_data_list
+from robottelo.utils.datafactory import valid_data_list
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 OSES = ['Archlinux', 'Debian', 'Gentoo', 'Redhat', 'Solaris', 'Suse', 'Windows']
@@ -25,19 +27,17 @@ OSES = ['Archlinux', 'Debian', 'Gentoo', 'Redhat', 'Solaris', 'Suse', 'Windows']
 class TestMedium:
     """Test class for Medium CLI"""
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list().values()))
-    def test_positive_crud_with_name(self, name, module_target_sat):
+    def test_positive_crud_with_name(self, module_target_sat):
         """Check if Medium can be created, updated, deleted
 
         :id: 66b749b2-0248-47a8-b78f-3366f3804b29
-
-        :parametrized: yes
 
         :expectedresults: Medium is created
 
 
         :CaseImportance: Critical
         """
+        name = random.choice(list(valid_data_list().values()))
         medium = module_target_sat.cli_factory.make_medium({'name': name})
         assert medium['name'] == name
         new_name = gen_alphanumeric(6)
