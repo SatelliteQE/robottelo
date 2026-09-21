@@ -233,7 +233,16 @@ def test_positive_service_enable_disable(sat_maintain):
             delay=30,
             timeout=300,
         )
-        assert 'FAIL' not in sat_maintain.cli.Base.ping()
+        ping_ok, _ = wait_for(
+            lambda: 'FAIL' not in sat_maintain.cli.Base.ping(),
+            timeout=300,
+            delay=10,
+            handle_exception=True,
+        )
+        assert ping_ok, (
+            'satellite-maintain ping did not succeed after reboot (timed out after 300s). '
+            f'Last ping output: {sat_maintain.cli.Base.ping()}'
+        )
     else:
         result, _ = wait_for(
             sat_maintain.cli.Service.status,
