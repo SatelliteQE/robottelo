@@ -166,6 +166,7 @@ def discovered_host_cleanup(target_sat):
 class TestDiscoveredHost:
     """General Discovered Host tests."""
 
+    @pytest.mark.network_sensitive
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.on_premises_provisioning
@@ -219,6 +220,7 @@ class TestDiscoveredHost:
         assert_discovered_host_provisioned(shell, module_provisioning_rhel_content.ksrepo)
         request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
 
+    @pytest.mark.network_sensitive
     @pytest.mark.upgrade
     @pytest.mark.e2e
     @pytest.mark.on_premises_provisioning
