@@ -474,7 +474,7 @@ class APIFactory:
             query={'search': search_string}
         )
         if operating_systems:
-            operating_system = operating_systems[0].read()
+            operating_system = operating_systems[0]
         else:
             operating_system = self._satellite.api.OperatingSystem(
                 name=settings.supportability.content_hosts.default_os_name,
