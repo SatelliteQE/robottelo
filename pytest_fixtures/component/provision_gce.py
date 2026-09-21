@@ -6,7 +6,6 @@ from fauxfactory import gen_string
 import pytest
 from wrapanapi.systems.google import GoogleCloudSystem
 
-from pytest_fixtures.component.os import get_or_create_default_os
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
@@ -46,7 +45,7 @@ def sat_gce_domain(sat_gce, sat_gce_loc, sat_gce_org):
 @pytest.fixture(scope='module')
 def sat_gce_default_os(sat_gce):
     """Default OS on the Satellite"""
-    return get_or_create_default_os(sat_gce)
+    return sat_gce.api_factory.get_or_create_default_os()
 
 
 @pytest.fixture(scope='session')

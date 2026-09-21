@@ -3,7 +3,6 @@ from fauxfactory import gen_string
 import pytest
 from wrapanapi import AzureSystem
 
-from pytest_fixtures.component.os import get_or_create_default_os
 from robottelo.config import settings
 from robottelo.constants import (
     AZURERM_RHEL7_FT_BYOS_IMG_URN,
@@ -43,7 +42,7 @@ def sat_azure_domain(sat_azure, sat_azure_loc, sat_azure_org):
 @pytest.fixture(scope='module')
 def sat_azure_default_os(sat_azure):
     """Default OS on the Satellite"""
-    return get_or_create_default_os(sat_azure)
+    return sat_azure.api_factory.get_or_create_default_os()
 
 
 @pytest.fixture(scope='module')

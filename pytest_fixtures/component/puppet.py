@@ -1,7 +1,6 @@
 # Puppet Environment fixtures
 import pytest
 
-from pytest_fixtures.component.os import get_or_create_default_os
 from robottelo import constants
 
 
@@ -120,7 +119,7 @@ def session_puppet_enabled_proxy(session_puppet_enabled_sat):
 @pytest.fixture(scope='session')
 def session_puppet_default_os(session_puppet_enabled_sat):
     """Default OS on the puppet-enabled Satellite"""
-    return get_or_create_default_os(session_puppet_enabled_sat)
+    return session_puppet_enabled_sat.api_factory.get_or_create_default_os()
 
 
 @pytest.fixture(scope='module')
