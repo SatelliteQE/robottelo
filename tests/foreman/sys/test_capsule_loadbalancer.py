@@ -26,7 +26,11 @@ from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.no_containers]
+pytestmark = [
+    pytest.mark.no_containers,
+    # Multi-capsule LB path; curated IPv6 overlay.
+    pytest.mark.network_sensitive,
+]
 
 
 @pytest.fixture(scope='module')

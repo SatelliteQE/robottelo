@@ -509,6 +509,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert sat_files == caps_files
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_iso_library_sync(
         self, module_capsule_configured, module_sca_manifest_org, module_target_sat
@@ -761,6 +762,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == packages_count
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
@@ -781,6 +783,7 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
+    @pytest.mark.network_sensitive
     @pytest.mark.parametrize('endpoint', ['pulpcore', 'katello'])
     def test_flatpak_endpoint(self, target_sat, module_capsule_configured, endpoint):
         """Ensure the Capsules's local flatpak index endpoint is up after install or upgrade.
@@ -802,6 +805,7 @@ class TestCapsuleContentManagement:
         assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
     @pytest.mark.e2e
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos'])
     def test_positive_sync_kickstart_repo(
@@ -896,6 +900,7 @@ class TestCapsuleContentManagement:
         assert sat_pkgs == caps_pkgs
 
     @pytest.mark.e2e
+    @pytest.mark.network_sensitive
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_container_repo_end_to_end(
@@ -1029,6 +1034,7 @@ class TestCapsuleContentManagement:
             )
             assert result.status == 0
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
         self,
@@ -1115,6 +1121,7 @@ class TestCapsuleContentManagement:
         assert 'foreman' in result.stdout
         assert 'operations' in result.stdout
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_file_repo(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
@@ -1635,6 +1642,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
+    @pytest.mark.network_sensitive
     @pytest.mark.parametrize(
         'repos_collection',
         [
@@ -2431,6 +2439,7 @@ class TestPodman:
 
 @pytest.mark.pqc
 @pytest.mark.e2e
+@pytest.mark.network_sensitive
 @pytest.mark.rhel_ver_match('N-0')
 @pytest.mark.no_containers
 @pytest.mark.skip_if_not_set('capsule')
