@@ -15,6 +15,7 @@
 from box import Box
 from fauxfactory import gen_alpha
 import pytest
+from wait_for import wait_for
 
 from robottelo.constants import DEFAULT_LOC
 from robottelo.utils.shared_resource import SharedResource
@@ -60,10 +61,18 @@ def db_seed_host_mismatch_setup(
             environment=org.library.id,
             organization=org,
         ).create()
-        rhel_contenthost.api_register(
+        result = rhel_contenthost.api_register(
             target_sat, organization=org, activation_keys=[ak.name], location=default_location.id
         )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
 
+        # Registration can lag behind the host record becoming searchable; wait for it
+        # so a slow/incomplete registration does not surface as a NoneType error below.
+        wait_for(
+            lambda: rhel_contenthost.nailgun_host is not None,
+            timeout=120,
+            delay=5,
+        )
         assert rhel_contenthost.nailgun_host.organization.id == org.id
 
         # Now we need to break the taxonomy between chost, org and location
