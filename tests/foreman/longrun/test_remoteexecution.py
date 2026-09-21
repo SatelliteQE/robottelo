@@ -14,6 +14,9 @@
 
 import pytest
 
+# REX long-running jobs; curated IPv6 overlay.
+pytestmark = pytest.mark.network_sensitive
+
 
 @pytest.mark.rhel_ver_list([9])
 def test_positive_run_long_job(module_org, rex_contenthost, module_target_sat):

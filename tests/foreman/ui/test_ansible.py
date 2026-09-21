@@ -473,6 +473,7 @@ class TestAnsibleCfgMgmt:
 
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.network_sensitive
     def test_positive_ansible_config_report_changes_notice_and_failed_tasks_errors(
         self,
         rhel_contenthost,
