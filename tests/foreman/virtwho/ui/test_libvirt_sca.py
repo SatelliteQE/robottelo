@@ -21,6 +21,9 @@ from robottelo.utils.virtwho import (
     hypervisor_guest_mapping_newcontent_ui,
 )
 
+# TODO: Remove this marker when SAT-44794 is complete.
+pytestmark = pytest.mark.foreman_installer
+
 
 class TestVirtwhoConfigforLibvirt:
     @pytest.mark.parametrize('deploy_type_ui', ['script'], indirect=True)

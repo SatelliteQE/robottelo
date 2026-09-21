@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: LocalizationInternationalization
+:CaseComponent: LocalizationandInternationalization
 
 :team: Dragonfly
 

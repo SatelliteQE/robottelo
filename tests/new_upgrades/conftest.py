@@ -31,6 +31,7 @@ def pytest_configure(config):
         "content_upgrades: Content upgrade tests that use SharedResource.",
         "discovery_upgrades: Discovery upgrade tests that use SharedResource.",
         "errata_upgrades: Errata upgrade tests that use SharedResource.",
+        "evr_upgrades: EVR column migration upgrade tests that use SharedResource.",
         "hostgroup_upgrades: Host group upgrade tests that use SharedResource.",
         "iop_upgrades: IOP (Red Hat Lightspeed) upgrade tests that use SharedResource.",
         "perf_tuning_upgrades: Performance tuning upgrade tests that use SharedResource.",
@@ -460,6 +461,17 @@ def shared_gce_latest_rhel_uuid(shared_googleclient):
     )
     latest_template_name = max(tpl.name for tpl in templates)
     return next(tpl for tpl in templates if tpl.name == latest_template_name).uuid
+
+
+@pytest.fixture
+def evr_upgrade_shared_satellite():
+    """Mark tests using this fixture with pytest.mark.evr_upgrades."""
+    sat_instance = shared_checkout("evr_upgrade")
+    with SharedResource(
+        "evr_upgrade_tests", shared_checkin, sat_instance=sat_instance
+    ) as test_duration:
+        yield sat_instance
+        test_duration.ready()
 
 
 @pytest.fixture

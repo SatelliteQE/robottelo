@@ -12,6 +12,7 @@
 
 """
 
+import json
 from random import choice
 import re
 
@@ -28,6 +29,7 @@ from robottelo.constants import (
     FAKE_7_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE,
     FAKE_8_CUSTOM_PACKAGE_NAME,
+    DataFile,
 )
 from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
@@ -68,6 +70,45 @@ def function_host(target_sat):
     )
     yield host
     target_sat.cli.Host.delete({'id': host['id']})
+
+
+@pytest.fixture
+def function_enc_host(target_sat):
+    """Create a managed host with the fields asserted by the ENC test."""
+    host_template = target_sat.api.Host()
+    host_template.create_missing()
+    ip_prefix = 'ip6' if target_sat.network_type == NetworkType.IPV6 else 'ip'
+    ip_address = gen_ipaddr(ipv6=target_sat.network_type.has_ipv6)
+    ssh_key = json.loads(DataFile.SSH_KEYS_JSON.read_bytes())['ssh_keys']['ed']
+
+    host_options = {
+        'architecture-id': host_template.architecture.id,
+        'domain-id': host_template.domain.id,
+        'location-id': host_template.location.id,
+        'mac': host_template.mac,
+        'medium-id': host_template.medium.id,
+        'name': host_template.name,
+        'operatingsystem-id': host_template.operatingsystem.id,
+        'organization-id': host_template.organization.id,
+        'partition-table-id': host_template.ptable.id,
+        'root-password': host_template.root_pass,
+        ip_prefix: ip_address,
+    }
+    host = None
+    try:
+        host = target_sat.cli_factory.make_host(host_options)
+        target_sat.cli.Host.set_parameter(
+            {
+                'host-id': host['id'],
+                'name': 'remote_execution_ssh_keys',
+                'value': ssh_key,
+            }
+        )
+
+        yield host, ip_prefix, ip_address, ssh_key
+    finally:
+        if host is not None:
+            target_sat.cli.Host.delete({'id': host['id']})
 
 
 @pytest.fixture
@@ -557,6 +598,8 @@ def test_positive_create_with_lce_and_cv(
     )
 
 
+# TODO: Remove @foreman_installer once OPENSCAP is supported in foremanctl (SAT-40441 & SAT-44682)
+@pytest.mark.foreman_installer
 @pytest.mark.cli_host_create
 def test_positive_create_with_openscap_proxy_id(
     module_default_proxy, module_org, module_target_sat
@@ -619,6 +662,8 @@ def test_negative_create_with_unpublished_cv(module_lce, module_org, module_cv, 
         )
 
 
+# TODO: Remove @foreman_installer once OPENSCAP is supported in formanctl (SAT-40441 & SAT-44682)
+@pytest.mark.foreman_installer
 @pytest.mark.cli_host_create
 @pytest.mark.upgrade
 def test_positive_katello_and_openscap_loaded(target_sat):
@@ -1054,7 +1099,7 @@ def test_negative_update_os(target_sat, function_host, module_architecture):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.cli_host_update
-def test_hammer_host_info_output(target_sat, module_user):
+def test_hammer_host_info_output(target_sat, module_user, function_host):
     """Verify re-add of 'owner-id' in `hammer host info` output
 
     :id: 03468516-0ebb-11eb-8ad8-0c7a158cbff4
@@ -1075,12 +1120,13 @@ def test_hammer_host_info_output(target_sat, module_user):
     user = target_sat.api.User().search(
         query={'search': f'login={settings.server.admin_username}'}
     )[0]
+    host_id = function_host['id']
     target_sat.cli.Host.update(
-        {'owner': settings.server.admin_username, 'owner-type': 'User', 'id': '1'}
+        {'owner': settings.server.admin_username, 'owner-type': 'User', 'id': host_id}
     )
-    result_info = target_sat.cli.Host.info(options={'id': '1', 'fields': 'Additional info'})
+    result_info = target_sat.cli.Host.info(options={'id': host_id, 'fields': 'Additional info'})
     assert int(result_info['additional-info']['owner-id']) == user.id
-    host = target_sat.cli.Host.info({'id': '1'})
+    host = target_sat.cli.Host.info({'id': host_id})
     target_sat.cli.User.update(
         {
             'id': module_user.id,
@@ -1088,8 +1134,8 @@ def test_hammer_host_info_output(target_sat, module_user):
             'locations': [host['location']['name']],
         }
     )
-    target_sat.cli.Host.update({'owner-id': module_user.id, 'id': '1'})
-    result_info = target_sat.cli.Host.info(options={'id': '1', 'fields': 'Additional info'})
+    target_sat.cli.Host.update({'owner-id': module_user.id, 'id': host_id})
+    result_info = target_sat.cli.Host.info(options={'id': host_id, 'fields': 'Additional info'})
     assert int(result_info['additional-info']['owner-id']) == module_user.id
 
 
@@ -2093,7 +2139,7 @@ def test_positive_multi_cv_host_repo_availability(
 
 
 # -------------------------- HOST ENC SUBCOMMAND SCENARIOS -------------------------
-def test_positive_dump_enc_yaml(target_sat):
+def test_positive_dump_enc_yaml(function_enc_host, target_sat):
     """Dump host's ENC YAML. Check BZ for details.
 
     :id: 50bf2530-788c-4710-a382-d034d73d5d4d
@@ -2106,12 +2152,11 @@ def test_positive_dump_enc_yaml(target_sat):
 
     :CaseImportance: Critical
     """
-    enc_dump = target_sat.cli.Host.enc_dump({'name': target_sat.hostname})
-    assert f'fqdn: {target_sat.hostname}' in enc_dump
-    ip_prefix = 'ip6' if target_sat.network_type == NetworkType.IPV6 else 'ip'
-    assert f'{ip_prefix}: {target_sat.ip_addr}' in enc_dump
-    # Check for SSH key (either RSA or Ed25519)
-    assert 'ssh-rsa' in enc_dump or 'ssh-ed25519' in enc_dump
+    host, ip_prefix, ip_address, ssh_key = function_enc_host
+    enc_dump = target_sat.cli.Host.enc_dump({'name': host['name']})
+    assert f'fqdn: {host["name"]}' in enc_dump
+    assert f'{ip_prefix}: {ip_address}' in enc_dump
+    assert ssh_key in enc_dump
 
 
 # -------------------------- HOST TRACE SUBCOMMAND SCENARIOS -------------------------
@@ -2402,6 +2447,7 @@ def test_positive_update_host_owner_and_verify_puppet_class_name(
 @pytest.mark.run_in_one_thread
 @pytest.mark.rhel_ver_match('[9]')
 @pytest.mark.no_containers
+@pytest.mark.network_sensitive
 def test_positive_create_and_update_with_content_source(
     target_sat,
     module_capsule_configured,
@@ -2500,6 +2546,7 @@ def test_positive_create_host_with_lifecycle_environment_name(
 
 
 @pytest.mark.rhel_ver_match('^6')
+@pytest.mark.network_sensitive
 @pytest.mark.parametrize(
     'setting_update', ['validate_host_lce_content_source_coherence'], indirect=False
 )

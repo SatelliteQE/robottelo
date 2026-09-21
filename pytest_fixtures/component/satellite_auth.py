@@ -7,7 +7,6 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import (
     AUDIENCE_MAPPER,
-    CERT_PATH,
     GROUP_MEMBERSHIP_MAPPER,
     HAMMER_CONFIG,
     HAMMER_SESSIONS,
@@ -313,23 +312,15 @@ def enroll_configure_rhsso_external_auth(request, module_target_sat):
         ).status
         == 0
     )
-    # if target directory not given it is installing in /usr/local/lib64
     assert (
         module_target_sat.execute(
-            f'openssl s_client -connect {uri} -showcerts </dev/null 2>/dev/null| '
-            f'sed "/BEGIN CERTIFICATE/,/END CERTIFICATE/!d" > {CERT_PATH}/rh-sso.crt'
-        ).status
-        == 0
-    )
-    assert (
-        module_target_sat.execute(
-            f'echo {password} | keycloak-httpd-client-install \
-                --app-name foreman-openidc \
-                --keycloak-server-url {uri} \
-                --keycloak-admin-username "admin" \
-                --keycloak-realm "{realm}" \
-                --keycloak-admin-realm master \
-                --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
+            f'KEYCLOAK_ADMIN_PASSWORD={password} keycloak-httpd-client-install'
+            f' --app-name foreman-openidc'
+            f' --keycloak-server-url {uri}'
+            f' --keycloak-admin-username "admin"'
+            f' --keycloak-realm "{realm}"'
+            f' --keycloak-admin-realm master'
+            f' --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
         ).status
         == 0
     )
@@ -388,9 +379,6 @@ def configure_realm(module_target_sat, default_ipa_host):
         f'--foreman-proxy-realm-principal realm-proxy@{realm} '
         f'--foreman-proxy-dhcp-nameservers {socket.gethostbyname(default_ipa_host.hostname)}'
     )
-    module_target_sat.execute('cp /etc/ipa/ca.crt /etc/pki/ca-trust/source/anchors/ipa.crt')
-    module_target_sat.execute('update-ca-trust enable ; update-ca-trust')
-    module_target_sat.execute('service foreman-proxy restart')
 
 
 @pytest.fixture(scope="module")

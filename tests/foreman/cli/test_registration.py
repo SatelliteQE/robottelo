@@ -33,6 +33,7 @@ from robottelo.utils.issue_handlers import is_open
     ['validate_host_lce_content_source_coherence=false'],
     indirect=True,
 )
+@pytest.mark.network_sensitive
 def test_host_registration_end_to_end(
     module_sca_manifest_org,
     module_location,

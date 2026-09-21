@@ -782,7 +782,9 @@ DEFAULT_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux Server, Premium (Physical 
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
-DEFAULT_OS_SEARCH_QUERY = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
+DEFAULT_OS_SEARCH_QUERY = (
+    'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9" OR major="10")'
+)
 
 
 TIMESTAMP_FMT_ZONE = '%Y-%m-%d %H:%M:%S %Z'  # timezone-aware format (by code: UTC, EST, etc)
@@ -878,7 +880,6 @@ CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
-CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
 CONTAINER_CERTS_PATH = "/etc/containers/certs.d/"
 CERT_DATA = {
     'capsule_hostname': 'capsule.example.com',
@@ -2606,6 +2607,16 @@ class InstallationServices:
         'tomcat',
     ]
 
+    INSTALLER_CAPSULE_SERVICES = [
+        'foreman-proxy',
+        'httpd',
+        'postgresql',
+        'pulpcore-api',
+        'pulpcore-content',
+        'pulpcore-worker@*',
+        'redis',
+    ]
+
     # foremanctl quadlet container services
     FOREMANCTL_SERVICES = [
         'candlepin',
@@ -2614,6 +2625,16 @@ class InstallationServices:
         'dynflow-sidekiq@worker-hosts-queue',
         'foreman-proxy',
         'foreman',
+        'httpd',
+        'postgresql',
+        'pulp-api',
+        'pulp-content',
+        'pulp-worker@*',
+        'valkey',
+    ]
+
+    FOREMANCTL_CAPSULE_SERVICES = [
+        'foreman-proxy',
         'httpd',
         'postgresql',
         'pulp-api',
