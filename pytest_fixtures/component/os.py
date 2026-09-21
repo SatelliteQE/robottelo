@@ -4,6 +4,22 @@ import pytest
 from robottelo.config import settings
 
 
+def get_or_create_default_os(satellite):
+    """Return the configured default OS, creating it when it is missing."""
+    search_string = f'name="{settings.supportability.content_hosts.default_os_name}"'
+    operating_systems = satellite.api.OperatingSystem().search(query={'search': search_string})
+    if operating_systems:
+        return operating_systems[0].read()
+
+    operating_system = satellite.api.OperatingSystem(
+        name=settings.supportability.content_hosts.default_os_name,
+        family='Redhat',
+        major=str(satellite.os_version.major),
+        minor=str(satellite.os_version.minor),
+    ).create()
+    return satellite.api.OperatingSystem(id=operating_system.id).read()
+
+
 @pytest.fixture(scope='session')
 def default_os(
     default_architecture,
@@ -12,20 +28,7 @@ def default_os(
     session_target_sat,
 ):
     """Return or create the configured default OS and attach provisioning defaults."""
-    search_string = f'name="{settings.supportability.content_hosts.default_os_name}"'
-
-    operating_systems = session_target_sat.api.OperatingSystem().search(
-        query={'search': search_string}
-    )
-    if operating_systems:
-        os = operating_systems[0].read()
-    else:
-        os = session_target_sat.api.OperatingSystem(
-            name=settings.supportability.content_hosts.default_os_name,
-            family='Redhat',
-            major=str(settings.server.version.rhel_version),
-            minor='0',
-        ).create()
+    os = get_or_create_default_os(session_target_sat)
 
     os.architecture.append(default_architecture)
     os.ptable.append(default_partitiontable)
