@@ -1937,6 +1937,7 @@ class Capsule(ContentHost, CapsuleMixins):
         :rtype: list
         """
         from robottelo.constants import InstallationServices
+
         is_satellite = type(self).__name__ == 'Satellite'
         if self.install_method == InstallMethod.FOREMANCTL:
             services = list(
