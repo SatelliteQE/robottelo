@@ -25,6 +25,9 @@ from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 
+# PXE/iPXE/HTTP Boot; curated IPv6 overlay (UEFI HTTP Boot is certified path).
+pytestmark = [pytest.mark.network_sensitive]
+
 
 def _read_log(ch, pattern):
     """Read the first line from the given channel buffer and return the matching line"""

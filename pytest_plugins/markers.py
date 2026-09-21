@@ -22,6 +22,7 @@ def pytest_configure(config):
         "manifester: Tests that require manifester",
         "ldap: Tests related to ldap authentication",
         "no_compose : Skip the marked sanity test for nightly compose",
+        "network_sensitive: Address-family / multi-host protocol path (IPv6 overlay)",
     ]
     markers.extend(module_markers())
     for marker in markers:

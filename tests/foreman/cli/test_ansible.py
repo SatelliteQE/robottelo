@@ -255,6 +255,7 @@ class TestAnsibleCfgMgmt:
 
 
 @pytest.mark.upgrade
+@pytest.mark.network_sensitive
 class TestAnsibleREX:
     """Test class for remote execution via Ansible
 

@@ -30,6 +30,9 @@ from robottelo.utils import ohsnap
 from robottelo.utils.datafactory import filtered_datapoint, parametrized
 from robottelo.utils.issue_handlers import is_open
 
+# REX connect_by_ip / prefer_ipv6; curated IPv6 overlay.
+pytestmark = pytest.mark.network_sensitive
+
 
 @filtered_datapoint
 def valid_feature_names():
