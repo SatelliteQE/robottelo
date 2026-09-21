@@ -119,11 +119,7 @@ def session_puppet_enabled_proxy(session_puppet_enabled_sat):
 @pytest.fixture(scope='session')
 def session_puppet_default_os(session_puppet_enabled_sat):
     """Default OS on the puppet-enabled Satellite"""
-    return (
-        session_puppet_enabled_sat.api.OperatingSystem()
-        .search(query={'search': constants.DEFAULT_OS_SEARCH_QUERY})[0]
-        .read()
-    )
+    return session_puppet_enabled_sat.api_factory.get_or_create_default_os()
 
 
 @pytest.fixture(scope='module')
