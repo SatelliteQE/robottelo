@@ -24,7 +24,11 @@ from robottelo.hosts import get_sat_version
 
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
-pytestmark = pytest.mark.destructive
+pytestmark = [
+    pytest.mark.destructive,
+    # REX connect_by_ip / prefer_ipv6; curated IPv6 overlay.
+    pytest.mark.network_sensitive,
+]
 
 
 def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):

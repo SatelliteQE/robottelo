@@ -29,6 +29,7 @@ from tests.foreman.ui.test_rhcloud_inventory import common_assertion
 
 
 @pytest.mark.e2e
+@pytest.mark.network_sensitive
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.no_containers
