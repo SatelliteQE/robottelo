@@ -22,7 +22,11 @@ from robottelo.constants import CLIENT_PORT, DataFile
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 
-pytestmark = [pytest.mark.no_containers]
+pytestmark = [
+    pytest.mark.no_containers,
+    # Multi-capsule LB path; curated IPv6 overlay.
+    pytest.mark.network_sensitive,
+]
 
 
 @pytest.fixture(scope='module')

@@ -24,6 +24,9 @@ from robottelo.enums import NetworkType
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
 
+# PXE/iPXE/HTTP Boot; curated IPv6 overlay (UEFI HTTP Boot is certified path).
+pytestmark = [pytest.mark.network_sensitive]
+
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
