@@ -499,16 +499,7 @@ class IoPSetup:
             result = self.execute('foremanctl deploy --add-feature iop', timeout='30m')
             if result.status != 0:
                 raise SatelliteHostError(f'Failed to configure IoP: {result.stdout}')
-            # Now the .image files exist, point each at our override image, then reload
-            # systemd and restart the units so they re-pull the overridden images.
-            for service, image in settings.rh_cloud.iop.image_paths.items():
-                quadlet_name = f'iop-{service.replace("_", "-")}'
-                self.execute(
-                    f"sed -i 's|^Image=.*|Image={image}|' "
-                    f"/etc/containers/systemd/{quadlet_name}.image"
-                )
-            self.execute('systemctl daemon-reload')
-            result = self.execute("systemctl restart 'iop-*'")
+            result = self.execute("systemctl restart foreman.target")
         else:
             # Set up container image path overrides for satellite-installer
             if image_paths := self.get_iop_image_paths():
