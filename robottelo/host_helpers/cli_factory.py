@@ -467,12 +467,11 @@ class CLIFactory:
         if options.get('operatingsystem-id') and (
             options.get('architecture-id') or options.get('architecture')
         ):
-            arch_name = options.get('architecture') or self._satellite.cli.Architecture.info(
-                {'id': options['architecture-id']}
-            )['name']
-            os_info = self._satellite.cli.OperatingSys.info(
-                {'id': options['operatingsystem-id']}
+            arch_name = (
+                options.get('architecture')
+                or self._satellite.cli.Architecture.info({'id': options['architecture-id']})['name']
             )
+            os_info = self._satellite.cli.OperatingSys.info({'id': options['operatingsystem-id']})
             if arch_name not in os_info.get('architectures', []):
                 add_options = {'id': options['operatingsystem-id']}
                 if options.get('architecture-id'):
