@@ -123,19 +123,31 @@ def register_system(
     if isinstance(org, str):
         org = target_sat.api.Organization().search(query={'search': f'label={org}'})[0]
 
+    result = None
+    last_error = None
     for _attempt in range(3):
-        result = contenthost.register(
-            org=org,
-            loc=None,
-            activation_keys=activation_key,
-            target=target_sat,
-            force=True,
-        )
+        try:
+            result = contenthost.register(
+                org=org,
+                loc=None,
+                activation_keys=activation_key,
+                target=target_sat,
+                force=True,
+            )
+        except Exception as err:  # noqa: BLE001 - retry any registration failure, incl. SSH/transport errors
+            # Registration raised (e.g. an SSH transport failure) instead of
+            # returning a non-zero result; clean and retry the same as a
+            # non-zero status rather than letting the exception escape the loop.
+            last_error = err
+            runcmd('subscription-manager clean', system=system)
+            continue
         if result.status == 0:
             break
         # Transient network/SSL glitch or a not-yet-settled consumer identity;
         # clean and retry rather than failing the whole test on a flaky guest.
         runcmd('subscription-manager clean', system=system)
+    if result is None:
+        raise RuntimeError(f'Failed to register system: {system}') from last_error
     assert result.status == 0, f'Failed to register system: {system}\n {result}'
 
 
