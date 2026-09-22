@@ -298,18 +298,15 @@ class DisconnectedInstall:
             raise DownloadFileError(f'Unable to download {iso_url}:\n{result.stderr}')
         return iso_path
 
-    def mount_iso(self, iso_path, mount_point, persist=False):
+    def mount_iso(self, iso_path, mount_point):
         """Loop-mount an ISO image read-only.
 
         :param iso_path: path of the ISO image on the host
         :param mount_point: directory the ISO is mounted at, created when missing
-        :param persist: keep the mount across reboots by adding it to /etc/fstab
         """
         self.execute(f'mkdir -p {mount_point}')
         result = self.execute(f'mount -o loop,ro {iso_path} {mount_point}')
         assert result.status == 0, f'Failed to mount {iso_path} at {mount_point}:\n{result.stderr}'
-        if persist:
-            self.execute(f'echo "{iso_path} {mount_point} iso9660 loop,ro 0 0" >> /etc/fstab')
 
     def setup_offline_rhel_repos(self, mount_point, repos=('BaseOS', 'AppStream')):
         """Create dnf repositories served from a mounted RHEL binary DVD ISO.
