@@ -784,3 +784,37 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
     assert client_fp_after != client_fp_before, (
         'Capsule client cert fingerprint unchanged — renewal did not regenerate it'
     )
+
+
+def test_negative_foremanctl_deploy_with_invalid_certs(module_sat_foremanctl_custom_certs):
+    """Reject invalid certificates during foremanctl deploy without harming Satellite.
+
+    :id: 8258a2e6-04fc-4006-81be-6d35beddae88
+
+    :steps:
+        1. Confirm Satellite is healthy with hammer ping
+        2. Run foremanctl deploy with invalid server certificate and key
+        3. Confirm Satellite is still healthy with hammer ping
+
+    :expectedresults:
+        1. foremanctl deploy fails with a invalid certificate
+        2. Satellite services remain running and hammer ping succeeds
+    """
+    sat = module_sat_foremanctl_custom_certs
+    invalid_crt = '/root/certs/invalid.crt'
+
+    result = sat.execute('hammer ping')
+    assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
+
+    result = sat.execute(
+        'foremanctl deploy --certificate-source=custom_server '
+        f'--certificate-server-certificate {invalid_crt} '
+        '--certificate-server-key /root/certs/invalid.key '
+        '--certificate-server-ca-certificate /root/cacert.crt'
+    )
+
+    assert result.status == 2
+    assert 'verification failed' in result.stdout
+
+    result = sat.execute('hammer ping')
+    assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
