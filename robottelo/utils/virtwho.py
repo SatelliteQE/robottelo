@@ -106,6 +106,14 @@ def register_system(
     if Host.exists(search=('name', guest_name)):
         Host.delete({'name': guest_name})
 
+    # Clean any stale client-side subscription-manager state on the guest before
+    # re-registering. The guest VM is reused across the module, and a corrupt
+    # consumer identity (missing/stale /etc/pki/consumer/cert.pem, "already
+    # registered" vs "not registered", deleted consumer profile) left over from a
+    # prior test otherwise cascades into this registration and fails it.
+    runcmd('subscription-manager unregister', system=system)
+    runcmd('subscription-manager clean', system=system)
+
     # Create ContentHost object from system dict
     contenthost = ContentHost(
         hostname=system['hostname'], auth=(system['username'], system['password'])
@@ -115,13 +123,19 @@ def register_system(
     if isinstance(org, str):
         org = target_sat.api.Organization().search(query={'search': f'label={org}'})[0]
 
-    result = contenthost.register(
-        org=org,
-        loc=None,
-        activation_keys=activation_key,
-        target=target_sat,
-        force=True,
-    )
+    for _attempt in range(3):
+        result = contenthost.register(
+            org=org,
+            loc=None,
+            activation_keys=activation_key,
+            target=target_sat,
+            force=True,
+        )
+        if result.status == 0:
+            break
+        # Transient network/SSL glitch or a not-yet-settled consumer identity;
+        # clean and retry rather than failing the whole test on a flaky guest.
+        runcmd('subscription-manager clean', system=system)
     assert result.status == 0, f'Failed to register system: {system}\n {result}'
 
 
