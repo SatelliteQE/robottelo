@@ -191,9 +191,13 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
         1. Create a file repo, and upload content into it
         2. Add file repo to a CV, and publish it
         3. Create another CV, and publish it
-        4. Navigate to the Content -> File section of the UI
+        4. Navigate to Content -> Content Types -> Files and search for the uploaded file
+        5. Open the file details page
 
-    :expectedresults: Only the Content View with the file repo is displayed.
+    :expectedresults:
+        1. The Files list displays the file Name, Path, and Checksum.
+        2. The file details page displays the correct Path and Checksum.
+        3. Only the Content View with the file repo is displayed.
 
     :BZ: 2026701
 
@@ -208,6 +212,9 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
     with open(DataFile.FAKE_FILE_NEW_NAME, 'rb') as handle:
         file_repo.upload_content(files={'content': handle})
     assert file_repo.read().content_counts['file'] == 1
+    uploaded_file = target_sat.api.File().search(
+        query={'search': f'name={FAKE_FILE_NEW_NAME}'}
+    )[0]
     cv = target_sat.api.ContentView(organization=module_org).create()
     cv = target_sat.api.ContentView(id=cv.id, repository=[file_repo]).update(['repository'])
     cv.publish()
@@ -215,9 +222,19 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
     cv2.publish()
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
-        file_values = session.file.read_cv_table(FAKE_FILE_NEW_NAME)
-        assert len(file_values) == 1
-        assert file_values[0]['Name'] == cv.name
+        files = session.file.search(FAKE_FILE_NEW_NAME)
+        assert len(files) == 1
+        assert files[0]['Name'] == uploaded_file.name
+        assert files[0]['Path'] == uploaded_file.path
+        assert files[0]['Checksum'] == uploaded_file.checksum
+
+        file_details = session.file.read(FAKE_FILE_NEW_NAME)
+        assert file_details['details']['path'] == uploaded_file.path
+        assert file_details['details']['checksum'] == uploaded_file.checksum
+
+        content_views = session.file.read_cv_table(FAKE_FILE_NEW_NAME)
+        assert len(content_views) == 1
+        assert content_views[0]['Name'] == cv.name
 
 
 @pytest.mark.upgrade
