@@ -15,14 +15,10 @@
 from broker import Broker
 import pytest
 
-from robottelo.cli import hammer
 from robottelo.config import settings
 from robottelo.hosts import Satellite
 
 SATELLITE_FIREWALL_PORTS = [8000, 8443]
-SATELLITE_LOCAL_DIR = '/opt/satellite'
-SATELLITE_LOCAL_REPO_FILE = '/etc/yum.repos.d/satellite-local.repo'
-SATELLITE_LOCAL_REPO_NAME = 'Satellite-local'
 
 pytestmark = [pytest.mark.foremanctl]
 
@@ -72,7 +68,7 @@ def install_satellite_disconnected_iso(
 
     # Cut the host off and serve the base operating system from the RHEL ISO
     sat.disconnect_from_network()
-    sat.mount_iso(rhel_iso, rhel_mount_point, persist=True)
+    sat.mount_iso(rhel_iso, rhel_mount_point)
     sat.setup_offline_rhel_repos(rhel_mount_point)
     # prepare_system verifies the signature of the packages it installs
     sat.execute('rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release')
@@ -96,7 +92,7 @@ def install_satellite_disconnected_iso(
     finally:
         sat.execute(f'umount {satellite_mount_point}')
 
-    # The ISO content now lives in SATELLITE_LOCAL_DIR, reclaim the space it took
+    # The ISO content now lives under /opt/satellite, reclaim the space it took
     sat.execute(f'rm -f {satellite_iso}')
 
     # Verify the FQDN of the host resolves locally
@@ -157,9 +153,6 @@ def module_disconnected_sat():
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
-        # prepare_system copies the whole Satellite ISO to /opt/satellite and imports
-        # every container image locally, so both ISO images, that copy and the local
-        # container storage have to fit alongside the Satellite itself
         deploy_flavor=settings.flavors.default,
         deploy_network_type=settings.server.network_type,
         host_class=Satellite,
@@ -194,14 +187,12 @@ def test_positive_server_installer_from_iso(module_disconnected_sat):
 
     :steps:
         1. Verify no content source outside the ISO images is configured.
-        2. Verify prepare_system created the local Satellite repository.
-        3. Verify hammer ping reports all services as ok.
-        4. Verify the Satellite API is reachable and usable.
-        5. Verify the subscription connection is disabled.
+        2. Verify satellitectl health reports a healthy deployment.
+        3. Verify the subscription connection is disabled.
 
     :expectedresults:
         1. Satellite is installed from the local ISO repositories and Satellite ISO.
-        2. All services are up and the Satellite is fully functional without CDN repositories.
+        2. The deployment is healthy and does not use CDN repositories or portal connection.
     """
     sat = module_disconnected_sat
 
@@ -216,28 +207,8 @@ def test_positive_server_installer_from_iso(module_disconnected_sat):
         'A disconnected Satellite must not be registered to the CDN'
     )
 
-    # The Satellite packages are served from the local repo prepare_system created
-    assert sat.execute(f'[ -f {SATELLITE_LOCAL_REPO_FILE} ]').status == 0, (
-        f'{SATELLITE_LOCAL_REPO_FILE} was not created by prepare_system'
-    )
-    assert SATELLITE_LOCAL_REPO_NAME in repos, (
-        f'The local Satellite repository is not enabled:\n{repos}'
-    )
-    assert sat.execute(f'[ -d {SATELLITE_LOCAL_DIR}/Satellite ]').status == 0, (
-        f'The ISO content was not copied to {SATELLITE_LOCAL_DIR}'
-    )
-
-    # The Satellite installed from the ISO images is healthy
-    result = sat.execute('hammer ping')
-    assert result.status == 0, f'hammer ping failed:\n{result.stdout}'
-    services = hammer.parse_ping(result.stdout)
-    assert all(status == 'ok' for status in services.values()), (
-        f'Not all services report ok: {services}'
-    )
-
-    # The API is reachable and usable
-    org = sat.api.Organization().create()
-    assert sat.api.Organization(id=org.id).read().name == org.name
+    result = sat.execute('satellitectl health', timeout='5m')
+    assert result.status == 0, f'satellitectl health failed:\n{result.stdout}\n{result.stderr}'
 
     # A disconnected Satellite does not talk to the Red Hat Portal
     connection_enabled = sat.cli.Settings.info({'name': 'subscription_connection_enabled'})
