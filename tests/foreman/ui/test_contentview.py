@@ -212,9 +212,7 @@ def test_file_cv_display(session, target_sat, module_org, module_product):
     with open(DataFile.FAKE_FILE_NEW_NAME, 'rb') as handle:
         file_repo.upload_content(files={'content': handle})
     assert file_repo.read().content_counts['file'] == 1
-    uploaded_file = target_sat.api.File().search(
-        query={'search': f'name={FAKE_FILE_NEW_NAME}'}
-    )[0]
+    uploaded_file = target_sat.api.File().search(query={'search': f'name={FAKE_FILE_NEW_NAME}'})[0]
     cv = target_sat.api.ContentView(organization=module_org).create()
     cv = target_sat.api.ContentView(id=cv.id, repository=[file_repo]).update(['repository'])
     cv.publish()
