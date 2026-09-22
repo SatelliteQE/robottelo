@@ -24,6 +24,8 @@ from robottelo.config import settings
 from robottelo.constants import GCE_RHEL_CLOUD_PROJECTS, VALID_GCE_ZONES
 from robottelo.utils.issue_handlers import is_open
 
+pytestmark = pytest.mark.skip_if_open('SAT-51000')
+
 
 @pytest.mark.skip_if_not_set('gce')
 class TestGCEComputeResourceTestCases:
