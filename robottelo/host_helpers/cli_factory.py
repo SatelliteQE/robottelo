@@ -457,6 +457,23 @@ class CLIFactory:
                         'partition-tables': options.get('partition-table'),
                     }
                 )['id']
+        # Ensure the selected operating system is associated with the selected
+        # architecture. On upgraded/seeded Satellites the OS search above can
+        # return a stale OS (e.g. "RedHat 7.1") that is not linked to the
+        # DEFAULT_ARCHITECTURE, which makes `hammer host create` fail with
+        # "Architecture <arch> does not belong to <os> operating system".
+        # add-architecture is a no-op when the link already exists; guard the
+        # already-associated path so it can never break the common case.
+        if options.get('architecture-id') and options.get('operatingsystem-id'):
+            try:
+                self._satellite.cli.OperatingSys.add_architecture(
+                    {
+                        'id': options['operatingsystem-id'],
+                        'architecture-id': options['architecture-id'],
+                    }
+                )
+            except CLIReturnCodeError:
+                pass
         if not options.get('partition-table') and not options.get('partition-table-id'):
             try:
                 options['partition-table-id'] = self._satellite.cli.PartitionTable.list(
