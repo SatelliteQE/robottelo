@@ -25,8 +25,6 @@ from robottelo.constants import (
     AZURERM_PREMIUM_OS_Disk,
 )
 
-pytestmark = pytest.mark.foreman_installer
-
 
 @pytest.fixture(scope='class')
 def azurerm_hostgroup(
@@ -55,9 +53,6 @@ class TestAzureRMComputeResourceTestCase:
     """AzureRm compute resource Tests"""
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_crud_azurerm_cr(
         self, azurerm_settings, sat_azure, sat_azure_loc, sat_azure_org
     ):
@@ -113,9 +108,6 @@ class TestAzureRMComputeResourceTestCase:
         assert not sat_azure.cli.ComputeResource.exists(search=('name', result['name']))
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     @pytest.mark.parametrize(
         "image",
         [
@@ -212,9 +204,6 @@ class TestAzureRMComputeResourceTestCase:
         assert result['message'] == 'Image deleted.'
         assert result['name'] == new_img_name
 
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_check_available_networks(self, sat_azure, azurermclient, module_azurerm_cr):
         """Check networks from AzureRm CR are available to select during host provision.
 
@@ -228,9 +217,6 @@ class TestAzureRMComputeResourceTestCase:
         result = sat_azure.cli.ComputeResource.networks({'id': module_azurerm_cr.id})
         assert len(result) > 0
 
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_create_compute_profile_values(
         self, azurermclient, module_azurerm_cr, sat_azure
     ):
@@ -376,7 +362,6 @@ class TestAzureRMFinishTemplateProvisioning:
 
     @pytest.mark.e2e
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_host_provisioned(
         self,
         class_host_ft,
@@ -504,9 +489,6 @@ class TestAzureRMUserDataProvisioning:
         return azurermclient.get_vm(name=class_host_ud['name'].split('.')[0])
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_azurerm_host_provisioned(
         self,
         class_host_ud,
