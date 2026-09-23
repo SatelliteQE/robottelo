@@ -1672,16 +1672,18 @@ class ContentHost(Host, ContentHostMixins):
             logger.error('Podman login skipped: missing registry, username, or token.')
             return
         auth_b64 = base64.b64encode(f'{username}:{password}'.encode()).decode()
+        new_entry = {'auth': auth_b64}
         # Preserve credentials for any registries already present in the authfile
-        auth_data = {'auths': {}}
         existing = self.execute(f'cat {constants.PODMAN_AUTHFILE_PATH}')
         if existing.status == 0 and existing.stdout.strip():
             try:
                 auth_data = json.loads(existing.stdout)
                 auth_data.setdefault('auths', {})
-            except json.JSONDecodeError:
-                auth_data = {'auths': {}}
-        auth_data['auths'][registry] = {'auth': auth_b64}
+                auth_data['auths'][registry] = new_entry
+            except (json.JSONDecodeError, AttributeError, TypeError):
+                auth_data = {'auths': {registry: new_entry}}
+        else:
+            auth_data = {'auths': {registry: new_entry}}
         local_authfile_path = f'{robottelo_tmp_dir}/podman-auth.json'
         with open(local_authfile_path, 'w') as f:
             json.dump(auth_data, f)
@@ -1940,19 +1942,19 @@ class Capsule(ContentHost, CapsuleMixins):
 
         is_satellite = type(self).__name__ == 'Satellite'
         if self.install_method == InstallMethod.FOREMANCTL:
-            services = list(
+            services = (
                 InstallationServices.FOREMANCTL_SERVICES
                 if is_satellite
                 else InstallationServices.FOREMANCTL_CAPSULE_SERVICES
             )
         else:
-            services = list(
+            services = (
                 InstallationServices.INSTALLER_SERVICES
                 if is_satellite
                 else InstallationServices.INSTALLER_CAPSULE_SERVICES
             )
         if include_iop:
-            services += InstallationServices.IOP_SERVICES
+            services = services + InstallationServices.IOP_SERVICES
         return services
 
     def setup(self):
@@ -2039,10 +2041,9 @@ class Capsule(ContentHost, CapsuleMixins):
         deployments have no satellite-maintain, so restart the quadlet service
         units directly with systemctl."""
         if self.install_method == InstallMethod.FOREMANCTL:
-            units = ' '.join(f"'{svc}'" for svc in self.get_service_names())
-            result = self.execute(f'systemctl restart {units}')
-            return True if result.status == 0 else result.stdout
-        result = self.execute('satellite-maintain service restart')
+            result = self.execute('systemctl restart foreman.target')
+        else:
+            result = self.execute('satellite-maintain service restart')
         return True if result.status == 0 else result.stdout
 
     def check_services(self):

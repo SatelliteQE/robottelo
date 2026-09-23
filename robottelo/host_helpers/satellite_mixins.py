@@ -494,12 +494,7 @@ class IoPSetup:
         self.enable_ipv6_podman_proxy()
 
         if self.install_method == InstallMethod.FOREMANCTL:
-            # deploy creates the iop-*.image quadlet files, so it must run before we
-            # can override the images they point at.
             result = self.execute('foremanctl deploy --add-feature iop', timeout='30m')
-            if result.status != 0:
-                raise SatelliteHostError(f'Failed to configure IoP: {result.stdout}')
-            result = self.execute("systemctl restart foreman.target")
         else:
             # Set up container image path overrides for satellite-installer
             if image_paths := self.get_iop_image_paths():
