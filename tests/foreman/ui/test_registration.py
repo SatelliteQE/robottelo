@@ -642,6 +642,7 @@ def test_positive_global_registration_form(
         assert pair in cmd
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_global_registration_with_capsule_host(
     capsule_configured,
