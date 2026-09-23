@@ -88,7 +88,7 @@ def test_acs_subpath_not_required(acs_setup):
             custom_type=True,
             content_type='yum',
             name=gen_string('alpha'),
-            capsules_to_add=class_target_sat.hostname,
+            capsules_to_add=class_target_sat.nailgun_capsule.name,
             use_http_proxies=True,
             base_url='https://test.com',
             none_auth=True,
@@ -98,7 +98,7 @@ def test_acs_subpath_not_required(acs_setup):
             custom_type=True,
             content_type='file',
             name=gen_string('alpha'),
-            capsules_to_add=class_target_sat.hostname,
+            capsules_to_add=class_target_sat.nailgun_capsule.name,
             use_http_proxies=True,
             base_url='https://test.com',
             none_auth=True,
@@ -107,7 +107,7 @@ def test_acs_subpath_not_required(acs_setup):
         session.acs.create_new_acs(
             rhui_type=True,
             name=gen_string('alpha'),
-            capsules_to_add=class_target_sat.hostname,
+            capsules_to_add=class_target_sat.nailgun_capsule.name,
             use_http_proxies=True,
             base_url='https://rhui-server.example.com/pulp/content',
             none_auth=True,
@@ -136,7 +136,7 @@ class TestAllAcsTypes:
                     'custom_type': True,
                     'base_url': 'https://test.com/',
                     'subpaths': ['test/'],
-                    'capsules_to_add': 'class_target_sat.hostname',
+                    'capsules_to_add': 'class_target_sat.nailgun_capsule.name',
                 },
                 'yum_manual_auth': {
                     'content_type': 'yum',
@@ -197,7 +197,7 @@ class TestAllAcsTypes:
                     'content_type': 'yum',
                     'name': 'simpleYum',
                     'description': 'simpleYumDesc',
-                    'capsules_to_add': 'class_target_sat.hostname',
+                    'capsules_to_add': 'class_target_sat.nailgun_capsule.name',
                     'products_to_add': [
                         constants.REPOS[repo]['product'] for repo in repos_to_enable
                     ],
@@ -217,7 +217,7 @@ class TestAllAcsTypes:
                     'subpaths': ['test/', 'test2/'],
                     'verify_ssl': True,
                     'ca_cert': ssl_name,
-                    'capsules_to_add': 'class_target_sat.hostname',
+                    'capsules_to_add': 'class_target_sat.nailgun_capsule.name',
                 },
                 'yum_none_auth': {
                     'name': 'rhuiYumNoneAuth',
@@ -272,10 +272,10 @@ class TestAllAcsTypes:
         class_target_sat, class_sca_manifest_org = acs_setup
         vals = scenario
 
-        # Replace the placeholder in 'capsules_to_add' with the hostname of the Satellite under test
+        # Replace the placeholder in 'capsules_to_add' with the Pulp capsule name
         for val in vals:
             if 'capsules_to_add' in val:
-                vals['capsules_to_add'] = class_target_sat.hostname
+                vals['capsules_to_add'] = class_target_sat.nailgun_capsule.name
 
         with class_target_sat.ui_session() as session:
             session.organization.select(org_name=class_sca_manifest_org.name)
@@ -336,7 +336,7 @@ class TestAcsE2e:
                 content_type='yum',
                 name='simpleYumTest',
                 description='simpleYumTestDesc',
-                capsules_to_add=class_target_sat.hostname,
+                capsules_to_add=class_target_sat.nailgun_capsule.name,
                 use_http_proxies=True,
                 products_to_add=[constants.REPOS[repo]['product'] for repo in repos_to_enable],
             )
@@ -348,7 +348,7 @@ class TestAcsE2e:
                 content_type='file',
                 name='customFileManualTestAuth',
                 description='customFileManualTestAuthDesc',
-                capsules_to_add=class_target_sat.hostname,
+                capsules_to_add=class_target_sat.nailgun_capsule.name,
                 use_http_proxies=True,
                 base_url='https://test.com',
                 subpaths=['test/'],
@@ -366,7 +366,7 @@ class TestAcsE2e:
                 content_type='file',
                 name='customFileContentAuthTest',
                 description='customFileContentAuthTestDesc',
-                capsules_to_add=class_target_sat.hostname,
+                capsules_to_add=class_target_sat.nailgun_capsule.name,
                 use_http_proxies=True,
                 base_url='https://test.com',
                 subpaths=['test/'],
@@ -384,7 +384,7 @@ class TestAcsE2e:
                 content_type='yum',
                 name='customYumNoneAuthTest',
                 description='customYumNoneAuthTestDesc',
-                capsules_to_add=class_target_sat.hostname,
+                capsules_to_add=class_target_sat.nailgun_capsule.name,
                 use_http_proxies=True,
                 base_url='https://test.com',
                 subpaths=['test/'],
@@ -498,7 +498,7 @@ class TestAcsE2e:
                 rhui_type=True,
                 name='testAcsToBeDeleted',
                 description='testAcsToBeDeleted',
-                capsules_to_add=class_target_sat.hostname,
+                capsules_to_add=class_target_sat.nailgun_capsule.name,
                 use_http_proxies=True,
                 base_url='https://test.com/pulp/content',
                 subpaths=['test/', 'test2/'],
