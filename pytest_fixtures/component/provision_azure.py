@@ -15,13 +15,8 @@ from robottelo.constants import (
 
 
 @pytest.fixture(scope='session')
-def sat_azure(request):
-    host_type = getattr(request, 'param', 'sat')
-    if host_type == 'puppet_sat':
-        infra_sat_host = request.getfixturevalue('session_puppet_enabled_sat')
-    else:
-        infra_sat_host = request.getfixturevalue('session_target_sat')
-    return infra_sat_host
+def sat_azure(session_target_sat):
+    return session_target_sat
 
 
 @pytest.fixture(scope='module')
