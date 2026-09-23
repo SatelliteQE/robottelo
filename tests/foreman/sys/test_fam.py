@@ -85,10 +85,14 @@ def common_fam_setup(satellite):
     # The tests need pytest, which is only available in codeready-builder
     satellite.enable_repo(f'codeready-builder-for-rhel-{satellite.os_version.major}-x86_64-rpms')
 
-    pytest_package = 'python3.12-pytest' if satellite.os_version.major == 9 else 'python3-pytest'
+    python = 'python3.12' if satellite.os_version.major == 9 else 'python3'
 
     satellite.execute(
-        f'dnf install -y ansible-collection-redhat-satellite ansible-core make python3-rpm python3-requests {pytest_package} ansible-runner'
+        f'dnf install -y ansible-collection-redhat-satellite ansible-core make python3-rpm python3-requests {python}-pytest {python}-pip'
+    )
+    satellite.execute(f'{python} -m pip install ansible-runner')
+    satellite.execute(
+        'chmod +x /usr/share/ansible/collections/ansible_collections/redhat/satellite/tests/vcr_python_wrapper.py'
     )
 
     satellite.put(
