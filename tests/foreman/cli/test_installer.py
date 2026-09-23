@@ -16,6 +16,7 @@ from broker import Broker
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import FOREMANCTL_PARAMETERS_FILE
 from robottelo.hosts import Satellite
 
 SATELLITE_FIREWALL_PORTS = [8000, 8443]
@@ -123,7 +124,7 @@ def install_satellite_disconnected_iso(
         f'--initial-admin-password {settings.server.admin_password}',
     ]
     deploy = sat.execute(
-        f'satellitectl deploy --flavor satellite  {" ".join(deploy_parameters)}',
+        f'satellitectl deploy --flavor satellite --air-gapped  {" ".join(deploy_parameters)}',
         timeout='60m',
     )
     assert deploy.status == 0, f'satellitectl deploy failed:\n{deploy.stdout}\n{deploy.stderr}'
@@ -164,8 +165,6 @@ def module_disconnected_sat():
             rhel_iso_url=rhel_iso_url,
             nogpgcheck=disconnected.get('nogpgcheck', True),
         )
-        # A disconnected Satellite must not try to reach the Red Hat Portal
-        sat.cli.Settings.set({'name': 'subscription_connection_enabled', 'value': 'No'})
         yield sat
 
 
@@ -189,10 +188,15 @@ def test_positive_server_installer_from_iso(module_disconnected_sat):
         1. Verify no content source outside the ISO images is configured.
         2. Verify satellitectl health reports a healthy deployment.
         3. Verify the subscription connection is disabled.
+        4. Verify air_gapped is persisted in parameters.yaml.
+        5. Verify image units use Policy=never.
+        6. Verify satellitectl pull-images is rejected in air-gapped mode.
+        7. Verify image units still use Policy=never after the rejected pull-images.
 
     :expectedresults:
         1. Satellite is installed from the local ISO repositories and Satellite ISO.
         2. The deployment is healthy and does not use CDN repositories or portal connection.
+        3. Air-gapped mode is persisted and blocks registry image pulls.
     """
     sat = module_disconnected_sat
 
@@ -215,3 +219,32 @@ def test_positive_server_installer_from_iso(module_disconnected_sat):
     assert connection_enabled['value'].lower() == 'false', (
         f'Subscription connection is still enabled: {connection_enabled["value"]}'
     )
+
+    parameters = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert parameters.get('air_gapped') == 'true', (
+        f'air_gapped is not persisted in {FOREMANCTL_PARAMETERS_FILE}: {parameters}'
+    )
+
+    policies = sat.execute("grep -Rh '^Policy=' /etc/containers/systemd/*.image")
+    assert policies.status == 0, (
+        f'Failed to read image unit policies:\n{policies.stdout}\n{policies.stderr}'
+    )
+    assert 'Policy=never' in policies.stdout, (
+        f'Image units missing Policy=never:\n{policies.stdout}'
+    )
+    assert 'Policy=missing' not in policies.stdout
+
+    # pull-images must refuse to contact a registry when air-gapped
+    pull_images = sat.execute('satellitectl pull-images', timeout='5m')
+    pull_output = f'{pull_images.stdout}\n{pull_images.stderr}'.lower()
+    assert pull_images.status != 0, (
+        f'satellitectl pull-images must fail in air-gapped mode:\n{pull_images.stdout}\n{pull_images.stderr}'
+    )
+    assert 'image pulling is disabled in air-gapped mode' in pull_output, (
+        f'Unexpected pull-images failure output:\n{pull_images.stdout}\n{pull_images.stderr}'
+    )
+
+    # Rejected pull-images must not change the air-gapped image policy
+    policies = sat.execute("grep -Rh '^Policy=' /etc/containers/systemd/*.image")
+    assert 'Policy=never' in policies.stdout
+    assert 'Policy=missing' not in policies.stdout
