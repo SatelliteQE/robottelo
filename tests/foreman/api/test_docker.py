@@ -714,7 +714,13 @@ class TestPodman:
         )
         assert result.status == 0, result.stderr
 
-        repo = module_target_sat.api.Repository(id=module_product.read().repository[0].id).read()
+        # Read the repo by the name we just pushed rather than by position, since sibling
+        # test classes seed the shared module_product with their own repos.
+        product_repos = [
+            module_target_sat.api.Repository(id=r.id).read()
+            for r in module_product.read().repository
+        ]
+        repo = next(r for r in product_repos if r.name == REPO_NAME)
         # Create a CV and add Podman repo to it, then publish
         cv = module_target_sat.api.ContentView(organization=module_org.id).create()
         cv.repository = [repo]
