@@ -24,8 +24,8 @@ pytestmark = pytest.mark.foreman_installer
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
-def test_positive_vmware_cr_end_to_end(request, target_sat, module_org, module_location, vmware):
+@pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
+def test_positive_vmware_cr_end_to_end(target_sat, module_org, module_location, vmware):
     """Create, Read, Update and Delete VMware compute resources
 
     :id: 96faae3f-bc64-4147-a9fc-09c858e0a68f
@@ -38,8 +38,6 @@ def test_positive_vmware_cr_end_to_end(request, target_sat, module_org, module_l
 
     :CaseImportance: Critical
     """
-    if 'vmware7' in request.node.callspec.id and target_sat.is_fips_enabled():
-        pytest.skip('VMware 7 is not supported in FIPS mode')
     cr_name = gen_string('alpha')
     # Create
     vmware_cr = target_sat.cli.ComputeResource.create(
@@ -81,7 +79,7 @@ def test_positive_vmware_cr_end_to_end(request, target_sat, module_org, module_l
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
-@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+@pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi', 'secureboot'], indirect=True)
 @pytest.mark.parametrize('provision_method', ['build', 'bootdisk'])
 @pytest.mark.rhel_ver_match('[7]')
@@ -172,7 +170,7 @@ def test_positive_provision_end_to_end(
 @pytest.mark.e2e
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('setting_update', ['destroy_vm_on_host_delete=True'], indirect=True)
-@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+@pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
 @pytest.mark.rhel_ver_match('[8]')
 def test_positive_image_provision_end_to_end(
     request,
