@@ -16,6 +16,7 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.enums import NetworkType
 from robottelo.exceptions import CLIReturnCodeError
 
 pytestmark = pytest.mark.foreman_installer
@@ -44,6 +45,10 @@ class TestOSPComputeResourceTestCase:
         return versions[getattr(request, 'param', 'osp16')]
 
     @pytest.mark.upgrade
+    @pytest.mark.skipif(
+        settings.server.network_type == NetworkType.IPV6,
+        reason='OpenStack compute resources do not support IPv6 connectivity',
+    )
     @pytest.mark.parametrize('osp_version', ['osp16', 'osp17'], indirect=True)
     @pytest.mark.parametrize(
         'id_type',
