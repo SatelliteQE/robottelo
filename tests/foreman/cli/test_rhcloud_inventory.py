@@ -684,6 +684,17 @@ def test_positive_config_on_sat_without_network_protocol(
     def cleanup():
         target_sat.unregister()
 
+    # foreman_rh_cloud memoizes the Satellite's own host record for the life of the
+    # Rails process, so an earlier RH Cloud test may have cached the host this test
+    # just deleted and recreated above. Restart just the foreman service (not the
+    # whole stack) to force a fresh lookup before enabling the cloud connector.
+    target_sat.execute('systemctl restart foreman')
+    wait_for(
+        lambda: target_sat.execute('systemctl is-active foreman').stdout.strip() == 'active',
+        timeout=120,
+        delay=5,
+    )
+
     # Enable cloud connector
     result = target_sat.cli.Insights.cloud_connector_enable({'organization-id': function_org.id})
     assert "Cloud connector enable task started" in result
