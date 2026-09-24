@@ -359,6 +359,52 @@ def common_test_positive_run_modules_and_roles(satellite, ansible_module, extra_
     ):
         pytest.skip(f"{ansible_module} module test lacks proper setup")
 
+    if ansible_module in [
+        'activation_key',  # multi-CV environment conflict with deprecated params
+        'activation_keys_role',  # deprecation warning: content_view/lifecycle_environment params
+        'content_rhel_role',  # deprecation warning: content_view/lifecycle_environment params
+        'convert2rhel',  # deprecation warning: content_view/lifecycle_environment params
+        'repository_set_info',  # deprecation warning: content_view/lifecycle_environment params
+    ]:
+        pytest.skip(f"{ansible_module} module test needs fixes for multiCV-enabled Katello")
+
+    # Skip FAM tests that don't work yet on containerized setups
+    if (
+        satellite.install_method == InstallMethod.FOREMANCTL
+        and ansible_module
+        in [
+            'compute_attribute',  # 500 error creating compute attributes, libvirt not configured
+            'compute_profile',  # 500 error creating compute attributes, libvirt not configured
+            'compute_profiles_role',  # 500 error creating compute attributes, libvirt not configured
+            'compute_resource',  # compute resource creation failed, libvirt not configured
+            'compute_resources_role',  # compute resource failure (no_log hides details), libvirt not configured
+            'config_group',  # missing plugin: puppet
+            'content_import_info',  # chown failed: pulp user does not exist on containerized satellite
+            'content_import_library',  # chown failed: pulp user does not exist on containerized satellite
+            'content_import_repository',  # chown failed: pulp user does not exist on containerized satellite
+            'content_import_version',  # chown failed: pulp user does not exist on containerized satellite
+            'discovery_rule',  # missing plugin: discovery
+            'domain',  # DNS not supported yet
+            'host',  # missing plugin: puppet
+            'hostgroup',  # needs DNS
+            'image',  # 500 error creating image, libvirt compute resource not configured
+            'katello_hostgroup',  # smart proxy not found by hostname
+            'katello_smart_proxy',  # unable to communicate with smart proxy
+            'luna_hostgroup',  # missing plugin: openscap
+            'puppetclasses_import',  # missing plugin: puppet
+            'puppet_environment',  # missing plugin: puppet
+            'resource_info',  # expected >=1 instance_hosts resource, found 0
+            'scap_content',  # missing plugin: openscap
+            'scap_tailoring_file',  # missing plugin: openscap
+            'smart_class_parameter',  # missing plugin: puppet
+            'smart_class_parameter_override_value',  # missing plugin: puppet
+            'smart_proxy_refresh',  # unable to communicate with smart proxy
+            'subnet',  # needs DNS
+            'templates_import',  # missing plugin: templates
+        ]
+    ):
+        pytest.skip(f"{ansible_module} module tests don't work in containerized setups")
+
     # Setup provisioning resources
     if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
         satellite.configure_libvirt_cr()
