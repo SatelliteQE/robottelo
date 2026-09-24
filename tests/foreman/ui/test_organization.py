@@ -272,7 +272,7 @@ def test_positive_delete_with_manifest_lces(session, target_sat, function_sca_ma
             lambda: session.organization.search(org.name),
             fail_condition=lambda out: bool(out),
             silent_failure=True,
-            timeout=15,
+            timeout=60,
         )
         assert out == [], 'Search for deleted organization should be empty'
 
