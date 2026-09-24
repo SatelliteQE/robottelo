@@ -16,6 +16,7 @@ from robottelo.constants import (
     GCE_RHEL_CLOUD_PROJECTS,
     GCE_TARGET_RHEL_IMAGE_NAME,
 )
+from robottelo.enums import InstallMethod
 from robottelo.exceptions import GCECertNotFoundError, SatelliteHostError
 from robottelo.hosts import Capsule, Satellite
 from robottelo.logging import logger
@@ -71,7 +72,17 @@ def shared_checkout(shared_name, iop=False):
     return sat_instance[-1]
 
 
+def _skip_capsule_upgrades_on_foremanctl():
+    """Capsule upgrades check out deploy-capsule and run satellite-installer."""
+    if settings.server.get('install_method', 'auto') == InstallMethod.FOREMANCTL:
+        pytest.skip(
+            'Capsule upgrade setup uses deploy-capsule and satellite-installer '
+            'and is not supported on foremanctl.'
+        )
+
+
 def shared_cap_checkout(shared_name):
+    _skip_capsule_upgrades_on_foremanctl()
     cap_inst = Broker(
         workflow=settings.capsule.deploy_workflows.product,
         deploy_sat_version=settings.upgrade.from_version,
@@ -278,6 +289,7 @@ def client_upgrade_shared_satellite():
 @pytest.fixture
 def capsule_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.capsule_upgrades."""
+    _skip_capsule_upgrades_on_foremanctl()
     sat_instance = shared_checkout("capsule_upgrade")
     with SharedResource(
         "capsule_upgrade_tests_satellite", shared_checkin, sat_instance=sat_instance
@@ -351,6 +363,7 @@ def puppet_upgrade_shared_satellite():
 @pytest.fixture
 def capsule_puppet_upgrade_shared_satellite():
     """Mark tests using this fixture with pytest.mark.capsule_puppet_upgrades"""
+    _skip_capsule_upgrades_on_foremanctl()
     sat_instance = shared_checkout("capsule_puppet_upgrade")
     with (
         SharedResource(

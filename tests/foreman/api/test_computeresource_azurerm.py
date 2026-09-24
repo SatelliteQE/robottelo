@@ -25,16 +25,11 @@ from robottelo.constants import (
     AZURERM_PREMIUM_OS_Disk,
 )
 
-pytestmark = pytest.mark.foreman_installer
-
 
 class TestAzureRMComputeResourceTestCase:
     """Tests for ``api/v2/compute_resources``"""
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_crud_azurerm_cr(
         self,
         sat_azure_org,
@@ -87,9 +82,6 @@ class TestAzureRMComputeResourceTestCase:
         )
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_create_cloud_init_image(
         self, module_azurerm_cloudimg, module_azurerm_cr, sat_azure_default_architecture
     ):
@@ -111,9 +103,6 @@ class TestAzureRMComputeResourceTestCase:
         assert module_azurerm_cloudimg.uuid == AZURERM_RHEL9_UD_IMG_URN
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_check_available_networks(self, azurermclient, module_azurerm_cr):
         """Check networks from AzureRM CR are available to select during host provision.
 
@@ -249,7 +238,6 @@ class TestAzureRMHostProvisioningTestCase:
 
     @pytest.mark.e2e
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_host_provisioned(self, class_host_ft, azureclient_host):
         """Host can be provisioned on AzureRM
 
@@ -279,7 +267,6 @@ class TestAzureRMHostProvisioningTestCase:
         assert self.hostname.lower() == azureclient_host.name
         assert self.vm_size == azureclient_host.type
 
-    @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_host_power_on_off(self, class_host_ft, azureclient_host):
         """Host can be powered on and off
 
@@ -395,9 +382,6 @@ class TestAzureRMUserDataProvisioning:
         return azurermclient.get_vm(name=class_host_ud.name.split('.')[0])
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_azurerm_ud_host_provisioned(self, class_host_ud, azureclient_host):
         """Host can be provisioned on AzureRm with userdata image/template
 
@@ -430,9 +414,6 @@ class TestAzureRMUserDataProvisioning:
         assert self.vm_size == azureclient_host.type
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_host_disassociate_associate(self, class_host_ud, module_azurerm_cr):
         """Host can be Disassociate and Associate
 
@@ -544,7 +525,6 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         return azurermclient.get_vm(name=class_host_custom_ft.name.split('.')[0])
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_custom_image_host_provisioned(
         self, class_host_custom_ft, azureclient_host
     ):
