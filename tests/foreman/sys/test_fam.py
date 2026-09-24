@@ -406,7 +406,10 @@ def common_test_positive_run_modules_and_roles(satellite, ansible_module, extra_
         pytest.skip(f"{ansible_module} module tests don't work in containerized setups")
 
     # Setup provisioning resources
-    if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
+    if (
+        ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS
+        and satellite.install_method == InstallMethod.INSTALLER
+    ):
         satellite.configure_libvirt_cr()
 
     env = [
