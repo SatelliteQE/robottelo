@@ -27,12 +27,9 @@ from robottelo.constants import (
     HAMMER_CONFIG,
     RH_SAT_ROLES,
 )
-from robottelo.hosts import (
-    IPAHost,
-)
+from robottelo.enums import InstallMethod
+from robottelo.hosts import IPAHost
 from robottelo.utils.installer import InstallerCommand
-
-pytestmark = pytest.mark.foreman_installer
 
 
 @pytest.fixture
@@ -85,6 +82,18 @@ def install_import_ansible_role(module_target_sat):
 
 
 def common_fam_setup(satellite):
+    satellite.enable_repo(f'codeready-builder-for-rhel-{satellite.os_version.major}-x86_64-rpms')
+
+    python = 'python3.12' if satellite.os_version.major == 9 else 'python3'
+
+    satellite.execute(
+        f'dnf install -y --disableplugin=foreman-protector ansible-collection-redhat-satellite ansible-core make python3-rpm python3-requests {python}-pytest {python}-pip'
+    )
+    satellite.execute(f'{python} -m pip install ansible-runner')
+    satellite.execute(
+        'chmod +x /usr/share/ansible/collections/ansible_collections/redhat/satellite/tests/vcr_python_wrapper.py'
+    )
+
     satellite.put(
         settings.fam.compute_profile.to_yaml(),
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/compute_profile.yml',
@@ -110,7 +119,7 @@ def common_fam_setup(satellite):
 
     # Edit inventory configurations
     satellite.execute(
-        f"sed -i '/url/ s#http.*#https://localhost#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+        f"sed -i '/url/ s#http.*#https://{satellite.hostname}#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
     )
     satellite.execute(
         f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
@@ -122,6 +131,10 @@ def common_fam_setup(satellite):
     satellite.execute(
         f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
     )
+    if satellite.install_method == InstallMethod.FOREMANCTL:
+        satellite.execute(
+            "groupadd --system --gid 700 pulp && useradd --system --uid 700 --gid pulp --no-create-home pulp"
+        )
 
     # Edit katello_smart_proxy tests to not delete the Capsule
     # https://github.com/theforeman/foreman-ansible-modules/pull/1969
@@ -132,10 +145,13 @@ def common_fam_setup(satellite):
 
 @pytest.fixture(scope='module')
 def setup_fam(
-    module_target_sat, module_sca_manifest, install_import_ansible_role, module_capsule_configured
+    module_target_sat,
+    module_subscribe_satellite,
+    module_sca_manifest,
+    install_import_ansible_role,
+    module_capsule_configured,
 ):
-    # Execute AAP WF for FAM setup
-    Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
+    common_fam_setup(module_target_sat)
 
     # Update the settings to point to our Capsule
     settings.set('fam.server.foreman_proxy', module_capsule_configured.hostname)
@@ -146,8 +162,6 @@ def setup_fam(
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
         temp_file=True,
     )
-
-    common_fam_setup(module_target_sat)
 
     # Edit repos used in tests
     # Until https://github.com/theforeman/foreman-ansible-modules/pull/1899 is in
@@ -182,28 +196,28 @@ def setup_fam(
                 temp_file=True,
             )
 
-    create_fake_module(
-        module_target_sat,
-        'ntp',
-        [('init', '($logfile, $config_dir, $servers, $burst, $stepout){}'), 'config'],
-    )
+    if module_target_sat.install_method == InstallMethod.INSTALLER:
+        create_fake_module(
+            module_target_sat,
+            'ntp',
+            [('init', '($logfile, $config_dir, $servers, $burst, $stepout){}'), 'config'],
+        )
 
-    create_fake_module(
-        module_target_sat,
-        'prometheus',
-        ['init', 'haproxy_exporter', 'redis_exporter', 'statsd_exporter'],
-    )
+        create_fake_module(
+            module_target_sat,
+            'prometheus',
+            ['init', 'haproxy_exporter', 'redis_exporter', 'statsd_exporter'],
+        )
 
-    smart_proxy = module_target_sat.nailgun_smart_proxy.read()
-    smart_proxy.import_puppetclasses()
+        smart_proxy = module_target_sat.nailgun_smart_proxy.read()
+        smart_proxy.import_puppetclasses()
 
-    create_fake_module(module_target_sat, 'fakemodule', ['init'])
+        create_fake_module(module_target_sat, 'fakemodule', ['init'])
 
 
 @pytest.fixture(scope='module')
 def setup_fam_with_idm(idm_sat, module_sca_manifest):
-    # Execute AAP WF for FAM setup
-    Broker().execute(workflow='fam-test-setup', source_vm=idm_sat.name)
+    common_fam_setup(idm_sat)
 
     # Modify and copy config files to the Satellite
     idm_fam_settings = settings.fam.server.copy()
@@ -222,8 +236,6 @@ def setup_fam_with_idm(idm_sat, module_sca_manifest):
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
         temp_file=True,
     )
-
-    common_fam_setup(idm_sat)
 
     # Upload manifest to test playbooks directory
     idm_sat.put(str(module_sca_manifest.path), str(module_sca_manifest.name))
@@ -269,7 +281,7 @@ def idm_sat(satellite_factory, ad_data):
 
 @pytest.mark.pit_server
 @pytest.mark.run_in_one_thread
-def test_positive_ansible_modules_installation(target_sat):
+def test_positive_ansible_modules_installation(setup_fam, module_target_sat):
     """Foreman ansible modules installation test
 
     :id: 553a927e-2665-4227-8542-0258d7b1ccc4
@@ -278,13 +290,13 @@ def test_positive_ansible_modules_installation(target_sat):
         available and supported modules are contained
     """
     # list installed modules
-    result = target_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
+    result = module_target_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
     assert result.status == 0
     installed_modules = result.stdout.split('\n')
     installed_modules.remove('')
     # see help for installed modules
     for module_name in installed_modules:
-        result = target_sat.execute(f'ansible-doc redhat.satellite.{module_name} -s')
+        result = module_target_sat.execute(f'ansible-doc redhat.satellite.{module_name} -s')
         assert result.status == 0
         doc_name = result.stdout.split('\n')[1].lstrip()[:-1]
         assert doc_name == module_name
@@ -300,6 +312,7 @@ def test_positive_ansible_modules_installation(target_sat):
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
+@pytest.mark.foreman_installer
 def test_positive_import_run_roles(sync_roles, target_sat):
     """Import a FAM role and run the role on the Satellite
 
@@ -327,6 +340,7 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
 @pytest.mark.destructive
 @pytest.mark.parametrize('ansible_module', FAM_IDM_TEST_PLAYBOOKS)
+@pytest.mark.foreman_installer
 def test_positive_run_modules_and_roles_kerberos_auth(idm_sat, setup_fam_with_idm, ansible_module):
     """Run limited set of modules and roles on a Satellite with Kerberos authentication
 
@@ -351,8 +365,53 @@ def common_test_positive_run_modules_and_roles(satellite, ansible_module, extra_
     ):
         pytest.skip(f"{ansible_module} module test lacks proper setup")
 
+    if ansible_module in [
+        'activation_key',  # multi-CV environment conflict with deprecated params
+        'activation_keys_role',  # deprecation warning: content_view/lifecycle_environment params
+        'content_rhel_role',  # deprecation warning: content_view/lifecycle_environment params
+        'convert2rhel',  # deprecation warning: content_view/lifecycle_environment params
+        'repository_set_info',  # deprecation warning: content_view/lifecycle_environment params
+    ]:
+        pytest.skip(f"{ansible_module} module test needs fixes for multiCV-enabled Katello")
+
+    # Skip FAM tests that don't work yet on containerized setups
+    if (
+        satellite.install_method == InstallMethod.FOREMANCTL
+        and ansible_module
+        in [
+            'compute_attribute',  # 500 error creating compute attributes, libvirt not configured
+            'compute_profile',  # 500 error creating compute attributes, libvirt not configured
+            'compute_profiles_role',  # 500 error creating compute attributes, libvirt not configured
+            'compute_resource',  # compute resource creation failed, libvirt not configured
+            'compute_resources_role',  # compute resource failure (no_log hides details), libvirt not configured
+            'config_group',  # missing plugin: puppet
+            'discovery_rule',  # missing plugin: discovery
+            'domain',  # DNS not supported yet
+            'host',  # missing plugin: puppet
+            'hostgroup',  # needs DNS
+            'image',  # 500 error creating image, libvirt compute resource not configured
+            'katello_hostgroup',  # smart proxy not found by hostname
+            'katello_smart_proxy',  # unable to communicate with smart proxy
+            'luna_hostgroup',  # missing plugin: openscap
+            'puppetclasses_import',  # missing plugin: puppet
+            'puppet_environment',  # missing plugin: puppet
+            'resource_info',  # expected >=1 instance_hosts resource, found 0
+            'scap_content',  # missing plugin: openscap
+            'scap_tailoring_file',  # missing plugin: openscap
+            'smart_class_parameter',  # missing plugin: puppet
+            'smart_class_parameter_override_value',  # missing plugin: puppet
+            'smart_proxy_refresh',  # unable to communicate with smart proxy
+            'subnet',  # needs DNS
+            'templates_import',  # missing plugin: templates
+        ]
+    ):
+        pytest.skip(f"{ansible_module} module tests don't work in containerized setups")
+
     # Setup provisioning resources
-    if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
+    if (
+        ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS
+        and satellite.install_method == InstallMethod.INSTALLER
+    ):
         satellite.configure_libvirt_cr()
 
     env = [
