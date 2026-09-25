@@ -12,9 +12,11 @@
 
 """
 
+from contextlib import contextmanager
 from mailbox import mbox
 from re import findall
 from tempfile import mkstemp
+import time
 
 from fauxfactory import gen_string
 import pytest
@@ -87,51 +89,80 @@ def sysadmin_user_with_subscription_reposync_fail(target_sat):
 
 
 @pytest.fixture
-def reschedule_long_running_tasks_notification(target_sat):
+def reschedule_long_running_tasks_notification(target_sat, use_file_mail_delivery):
     """Reschedule long-running tasks checker from midnight (default) to every minute.
     Reset it back after the test.
     """
     default_cron_schedule = '0 0 * * *'
     every_minute_cron_schedule = '* * * * *'
-
-    assert (
-        target_sat.execute(
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
-            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{every_minute_cron_schedule}'"
-        ).status
-        == 0
+    recurring_logic_subquery = (
+        "task_group_id IN ("
+        "SELECT m.task_group_id FROM foreman_tasks_task_group_members m "
+        "JOIN foreman_tasks_tasks t ON t.id = m.task_id "
+        "WHERE t.label = 'Actions::CheckLongRunningTasks'"
+        ")"
     )
+
+    def _set_cron_line(cron_line):
+        result = target_sat.query_db(
+            f"UPDATE foreman_tasks_recurring_logics SET cron_line = '{cron_line}' "
+            f"WHERE state = 'active' AND {recurring_logic_subquery};",
+            output_format='raw',
+        )
+        assert 'UPDATE' in result, f'Failed to reschedule long-running tasks checker: {result}'
+
+    def _trigger_pending_run_now():
+        """Force the currently scheduled (e.g. midnight) delayed plan to fire now."""
+        result = target_sat.query_db(
+            "UPDATE dynflow_delayed_plans SET start_at = now() "
+            "WHERE execution_plan_uuid IN ("
+            "SELECT t.external_id::uuid FROM foreman_tasks_tasks t "
+            "JOIN foreman_tasks_task_group_members m ON m.task_id = t.id "
+            "JOIN foreman_tasks_recurring_logics rl ON rl.task_group_id = m.task_group_id "
+            "WHERE t.label = 'Actions::CheckLongRunningTasks' "
+            "AND rl.state = 'active' AND t.state = 'scheduled'"
+            ");",
+            output_format='raw',
+        )
+        assert 'UPDATE' in result, f'Failed to trigger pending checker run: {result}'
+
+    _set_cron_line(every_minute_cron_schedule)
+    _trigger_pending_run_now()
 
     yield
 
-    assert (
-        target_sat.execute(
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
-            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{default_cron_schedule}'"
-        ).status
-        == 0
-    )
+    _set_cron_line(default_cron_schedule)
 
 
 @pytest.fixture(autouse=True)
-def start_postfix_service(target_sat):
-    """Start postfix service (disabled by default)."""
-    assert target_sat.execute('systemctl start postfix').status == 0
+def use_file_mail_delivery(target_sat):
+    """Switch Foreman's mail delivery method to ``file`` for the duration of the test."""
+    mails_dir = '/usr/share/foreman/mails'
+
+    original = target_sat.api.Setting().search(query={'search': 'name=delivery_method'})[0]
+    original_value = original.value
+
+    target_sat.execute(
+        f'mkdir -p {mails_dir} && chmod 0777 {mails_dir} && chmod 0666 {mails_dir}/* 2>/dev/null; :'
+    )
+    original.value = 'file'
+    original.update(['value'])
+
+    yield mails_dir
+
+    original.value = original_value
+    original.update(['value'])
 
 
 @pytest.fixture
-def clean_root_mailbox(target_sat):
-    """Backup & purge local mailbox of the Satellite's root@localhost user.
-    Restore it afterwards.
-    """
-    root_mailbox = '/var/spool/mail/root'
-    root_mailbox_backup = f'{root_mailbox}-{gen_string("alphanumeric")}.bak'
-    target_sat.execute(f'cp -f {root_mailbox} {root_mailbox_backup}')
-    target_sat.execute(f'truncate -s 0 {root_mailbox}')
+def clean_root_mailbox(target_sat, use_file_mail_delivery):
+    """Purge the local file-based mailbox of the Satellite's root@localhost user."""
+    root_mailbox = f'{use_file_mail_delivery}/root@localhost'
+    target_sat.execute(f'rm -f {root_mailbox}')
 
     yield root_mailbox
 
-    target_sat.execute(f'mv -f {root_mailbox_backup} {root_mailbox}')
+    target_sat.execute(f'rm -f {root_mailbox}')
 
 
 def wait_for_mail(sat_obj, mailbox_file, contains_string, timeout=300, delay=5):
@@ -152,6 +183,49 @@ def wait_for_mail(sat_obj, mailbox_file, contains_string, timeout=300, delay=5):
             f'after {timeout} seconds.'
         ) from err
     return True
+
+
+@contextmanager
+def subscribed_to_mail_notification(target_sat, user, mail_notification, interval, skip_if_empty):
+    """Subscribe ``user`` to ``mail_notification`` for the duration of the context."""
+    target_sat.api.UserMailNotification(
+        user=user,
+        mail_notification=mail_notification,
+        interval=interval,
+        skip_if_empty=skip_if_empty,
+    ).create_json()
+    try:
+        yield
+    finally:
+        target_sat.api.UserMailNotification(user=user, id=mail_notification.id).delete()
+
+
+def trigger_daily_reports(target_sat):
+    """Trigger delivery of daily summary notifications via rake task."""
+    result = target_sat.execute('foreman-rake reports:daily')
+    assert result.status == 0, f'Failed to run reports:daily: {result.stderr}'
+
+
+def assert_mail_sent(target_sat, subject, mailbox_file='/usr/share/foreman/mails/root@localhost'):
+    """Wait for and assert that an e-mail with ``subject`` was sent."""
+    wait_for_mail(sat_obj=target_sat, mailbox_file=mailbox_file, contains_string=subject)
+    mailbox_result = target_sat.execute(f'cat {mailbox_file}')
+    assert mailbox_result.status == 0
+    assert subject in mailbox_result.stdout, f'Email with subject "{subject}" was not sent'
+
+
+def assert_mail_not_sent(
+    target_sat, subject, mailbox_file='/usr/share/foreman/mails/root@localhost', delay=10
+):
+    """Wait ``delay`` seconds and assert that no e-mail with ``subject`` was sent."""
+    time.sleep(delay)
+    mailbox_result = target_sat.execute(f'cat {mailbox_file}')
+    if mailbox_result.status != 0:
+        # Mailbox file was never created, i.e. no mail was sent at all.
+        return
+    assert subject not in mailbox_result.stdout, (
+        f'Email with subject "{subject}" was sent despite skip_if_empty=true'
+    )
 
 
 @pytest.fixture
@@ -200,18 +274,30 @@ def root_mailbox_copy(target_sat, clean_root_mailbox):
     :return: :class:`mailbox.mbox` instance
     """
     result = target_sat.execute(f'cat {clean_root_mailbox}')
-    assert result.status == 0, f'Could not read mailbox {clean_root_mailbox} on Satellite host.'
-    mbox_content = result.stdout
+    mbox_content = '' if result.status != 0 else result.stdout
     _, local_mbox_file = mkstemp()
     with open(local_mbox_file, 'w') as fh:
-        fh.writelines(mbox_content)
+        for raw_message in mbox_content.split('\r\n\r\n'):
+            raw_message = raw_message.lstrip('\n')
+            if not raw_message.strip():
+                continue
+            fh.write('From MAILER-DAEMON Thu Jan  1 00:00:00 1970\n')
+            fh.write(raw_message)
+            if not raw_message.endswith('\n'):
+                fh.write('\n')
+            fh.write('\n')
     return mbox(path=local_mbox_file)
 
 
 @pytest.fixture
-def long_running_task(target_sat):
+def long_running_task(target_sat, use_file_mail_delivery):
     """Create an async task and set its start time and last report time to two days ago.
     After the test finishes, the task is cancelled.
+
+    Depends explicitly on ``use_file_mail_delivery`` so the mail delivery
+    directory is guaranteed to exist with correct ownership before this
+    fixture creates a task that may trigger other notification deliveries
+    (e.g. job failure/success notifications) as a side effect.
     """
     template_id = (
         target_sat.api.JobTemplate()
@@ -232,6 +318,20 @@ def long_running_task(target_sat):
             'password': settings.server.ssh_password,
         },
     )
+
+    def _task_state():
+        rows = target_sat.query_db(
+            f"SELECT state FROM foreman_tasks_tasks WHERE id='{job['task']['id']}'"
+        )
+        return rows[0]['state'] if rows else None
+
+    wait_for(
+        func=_task_state,
+        fail_condition=lambda state: state != 'running',
+        timeout=60,
+        delay=1,
+    )
+
     sql_date_2_days_ago = "now() - INTERVAL '2 days'"
     query = (
         "UPDATE foreman_tasks_tasks "
@@ -275,6 +375,64 @@ def failed_repo_sync_task(target_sat, fake_yum_repo):
     return task_status
 
 
+@pytest.fixture(scope='module')
+def audit_summary_notification(module_target_sat):
+    """Get the Audit summary mail notification."""
+    notifications = module_target_sat.api.MailNotification().search(
+        query={'search': 'name="audit_summary"'}
+    )
+    assert len(notifications) > 0, "Audit summary notification not found"
+    return notifications[0]
+
+
+@pytest.fixture(scope='module')
+def config_summary_notification(module_target_sat):
+    """Get the Configuration Management Summary Report mail notification."""
+    notifications = module_target_sat.api.MailNotification().search(
+        query={'search': 'name="config_summary"'}
+    )
+    assert len(notifications) > 0, "Configuration summary notification not found"
+    return notifications[0]
+
+
+@pytest.fixture
+def empty_audit_state(target_sat, admin_user_with_localhost_email):
+    """Ensure audit log is empty.
+    This ensures audit summary emails are truly empty.
+
+    Depends on ``admin_user_with_localhost_email`` so that the user (and the
+    audit records its creation/update generates) already exists before the
+    audit log is cleared. Since pytest resolves parameter fixtures before
+    fixtures listed via ``usefixtures`` at the same scope, without this
+    dependency the user would be created *after* the audit log was cleared,
+    leaving stale audit entries behind and causing the "empty" test to fail.
+    """
+    # Delete all audits using SQL
+    result = target_sat.query_db('DELETE FROM audits;', output_format='raw')
+    assert 'DELETE' in result, f'Failed to delete audits: {result}'
+
+
+@pytest.fixture
+def empty_config_state(target_sat, admin_user_with_localhost_email):
+    """Ensure configuration management state is empty (no reports, hosts in sync).
+    This mimics the foreman test setup to ensure summaries are truly empty.
+
+    Depends on ``admin_user_with_localhost_email`` for the same fixture
+    ordering reason described in :func:`empty_audit_state`.
+    """
+    result = target_sat.query_db(
+        "DELETE FROM reports WHERE type = 'ConfigReport';", output_format='raw'
+    )
+    assert 'DELETE' in result, f'Failed to delete config reports: {result}'
+
+    # Update all hosts to be in sync and enabled
+    result = target_sat.query_db(
+        "UPDATE hosts SET last_report = (NOW() AT TIME ZONE 'UTC'), enabled = true;",
+        output_format='raw',
+    )
+    assert 'UPDATE' in result, f'Failed to update hosts: {result}'
+
+
 @pytest.mark.usefixtures(
     'admin_user_with_localhost_email',
     'reschedule_long_running_tasks_notification',
@@ -290,7 +448,8 @@ def test_positive_notification_for_long_running_tasks(long_running_task, root_ma
         1. Create an admin user with e-mail 'root@localhost'.
         2. Change the long-running tasks checker cron schedule from '0 0 * * * ' (midnight)
             to '* * * * * ' (every minute).
-        3. Start the `sendmail` service (disabled by default).
+        3. Switch Foreman's mail delivery method to ``file`` so outgoing e-mails are
+            written locally instead of requiring a working SMTP/sendmail service.
 
     :steps:
         1. Create a long-running task:
@@ -434,3 +593,143 @@ def test_negative_no_notification_for_long_running_tasks(
         assert task_id not in email.as_string(), (
             f'Unexpected notification e-mail with long-running task ID {task_id} found in user mailbox!'
         )
+
+
+@pytest.mark.usefixtures('clean_root_mailbox', 'empty_audit_state')
+def test_positive_skip_if_empty_audit_summary(
+    target_sat, admin_user_with_localhost_email, audit_summary_notification
+):
+    """Test that audit summary with skip_if_empty=true is not sent when empty.
+
+    :id: 9e1a9ff6-2955-41e6-8070-256aae0b216c
+
+    :setup:
+        1. Create an admin user with mail enabled
+
+    :steps:
+        1. Ensure audit log is empty
+        2. Subscribe user with skip_if_empty=true
+        3. Trigger the notification delivery via rake task
+        4. Verify no email was sent
+
+    :expectedresults:
+        No email is sent when skip_if_empty=true and audit log is empty
+
+    :Verifies: SAT-48332
+
+    :CaseImportance: Low
+    """
+    with subscribed_to_mail_notification(
+        target_sat,
+        user=admin_user_with_localhost_email,
+        mail_notification=audit_summary_notification,
+        interval='daily',
+        skip_if_empty=True,
+    ):
+        trigger_daily_reports(target_sat)
+        assert_mail_not_sent(target_sat, subject='Audit summary')
+
+
+@pytest.mark.usefixtures('clean_root_mailbox', 'empty_audit_state')
+def test_negative_skip_if_empty_false_audit_summary(
+    target_sat, admin_user_with_localhost_email, audit_summary_notification
+):
+    """Test that audit summary with skip_if_empty=false is sent even when empty.
+
+    :id: 380b36f7-5ccd-4f29-a3ff-83ba2caa2a6b
+
+    :setup:
+        1. Create an admin user with mail enabled
+
+    :steps:
+        1. Ensure audit log is empty
+        2. Subscribe user with skip_if_empty=false
+        3. Trigger the notification delivery via rake task
+        4. Verify email WAS sent
+
+    :expectedresults:
+        Email is sent when skip_if_empty=false even when audit log is empty
+
+    :Verifies: SAT-48332
+
+    :CaseImportance: Low
+    """
+    with subscribed_to_mail_notification(
+        target_sat,
+        user=admin_user_with_localhost_email,
+        mail_notification=audit_summary_notification,
+        interval='daily',
+        skip_if_empty=False,
+    ):
+        trigger_daily_reports(target_sat)
+        assert_mail_sent(target_sat, subject='Audit summary')
+
+
+@pytest.mark.usefixtures('clean_root_mailbox', 'empty_config_state')
+def test_positive_skip_if_empty_config_summary(
+    target_sat, admin_user_with_localhost_email, config_summary_notification
+):
+    """Test that configuration summary with skip_if_empty=true is not sent when empty.
+
+    :id: 12d44c06-2777-4802-a412-49a9f9c6343d
+
+    :setup:
+        1. Create an admin user with mail enabled
+        2. Ensure there are no reportable hosts (all in sync, enabled, no eventful reports)
+
+    :steps:
+        1. Subscribe user with skip_if_empty=true
+        2. Trigger the notification delivery via rake task
+        3. Verify no email was sent
+
+    :expectedresults:
+        No email is sent when skip_if_empty=true and there's nothing to report
+
+    :Verifies: SAT-48332
+
+    :CaseImportance: Low
+    """
+    with subscribed_to_mail_notification(
+        target_sat,
+        user=admin_user_with_localhost_email,
+        mail_notification=config_summary_notification,
+        interval='daily',
+        skip_if_empty=True,
+    ):
+        trigger_daily_reports(target_sat)
+        assert_mail_not_sent(target_sat, subject='Configuration Management Summary Report')
+
+
+@pytest.mark.usefixtures('clean_root_mailbox', 'empty_config_state')
+def test_negative_skip_if_empty_false_config_summary(
+    target_sat, admin_user_with_localhost_email, config_summary_notification
+):
+    """Test that configuration summary with skip_if_empty=false is sent even when empty.
+
+    :id: b2d3342a-ceab-4dcf-ab58-c0f8804c09d6
+
+    :setup:
+        1. Create an admin user with mail enabled
+        2. Ensure there are no reportable hosts (all in sync, enabled, no eventful reports)
+
+    :steps:
+        1. Subscribe user with skip_if_empty=false
+        2. Trigger the notification delivery via rake task
+        3. Verify email was sent
+
+    :expectedresults:
+        Email is sent when skip_if_empty=false even when there's nothing to report
+
+    :Verifies: SAT-48332
+
+    :CaseImportance: Low
+    """
+    with subscribed_to_mail_notification(
+        target_sat,
+        user=admin_user_with_localhost_email,
+        mail_notification=config_summary_notification,
+        interval='daily',
+        skip_if_empty=False,
+    ):
+        trigger_daily_reports(target_sat)
+        assert_mail_sent(target_sat, subject='Configuration Management Summary Report')
