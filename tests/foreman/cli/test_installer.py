@@ -124,7 +124,7 @@ def install_satellite_disconnected_iso(
         f'--initial-admin-password {settings.server.admin_password}',
     ]
     deploy = sat.execute(
-        f'satellitectl deploy --flavor satellite --air-gapped  {" ".join(deploy_parameters)}',
+        f'satellitectl deploy --flavor satellite  {" ".join(deploy_parameters)}',
         timeout='60m',
     )
     assert deploy.status == 0, f'satellitectl deploy failed:\n{deploy.stdout}\n{deploy.stderr}'
@@ -140,14 +140,14 @@ def module_disconnected_sat():
     ISO onto it, cuts the host off from the CDN and the container registry, and
     installs Satellite from the ISO images alone.
     """
-    disconnected = settings.server.get('disconnected', {})
+    disconnected = settings.repos.get('disconnected', {})
     # The Satellite ISO is pulled for the release under test, so that the master branch
     # installs the stream ISO while the 6.20.z branch installs the 6.20 one
     satellite_iso_url = disconnected.get('satellite_iso_url')
     rhel_iso_url = disconnected.get('rhel_iso_url')
     if not all((satellite_iso_url, rhel_iso_url)):
         pytest.skip(
-            'Both server.disconnected.satellite_iso_url and server.disconnected.rhel_iso_url '
+            'Both repos.disconnected.satellite_iso_url and repos.disconnected.rhel_iso_url '
             'must be set to run the disconnected installation tests'
         )
 
