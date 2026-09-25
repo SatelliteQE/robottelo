@@ -42,7 +42,7 @@ CaseComponent:
     - ContentCredentials
     - ContentManagement
     - ContentViews
-    - Conversionsappliance
+    - convert2rhel
     - Dashboard
     - DiscoveryImage
     - DiscoveryPlugin
