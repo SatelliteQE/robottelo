@@ -277,7 +277,7 @@ def idm_sat(satellite_factory, ad_data):
 
 @pytest.mark.pit_server
 @pytest.mark.run_in_one_thread
-def test_positive_ansible_modules_installation(target_sat):
+def test_positive_ansible_modules_installation(setup_fam, module_target_sat):
     """Foreman ansible modules installation test
 
     :id: 553a927e-2665-4227-8542-0258d7b1ccc4
@@ -286,13 +286,13 @@ def test_positive_ansible_modules_installation(target_sat):
         available and supported modules are contained
     """
     # list installed modules
-    result = target_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
+    result = module_target_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
     assert result.status == 0
     installed_modules = result.stdout.split('\n')
     installed_modules.remove('')
     # see help for installed modules
     for module_name in installed_modules:
-        result = target_sat.execute(f'ansible-doc redhat.satellite.{module_name} -s')
+        result = module_target_sat.execute(f'ansible-doc redhat.satellite.{module_name} -s')
         assert result.status == 0
         doc_name = result.stdout.split('\n')[1].lstrip()[:-1]
         assert doc_name == module_name
