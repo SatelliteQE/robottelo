@@ -2073,6 +2073,11 @@ class Capsule(ContentHost, CapsuleMixins):
         )
         self.setup_capsule_repos(release=release)
         if method == InstallMethod.FOREMANCTL:
+            # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
+            self.ensure_podman_installed(enable_ipv6_proxy=True)
+            # Capsule needs registry auth to pull deploy-proxy images
+            self.setup_foremanctl_container_registry()
+
             # Enable Packit repos
             pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
             if pull_requests:
@@ -2126,8 +2131,6 @@ class Capsule(ContentHost, CapsuleMixins):
                     f'A core service is not running at capsule host\n{result.stdout}'
                 )
         if method == InstallMethod.FOREMANCTL:
-            # Capsule needs registry auth to pull deploy-proxy images
-            self.setup_foremanctl_container_registry()
             result = self.execute(installer)
             if result.status:
                 # before exit download the logs file for further investigation
