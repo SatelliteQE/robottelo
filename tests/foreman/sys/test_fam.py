@@ -131,6 +131,10 @@ def common_fam_setup(satellite):
     satellite.execute(
         f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
     )
+    if satellite.install_method == InstallMethod.FOREMANCTL:
+        satellite.execute(
+            "groupadd --system --gid 700 pulp && useradd --system --uid 700 --gid pulp --no-create-home pulp"
+        )
 
     # Edit katello_smart_proxy tests to not delete the Capsule
     # https://github.com/theforeman/foreman-ansible-modules/pull/1969
@@ -381,10 +385,6 @@ def common_test_positive_run_modules_and_roles(satellite, ansible_module, extra_
             'compute_resource',  # compute resource creation failed, libvirt not configured
             'compute_resources_role',  # compute resource failure (no_log hides details), libvirt not configured
             'config_group',  # missing plugin: puppet
-            'content_import_info',  # chown failed: pulp user does not exist on containerized satellite
-            'content_import_library',  # chown failed: pulp user does not exist on containerized satellite
-            'content_import_repository',  # chown failed: pulp user does not exist on containerized satellite
-            'content_import_version',  # chown failed: pulp user does not exist on containerized satellite
             'discovery_rule',  # missing plugin: discovery
             'domain',  # DNS not supported yet
             'host',  # missing plugin: puppet
