@@ -119,7 +119,7 @@ def common_fam_setup(satellite):
 
     # Edit inventory configurations
     satellite.execute(
-        f"sed -i '/url/ s#http.*#https://localhost#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+        f"sed -i '/url/ s#http.*#https://{satellite.hostname}#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
     )
     satellite.execute(
         f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
