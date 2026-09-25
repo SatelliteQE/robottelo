@@ -276,26 +276,31 @@ def test_positive_multiple_orgs_with_same_repo(target_sat):
     assert repos[0] == repos[1] == repos[2]
 
 
-def test_positive_sync_mulitple_large_repos(module_target_sat, module_sca_manifest_org):
-    """Enable and bulk sync multiple large repositories
+@pytest.mark.parametrize('rhel_version', [8, 9, 10])
+def test_positive_sync_mulitple_large_repos(
+    module_target_sat, module_sca_manifest_org, rhel_version
+):
+    """Enable and sync the Red Hat recommended BaseOS, AppStream, and Extensions RPM
+    and Kickstart repositories for every supported RHEL version.
 
-    :id: b51c4a3d-d532-4342-be61-e868f7c3a723
+    :id: 296b7afe-10ae-47a0-9a0c-50465ddba6ef
 
     :steps:
-        1. Enabled multiple large Repositories
-                Red Hat Enterprise Linux 8 for x86_64 - AppStream RPMs 8
-                Red Hat Enterprise Linux 8 for x86_64 - BaseOS RPMs 8
-                Red Hat Enterprise Linux 8 for x86_64 - AppStream Kickstart 8
-                Red Hat Enterprise Linux 8 for x86_64 - BaseOS Kickstart 8
-        2. Sync all four repositories at the same time
-        3. Assert that the bulk sync succeeds
+        1. Enable the BaseOS, AppStream, and (RHEL 10 only) Extensions RPM repositories,
+           and the BaseOS and AppStream Kickstart repositories, for the set RHEL version.
+        2. Bulk sync the product containing all of the repositories.
+        3. Assert that the bulk sync succeeds.
 
     :expectedresults: All repositories should sync with no errors
 
-    :BZ: 2224031
+    :Verifies: SAT-45859
+
+    :parametrized: yes
     """
-    repo_names = ['rhel8_bos', 'rhel8_aps']
-    kickstart_names = ['rhel8_bos', 'rhel8_aps']
+    repo_names = [f'rhel{rhel_version}_bos', f'rhel{rhel_version}_aps']
+    if rhel_version == 10:
+        repo_names.append('rhel10_ext')
+    kickstart_names = [f'rhel{rhel_version}_bos', f'rhel{rhel_version}_aps']
     all_repo_ids = []
     for name in repo_names:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
@@ -307,7 +312,6 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_sca_manife
             releasever=REPOS[name]['releasever'],
         )
         all_repo_ids.append(rh_repo_id)
-
     for name in kickstart_names:
         rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch=constants.DEFAULT_ARCHITECTURE,
@@ -318,15 +322,16 @@ def test_positive_sync_mulitple_large_repos(module_target_sat, module_sca_manife
             releasever=constants.REPOS['kickstart'][name]['version'],
         )
         all_repo_ids.append(rh_repo_id)
-    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_repo = module_target_sat.api.Repository(id=all_repo_ids[-1]).read()
     rh_product = module_target_sat.api.Product(id=rh_repo.product.id).read()
     assert len(rh_product.repository) >= 4
     rh_product_repo_ids = [repo.id for repo in rh_product.repository]
     assert set(all_repo_ids).issubset(rh_product_repo_ids)
-    res = module_target_sat.api.ProductBulkAction().sync(
+
+    result = module_target_sat.api.ProductBulkAction().sync(
         data={'ids': [rh_product.id]}, timeout=2000
-    )
-    assert res['result'] == 'success'
+    )['result']
+    assert result == 'success'
 
 
 def test_positive_available_repositories_endpoint(module_sca_manifest_org, target_sat):
