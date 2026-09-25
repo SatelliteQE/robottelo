@@ -20,7 +20,7 @@ import pytest
 from robottelo.constants import SATELLITE_ANSWER_FILE
 from robottelo.utils.installer import InstallerCommand
 
-pytestmark = pytest.mark.destructive
+pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
 
 
 @pytest.fixture
