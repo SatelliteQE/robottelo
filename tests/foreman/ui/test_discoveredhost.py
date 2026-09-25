@@ -82,11 +82,12 @@ def test_positive_provision_pxe_host(
     provisioning_host.power_control(ensure=False)
     mac = provisioning_host.provisioning_nic_mac_addr
     wait_for(
-        lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+        lambda: sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'}) != [],
         timeout=1500,
         delay=20,
     )
-    discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+    discovered_host = sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'})[0]
+    assert discovered_host.mac.lower() == mac.lower()
 
     discovered_host_name = discovered_host.name
     domain_name = provisioning_hostgroup.domain.read().name
@@ -174,11 +175,12 @@ def test_positive_custom_provision_pxe_host(
     provisioning_host.power_control(ensure=False)
     mac = provisioning_host.provisioning_nic_mac_addr
     wait_for(
-        lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+        lambda: sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'}) != [],
         timeout=1500,
         delay=20,
     )
-    discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+    discovered_host = sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'})[0]
+    assert discovered_host.mac.lower() == mac.lower()
     if is_open('SAT-33477') and (
         sat.cli.DiscoveredHost.list(
             {
@@ -346,11 +348,12 @@ def test_positive_auto_provision_host_with_rule(
     pxeless_discovery_host.power_control(ensure=False)
     mac = pxeless_discovery_host.provisioning_nic_mac_addr
     wait_for(
-        lambda: sat.api.DiscoveredHost().search(query={'mac': mac}) != [],
+        lambda: sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'}) != [],
         timeout=1500,
         delay=20,
     )
-    discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+    discovered_host = sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'})[0]
+    assert discovered_host.mac.lower() == mac.lower()
     if is_open('SAT-33477') and (
         sat.cli.DiscoveredHost.list(
             {
