@@ -1761,6 +1761,32 @@ class Capsule(ContentHost, CapsuleMixins):
         return self.satellite.api.SmartProxy().search(query={'search': f'name={self.hostname}'})[0]
 
     @property
+    def nailgun_content_smart_proxy(self):
+        # The content-serving smart proxy. On containerized installs this is the '-pulp'
+        # proxy, which owns content settings (e.g. download policy) that Katello exposes
+        # through the smart_proxies API rather than the capsules API. Prefer the content
+        # proxy when present, otherwise fall back to the management proxy.
+        for name in (self.content_hostname, self.hostname):
+            if results := self.satellite.api.SmartProxy().search(
+                query={'search': f'name="{name}"'}
+            ):
+                return results[0]
+        raise ContentHostError(f'No content SmartProxy found matching hostname {self.hostname}')
+
+    @cached_property
+    def content_hostname(self):
+        """Return the hostname used for content/pulp operations.
+
+        In containerized (foremanctl) deployments, the content service runs on a
+        separate proxy with a '-pulp' suffix. Traditional installs use the base hostname.
+        """
+        # Check if a dedicated content (-pulp) capsule exists (containerized install).
+        pulp_hostname = f'{self.hostname}-pulp'
+        if self.satellite.api.Capsule().search(query={'search': f'name="{pulp_hostname}"'}):
+            return pulp_hostname
+        return self.hostname
+
+    @property
     def satellite(self):
         if self._satellite is None:
             try:
@@ -2183,7 +2209,7 @@ class Capsule(ContentHost, CapsuleMixins):
 
     def update_download_policy(self, policy):
         """Updates capsule's download policy to desired value"""
-        proxy = self.nailgun_smart_proxy.read()
+        proxy = self.nailgun_content_smart_proxy.read()
         proxy.download_policy = policy
         proxy.update(['download_policy'])
 
