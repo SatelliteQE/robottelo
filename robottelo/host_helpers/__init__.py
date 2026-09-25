@@ -10,6 +10,7 @@ from robottelo.host_helpers.contenthost_mixins import (
 )
 from robottelo.host_helpers.satellite_mixins import (
     ContentInfo,
+    DisconnectedInstall,
     EnablePluginsSatellite,
     Factories,
     IoPSetup,
@@ -28,6 +29,7 @@ class CapsuleMixins(CapsuleInfo, EnablePluginsCapsule, InstallationVerification)
 
 class SatelliteMixins(
     ContentInfo,
+    DisconnectedInstall,
     Factories,
     SystemInfo,
     EnablePluginsSatellite,
