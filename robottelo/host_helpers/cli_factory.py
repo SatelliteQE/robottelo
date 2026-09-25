@@ -403,6 +403,19 @@ class CLIFactory:
                 raise err
         return product
 
+    def _find_compatible_operating_system(self, architecture_name):
+        """Return a default OS associated with the requested architecture, if any."""
+        operating_systems = self._satellite.cli.OperatingSys.list(
+            {'search': constants.DEFAULT_OS_SEARCH_QUERY}
+        )
+        for operating_system in operating_systems:
+            operating_system_info = self._satellite.cli.OperatingSys.info(
+                {'id': operating_system['id']}
+            )
+            if architecture_name in operating_system_info.get('architectures', []):
+                return operating_system['id']
+        return None
+
     def make_fake_host(self, options=None):
         """Wrapper function for make_host to pass all required options for creation
         of a fake host
@@ -435,23 +448,30 @@ class CLIFactory:
                     'organizations': options.get('organization'),
                 }
             )['id']
-        if not options.get('architecture') and not options.get('architecture-id'):
+        architecture_name = options.get('architecture')
+        if not architecture_name and not options.get('architecture-id'):
             try:
-                options['architecture-id'] = self._satellite.cli.Architecture.info(
+                architecture = self._satellite.cli.Architecture.info(
                     {'name': constants.DEFAULT_ARCHITECTURE}
-                )['id']
+                )
+                options['architecture-id'] = architecture['id']
+                architecture_name = architecture['name']
             except CLIReturnCodeError:
-                options['architecture-id'] = self.make_architecture()['id']
+                architecture = self.make_architecture()
+                options['architecture-id'] = architecture['id']
+                architecture_name = architecture['name']
+        elif not architecture_name:
+            architecture_name = self._satellite.cli.Architecture.info(
+                {'id': options['architecture-id']}
+            )['name']
         if not options.get('operatingsystem') and not options.get('operatingsystem-id'):
-            try:
-                options['operatingsystem-id'] = self._satellite.cli.OperatingSys.list(
-                    {'search': 'name="RedHat" AND (major="7" OR major="8")'}
-                )[0]['id']
-            except IndexError:
+            if operating_system_id := self._find_compatible_operating_system(architecture_name):
+                options['operatingsystem-id'] = operating_system_id
+            else:
                 options['operatingsystem-id'] = self.make_os(
                     {
                         'architecture-ids': options.get('architecture-id'),
-                        'architectures': options.get('architecture'),
+                        'architectures': architecture_name,
                         'partition-table-ids': options.get('partition-table-id'),
                         'partition-tables': options.get('partition-table'),
                     }
