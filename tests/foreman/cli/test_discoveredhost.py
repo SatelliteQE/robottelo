@@ -55,18 +55,12 @@ def test_rhel_pxe_discovery_provisioning(
     org = provisioning_hostgroup.organization[0].read()
     loc = provisioning_hostgroup.location[0].read()
     wait_for(
-        lambda: (
-            sat.api.DiscoveredHost().search(
-                query={
-                    'mac': mac,
-                }
-            )
-            != []
-        ),
+        lambda: sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'}) != [],
         timeout=1500,
         delay=20,
     )
-    discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+    discovered_host = sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'})[0]
+    assert discovered_host.mac.lower() == mac.lower()
     if is_open('SAT-33477') and (
         sat.cli.DiscoveredHost.list(
             {
@@ -106,6 +100,7 @@ def test_rhel_pxe_discovery_provisioning(
     host = sat.api.Host().search(query={"search": f'id={discovered_host.id}'})[0]
     request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
     assert host
+    assert host.mac.lower() == mac.lower()
 
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
@@ -113,7 +108,7 @@ def test_rhel_pxe_discovery_provisioning(
         delay=10,
     )
     assert host.read().build_status_label == 'Installed'
-    assert not sat.api.DiscoveredHost().search(query={'mac': mac})
+    assert not sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'})
 
 
 @pytest.mark.e2e
@@ -147,18 +142,12 @@ def test_rhel_pxeless_discovery_provisioning(
     org = provisioning_hostgroup.organization[0].read()
     loc = provisioning_hostgroup.location[0].read()
     wait_for(
-        lambda: (
-            sat.api.DiscoveredHost().search(
-                query={
-                    'mac': mac,
-                }
-            )
-            != []
-        ),
+        lambda: sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'}) != [],
         timeout=1500,
         delay=40,
     )
-    discovered_host = sat.api.DiscoveredHost().search(query={'mac': mac})[0]
+    discovered_host = sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'})[0]
+    assert discovered_host.mac.lower() == mac.lower()
     if is_open('SAT-33477') and (
         sat.cli.DiscoveredHost.list(
             {
@@ -197,6 +186,7 @@ def test_rhel_pxeless_discovery_provisioning(
     host = sat.api.Host().search(query={"search": f'id={discovered_host.id}'})[0]
     request.addfinalizer(lambda: sat.provisioning_cleanup(host.name))
     assert host
+    assert host.mac.lower() == mac.lower()
 
     wait_for(
         lambda: host.read().build_status_label != 'Pending installation',
@@ -204,7 +194,7 @@ def test_rhel_pxeless_discovery_provisioning(
         delay=10,
     )
     assert host.read().build_status_label == 'Installed'
-    assert not sat.api.DiscoveredHost().search(query={'mac': mac})
+    assert not sat.api.DiscoveredHost().search(query={'search': f'mac = {mac}'})
     assert not sat.api.Host().search(query={'search': 'name="localhost.localdomain"'})
 
 
