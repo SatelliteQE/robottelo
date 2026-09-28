@@ -113,14 +113,6 @@ def get_ohsnap_repos(settings):
         snap=settings.server.version.snap,
     )
 
-    data['SATMAINTENANCE_REPO'] = get_ohsnap_repo_url(
-        settings,
-        repo='maintenance',
-        product='satellite',
-        release=settings.server.version.release,
-        os_release=settings.server.version.rhel_version,
-        snap=settings.server.version.snap,
-    )
     return data
 
 
