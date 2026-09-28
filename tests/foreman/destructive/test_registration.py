@@ -42,6 +42,8 @@ def test_host_registration_rex_pull_mode(
     :expectedresults: Host registered successfully with MQTT broker
 
     :parametrized: yes
+
+    :BlockedBy: SAT-40479
     """
     client = rhel_contenthost_with_repos
     org = module_org
