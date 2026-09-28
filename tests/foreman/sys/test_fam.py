@@ -113,11 +113,6 @@ def common_fam_setup(satellite):
     # Edit Makefile to not try to rebuild the collection when tests run
     satellite.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
 
-    # Edit Makefile to use passed-in pytest
-    # Can be removed once https://github.com/theforeman/foreman-ansible-modules/pull/1788
-    # is present in all relevant branches
-    satellite.execute(f"sed -i '/test_crud/ s/pytest/$(PYTEST_COMMAND)/' {FAM_ROOT_DIR}/Makefile")
-
     # Edit inventory configurations
     satellite.execute(
         f"sed -i '/url/ s#http.*#https://{satellite.hostname}#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
@@ -140,12 +135,6 @@ def common_fam_setup(satellite):
             'groupadd --system --gid 700 pulp && useradd --system --uid 700 --gid pulp --no-create-home pulp'
         )
 
-    # Edit katello_smart_proxy tests to not delete the Capsule
-    # https://github.com/theforeman/foreman-ansible-modules/pull/1969
-    satellite.execute(
-        f"sed -i '94,112d' {FAM_ROOT_DIR}/tests/test_playbooks/katello_smart_proxy.yml"
-    )
-
 
 @pytest.fixture(scope='module')
 def setup_fam(
@@ -165,12 +154,6 @@ def setup_fam(
         settings.fam.server.to_yaml(),
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
         temp_file=True,
-    )
-
-    # Edit repos used in tests
-    # Until https://github.com/theforeman/foreman-ansible-modules/pull/1899 is in
-    module_target_sat.execute(
-        f"sed -i 's#https://repos.fedorapeople.org/pulp/pulp/demo_repos/zoo/#https://fixtures.pulpproject.org/rpm-signed/#' {FAM_ROOT_DIR}/tests/test_playbooks/*.yml"
     )
 
     # Upload manifest to test playbooks directory
