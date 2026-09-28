@@ -17,6 +17,7 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 """
 
 from datetime import UTC, datetime
+import random
 from random import randint
 
 from fauxfactory import gen_integer, gen_string
@@ -25,10 +26,7 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import REPOS, TIMESTAMP_FMT_DATE
-from robottelo.utils.datafactory import (
-    parametrized,
-    valid_data_list,
-)
+from robottelo.utils.datafactory import valid_data_list
 
 
 @pytest.fixture(scope='module')
@@ -64,35 +62,33 @@ def content_view_module_stream(module_org, sync_repo_module_stream, module_targe
 class TestContentViewFilter:
     """Tests for content view filters."""
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_erratum_with_name(self, name, content_view, target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_create_erratum_with_name(self, content_view, target_sat):
         """Create new erratum content filter using different inputs as a name
 
         :id: f78a133f-441f-4fcc-b292-b9eed228d755
-
-        :parametrized: yes
 
         :expectedresults: Content view filter created successfully and has
             correct name and type
 
         """
+        name = random.choice(list(valid_data_list().values()))
         cvf = target_sat.api.ErratumContentViewFilter(content_view=content_view, name=name).create()
         assert cvf.name == name
         assert cvf.type == 'erratum'
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_pkg_group_with_name(self, name, content_view, target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_create_pkg_group_with_name(self, content_view, target_sat):
         """Create new package group content filter using different inputs as a name
 
         :id: f9bfb6bf-a879-4f1a-970d-8f4df533cd59
-
-        :parametrized: yes
 
         :expectedresults: Content view filter created successfully and has
             correct name and type
 
         :CaseImportance: Medium
         """
+        name = random.choice(list(valid_data_list().values()))
         cvf = target_sat.api.PackageGroupContentViewFilter(
             content_view=content_view,
             name=name,
@@ -100,19 +96,18 @@ class TestContentViewFilter:
         assert cvf.name == name
         assert cvf.type == 'package_group'
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_create_rpm_with_name(self, name, content_view, target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_create_rpm_with_name(self, content_view, target_sat):
         """Create new RPM content filter using different inputs as a name
 
         :id: f1c88e72-7993-47ac-8fbc-c749d32bc768
-
-        :parametrized: yes
 
         :expectedresults: Content view filter created successfully and has
             correct name and type
 
         :CaseImportance: Medium
         """
+        name = random.choice(list(valid_data_list().values()))
         cvf = target_sat.api.RPMContentViewFilter(content_view=content_view, name=name).create()
         assert cvf.name == name
         assert cvf.type == 'rpm'
@@ -134,19 +129,18 @@ class TestContentViewFilter:
         ).create()
         assert cvf.inclusion == inclusion
 
-    @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-    def test_positive_create_with_description(self, description, content_view, target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_create_with_description(self, content_view, target_sat):
         """Create new content filter using different inputs as a description
 
         :id: e057083f-e69d-46e7-b336-45faaf67fa52
-
-        :parametrized: yes
 
         :expectedresults: Content view filter created successfully and has
             correct description
 
         :CaseImportance: Low
         """
+        description = random.choice(list(valid_data_list().values()))
         cvf = target_sat.api.RPMContentViewFilter(
             content_view=content_view,
             description=description,
@@ -267,35 +261,33 @@ class TestContentViewFilter:
         with pytest.raises(HTTPError):
             cvf.read()
 
-    @pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-    def test_positive_update_name(self, name, content_view, target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_update_name(self, content_view, target_sat):
         """Update content view filter with new name
 
         :id: f310c161-00d2-4281-9721-6e45cbc5e4ec
-
-        :parametrized: yes
 
         :expectedresults: Content view filter updated successfully and name was
             changed
 
         """
+        name = random.choice(list(valid_data_list().values()))
         cvf = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
         cvf.name = name
         assert cvf.update(['name']).name == name
 
-    @pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-    def test_positive_update_description(self, description, content_view, target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_update_description(self, content_view, target_sat):
         """Update content view filter with new description
 
         :id: f2c5db28-0163-4cf3-929a-16ba1cb98c34
-
-        :parametrized: yes
 
         :expectedresults: Content view filter updated successfully and
             description was changed
 
         :CaseImportance: Low
         """
+        description = random.choice(list(valid_data_list().values()))
         cvf = target_sat.api.RPMContentViewFilter(content_view=content_view).create()
         cvf.description = description
         cvf = cvf.update(['description'])

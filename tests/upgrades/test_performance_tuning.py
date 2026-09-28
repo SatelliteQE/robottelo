@@ -19,6 +19,8 @@ import pytest
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
 
+pytestmark = pytest.mark.foreman_installer
+
 
 class TestScenarioPerformanceTuning:
     """The test class contains pre-upgrade and post-upgrade scenarios to test

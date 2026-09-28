@@ -12,6 +12,7 @@
 
 """
 
+import json
 import random
 import re
 from string import punctuation
@@ -488,21 +489,20 @@ class TestRepository:
         [
             {'content_type': content_type, 'download_policy': 'on_demand'}
             for content_type in constants.REPO_TYPE
-            if content_type not in ['yum', 'docker', 'deb', 'file']
+            if content_type not in ['yum', 'docker', 'deb', 'file', 'python']
         ],
         indirect=True,
         ids=lambda x: x['content_type'],
     )
     def test_negative_create_repos_with_download_policy(self, repo_options, target_sat):
-        """Verify that non-YUM, non-docker, non-debian, and non-file repositories cannot be created with
-        download policy
+        """Verify that repositories not supporting download policy cannot be created with one
 
         :id: 8a59cb31-164d-49df-b3c6-9b90634919ce
 
         :parametrized: yes
 
-        :expectedresults: Non-YUM & non-docker repositories are not created with on_demand download
-            policy
+        :expectedresults: Repositories that do not support download policy are not created with
+            on_demand download policy
 
         :CaseImportance: Critical
         """
@@ -1377,13 +1377,76 @@ class TestRepositorySync:
             releasever=None,
         )
         target_sat.api.Repository(id=repo_id).sync()
-        prod_log_out = target_sat.execute(
-            'sudo -u postgres psql -d foreman -c "select class,execution_plan_uuid,input '
-            'from dynflow_actions where input LIKE \'%"contents_changed":null%\''
-            ' AND class = \'Actions::Katello::Repository::Sync\';"'
+        assert (
+            target_sat.query_db(
+                "select class,execution_plan_uuid,input "
+                "from dynflow_actions where input LIKE '%\"contents_changed\":null%'"
+                " AND class = 'Actions::Katello::Repository::Sync'"
+            )
+            == []
         )
-        assert prod_log_out.status == 0
-        assert "(0 rows)" in prod_log_out.stdout
+
+    def test_positive_validate_async_operation_response(self, module_sca_manifest_org, target_sat):
+        """Verify that RefreshDistribution action properly tracks Pulp tasks via AsyncOperationResponse.
+
+        :id: 84dc1de1-2b9c-4545-8ced-4a6f0857b745
+
+        :steps:
+            1. Enable and sync a Red Hat repository
+            2. Query the sync task's RefreshDistribution action
+            3. Verify pulp_tasks array is populated with task information
+
+        :expectedresults: RefreshDistribution action output contains pulp_tasks with
+            proper AsyncOperationResponse data (task href, state, timestamps)
+
+        :customerscenario: true
+
+        :Verifies: SAT-44644
+        """
+        # Enable and sync a Red Hat repository
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_sca_manifest_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhst7']['name'],
+            reposet=constants.REPOSET['rhst7'],
+            releasever=None,
+        )
+        target_sat.api.Repository(id=repo_id).sync()
+
+        # Wait for sync task to complete and get the task
+        task = target_sat.wait_for_tasks(
+            search_query=(
+                f'label = Actions::Katello::Repository::Sync and resource_id = {repo_id}'
+                f' and organization_id = {module_sca_manifest_org.id}'
+            ),
+            search_rate=20,
+            max_tries=15,
+        )
+        assert len(task) == 1, f'Expected 1 sync task to be found, got {task}'
+        task_id = task[0].id
+
+        # Query RefreshDistribution action output using foreman-rake console
+        rake_command = (
+            f"task = ForemanTasks::Task.find('{task_id}'); "
+            "refresh_dist_action = task.execution_plan.actions.find do |action| "
+            "action.class.name == 'Actions::Pulp3::Repository::RefreshDistribution' end; "
+            "refresh_dist_action.output;"
+        )
+        output = target_sat.execute(f'echo "{rake_command}" | foreman-rake console')
+
+        # Verify the output contains pulp_tasks with proper AsyncOperationResponse data
+        assert output.status == 0, 'Failed to query RefreshDistribution action'
+        assert '"pulp_tasks"=>[]' not in output.stdout, (
+            'Bug: pulp_tasks is empty - AsyncOperationResponse not captured'
+        )
+        assert '"state"=>"completed"' in output.stdout or '"state"=>"running"' in output.stdout, (
+            'Pulp task state not found in output'
+        )
+        assert '"pulp_href"=>' in output.stdout, 'Pulp task href not found in output'
+        assert '"name"=>"pulpcore.app.tasks.base.ageneral_update"' in output.stdout, (
+            'Expected pulpcore task name not found'
+        )
 
     @pytest.mark.parametrize(
         'distro',
@@ -2374,6 +2437,53 @@ class TestFileRepository:
         repo.remove_content(data={'ids': [file_detail[0].id], 'content_type': 'file'})
         assert repo.read().content_counts['file'] == 0
 
+    def test_positive_file_repo_accessible_via_pulp_isos(self, target_sat):
+        """Verify file repositories are accessible via /pulp/isos path
+
+        :id: fa57b02d-433b-4f2a-8d28-0b1b856ced01
+
+        :steps:
+            1. Create an organization
+            2. Create a product
+            3. Create a file-type repository with a valid file repo URL
+            4. Sync the repository
+            5. Access the repository via /pulp/isos/{org}/Library/custom/{product}/{repo}/
+            6. Verify files are accessible with HTTP 200 response
+
+        :expectedresults:
+            1. Repository syncs successfully
+            2. Files are accessible via /pulp/isos path
+            3. HTTP response is 200 OK
+
+        :Verifies: SAT-47194
+        """
+        org = target_sat.api.Organization().create()
+        product = target_sat.api.Product(organization=org).create()
+        repo = target_sat.api.Repository(
+            product=product,
+            content_type='file',
+            url=repo_constants.CUSTOM_FILE_REPO,
+        ).create()
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['file'] > 0, 'Repository should contain files after sync'
+
+        # Construct /pulp/isos path from repo.full_path
+        # repo.full_path returns /pulp/content/... but we need to test /pulp/isos/...
+        content_path = urlparse(repo.full_path).path
+        iso_path = content_path.replace('/pulp/content/', '/pulp/isos/')
+
+        # Use target_sat.hostname instead of localhost for IPv6 compatibility
+        result = target_sat.execute(
+            f'curl -k -s -o /dev/null -w "%{{http_code}}" https://{target_sat.hostname}{iso_path}'
+        )
+
+        assert result.status == 0, f'curl command failed: {result.stderr}'
+        assert result.stdout.strip() == '200', (
+            f'Expected HTTP 200 for {iso_path}, got {result.stdout.strip()}'
+        )
+
 
 @pytest.mark.skip_if_not_set('container_repo')
 class TestTokenAuthContainerRepository:
@@ -2532,7 +2642,7 @@ class TestPythonRepository:
 
         :id: e521a7a4-2502-4fe2-b297-a13fc99e679f
 
-        :BlockedBy: SAT-23430
+        :BlockedBy: SAT-36514
 
         :steps:
             1. Sync python repo
@@ -2544,3 +2654,101 @@ class TestPythonRepository:
         :CaseAutomation: Automated
         """
         repo.sync()
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {
+                'content_type': constants.REPO_TYPE['python'],
+                'url': 'https://pypi.org',
+                'download_policy': policy,
+                'generic_remote_options': '{"includes":["pulp-python"]}',
+            }
+            for policy in constants.DOWNLOAD_POLICIES
+        ],
+        indirect=True,
+        ids=lambda x: x['download_policy'],
+    )
+    def test_positive_create_with_download_policy(self, repo_options, repo):
+        """Create Python repositories with available download policies.
+
+        :id: 08ca23cd-cb5f-458b-b769-f59923e19eb0
+
+        :parametrized: yes
+
+        :Verifies: SAT-36510
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo with each download policy (on_demand, immediate)
+
+        :expectedresults: Python repo is created with the specified download policy
+        """
+        assert repo.download_policy == repo_options['download_policy']
+
+    def test_positive_download_policy_lifecycle(self, module_org, module_product, target_sat):
+        """Verify the default and updated download policies through Python repository syncs.
+
+        :id: da18fdfc-20df-4d95-bfb9-ecca9275fe4f
+
+        :Verifies: SAT-36510
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo without specifying a download policy.
+            2. Sync the repository and verify that its Pulp remote uses the default policy.
+               -> Specify shelf-reader in the includes to limit the number of synced packages.
+            3. Update the repository to the other supported download policy.
+            4. Sync the repository again and verify that its Pulp remote uses the new policy.
+
+        :expectedresults: The Python repo syncs successfully with both the default and updated
+            download policies.
+
+        :CaseImportance: Critical
+        """
+        default_dl_policy = target_sat.api.Setting().search(
+            query={'search': 'name=default_download_policy'}
+        )
+        assert default_dl_policy
+        default_policy = default_dl_policy[0].value
+        updated_policy = 'on_demand' if default_policy == 'immediate' else 'immediate'
+
+        repo = target_sat.api.Repository(
+            content_type=constants.REPO_TYPE['python'],
+            includes=['shelf-reader'],
+            organization=module_org,
+            product=module_product,
+            url=settings.repos.python.pypi.url,
+        ).create()
+        assert repo.download_policy == default_policy
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['python_package'] > 0
+
+        remote_href = target_sat.execute(
+            f'echo "::Katello::Repository.find({repo.id}).remote_href" | foreman-rake console'
+        ).stdout.split('"')[1]
+        remote_result = target_sat.execute(
+            f'pulp --no-verify-ssl --refresh-api python remote show --href "{remote_href}"'
+        )
+        assert remote_result.status == 0, remote_result.stderr
+        remote = json.loads(remote_result.stdout)
+        assert remote['policy'] == default_policy
+
+        repo.download_policy = updated_policy
+        repo = repo.update(['download_policy'])
+        assert repo.download_policy == updated_policy
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['python_package'] > 0
+
+        remote_result = target_sat.execute(
+            f'pulp --no-verify-ssl --refresh-api python remote show --href "{remote_href}"'
+        )
+        assert remote_result.status == 0, remote_result.stderr
+        remote = json.loads(remote_result.stdout)
+        assert remote['policy'] == updated_policy

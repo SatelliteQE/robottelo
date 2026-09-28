@@ -14,6 +14,8 @@
 
 import pytest
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.stubbed
 @pytest.mark.upgrade

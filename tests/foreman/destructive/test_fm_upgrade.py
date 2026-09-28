@@ -17,7 +17,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.enums import NetworkType
 
-pytestmark = pytest.mark.destructive
+pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
 
 
 @pytest.mark.skipif(

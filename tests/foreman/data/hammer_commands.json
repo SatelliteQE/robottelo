@@ -4339,6 +4339,12 @@
                   "value": "VALUE"
                 },
                 {
+                  "help": "Path to a PEM file with CA certificate(s) used for LDAPS verification (system trust store is not used when set). In containerized deployments, the container's trust store is used, so the CA certificate(s) may need to be provided here explicitly",
+                  "name": "cacert-file",
+                  "shortname": null,
+                  "value": "FILE"
+                },
+                {
                   "help": "Groups base DN",
                   "name": "groups-base",
                   "shortname": null,
@@ -4743,6 +4749,12 @@
                   "name": "base-dn",
                   "shortname": null,
                   "value": "VALUE"
+                },
+                {
+                  "help": "Path to a PEM file with CA certificate(s) used for LDAPS verification (system trust store is not used when set). In containerized deployments, the container's trust store is used, so the CA certificate(s) may need to be provided here explicitly",
+                  "name": "cacert-file",
+                  "shortname": null,
+                  "value": "FILE"
                 },
                 {
                   "help": "Groups base DN",
@@ -15613,6 +15625,36 @@
       ],
       "subcommands": [
         {
+          "name": "info",
+          "options": [
+            {
+              "help": "Content view environment identifier",
+              "name": "id",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "Show specified fields or predefined field sets only. (See below)",
+              "name": "fields",
+              "shortname": null,
+              "value": "LIST"
+            },
+            {
+              "help": "Print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            }
+          ],
+          "subcommands": []
+        },
+        {
           "description": "List content view environments",
           "name": "list",
           "options": [
@@ -15669,6 +15711,24 @@
               "name": "host-id",
               "shortname": null,
               "value": null
+            },
+            {
+              "help": "Host group identifier",
+              "name": "hostgroup",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Host group identifier",
+              "name": "hostgroup-id",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "Host group identifier",
+              "name": "hostgroup-title",
+              "shortname": null,
+              "value": "VALUE"
             },
             {
               "help": "VALUE/NUMBER      Environment identifier",
@@ -21893,12 +21953,6 @@
               "value": "VALUE"
             },
             {
-              "help": "Id of OpenSCAP Capsule",
-              "name": "openscap-proxy-id",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
               "help": "VALUE/NUMBER       Required if host is managed and value is not inherited from host group",
               "name": "operatingsystem",
               "shortname": null,
@@ -22411,11 +22465,11 @@
               "name": "apply",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             },
@@ -23682,11 +23736,11 @@
               "name": "install",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             },
@@ -23774,11 +23828,11 @@
               "name": "remove",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             },
@@ -23787,11 +23841,11 @@
               "name": "upgrade",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             },
@@ -23800,11 +23854,11 @@
               "name": "upgrade-all",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             }
@@ -23827,11 +23881,11 @@
               "name": "install",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             },
@@ -23840,82 +23894,15 @@
               "name": "remove",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             }
           ]
-        },
-        {
-          "description": "View policies ENC for host",
-          "name": "policies-enc",
-          "options": [
-            {
-              "help": "Show specified fields or predefined field sets only. (See below)",
-              "name": "fields",
-              "shortname": null,
-              "value": "LIST"
-            },
-            {
-              "help": "The identifier of the host",
-              "name": "id",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER     Set the current location context for the request",
-              "name": "location-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Host name",
-              "name": "name",
-              "shortname": null,
-              "value": "VALUE"
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-id",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "VALUE/NUMBER Set the current organization context for the request",
-              "name": "organization-title",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Print help ------------------------|-----|-------- | ALL | DEFAULT ------------------------|-----|-------- | x   | x id              | x   | x path            | x   | x download path   | x   | x path          | x   | x download path | x   | x of month            | x   | x | x   | x | x   | x | x   | x | x   | x ------------------------|-----|-------- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
         },
         {
           "description": "Reboot a host",
@@ -25165,12 +25152,6 @@
               "value": null
             },
             {
-              "help": "Id of OpenSCAP Capsule",
-              "name": "openscap-proxy-id",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
               "help": "VALUE/NUMBER         Required if host is managed and value is not inherited from host group",
               "name": "operatingsystem",
               "shortname": null,
@@ -25634,11 +25615,11 @@
               "name": "install",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             }
@@ -25952,11 +25933,11 @@
               "name": "install",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             },
@@ -25965,11 +25946,11 @@
               "name": "remove",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             },
@@ -25978,11 +25959,11 @@
               "name": "update",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             }
@@ -26003,12 +25984,13 @@
             {
               "description": "Not supported. Use the remote execution equivalent `hammer job-invocation create --feature katello_group_install`. Specify the host collection with the --search-query parameter, e.g. `--search-query \"host_collection = MyCollection\"` or `--search-query \"host_collection_id=6\"`",
               "name": "install",
-              "options": [{
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+              "options": [
+                {
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             },
@@ -26017,11 +25999,11 @@
               "name": "remove",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             },
@@ -26030,11 +26012,11 @@
               "name": "update",
               "options": [
                 {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
+                  "help": "Print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
               ],
               "subcommands": []
             }
@@ -26905,12 +26887,6 @@
               "value": "VALUE"
             },
             {
-              "help": "Id of OpenSCAP Capsule",
-              "name": "openscap-proxy-id",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
               "help": "VALUE/NUMBER       Operating system title/id",
               "name": "operatingsystem",
               "shortname": null,
@@ -27654,12 +27630,6 @@
               "name": "new-name",
               "shortname": null,
               "value": "VALUE"
-            },
-            {
-              "help": "Id of OpenSCAP Capsule",
-              "name": "openscap-proxy-id",
-              "shortname": null,
-              "value": "NUMBER"
             },
             {
               "help": "VALUE/NUMBER       Operating system title/id",
@@ -28472,69 +28442,6 @@
         }
       ],
       "subcommands": [
-        {
-          "description": "Manage cloud connector setup",
-          "name": "cloud-connector",
-          "options": [
-            {
-              "help": "Print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": [
-            {
-              "description": "Enable cloud connector",
-              "name": "enable",
-              "options": [
-                {
-                  "help": "VALUE/NUMBER     Set the current location context for the request",
-                  "name": "location",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "VALUE/NUMBER     Set the current location context for the request",
-                  "name": "location-id",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "VALUE/NUMBER     Set the current location context for the request",
-                  "name": "location-title",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "VALUE/NUMBER Set the current organization context for the request",
-                  "name": "organization",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "VALUE/NUMBER Set the current organization context for the request",
-                  "name": "organization-id",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "VALUE/NUMBER Set the current organization context for the request",
-                  "name": "organization-title",
-                  "shortname": null,
-                  "value": null
-                },
-                {
-                  "help": "Print help you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
-                  "name": "help",
-                  "shortname": "h",
-                  "value": null
-                }
-              ],
-              "subcommands": []
-            }
-          ]
-        },
         {
           "description": "Manage inventory related operations",
           "name": "inventory",
@@ -46157,12 +46064,6 @@
               "value": null
             },
             {
-              "help": "Id of Discovery Capsule to use within this subnet for managing connection to discovered hosts",
-              "name": "discovery-id",
-              "shortname": null,
-              "value": "NUMBER"
-            },
-            {
               "help": "VALUE/NUMBER                 DNS Capsule name/id to use within this subnet",
               "name": "dns",
               "shortname": null,
@@ -46731,12 +46632,6 @@
               "name": "dhcp-id",
               "shortname": null,
               "value": null
-            },
-            {
-              "help": "Id of Discovery Capsule to use within this subnet for managing connection to discovered hosts",
-              "name": "discovery-id",
-              "shortname": null,
-              "value": "NUMBER"
             },
             {
               "help": "VALUE/NUMBER                 DNS Capsule name/id to use within this subnet",

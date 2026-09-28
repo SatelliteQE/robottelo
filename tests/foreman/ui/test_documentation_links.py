@@ -12,11 +12,14 @@
 
 """
 
+from urllib.parse import urlsplit
+
 import pytest
 import requests
 
 from robottelo.config import settings
 from robottelo.logging import logger
+from robottelo.utils.issue_handlers import is_open
 
 pages = [
     'about',
@@ -113,6 +116,8 @@ def test_positive_documentation_links(module_target_sat, session, custom_docs_ur
 
     :expectedresults: All the Documentation links present on Satellite are working
     """
+    if module_target_sat.is_stream and is_open('SAT-48645'):
+        pytest.skip("Documentation for N+1 version is not yet published in stage")
     sat_version = ".".join(module_target_sat.version.split('.')[0:2])
     all_links = []
     broken_links = []
@@ -143,10 +148,11 @@ def test_positive_documentation_links(module_target_sat, session, custom_docs_ur
             broken_links.append(link)
             logger.info(f"Following link on {page} page seems broken: \n {link}")
         # If Custom URL is configured, check if it is applied, allow pre-defined exceptions
+        link_base = urlsplit(link)._replace(query='', fragment='').geturl()
         if (
             custom_docs_url_setting
             and custom_docs_url_setting not in link
-            and not (page in exceptions and link in exceptions[page])
+            and not (page in exceptions and link_base in exceptions[page])
         ):
             broken_links.append(link)
             logger.info(

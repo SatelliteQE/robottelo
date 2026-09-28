@@ -14,16 +14,24 @@
 
 import pytest
 
+from robottelo.config import settings
+from robottelo.enums import InstallMethod
+
 pytestmark = pytest.mark.destructive
 
 
 @pytest.fixture(scope='module')
 def tomcat_service_teardown(request, module_target_sat):
-    assert module_target_sat.cli.Service.stop(options={'only': 'tomcat.service'}).status == 0
+    service_name = (
+        'tomcat.service'
+        if settings.server.install_method == InstallMethod.INSTALLER
+        else 'candlepin.service'
+    )
+    assert module_target_sat.execute(f'systemctl stop {service_name}').status == 0
 
     @request.addfinalizer
     def _finalize():
-        assert module_target_sat.cli.Service.start(options={'only': 'tomcat.service'}).status == 0
+        assert module_target_sat.execute(f'systemctl start {service_name}').status == 0
 
     return module_target_sat
 
@@ -39,7 +47,7 @@ def test_negative_cli_ping_fail_status(tomcat_service_teardown):
 
     :expectedresults: Hammer ping fails and returns non-zero(1) status code.
     """
-    result = tomcat_service_teardown.execute("hammer ping")
+    result = tomcat_service_teardown.execute('hammer ping')
     assert result.status == 1
 
 

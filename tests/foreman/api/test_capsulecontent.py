@@ -42,7 +42,7 @@ from robottelo.constants import (
     RPM_TO_UPLOAD,
     DataFile,
 )
-from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
+from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO, RHEL10_BASEOS_MLDSA
 from robottelo.content_info import (
     get_repo_files_by_url,
     get_repomd,
@@ -509,6 +509,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert sat_files == caps_files
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_iso_library_sync(
         self, module_capsule_configured, module_sca_manifest_org, module_target_sat
@@ -665,7 +666,7 @@ class TestCapsuleContentManagement:
     def test_positive_update_with_immediate_sync(
         self,
         target_sat,
-        module_capsule_configured,
+        capsule_configured,
         function_org,
         function_product,
         function_lce,
@@ -692,12 +693,12 @@ class TestCapsuleContentManagement:
             url=repo_url,
         ).create()
         # Update capsule's download policy to on_demand to match repository's policy
-        module_capsule_configured.update_download_policy('on_demand')
+        capsule_configured.update_download_policy('on_demand')
         # Associate the lifecycle environment with the capsule
-        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce.id}
         )
-        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
 
         assert len(result['results'])
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
@@ -718,7 +719,7 @@ class TestCapsuleContentManagement:
         timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
-        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
@@ -729,7 +730,7 @@ class TestCapsuleContentManagement:
         assert repo.download_policy == 'immediate'
 
         # Update capsule's download policy as well
-        module_capsule_configured.update_download_policy('immediate')
+        capsule_configured.update_download_policy('immediate')
 
         # Sync repository once again
         repo.sync()
@@ -746,12 +747,12 @@ class TestCapsuleContentManagement:
         timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
-        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
         # Verify the count of RPMs published on Capsule
-        caps_repo_url = module_capsule_configured.get_published_repo_url(
+        caps_repo_url = capsule_configured.get_published_repo_url(
             org=function_org.label,
             lce=function_lce.label,
             cv=cv.label,
@@ -761,6 +762,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == packages_count
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
@@ -781,6 +783,7 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
+    @pytest.mark.network_sensitive
     @pytest.mark.parametrize('endpoint', ['pulpcore', 'katello'])
     def test_flatpak_endpoint(self, target_sat, module_capsule_configured, endpoint):
         """Ensure the Capsules's local flatpak index endpoint is up after install or upgrade.
@@ -802,6 +805,7 @@ class TestCapsuleContentManagement:
         assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
     @pytest.mark.e2e
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos'])
     def test_positive_sync_kickstart_repo(
@@ -896,6 +900,7 @@ class TestCapsuleContentManagement:
         assert sat_pkgs == caps_pkgs
 
     @pytest.mark.e2e
+    @pytest.mark.network_sensitive
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_container_repo_end_to_end(
@@ -1029,6 +1034,7 @@ class TestCapsuleContentManagement:
             )
             assert result.status == 0
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
         self,
@@ -1115,6 +1121,7 @@ class TestCapsuleContentManagement:
         assert 'foreman' in result.stdout
         assert 'operations' in result.stdout
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_file_repo(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
@@ -1568,7 +1575,7 @@ class TestCapsuleContentManagement:
     def test_positive_capsule_sync_openstack_container_repos(
         self,
         module_target_sat,
-        module_capsule_configured,
+        capsule_configured,
         function_org,
         function_product,
         function_lce,
@@ -1603,6 +1610,7 @@ class TestCapsuleContentManagement:
             repo = module_target_sat.api.Repository(
                 content_type='docker',
                 docker_upstream_name=ups_name,
+                download_policy='on_demand',
                 product=function_product,
                 url=settings.container.rh.registry_hub,
                 upstream_username=settings.subscription.rhn_username,
@@ -1612,10 +1620,10 @@ class TestCapsuleContentManagement:
             repos.append(repo)
 
         # Associate LCE with the capsule
-        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce.id}
         )
-        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        result = capsule_configured.nailgun_capsule.content_lifecycle_environments()
         assert len(result['results'])
         assert function_lce.id in [capsule_lce['id'] for capsule_lce in result['results']]
 
@@ -1630,10 +1638,11 @@ class TestCapsuleContentManagement:
         timestamp = datetime.now(UTC)
         cvv.promote(data={'environment_ids': function_lce.id})
 
-        module_capsule_configured.wait_for_sync(start_time=timestamp)
+        capsule_configured.wait_for_sync(start_time=timestamp)
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
+    @pytest.mark.network_sensitive
     @pytest.mark.parametrize(
         'repos_collection',
         [
@@ -2245,6 +2254,113 @@ class TestCapsuleContentManagement:
         sync_status = nailgun_capsule.content_sync(timeout='90m')
         assert sync_status['result'] == 'success'
 
+    @pytest.mark.e2e
+    @pytest.mark.parametrize('module_autosync_setting', [True], indirect=True)
+    def test_positive_capsule_with_rolling_content_source(
+        self,
+        module_target_sat,
+        module_autosync_setting,
+        module_capsule_configured,
+        function_org,
+        function_product,
+        function_lce_library,
+    ):
+        """Auto capsule sync is triggered when a rolling content view is refreshed
+        by a repository sync or content upload, not just during initial creation.
+
+        :id: 496d197c-d1c4-48f1-96f5-b958bf29867b
+
+        :steps:
+            1. Create a rolling CV with a custom repository and assign it to Library LCE.
+            2. Associate Library LCE with the capsule.
+            3. Sync the repository to trigger initial rolling CV refresh.
+            4. Verify auto capsule sync is triggered and content reaches the capsule.
+            5. Upload a new RPM to the repository.
+            6. Verify auto capsule sync is triggered automatically and the new package
+               is present on the capsule.
+
+        :expectedresults:
+            1. Initial repo sync triggers rolling CV refresh and auto capsule sync.
+            2. Uploading new content triggers rolling CV refresh and auto capsule sync
+               without requiring a manual repo sync.
+            3. The newly uploaded RPM is present on the capsule after the automatic sync.
+
+        :Verifies: SAT-45316
+
+        :customerscenario: true
+
+        """
+        repo = module_target_sat.api.Repository(
+            product=function_product, url=settings.repos.yum_1.url
+        ).create()
+        module_target_sat.wait_for_tasks(
+            search_query='Actions::Katello::Repository::MetadataGenerate'
+            f' and resource_id = {repo.id}'
+            ' and resource_type = Katello::Repository',
+            max_tries=6,
+            search_rate=10,
+        )
+        rolling_cv = module_target_sat.api.ContentView(
+            organization=function_org,
+            repository=[repo],
+            rolling=True,
+            environment=[function_lce_library],
+        ).create()
+        rolling_cv = rolling_cv.read()
+        assert len(rolling_cv.version) == 1
+        assert len(rolling_cv.environment) == 1
+
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': function_lce_library.id}
+        )
+        result = module_capsule_configured.nailgun_capsule.content_lifecycle_environments()
+        assert function_lce_library.id in [capsule_lce['id'] for capsule_lce in result['results']]
+
+        # Initial repo sync triggers rolling CV refresh and auto capsule sync
+        timestamp = datetime.now(UTC).replace(microsecond=0)
+        repo.sync()
+        repo = repo.read()
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        rolling_cv = rolling_cv.read()
+        rolling_version = rolling_cv.version[0].read()
+
+        caps_repo_url = module_capsule_configured.get_published_repo_url(
+            org=function_org.label,
+            lce=function_lce_library.label,
+            cv=rolling_cv.label,
+            prod=function_product.label,
+            repo=repo.label,
+        )
+        sat_repo_url = module_target_sat.get_published_repo_url(
+            org=function_org.label,
+            lce=function_lce_library.label,
+            cv=rolling_cv.label,
+            prod=function_product.label,
+            repo=repo.label,
+        )
+        sat_files = get_repo_files_by_url(sat_repo_url)
+        caps_files = get_repo_files_by_url(caps_repo_url)
+        assert sat_files == caps_files
+
+        # Upload a new RPM to trigger automatic capsule sync via rolling CV refresh
+        with open(DataFile.RPM_TO_UPLOAD, 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+
+        timestamp = datetime.now(UTC).replace(microsecond=0)
+        module_capsule_configured.wait_for_sync(start_time=timestamp)
+
+        rolling_cv = rolling_cv.read()
+        new_rolling_version = rolling_cv.version[0].read()
+        assert new_rolling_version.id == rolling_version.id
+        assert repo.read().content_counts['rpm'] > FAKE_1_YUM_REPOS_COUNT
+
+        caps_files_after = get_repo_files_by_url(caps_repo_url)
+        sat_files_after = get_repo_files_by_url(sat_repo_url)
+        assert sat_files_after == caps_files_after
+        assert len(caps_files_after) == FAKE_1_YUM_REPOS_COUNT + 1
+        assert RPM_TO_UPLOAD in caps_files_after
+
 
 class TestPodman:
     """Tests specific to using podman push/pull on Satellite
@@ -2319,3 +2435,112 @@ class TestPodman:
         assert res.status == 0  # expect cmd succeeded
         assert 'login succeeded' not in res.stdout.lower()
         assert 'invalid username/password' in res.stdout.lower()
+
+
+@pytest.mark.pqc
+@pytest.mark.e2e
+@pytest.mark.network_sensitive
+@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.no_containers
+@pytest.mark.skip_if_not_set('capsule')
+def test_positive_e2e_mldsa_content_via_capsule(
+    target_sat,
+    module_capsule_configured,
+    rhel_contenthost,
+    function_sca_manifest_org,
+    function_lce,
+    default_location,
+):
+    """End-to-end PQC/ML-DSA content delivery test via Capsule.
+
+    Sync the latest RHEL BaseOS repository, publish and promote a content view,
+    sync to a Capsule, register a host through the Capsule, install
+    ML-DSA-signed packages, download additional ones and verify their
+    V6 ML-DSA-87+Ed448 signatures are intact after being served by the Capsule.
+
+    :id: 55a98192-7257-4860-9d90-73d3937ee9ea
+
+    :setup:
+        1. Satellite with SCA manifest, configured external Capsule, and a
+           latest RHEL content host.
+
+    :steps:
+        1. Enable and sync the latest RHEL BaseOS repository (on_demand policy).
+        2. Create a content view with the repo, publish and promote to an LCE.
+        3. Associate the LCE with the Capsule and wait for capsule sync.
+        4. Create an activation key and register the content host via the Capsule.
+        5. Install ML-DSA-signed packages (tuna, strace) via dnf.
+        6. Download additional ML-DSA-signed packages (chrony, jq) via dnf.
+        7. Verify each downloaded RPM carries exactly one V6 ML-DSA-87+Ed448
+           signature with the correct key ID, and that rpm -Kv exits successfully.
+
+    :expectedresults:
+        1. Repository syncs successfully.
+        2. Content view publishes and promotes without errors.
+        3. Capsule syncs the promoted content.
+        4. Host registers through the Capsule and can consume content.
+        5. dnf install succeeds for all ML-DSA-signed packages.
+        6. rpm -Kv exits 0 and each downloaded RPM contains exactly one
+           'V6 ML-DSA-87+Ed448/SHA512 Signature, key ID 05707a62' line.
+    """
+    sat, caps, host = target_sat, module_capsule_configured, rhel_contenthost
+    org = function_sca_manifest_org
+    rhel_major = host.os_version.major
+    rh_repo_id = sat.api_factory.enable_sync_redhat_repo(
+        rh_repo=REPOS[f'rhel{rhel_major}_bos'],
+        org_id=org.id,
+        timeout=2400,
+    )
+    rh_repo = sat.api.Repository(id=rh_repo_id).read()
+
+    cv = sat.api.ContentView(organization=org, repository=[rh_repo]).create()
+    cv.publish()
+    cv = cv.read()
+
+    caps.nailgun_capsule.content_add_lifecycle_environment(data={'environment_id': function_lce.id})
+    result = caps.nailgun_capsule.content_lifecycle_environments()
+    assert function_lce.id in [lce['id'] for lce in result['results']]
+
+    timestamp = datetime.now(UTC)
+    cv.version[0].promote(data={'environment_ids': function_lce.id})
+    caps.wait_for_sync(start_time=timestamp)
+
+    nc = caps.nailgun_smart_proxy
+    sat.api.SmartProxy(id=nc.id, organization=[org]).update(['organization'])
+    sat.api.SmartProxy(id=nc.id, location=[default_location]).update(['location'])
+
+    cvenv_id = sat.api_factory.get_cvenv_id(cv, function_lce)
+    ak = sat.api.ActivationKey(
+        organization=org,
+        content_view_environment_ids=[cvenv_id],
+    ).create()
+    result = host.register(
+        org=org,
+        loc=default_location,
+        activation_keys=ak.name,
+        target=caps,
+    )
+    assert result.status == 0, f'Host registration via Capsule failed: {result.stderr}'
+
+    registered_host = sat.api.Host().search(query={'search': f'name="{host.hostname}"'})[0]
+    assert registered_host.content_facet_attributes['content_source_id'] == nc.id, (
+        'Expected Capsule as content source'
+    )
+
+    for pkg in RHEL10_BASEOS_MLDSA['install_packages']:
+        result = host.execute(f'dnf install -y {pkg}')
+        assert result.status == 0, f'dnf install {pkg} failed:\n{result.stdout}'
+
+    download_dir = '/tmp/mldsa-verify'
+    host.execute(f'mkdir -p {download_dir}')
+    pkgs = ' '.join(RHEL10_BASEOS_MLDSA['download_packages'])
+    result = host.execute(f'dnf download --downloaddir {download_dir} {pkgs}')
+    assert result.status == 0, f'dnf download failed:\n{result.stdout}'
+
+    result = host.execute(f'rpm -Kv {download_dir}/*.rpm')
+    assert result.status == 0, f'rpm -Kv failed:\n{result.stdout}'
+    sig_line = (
+        f'V6 {RHEL10_BASEOS_MLDSA["signature_type"]}/SHA512 Signature, '
+        f'key ID {RHEL10_BASEOS_MLDSA["key_id"]}'
+    )
+    assert result.stdout.count(sig_line) == len(RHEL10_BASEOS_MLDSA['download_packages'])

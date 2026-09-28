@@ -18,6 +18,8 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import HTTPS_MEDIUM_URL, SUBNET_IPAM_TYPES
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')

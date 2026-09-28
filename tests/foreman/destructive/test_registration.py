@@ -15,7 +15,11 @@ import pytest
 
 from robottelo.config import settings
 
-pytestmark = pytest.mark.destructive
+pytestmark = [
+    pytest.mark.destructive,
+    # Client ↔ Satellite/Capsule MQTT; curated IPv6 overlay.
+    pytest.mark.network_sensitive,
+]
 
 
 @pytest.mark.no_containers
@@ -38,6 +42,8 @@ def test_host_registration_rex_pull_mode(
     :expectedresults: Host registered successfully with MQTT broker
 
     :parametrized: yes
+
+    :BlockedBy: SAT-40479
     """
     client = rhel_contenthost_with_repos
     org = module_org

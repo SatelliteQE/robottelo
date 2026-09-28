@@ -19,7 +19,6 @@ from requests.exceptions import HTTPError
 
 from robottelo.utils.datafactory import (
     invalid_values_list,
-    parametrized,
     valid_data_list,
 )
 
@@ -30,25 +29,25 @@ def fake_hosts(module_org, module_target_sat):
     return [module_target_sat.api.Host(organization=module_org).create() for _ in range(2)]
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(module_org, name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_name(module_org, module_target_sat):
     """Create host collections with different names.
 
     :id: 8f2b9223-f5be-4cb1-8316-01ea747cae14
-
-    :parametrized: yes
 
     :expectedresults: The host collection was successfully created and has
         appropriate name.
 
     :CaseImportance: Critical
     """
+    name = choice(list(valid_data_list().values()))
     host_collection = module_target_sat.api.HostCollection(
         name=name, organization=module_org
     ).create()
     assert host_collection.name == name
 
 
+@pytest.mark.migration_candidate
 def test_positive_list(module_org, module_target_sat):
     """Create new host collection and then retrieve list of all existing
     host collections
@@ -69,6 +68,7 @@ def test_positive_list(module_org, module_target_sat):
     assert len(hc_list) >= 1
 
 
+@pytest.mark.migration_candidate
 def test_positive_list_for_organization(target_sat):
     """Create host collection for specific organization. Retrieve list of
     host collections for that organization
@@ -87,25 +87,25 @@ def test_positive_list_for_organization(target_sat):
     assert hc_list[0].id == hc.id
 
 
-@pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
-def test_positive_create_with_description(module_org, desc, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_description(module_org, module_target_sat):
     """Create host collections with different descriptions.
 
     :id: 9d13392f-8d9d-4ff1-8909-4233e4691055
-
-    :parametrized: yes
 
     :expectedresults: The host collection was successfully created and has
         appropriate description.
 
     :CaseImportance: Critical
     """
+    desc = choice(list(valid_data_list().values()))
     host_collection = module_target_sat.api.HostCollection(
         description=desc, organization=module_org
     ).create()
     assert host_collection.description == desc
 
 
+@pytest.mark.migration_candidate
 def test_positive_create_with_limit(module_org, module_target_sat):
     """Create host collections with different limits.
 
@@ -124,6 +124,7 @@ def test_positive_create_with_limit(module_org, module_target_sat):
         assert host_collection.max_hosts == limit
 
 
+@pytest.mark.migration_candidate
 @pytest.mark.parametrize("unlimited", [False, True])
 def test_positive_create_with_unlimited_hosts(module_org, unlimited, module_target_sat):
     """Create host collection with different values of 'unlimited hosts'
@@ -234,40 +235,39 @@ def test_positive_read_host_ids(module_org, fake_hosts, module_target_sat):
     )
 
 
-@pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-def test_positive_update_name(module_org, new_name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_update_name(module_org, module_target_sat):
     """Check if host collection name can be updated
 
     :id: b2dedb99-6dd7-41be-8aaa-74065c820ac6
-
-    :parametrized: yes
 
     :expectedresults: Host collection name was successfully updated
 
     :CaseImportance: Critical
     """
+    new_name = choice(list(valid_data_list().values()))
     host_collection = module_target_sat.api.HostCollection(organization=module_org).create()
     host_collection.name = new_name
     assert host_collection.update().name == new_name
 
 
-@pytest.mark.parametrize('new_desc', **parametrized(valid_data_list()))
-def test_positive_update_description(module_org, new_desc, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_update_description(module_org, module_target_sat):
     """Check if host collection description can be updated
 
     :id: f8e9bd1c-1525-4b5f-a07c-eb6b6e7aa628
-
-    :parametrized: yes
 
     :expectedresults: Host collection description was updated
 
     :CaseImportance: Critical
     """
+    new_desc = choice(list(valid_data_list().values()))
     host_collection = module_target_sat.api.HostCollection(organization=module_org).create()
     host_collection.description = new_desc
     assert host_collection.update().description == new_desc
 
 
+@pytest.mark.migration_candidate
 def test_positive_update_limit(module_org, module_target_sat):
     """Check if host collection limit can be updated
 
@@ -285,6 +285,7 @@ def test_positive_update_limit(module_org, module_target_sat):
         assert host_collection.update().max_hosts == limit
 
 
+@pytest.mark.migration_candidate
 def test_positive_update_unlimited_hosts(module_org, module_target_sat):
     """Check if host collection 'unlimited hosts' parameter can be updated
 
@@ -308,6 +309,7 @@ def test_positive_update_unlimited_hosts(module_org, module_target_sat):
         assert host_collection.unlimited_hosts == unlimited
 
 
+@pytest.mark.migration_candidate
 def test_positive_update_host(module_org, fake_hosts, module_target_sat):
     """Update host collection's host.
 
@@ -361,17 +363,16 @@ def test_positive_delete(module_org, module_target_sat):
         host_collection.read()
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_invalid_name(module_org, name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_invalid_name(module_org, module_target_sat):
     """Try to create host collections with different invalid names
 
     :id: 38f67d04-a19d-4eab-a577-21b8d62c7389
-
-    :parametrized: yes
 
     :expectedresults: The host collection was not created
 
     :CaseImportance: Critical
     """
+    name = choice(invalid_values_list())
     with pytest.raises(HTTPError):
         module_target_sat.api.HostCollection(name=name, organization=module_org).create()

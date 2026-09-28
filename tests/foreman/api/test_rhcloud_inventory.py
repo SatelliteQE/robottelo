@@ -12,6 +12,8 @@
 
 """
 
+from datetime import UTC, datetime
+
 from fauxfactory import gen_alphanumeric, gen_string
 import pytest
 
@@ -364,3 +366,32 @@ def test_rhcloud_compliance_policies(
     virtual_host.execute("dnf install -y openscap openscap-scanner scap-security-guide")
     results = virtual_host.execute('insights-client --compliance-policies')
     assert results.status == 0
+
+
+def test_task_completion_on_skipped_report_upload(module_target_sat, function_org):
+    """Verify that the HostInventoryReportJob stops successfully instead of timing out when a report
+    cannot be uploaded.
+
+    :id: 58b37733-7cd4-48cd-8073-9ccdd9aed895
+
+    :steps:
+        1. Deploy a Satellite and create an org with no manifest uploaded.
+        2. Attempt to generate and upload an inventory report.
+        3. Observe the status of the ForemanInventoryUpload::Async::HostInventoryReportJob task.
+
+    :expectedresults:
+        If an organization does not have a manifest, the HostInventoryReportJob task stop successfully instead of retrying until it times out.
+
+    :verifies: SAT-47463
+    """
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
+    module_target_sat.generate_inventory_report(function_org, timeout=10, delay=5)
+    TASK_NAME = f'Host inventory report job organization \'{function_org.name}\''
+    task = (
+        module_target_sat.api.ForemanTask()
+        .search(query={'search': f'{TASK_NAME} and started_at >= "{timestamp}"'})[0]
+        .read()
+    )
+    assert task.state == 'stopped'
+    assert task.result == 'success'
+    assert task.input['organization']['id'] == function_org.id

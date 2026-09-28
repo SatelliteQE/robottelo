@@ -22,7 +22,7 @@ UI:
   RECORD_VIDEO: false
   GRID_URL: http://127.0.0.1:4444
 
-  # Web_Kaifuku Settings (checkout https://github.com/RonnyPfannschmidt/webdriver_kaifuku)
+  # webdriver_kaifuku settings
   WEBKAIFUKU:
     webdriver: '@jinja {{ this.ui.browser if this.ui.browser in ["remote"] else this.ui.webdriver}}'
     webdriver_options:

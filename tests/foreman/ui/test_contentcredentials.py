@@ -22,18 +22,6 @@ from robottelo.utils.datafactory import gen_string
 empty_message = 'This content credential is not currently being used by any products.'
 
 
-@pytest.fixture(scope='module', autouse=True)
-def enable_lab_features(module_target_sat):
-    """Enable lab features setting for the duration of the module.
-
-    The Content Credentials React page lives under /labs until fully promoted.
-    TODO: Remove this fixture once the page is moved out of /labs.
-    """
-    original = module_target_sat.update_setting('lab_features', True)
-    yield
-    module_target_sat.update_setting('lab_features', original)
-
-
 @pytest.fixture(scope='module')
 def gpg_content():
     return DataFile.VALID_GPG_KEY_FILE.read_text()

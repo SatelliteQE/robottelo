@@ -217,7 +217,9 @@ def test_positive_rct_shows_sca_enabled(module_sca_manifest, module_target_sat):
 
 
 @pytest.mark.rhel_ver_match('9')
-def test_negative_unregister_and_pull_content(vm):
+def test_negative_unregister_and_pull_content(
+    vm, module_sca_manifest_org, rh_repo_setup_ak, module_target_sat, request
+):
     """Attempt to retrieve content after host has been unregistered from Satellite
 
     :id: de0d0d91-b1e1-4f0e-8a41-c27df4d6b6fd
@@ -230,6 +232,9 @@ def test_negative_unregister_and_pull_content(vm):
     """
     result = vm.run('subscription-manager unregister')
     assert result.status == 0
+    request.addfinalizer(
+        lambda: vm.register(module_sca_manifest_org, None, rh_repo_setup_ak.name, module_target_sat)
+    )
     # Try installing any package from available repos on vm
     result = vm.run('yum install -y katello-agent')
     assert result.status != 0

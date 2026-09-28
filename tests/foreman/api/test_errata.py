@@ -30,6 +30,8 @@ from robottelo.constants import (
     FAKE_5_CUSTOM_PACKAGE,
     FAKE_9_YUM_OUTDATED_PACKAGES,
     FAKE_9_YUM_SECURITY_ERRATUM,
+    FAKE_9_YUM_SECURITY_ERRATUM_DEPS,
+    FAKE_9_YUM_SECURITY_ERRATUM_PACKAGES,
     FAKE_9_YUM_UPDATED_PACKAGES,
     PRDS,
     REAL_RHEL8_1_ERRATA_ID,
@@ -1568,6 +1570,7 @@ def test_positive_incremental_update_apply_to_envs_cvs(
                 }
             ],
             'add_content': {'errata_ids': FAKE_9_YUM_SECURITY_ERRATUM},
+            'resolve_dependencies': True,
         }
     )
     assert response['result'] == 'success'
@@ -1603,9 +1606,10 @@ def test_positive_incremental_update_apply_to_envs_cvs(
     # newly added errata from incremental version are now applicable to host
     post_app_errata_ids = errata_id_set(_fetch_available_errata_instances(target_sat, chost))
     assert set(FAKE_9_YUM_SECURITY_ERRATUM) == post_app_errata_ids
-    # expected packages from the security erratum were added to host
+    # expected packages from the security erratum and their deps were added
     added_packages = response['output']['changed_content'][0]['added_units']['rpm']
-    assert len(added_packages) == 12
+    expected_packages = set(FAKE_9_YUM_SECURITY_ERRATUM_PACKAGES + FAKE_9_YUM_SECURITY_ERRATUM_DEPS)
+    assert set(added_packages) == expected_packages
     # expected that not all of the added packages will be applicable
     assert 8 == host_app_packages == chost.applicable_package_count
     # install all of the newly added packages, recalculate applicability

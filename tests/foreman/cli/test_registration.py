@@ -33,6 +33,7 @@ from robottelo.utils.issue_handlers import is_open
     ['validate_host_lce_content_source_coherence=false'],
     indirect=True,
 )
+@pytest.mark.network_sensitive
 def test_host_registration_end_to_end(
     module_sca_manifest_org,
     module_location,
@@ -109,6 +110,7 @@ def test_host_registration_end_to_end(
     assert rhel_contenthost.subscription_config['server']['port'] == CLIENT_PORT
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_upgrade_katello_ca_consumer_rpm(module_org, module_location, target_sat, rhel_contenthost):
     """After updating the consumer cert the rhsm.conf file still points to Satellite host name

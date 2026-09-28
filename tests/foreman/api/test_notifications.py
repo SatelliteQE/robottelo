@@ -233,15 +233,15 @@ def long_running_task(target_sat):
         },
     )
     sql_date_2_days_ago = "now() - INTERVAL '2 days'"
-    result = target_sat.execute(
-        "su - postgres -c \"psql foreman postgres <<EOF\n"
+    query = (
         "UPDATE foreman_tasks_tasks "
         f"SET start_at = {sql_date_2_days_ago}, "
-        f" started_at = {sql_date_2_days_ago}, "
-        f" state_updated_at = {sql_date_2_days_ago} "
-        f"WHERE id=\'{job['task']['id']}\';\nEOF\n\" "
-    )  # fmt: skip  # skip formatting to avoid breaking the SQL query
-    assert 'UPDATE 1' in result.stdout, f'Failed to age task {job["task"]["id"]}: {result.stderr}'
+        f"started_at = {sql_date_2_days_ago}, "
+        f"state_updated_at = {sql_date_2_days_ago} "
+        f"WHERE id='{job['task']['id']}'"
+    )
+    result = target_sat.query_db(query, output_format='raw')
+    assert 'UPDATE 1' in result, f'Failed to age task {job["task"]["id"]}'
 
     yield job
 

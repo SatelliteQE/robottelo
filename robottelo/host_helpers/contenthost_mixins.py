@@ -120,6 +120,20 @@ class VersionedContent:
         product, release, v_major, repo = self._dogfood_helper(product, release, repo)
         return dogfood_repository(settings.ohsnap, repo, product, release, v_major, snap, self.arch)
 
+    def configure_stage_registry_override(self):
+        """Configure Podman to pull stage container images from the production registry.
+
+        Runs the Ohsnap-hosted ``configure-stage-registry.sh`` script, which overrides the
+        stage registry names with the production ones in
+        ``/etc/containers/registries.conf.d/stage-registry.conf`` so that stage images can
+        be pulled despite the ``registry.redhat.io`` signature policy.
+        """
+        url = f'{settings.ohsnap.host}/assets/scripts/configure-stage-registry.sh'
+        logger.info(f'Configuring stage registry override using Ohsnap script: {url}')
+        result = self.execute(f'set -o pipefail; curl -fsSL {url} | bash')
+        assert result.status == 0, f'Failed to configure stage registry:\n{result.stderr}'
+        return result
+
     def create_custom_html_repo(self, rpm_url, repo_name=None, update=False, remove_rpm=None):
         """Creates a custom yum repository, that will be published on https
 

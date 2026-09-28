@@ -14,7 +14,7 @@
 
 import pytest
 
-pytestmark = [pytest.mark.stubbed]
+pytestmark = [pytest.mark.stubbed, pytest.mark.foreman_installer]
 
 
 # Notes for installer testing:

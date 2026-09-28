@@ -16,6 +16,8 @@ import pytest
 
 from robottelo.config import settings
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.satellite_iop_only
 def test_podman_login_check(request, sat_maintain):

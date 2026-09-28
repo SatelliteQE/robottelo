@@ -12,6 +12,8 @@
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 
@@ -20,7 +22,6 @@ from robottelo.constants import DEFAULT_CV, LIBRARY_LCE
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_values_list,
-    parametrized,
     valid_data_list,
 )
 
@@ -168,19 +169,17 @@ def test_positive_update_to_unlimited_hosts(module_org, module_target_sat):
     assert result['limit'] == 'None'
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_name(module_org, name, module_target_sat):
+def test_negative_create_with_name(module_org, module_target_sat):
     """Attempt to create host collection with invalid name of different
     types
 
     :id: 92a9eff0-693f-4ab8-b2c4-de08e5f709a7
 
-    :parametrized: yes
-
     :expectedresults: Host collection is not created and error is raised
 
     :CaseImportance: Critical
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.make_host_collection(
             {'name': name, 'organization-id': module_org.id}

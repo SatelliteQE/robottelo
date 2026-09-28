@@ -19,13 +19,35 @@ import time
 import pytest
 from wait_for import wait_for
 
-from robottelo import constants
 from robottelo.config import robottelo_tmp_dir
-from robottelo.constants import DEFAULT_CV, LIBRARY_LCE
 from robottelo.utils.io import get_local_file_data, get_remote_report_checksum
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
 generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'
+
+
+def enable_cloud_connector(target_sat):
+    target_sat.register_to_cdn()
+    if 'cloud-connector' not in target_sat.list_foremanctl_features(enabled=True):
+        # Install rhc and related packages (prerequisite for cloud-connector)
+        target_sat.execute('dnf install -y rhc rhc-worker-playbook')
+
+        # Ensure required rhc directories exist (workaround for foremanctl deployment)
+        target_sat.execute('mkdir -p /etc/rhc/workers /usr/libexec/rhc')
+        target_sat.execute('chmod 755 /etc/rhc/workers /usr/libexec/rhc')
+
+        # Enable and start yggdrasil service
+        target_sat.execute('systemctl enable yggdrasil.service')
+        result = target_sat.execute('systemctl start yggdrasil.service')
+        assert result.status == 0, (
+            f'Failed to start yggdrasil.service:\nstdout: {result.stdout}\nstderr: {result.stderr}'
+        )
+
+        # Deploy cloud-connector feature
+        result = target_sat.execute('foremanctl deploy --add-feature cloud-connector')
+        assert result.status == 0, (
+            f'Failed to deploy cloud-connector:\nstdout: {result.stdout}\nstderr: {result.stderr}'
+        )
 
 
 @pytest.mark.e2e
@@ -252,24 +274,6 @@ def test_positive_sync_inventory_status_cli(
     )
     assert task_output[0].output['host_statuses']['sync'] == 2
     assert task_output[0].output['host_statuses']['disconnect'] == 0
-
-
-def test_positive_cloud_connector_enable_cli(module_target_sat):
-    """Cloud-connector enable via hammer:
-
-    :id: 7f9e9918-f5b4-48bd-b316-328c3951fa42
-
-    :steps:
-
-        0. Create a VM and register to insights within org having manifest.
-        1. Enable cloud connector.
-            # hammer insights cloud-connector enable
-
-    :expectedresults: Cloud connector enablement starts successfully.
-    """
-    result = module_target_sat.cli.Insights.cloud_connector_enable({})
-    success_msg = "Cloud connector enable task started"
-    assert success_msg in result
 
 
 @pytest.mark.stubbed
@@ -607,106 +611,84 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
     assert task_output[0].result == "success"
 
 
-def test_positive_config_on_sat_without_network_protocol(
-    request, target_sat, function_sca_manifest, function_org
-):
-    """Test cloud connector configuration on Satellite without explicit network protocol.
+def test_positive_cloud_connector_setup_with_foremanctl(target_sat):
+    """Verify cloud connector can be enabled and configured using foremanctl
 
-    :id: e6bf1c56-3091-4db2-b162-4cf3c6e23394
+    :id: 00d8aa09-713e-44d8-9cbd-78c0e4a16e73
 
     :steps:
-        1. Create organization and get its Library lifecycle environment and default content view.
-        2. Upload manifest to enable Red Hat content.
-        3. Enable and sync RHEL BaseOS and AppStream repositories.
-        4. Create activation key and register Satellite to itself.
-        5. Enable cloud connector via CLI.
-        6. Verify that the 'Configure Cloud Connector' job template executes successfully.
-        7. Check that rhcd service proxy configuration is properly set.
+        1. Deploy cloud connector feature using foremanctl
+        2. Verify cloud-connector is in the list of enabled features
+        3. Verify rhcd service is active and running
+        4. Verify /etc/rhc/workers/foreman_rh_cloud.toml has correct service user credentials
+        5. Verify rhc_instance_id setting is populated and consumer certificate exists
+        6. Verify cloud_connector_user exists with Cloud Connector role
 
     :expectedresults:
-        1. Satellite is successfully registered.
-        2. Cloud connector is enabled successfully.
-        3. The job invocation for configuring cloud connector succeeds.
-        4. The rhcd.service.d/proxy.conf file contains the correct NO_PROXY environment variable
-           with the FQDN without https:// prefix.
+        1. foremanctl deploy --add-feature cloud-connector completes successfully
+        2. foremanctl features --list-enabled includes cloud-connector
+        3. systemctl status rhcd shows active/running
+        4. foreman_rh_cloud.toml contains service user credentials
+        5. rhc_instance_id setting is not empty and consumer certificate is valid
+        6. cloud_connector_user has Cloud Connector role
 
-    :Verifies: SAT-34224
-
-    :customerscenario: true
     """
-    # Ensure Satellite is not registered from previous test runs
-    target_sat.unregister()
+    # Step 1: Deploy cloud connector feature
+    enable_cloud_connector(target_sat)
 
-    # Delete the host from Satellite's database if it exists from a previous test run
-    existing_host = target_sat.api.Host().search(query={'search': f'name="{target_sat.hostname}"'})
-    if existing_host:
-        existing_host[0].delete()
-
-    # Get the Library lifecycle environment and default content view for the organization
-    cv = target_sat.api.ContentView().search(
-        query={'search': f'name="{DEFAULT_CV}" AND organization_id={function_org.id}'}
-    )[0]
-    lce = target_sat.api.LifecycleEnvironment().search(
-        query={'search': f'name="{LIBRARY_LCE}" AND organization_id={function_org.id}'}
-    )[0]
-
-    # Upload manifest to enable Red Hat content
-    target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
-
-    # Enable and sync RHEL BaseOS and AppStream repositories based on Satellite's OS version
-    rhel_ver = target_sat.os_version.major
-    for name in [f'rhel{rhel_ver}_bos', f'rhel{rhel_ver}_aps']:
-        # Enable the Red Hat repository and get its ID
-        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
-            basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=function_org.id,
-            product=constants.REPOS[name]['product'],
-            repo=constants.REPOS[name]['name'],
-            reposet=constants.REPOS[name]['reposet'],
-            releasever=constants.REPOS[name]['version'],
-        )
-        # Sync the repository
-        rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
-        rh_repo.sync(timeout=2000)
-
-    # Create an activation key for Satellite self-registration
-    cvenv_id = target_sat.api_factory.get_cvenv_id(cv, lce)
-    ac_key = target_sat.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
-        organization=function_org,
-    ).create()
-
-    # Register the Satellite to itself using the activation key
-    result = target_sat.register(function_org, None, ac_key.name, target_sat, force=True)
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
-
-    # Add finalizer to ensure the Satellite is always unregistered
-    @request.addfinalizer
-    def cleanup():
-        target_sat.unregister()
-
-    # Enable cloud connector
-    result = target_sat.cli.Insights.cloud_connector_enable({})
-    assert "Cloud connector enable task started" in result
-
-    # Find the job invocation for the 'Configure Cloud Connector' template
-    template_name = 'Configure Cloud Connector'
-    result = target_sat.api.JobInvocation().search(
-        query={'search': f'description="{template_name}"'}
-    )[0]
-
-    # Wait for the job to complete
-    target_sat.wait_for_tasks(
-        f'resource_type = JobInvocation and resource_id = {result.id}', poll_timeout=600
+    # Step 2: Verify cloud-connector is enabled
+    enabled_features = target_sat.list_foremanctl_features(enabled=True)
+    assert 'cloud-connector' in enabled_features, (
+        f'cloud-connector not in list of enabled features: {enabled_features}'
     )
 
-    # Verify the job completed successfully
-    result = target_sat.api.JobInvocation(id=result.id).read()
-    assert result.status_label == 'succeeded'
+    # Step 3: Verify rhcd service is active/running
+    result = target_sat.execute('systemctl status rhcd')
+    assert result.status == 0, f'rhcd service is not running: {result.stderr}'
+    assert 'running' in result.stdout.lower() or 'active (running)' in result.stdout.lower(), (
+        f'rhcd service not running: {result.stdout}'
+    )
 
-    # Read the rhcd service proxy configuration file to verify correct setup
-    status = target_sat.execute('cat /etc/systemd/system/rhcd.service.d/proxy.conf')
-    # Check the correct format is present
-    assert f'Environment=NO_PROXY={target_sat.hostname}' in status.stdout
-    # Ensure NO_PROXY doesn't contain https:// prefix
-    assert 'Environment=NO_PROXY=https://' not in status.stdout
+    # Step 4: Verify foreman_rh_cloud.toml has correct content
+    toml_path = '/etc/rhc/workers/foreman_rh_cloud.toml'
+    result = target_sat.execute(f'cat {toml_path}')
+    assert result.status == 0, f'Failed to read {toml_path}: {result.stderr}'
+
+    toml_content = result.stdout
+    # Verify service user credentials are present
+    assert 'forwarder_user' in toml_content.lower(), (
+        'forwarder_user not found in foreman_rh_cloud.toml'
+    )
+    assert 'forwarder_password' in toml_content.lower(), (
+        'forwarder_password not found in foreman_rh_cloud.toml'
+    )
+    assert 'cloud_connector_user' in toml_content or '[authentication]' in toml_content, (
+        'Service user configuration not found in foreman_rh_cloud.toml'
+    )
+
+    # Step 5: Verify rhc_instance_id setting is populated
+    result = target_sat.cli.Settings.info({'name': 'rhc_instance_id'})
+    assert result['value'], 'rhc_instance_id setting is empty'
+
+    # Verify consumer certificate exists
+    consumer_cert = target_sat.execute(
+        'openssl x509 -in /etc/pki/consumer/cert.pem -noout -subject'
+    )
+    assert consumer_cert.status == 0, f'Failed to read consumer certificate: {consumer_cert.stderr}'
+    assert 'CN=' in consumer_cert.stdout, f'Consumer certificate missing CN: {consumer_cert.stdout}'
+
+    # Step 6: Verify cloud_connector_user exists with Cloud Connector role
+    try:
+        user_info = target_sat.cli.User.info({'login': 'cloud_connector_user'})
+        assert user_info['login'] == 'cloud_connector_user', (
+            f"User login mismatch: {user_info['login']}"
+        )
+
+        # Verify the user has Cloud Connector role
+        user_roles = user_info.get('roles', [])
+        assert any('cloud connector' in role.lower() for role in user_roles), (
+            f'Cloud Connector role not found in user roles: {user_roles}'
+        )
+    except Exception as e:
+        # If user doesn't exist or command fails, that's an assertion failure
+        pytest.fail(f'Failed to verify cloud_connector_user: {e}')

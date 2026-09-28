@@ -19,6 +19,9 @@ from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import MAINTAIN_HAMMER_YML
 from robottelo.hosts import get_sat_rhel_version, get_sat_version
 
+pytestmark = pytest.mark.foreman_installer
+
+
 sat_x_y_release = f'{get_sat_version().major}.{get_sat_version().minor}'
 
 

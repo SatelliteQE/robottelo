@@ -29,6 +29,8 @@ from robottelo.utils.datafactory import (
     valid_data_list,
 )
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @filtered_datapoint
 def invalid_hostnames_list():

@@ -27,6 +27,8 @@ from robottelo.constants import (
 )
 from robottelo.utils.shared_resource import SharedResource
 
+pytestmark = pytest.mark.foreman_installer
+
 """The host can be provisioned on GCE CR created in previous version
 
     :steps:

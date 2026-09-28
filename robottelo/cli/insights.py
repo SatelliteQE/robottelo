@@ -7,7 +7,6 @@ Parameters:
  [ARG] ...                     Subcommand arguments
 
 Subcommands:
- cloud-connector               Manage cloud connector setup
  inventory                     Manage inventory related operations
 
 Options:
@@ -48,12 +47,4 @@ class Insights(Base):
         Download the last generated report
         """
         cls.command_sub = 'inventory download-report'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def cloud_connector_enable(cls, options=None):
-        """
-        Enable cloud connector
-        """
-        cls.command_sub = 'cloud-connector enable'
         return cls.execute(cls._construct_command(options))

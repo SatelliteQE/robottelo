@@ -17,6 +17,7 @@ API reference for sync plans can be found on your Satellite:
 """
 
 from datetime import UTC, datetime, timedelta
+import random
 from time import sleep
 
 from fauxfactory import gen_choice, gen_string
@@ -144,18 +145,17 @@ def test_positive_create_enabled_disabled(module_org, enabled, request, target_s
     assert sync_plan.enabled == enabled
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(module_org, name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_name(module_org, module_target_sat):
     """Create a sync plan with a random name.
 
     :id: c1263134-0d7c-425a-82fd-df5274e1f9ba
-
-    :parametrized: yes
 
     :expectedresults: A sync plan is created with the specified name.
 
     :CaseImportance: Critical
     """
+    name = random.choice(list(valid_data_list().values()))
     sync_plan = module_target_sat.api.SyncPlan(
         enabled=False, name=name, organization=module_org
     ).create()
@@ -163,19 +163,18 @@ def test_positive_create_with_name(module_org, name, module_target_sat):
     assert sync_plan.name == name
 
 
-@pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-def test_positive_create_with_description(module_org, description, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_description(module_org, module_target_sat):
     """Create a sync plan with a random description.
 
     :id: 3e5745e8-838d-44a5-ad61-7e56829ad47c
-
-    :parametrized: yes
 
     :expectedresults: A sync plan is created with the specified
         description.
 
     :CaseImportance: Critical
     """
+    description = random.choice(list(valid_data_list().values()))
     sync_plan = module_target_sat.api.SyncPlan(
         enabled=False, description=description, organization=module_org
     ).create()
@@ -183,18 +182,17 @@ def test_positive_create_with_description(module_org, description, module_target
     assert sync_plan.description == description
 
 
-@pytest.mark.parametrize('interval', **parametrized(valid_sync_interval()))
-def test_positive_create_with_interval(module_org, interval, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_interval(module_org, module_target_sat):
     """Create a sync plan with a random interval.
 
     :id: d160ed1c-b698-42dc-be0b-67ac693c7840
-
-    :parametrized: yes
 
     :expectedresults: A sync plan is created with the specified interval.
 
     :CaseImportance: Critical
     """
+    interval = random.choice(['hourly', 'daily', 'weekly', 'custom cron'])
     sync_plan = module_target_sat.api.SyncPlan(
         enabled=False, description=gen_string('alpha'), organization=module_org, interval=interval
     )
@@ -225,40 +223,39 @@ def test_positive_create_with_sync_date(module_org, sync_delta, target_sat):
     assert sync_date.strftime('%Y-%m-%d %H:%M:%S +0000') == sync_plan.sync_date
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_invalid_name(module_org, name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_invalid_name(module_org, module_target_sat):
     """Create a sync plan with an invalid name.
 
     :id: a3a0f844-2f81-4f87-9f68-c25506c29ce2
-
-    :parametrized: yes
 
     :expectedresults: A sync plan can not be created with the specified
         name.
 
     :CaseImportance: Critical
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(HTTPError):
         module_target_sat.api.SyncPlan(name=name, organization=module_org).create()
 
 
-@pytest.mark.parametrize('interval', **parametrized(invalid_values_list()))
-def test_negative_create_with_invalid_interval(module_org, interval, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_invalid_interval(module_org, module_target_sat):
     """Create a sync plan with invalid interval specified.
 
     :id: f5844526-9f58-4be3-8a96-3849a465fc02
-
-    :parametrized: yes
 
     :expectedresults: A sync plan can not be created with invalid interval
         specified
 
     :CaseImportance: Critical
     """
+    interval = random.choice(invalid_values_list())
     with pytest.raises(HTTPError):
         module_target_sat.api.SyncPlan(interval=interval, organization=module_org).create()
 
 
+@pytest.mark.migration_candidate
 def test_negative_create_with_empty_interval(module_org, module_target_sat):
     """Create a sync plan with no interval specified.
 
@@ -296,19 +293,18 @@ def test_positive_update_enabled(module_org, enabled, request, target_sat):
     assert sync_plan.enabled == enabled
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_update_name(module_org, name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_update_name(module_org, module_target_sat):
     """Create a sync plan and update its name.
 
     :id: dbfadf4f-50af-4aa8-8d7d-43988dc4528f
-
-    :parametrized: yes
 
     :expectedresults: A sync plan is created and its name can be updated
         with the specified name.
 
     :CaseImportance: Critical
     """
+    name = random.choice(list(valid_data_list().values()))
     sync_plan = module_target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.name = name
     sync_plan.update(['name'])
@@ -316,17 +312,16 @@ def test_positive_update_name(module_org, name, module_target_sat):
     assert sync_plan.name == name
 
 
-@pytest.mark.parametrize('description', **parametrized(valid_data_list()))
-def test_positive_update_description(module_org, description, module_target_sat):
+@pytest.mark.migration_candidate
+def test_positive_update_description(module_org, module_target_sat):
     """Create a sync plan and update its description.
 
     :id: 4769fe9c-9eec-40c8-b015-1e3d7e570bec
 
-    :parametrized: yes
-
     :expectedresults: A sync plan is created and its description can be
         updated with the specified description.
     """
+    description = random.choice(list(valid_data_list().values()))
     sync_plan = module_target_sat.api.SyncPlan(
         enabled=False, description=gen_string('alpha'), organization=module_org
     ).create()
@@ -417,44 +412,43 @@ def test_positive_update_sync_date(module_org, sync_delta, target_sat):
     assert sync_date.strftime('%Y-%m-%d %H:%M:%S +0000') == sync_plan.sync_date
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_update_name(module_org, name, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_update_name(module_org, module_target_sat):
     """Try to update a sync plan with an invalid name.
 
     :id: ae502053-9d3c-4cad-aee4-821f846ceae5
-
-    :parametrized: yes
 
     :expectedresults: A sync plan can not be updated with the specified
         name.
 
     :CaseImportance: Critical
     """
+    name = random.choice(invalid_values_list())
     sync_plan = module_target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.name = name
     with pytest.raises(HTTPError):
         sync_plan.update(['name'])
 
 
-@pytest.mark.parametrize('interval', **parametrized(invalid_values_list()))
-def test_negative_update_interval(module_org, interval, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_update_interval(module_org, module_target_sat):
     """Try to update a sync plan with invalid interval.
 
     :id: 8c981174-6f55-49c0-8baa-40e5c3fc598c
-
-    :parametrized: yes
 
     :expectedresults: A sync plan can not be updated with empty interval
         specified.
 
     :CaseImportance: Critical
     """
+    interval = random.choice(invalid_values_list())
     sync_plan = module_target_sat.api.SyncPlan(enabled=False, organization=module_org).create()
     sync_plan.interval = interval
     with pytest.raises(HTTPError):
         sync_plan.update(['interval'])
 
 
+@pytest.mark.migration_candidate
 def test_positive_add_product(module_org, target_sat):
     """Create a sync plan and add one product to it.
 
@@ -474,6 +468,7 @@ def test_positive_add_product(module_org, target_sat):
     assert sync_plan.product[0].id == product.id
 
 
+@pytest.mark.migration_candidate
 def test_positive_add_products(module_org, target_sat):
     """Create a sync plan and add two products to it.
 
@@ -491,6 +486,7 @@ def test_positive_add_products(module_org, target_sat):
     assert {product.id for product in products} == {product.id for product in sync_plan.product}
 
 
+@pytest.mark.migration_candidate
 def test_positive_remove_product(module_org, target_sat):
     """Create a sync plan with two products and then remove one
     product from it.

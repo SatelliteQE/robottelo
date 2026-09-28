@@ -23,7 +23,7 @@ from robottelo.constants import (
     FOREMAN_PROVIDERS,
 )
 
-pytestmark = [pytest.mark.skip_if_not_set('ec2')]
+pytestmark = [pytest.mark.skip_if_not_set('ec2'), pytest.mark.foreman_installer]
 
 
 @pytest.fixture(scope='module')

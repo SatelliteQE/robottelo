@@ -9,7 +9,6 @@ from wrapanapi.systems.google import GoogleCloudSystem
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_OS_SEARCH_QUERY,
     DEFAULT_PTABLE,
     FOREMAN_PROVIDERS,
     GCE_RHEL_CLOUD_PROJECTS,
@@ -19,13 +18,8 @@ from robottelo.exceptions import GCECertNotFoundError
 
 
 @pytest.fixture(scope='session')
-def sat_gce(request):
-    host_type = getattr(request, 'param', 'sat')
-    if host_type == 'puppet_sat':
-        infra_sat_host = request.getfixturevalue('session_puppet_enabled_sat')
-    else:
-        infra_sat_host = request.getfixturevalue('session_target_sat')
-    return infra_sat_host
+def sat_gce(session_target_sat):
+    return session_target_sat
 
 
 @pytest.fixture(scope='module')
@@ -46,7 +40,7 @@ def sat_gce_domain(sat_gce, sat_gce_loc, sat_gce_org):
 @pytest.fixture(scope='module')
 def sat_gce_default_os(sat_gce):
     """Default OS on the Satellite"""
-    return sat_gce.api.OperatingSystem().search(query={'search': DEFAULT_OS_SEARCH_QUERY})[0].read()
+    return sat_gce.api_factory.get_or_create_default_os()
 
 
 @pytest.fixture(scope='session')

@@ -25,6 +25,8 @@ from requests.exceptions import HTTPError
 from robottelo.config import settings, user_nailgun_config
 from robottelo.utils.datafactory import invalid_names_list, valid_data_list
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture(scope='module')
 def module_user(module_target_sat, module_org, module_location):
@@ -620,7 +622,7 @@ class TestProvisioningTemplate:
         assert f'chown -R {rex_user}: ~{rex_user}' in rex_snippet
         assert f'chown -R {rex_user}: ~{rex_user}/.ssh' in rex_snippet
         assert (
-            f'echo "{rex_user} ALL = (ALL) NOPASSWD : ALL" > /etc/sudoers.d/{rex_user}\necho "Defaults:{rex_user} !requiretty" >> /etc/sudoers.d/{rex_user}'
+            f'echo "{rex_user} ALL = (ALL) NOPASSWD : ALL" > /etc/sudoers.d/{rex_user}'
             in rex_snippet
         )
         assert ssh_key in rex_snippet

@@ -360,7 +360,6 @@ VALIDATORS = dict(
             'repos.sattools_repo.rhel6',
             'repos.sattools_repo.rhel7',
             'repos.sattools_repo.rhel8',
-            'repos.satmaintenance_repo',
             'repos.rpm_missing_filelists.url',
             must_exist=True,
             is_type_of=str,
@@ -369,7 +368,7 @@ VALIDATORS = dict(
             'repos.python.pypi.url',
             must_exist=True,
             is_type_of=str,
-            default='https://pypi.org/project/pytest',
+            default='https://fixtures.pulpproject.org/python-pypi/',
         ),
     ],
     rhev=[

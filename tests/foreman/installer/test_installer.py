@@ -18,9 +18,9 @@ import yaml
 
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_ARCHITECTURE, FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
+from robottelo.constants import FOREMAN_SETTINGS_YML, PRDS, REPOS, REPOSET
+from robottelo.enums import InstallMethod
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.ohsnap import dogfood_repository
 
 SATELLITE_SERVICES = [
     'dynflow-sidekiq@orchestrator',
@@ -124,134 +124,11 @@ def install_satellite(satellite, installer_args, enable_fapolicyd=False):
         assert satellite.execute('rpm -q foreman-proxy-fapolicyd').status == 0
         assert satellite.execute('systemctl is-active fapolicyd').status == 0
     # Configure Satellite firewall to open communication
-    assert (
-        satellite.execute(
-            "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
-        ).status
-        == 0
-    ), "firewalld is not present and can't be installed"
-    satellite.execute(
-        'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
-    )
+    satellite.configure_firewall(services=['RH-Satellite-6'])
     # Install Satellite and return result
     return satellite.execute(
         InstallerCommand(installer_args=installer_args).get_command(),
         timeout='30m',
-    )
-
-
-def sync_capsule_repos(satellite, capsule_host, org, ak):
-    """
-    On Satellite enable and synchronize content required for Capsule installation.
-    1. Enable RHEL repositories based on configuration
-    2. Enable capsule repositories based on configuration
-    3. Synchronize repositories
-    """
-    # List of sync tasks - all repos will be synced asynchronously
-    sync_tasks = []
-
-    # Enable and sync RHEL BaseOS and AppStream repos
-    if settings.robottelo.rhel_source == "internal":
-        # Configure internal sources as custom repositories
-        product_rhel = satellite.api.Product(organization=org.id).create()
-        for repourl in settings.repos.get(f'rhel{capsule_host.os_version.major}_os').values():
-            repo = satellite.api.Repository(
-                organization=org.id, product=product_rhel, content_type='yum', url=repourl
-            ).create()
-            # custom repos need to be explicitly enabled
-            ak.content_override(
-                data={
-                    'content_overrides': [
-                        {
-                            'content_label': '_'.join([org.label, product_rhel.label, repo.label]),
-                            'value': '1',
-                        }
-                    ]
-                }
-            )
-    else:
-        # use AppStream and BaseOS from CDN
-        for rh_repo_key in [
-            f'rhel{capsule_host.os_version.major}_bos',
-            f'rhel{capsule_host.os_version.major}_aps',
-        ]:
-            satellite.api_factory.enable_rhrepo_and_fetchid(
-                basearch=DEFAULT_ARCHITECTURE,
-                org_id=org.id,
-                product=PRDS[f'rhel{capsule_host.os_version.major}'],
-                repo=REPOS[rh_repo_key]['name'],
-                reposet=REPOSET[rh_repo_key],
-                releasever=REPOS[rh_repo_key]['releasever'],
-            )
-        product_rhel = satellite.api.Product(
-            name=PRDS[f'rhel{capsule_host.os_version.major}'], organization=org.id
-        ).search()[0]
-    sync_tasks.append(satellite.api.Product(id=product_rhel.id).sync(synchronous=False))
-
-    # Enable and sync Capsule repos
-    if settings.capsule.version.source == "ga":
-        # enable Capsule repos from CDN
-        for repo in capsule_host.CAPSULE_CDN_REPOS.values():
-            reposet = satellite.api.RepositorySet(organization=org.id).search(
-                query={'search': repo}
-            )[0]
-            reposet.enable()
-            # repos need to be explicitly enabled in AK
-            ak.content_override(
-                data={
-                    'content_overrides': [
-                        {
-                            'content_label': reposet.label,
-                            'value': '1',
-                        }
-                    ]
-                }
-            )
-            sync_tasks.append(satellite.api.Product(id=reposet.product.id).sync(synchronous=False))
-    else:
-        # configure internal source as custom repos
-        product_capsule = satellite.api.Product(organization=org.id).create()
-        for repo_variant, repo_default_url in [
-            ('capsule', 'capsule_repo'),
-            ('maintenance', 'satmaintenance_repo'),
-        ]:
-            if settings.capsule.version.source == 'nightly':
-                repo_url = getattr(settings.repos, repo_default_url)
-            else:
-                repo_url = dogfood_repository(
-                    ohsnap=settings.ohsnap,
-                    repo=repo_variant,
-                    product="capsule",
-                    release=settings.capsule.version.release,
-                    os_release=capsule_host.os_version.major,
-                    snap=settings.capsule.version.snap,
-                ).baseurl
-            repo = satellite.api.Repository(
-                organization=org.id,
-                product=product_capsule,
-                content_type='yum',
-                url=repo_url,
-            ).create()
-
-            # custom repos need to be explicitly enabled
-            ak.content_override(
-                data={
-                    'content_overrides': [
-                        {
-                            'content_label': '_'.join(
-                                [org.label, product_capsule.label, repo.label]
-                            ),
-                            'value': '1',
-                        }
-                    ]
-                }
-            )
-        sync_tasks.append(satellite.api.Product(id=product_capsule.id).sync(synchronous=False))
-
-    # Wait for asynchronous sync tasks
-    satellite.wait_for_tasks(
-        search_query=(f'id ^ "{",".join(task["id"] for task in sync_tasks)}"'),
-        poll_timeout=1800,
     )
 
 
@@ -309,6 +186,7 @@ def sat_non_default_install(module_sat_ready_rhels):
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.build_sanity
+@pytest.mark.foreman_installer
 def test_capsule_installation(
     pytestconfig, sat_fapolicyd_install, cap_ready_rhel, module_sca_manifest
 ):
@@ -357,7 +235,7 @@ def test_capsule_installation(
     ak = sat_fapolicyd_install.api.ActivationKey(
         organization=org, content_view_environment_ids=[cvenv_id]
     ).create()
-    sync_capsule_repos(sat_fapolicyd_install, cap_ready_rhel, org, ak)
+    sat_fapolicyd_install.api_factory.sync_capsule_repos(cap_ready_rhel, org, ak)
 
     cap_ready_rhel.register(org, None, ak.name, sat_fapolicyd_install)
 
@@ -380,43 +258,14 @@ def test_capsule_installation(
         query={'search': f'name={cap_ready_rhel.hostname}'}
     )[0]
 
-    # no errors/failures in journald
-    result = cap_ready_rhel.execute(
-        r'journalctl --quiet --no-pager --boot --priority err -u foreman-proxy -u httpd -u postgresql -u pulpcore-api -u pulpcore-content -u pulpcore-worker* -u redis'
-    )
-    assert len(result.stdout) == 0
-    # no errors/failures /var/log/foreman-installer/satellite.log
-    result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
-    )
-    assert len(result.stdout) == 0
-    # no errors/failures /var/log/foreman-installer/capsule.log
-    result = cap_ready_rhel.execute(
-        r'grep "\[ERROR" --context=100 /var/log/foreman-installer/capsule.log'
-    )
-    assert len(result.stdout) == 0
-    # no errors/failures in /var/log/httpd/*
-    result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert len(result.stdout) == 0
-    # no errors/failures in /var/log/foreman-proxy/*
-    result = cap_ready_rhel.execute(r'grep -iR "error" /var/log/foreman-proxy/*')
-    assert len(result.stdout) == 0
+    cap_ready_rhel.assert_install_assertions()
 
     # Enabling firewall
-    assert (
-        cap_ready_rhel.execute(
-            "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
-        ).status
-        == 0
-    ), "firewalld is not present and can't be installed"
-    cap_ready_rhel.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
-    cap_ready_rhel.execute('firewall-cmd --runtime-to-permanent')
-
-    result = cap_ready_rhel.cli.Health.check()
-    assert 'FAIL' not in result.stdout
+    cap_ready_rhel.configure_firewall(services=['RH-Satellite-6-capsule'])
 
 
 @pytest.mark.e2e
+@pytest.mark.foreman_installer
 def test_foreman_rails_cache_store(sat_non_default_install):
     """Test foreman-rails-cache-store option
 
@@ -438,6 +287,7 @@ def test_foreman_rails_cache_store(sat_non_default_install):
 
 
 @pytest.mark.e2e
+@pytest.mark.foreman_installer
 def test_content_guarded_distributions_option(
     sat_default_install, sat_non_default_install, module_sca_manifest
 ):
@@ -496,6 +346,7 @@ def test_content_guarded_distributions_option(
 
 
 @pytest.mark.upgrade
+@pytest.mark.foreman_installer
 def test_positive_selinux_foreman_module(target_sat):
     """Check if SELinux foreman module is installed on Satellite
 
@@ -515,69 +366,7 @@ def test_positive_selinux_foreman_module(target_sat):
 
 
 @pytest.mark.upgrade
-def test_positive_apache_selinux_context(target_sat):
-    """Check if Apache module config files have correct SELinux context
-
-    :id: 8f7a9b2c-4d3e-4f5a-9c8b-7a6d5e4f3c2b
-
-    :steps:
-        1. Check existing Apache module config files in /etc/httpd/conf.modules.d/
-        2. Verify all config files have httpd_config_t SELinux context
-        3. Create a test file using Puppet without seltype parameter
-        4. Verify the test file automatically gets httpd_config_t context
-
-    :expectedresults:
-        1. All Apache module config files have httpd_config_t context
-        2. No files have incorrect etc_t context
-        3. Files created by Puppet automatically get httpd_config_t context
-
-    :CaseImportance: Medium
-
-    :customerscenario: true
-
-    :Verifies: SAT-30020
-    """
-    result = target_sat.execute('ls -1Z /etc/httpd/conf.modules.d/*.conf')
-    assert result.status == 0, "Failed to list Apache module config files"
-
-    config_files = result.stdout.strip().split('\n')
-    assert len(config_files) > 0, "No Apache config files found"
-
-    incorrect_files = []
-    for line in config_files:
-        if line and ':httpd_config_t:' not in line:
-            incorrect_files.append(line)
-
-    assert not incorrect_files, (
-        f"Found {len(incorrect_files)} Apache config file(s) with incorrect SELinux context:\n"
-        + '\n'.join(incorrect_files)
-    )
-
-    puppet_manifest = """
-file { '/etc/httpd/conf.modules.d/99-selinux-test.conf':
-  ensure  => file,
-  content => "# Test file for SELinux context verification\\n",
-  mode    => '0644',
-  owner   => 'root',
-  group   => 'root',
-}
-"""
-    target_sat.put(puppet_manifest, '/tmp/test_selinux.pp', temp_file=True)
-    target_sat.execute('rm -f /etc/httpd/conf.modules.d/99-selinux-test.conf')
-
-    result = target_sat.execute('puppet apply /tmp/test_selinux.pp')
-    assert result.status == 0, f"Puppet apply failed: {result.stdout}"
-
-    result = target_sat.execute('ls -1Z /etc/httpd/conf.modules.d/99-selinux-test.conf')
-    assert result.status == 0, "Failed to check test file SELinux context"
-    assert ':httpd_config_t:' in result.stdout, (
-        f"Test file has incorrect SELinux context. Expected :httpd_config_t::\n{result.stdout}"
-    )
-
-    target_sat.execute('rm -f /etc/httpd/conf.modules.d/99-selinux-test.conf')
-
-
-@pytest.mark.upgrade
+@pytest.mark.foreman_installer
 @pytest.mark.parametrize('service', SATELLITE_SERVICES)
 def test_positive_check_installer_service_running(target_sat, service):
     """Check if a service is running
@@ -605,6 +394,7 @@ def test_positive_check_installer_service_running(target_sat, service):
 
 
 @pytest.mark.upgrade
+@pytest.mark.foreman_installer
 def test_positive_check_installer_hammer_ping(target_sat):
     """Check if hammer ping reports all services as ok
 
@@ -627,6 +417,7 @@ def test_positive_check_installer_hammer_ping(target_sat):
             assert 'ok' in line
 
 
+@pytest.mark.foreman_installer
 def test_installer_cap_pub_directory_accessibility(capsule_configured):
     """Verify the public directory accessibility from capsule url after disabling it from the
     custom-hiera
@@ -682,6 +473,7 @@ def test_installer_cap_pub_directory_accessibility(capsule_configured):
     assert 'Success!' in command_output.stdout
 
 
+@pytest.mark.foreman_installer
 def test_installer_capsule_with_enabled_ansible(module_capsule_configured_ansible):
     """Enables Ansible feature on external Capsule and checks the callback is set correctly
 
@@ -716,6 +508,7 @@ def test_installer_capsule_with_enabled_ansible(module_capsule_configured_ansibl
 @pytest.mark.build_sanity
 @pytest.mark.first_sanity
 @pytest.mark.pit_server
+@pytest.mark.foreman_installer
 def test_satellite_installation(pytestconfig, installer_satellite):
     """Run a basic Satellite installation
 
@@ -738,8 +531,6 @@ def test_satellite_installation(pytestconfig, installer_satellite):
 
     :CaseImportance: Critical
     """
-    from robottelo.enums import InstallMethod
-
     installer_satellite.assert_install_assertions()
 
     # Verify foreman-redis is installed and set as default cache for rails
@@ -761,6 +552,7 @@ def test_satellite_installation(pytestconfig, installer_satellite):
 
 
 @pytest.mark.pit_server
+@pytest.mark.foreman_installer
 @pytest.mark.parametrize('package', ['nmap-ncat'])
 def test_weak_dependency(sat_non_default_install, package):
     """Check if Satellite and its (sub)components do not require certain (potentially insecure) packages. On an existing Satellite the package has to be either not installed or can be safely removed.
@@ -793,7 +585,7 @@ def test_weak_dependency(sat_non_default_install, package):
 @pytest.mark.parametrize(
     'satellite_with_install_method',
     [
-        pytest.param('installer', id='installer-method'),
+        pytest.param('installer', marks=pytest.mark.foreman_installer, id='installer-method'),
         pytest.param('foremanctl', marks=pytest.mark.foremanctl, id='foremanctl-method'),
     ],
     indirect=True,

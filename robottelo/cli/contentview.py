@@ -83,6 +83,12 @@ class ContentViewFilter(Base):
     rule = ContentViewFilterRule
 
 
+class ContentViewEnvironment(Base):
+    """Manipulates content view environments."""
+
+    command_base = 'content-view-environment'
+
+
 class ContentView(Base):
     """Manipulates Foreman's content view."""
 

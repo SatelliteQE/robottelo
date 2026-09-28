@@ -70,8 +70,9 @@ def pytest_runtest_makereport(item):
                 report.user_properties = [
                     (key, value) for key, value in report.user_properties if key != 'video_url'
                 ]
-                session_id_tuple = next(
-                    (t for t in report.user_properties if t[0] == 'session_id'), None
-                )
-                session_id = session_id_tuple[1] if session_id_tuple else None
-                _clean_video(session_id, item.nodeid)
+                # Extract all session IDs from user_properties (handles multi-session tests)
+                session_ids = [
+                    value for key, value in report.user_properties if key == 'session_id'
+                ]
+                for session_id in session_ids:
+                    _clean_video(session_id, item.nodeid)

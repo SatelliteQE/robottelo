@@ -31,7 +31,7 @@ from robottelo.hosts import ContentHost
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.skip_if_not_set('vmware')]
+pytestmark = [pytest.mark.skip_if_not_set('vmware'), pytest.mark.foreman_installer]
 
 
 def _round_to_2_significant_digits(x):
@@ -103,7 +103,7 @@ def get_vmware_storagepod_summary_string(vmware, vmwareclient):
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+@pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
 def test_positive_cr_end_to_end(session, module_org, module_location, vmware, module_target_sat):
     """Perform end-to-end testing for compute resource VMware component.
 
@@ -174,7 +174,7 @@ def test_positive_cr_end_to_end(session, module_org, module_location, vmware, mo
         assert not session.computeresource.search(new_cr_name)
 
 
-@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+@pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
 def test_positive_retrieve_virtual_machine_list(session, vmware):
     """List the virtual machine list from vmware compute resource
 
@@ -209,7 +209,7 @@ def test_positive_retrieve_virtual_machine_list(session, vmware):
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+@pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
 def test_positive_image_end_to_end(session, target_sat, vmware):
     """Perform end to end testing for compute resource VMware component image.
 
@@ -267,7 +267,7 @@ def test_positive_image_end_to_end(session, target_sat, vmware):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+@pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
 def test_positive_resource_vm_power_management(session, vmware):
     """Read current VMware Compute Resource virtual machine power status and
     change it to opposite one
@@ -313,9 +313,9 @@ def test_positive_resource_vm_power_management(session, vmware):
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+@pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
 def test_positive_vmware_custom_profile_end_to_end(
-    session, vmware, request, target_sat, get_vmware_datastore_summary_string
+    request, session, vmware, target_sat, get_vmware_datastore_summary_string
 ):
     """Perform end to end testing for VMware compute profile.
 
@@ -351,7 +351,7 @@ def test_positive_vmware_custom_profile_end_to_end(
     memory_hot_add = True
     cpu_hot_add = True
     cdrom_drive = True
-    disk_size = '10 GB'
+    disk_size = '10'
     network = 'VLAN 400'  # hardcoding network here as this test won't be doing actual provisioning
     storage_data = {
         'storage': {
@@ -444,7 +444,7 @@ def test_positive_vmware_custom_profile_end_to_end(
         assert not session.computeresource.search(cr_name)
 
 
-@pytest.mark.parametrize('vmware', ['vmware7', 'vmware8'], indirect=True)
+@pytest.mark.parametrize('vmware', ['vmware8'], indirect=True)
 def test_positive_virt_card(session, target_sat, module_location, module_org, vmware):
     """Check to see that the Virtualization card appears for an imported VM
 

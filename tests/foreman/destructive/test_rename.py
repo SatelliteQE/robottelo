@@ -21,13 +21,15 @@ from robottelo.cli import hammer
 from robottelo.config import settings
 from robottelo.constants import SATELLITE_ANSWER_FILE
 
+pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
+
+
 BCK_MSG = "**** Hostname change complete! ****"
 BAD_HN_MSG = (
     "{0} is not a valid fully qualified domain name. Please use a valid FQDN and try again."
 )
 NO_CREDS_MSG = "Username and/or Password options are missing!"
 BAD_CREDS_MSG = "Unable to authenticate user admin"
-pytestmark = pytest.mark.destructive
 
 
 @pytest.mark.e2e
@@ -125,7 +127,7 @@ def test_positive_rename_satellite(module_org, module_product, module_target_sat
 
     # check config files (except certs/keys and /etc/template) for occurrences of old hostname
     output = module_target_sat.execute(
-        f'grep "{old_hostname}" /etc -r --exclude=template --exclude-dir={{promtail,pki}} --exclude=*.{{pem,cert,bak}}'
+        f'grep "{old_hostname}" /etc -r --exclude=template --exclude-dir={{promtail,pki}} --exclude=*.{{pem,cert,bak,crt}}'
     ).stdout
     assert old_hostname not in output, (
         'there are remaining instances of the old hostname in the config files'

@@ -20,17 +20,20 @@ from robottelo.enums import NetworkType
 
 
 @pytest.mark.upgrade
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
     'fact',
     [
-        'system_uptime',
-        'os::family',
-        'system_uptime::seconds',
-        'memory::system::total',
-        'networking::ip6' if settings.server.network_type == NetworkType.IPV6 else 'networking::ip',
+        'distribution::name',
+        'distribution::version',
+        'memory::memtotal',
+        'lscpu::architecture',
+        'network::ipv6_address'
+        if settings.server.network_type == NetworkType.IPV6
+        else 'network::ipv4_address',
     ],
 )
-def test_positive_list_by_name(fact, module_target_sat):
+def test_positive_list_by_name(fact, module_registered_contenthost, module_target_sat):
     """Test Fact List
 
     :id: 83794d97-d21b-4482-9522-9b41053e595f
@@ -126,8 +129,7 @@ def test_positive_facts_end_to_end(
         'net::interface::eth1::ipv4_address': ip,
         'network::fqdn': rhel_contenthost.hostname,
         'lscpu::architecture': rhel_contenthost.arch,
-        'ansible_distribution_major_version': str(rhel_contenthost.os_version.major),
-        'ansible_fqdn': rhel_contenthost.hostname,
+        'distribution::version': f'{rhel_contenthost.os_version.major}.{rhel_contenthost.os_version.minor}',
     }
     for fact, expected_value in expected_values.items():
         actual_value = facts_dict.get(fact)

@@ -18,7 +18,9 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import FOREMANCTL_PARAMETERS_FILE
 from robottelo.logging import logger
+from robottelo.utils.issue_handlers import is_open
 
 pytestmark = pytest.mark.e2e
 
@@ -246,3 +248,282 @@ def test_positive_logging_from_pulp3(module_org, target_sat):
     # verify pulp correlation id in message
     message_log = target_sat.execute(f'cat {test_logfile} | grep {pulp_correlation_id}')
     assert message_log.status == 0
+
+
+@pytest.mark.foremanctl
+class TestSOSReportForemanctl:
+    """Tests for the foremanctl sos plugin on containerized Satellite."""
+
+    SOS_CMD = 'sos report -o foremanctl --batch --tmp-dir /var/tmp'
+    EXTRACT_DIR = '/var/tmp/sosreport-extract'
+
+    @pytest.fixture(scope="module")
+    def sosreport_extract(self, module_target_sat):
+        # Use the sos packit nightly build until the RHEL issue is resolved
+        if is_open('RHEL-208899'):
+            rhel_ver = module_target_sat.os_version.major
+            assert (
+                module_target_sat.execute(
+                    f'dnf copr enable -y @sosreport/develop rhel-{rhel_ver}-x86_64'
+                ).status
+                == 0
+            )
+            assert (
+                module_target_sat.execute(
+                    'dnf upgrade -y --repo=copr:copr.fedorainfracloud.org:group_sosreport:develop'
+                ).status
+                == 0
+            )
+
+        # Run sosreport and yield the extracted report directory path.
+        result = module_target_sat.execute(self.SOS_CMD, timeout='10m')
+        assert result.status == 0, f'sosreport failed:\n{result.stdout}\n{result.stderr}'
+
+        tarball = module_target_sat.execute(
+            'ls /var/tmp/sosreport-*.tar.xz | head -1'
+        ).stdout.strip()
+        assert tarball, 'No sosreport tarball found'
+
+        module_target_sat.execute(f'mkdir -p {self.EXTRACT_DIR}')
+        module_target_sat.execute(f'tar xf {tarball} -C {self.EXTRACT_DIR}')
+
+        report_dir = module_target_sat.execute(
+            f'ls -d {self.EXTRACT_DIR}/sosreport-*'
+        ).stdout.strip()
+        yield report_dir
+        module_target_sat.execute(f'rm -rf /var/tmp/sosreport-* {self.EXTRACT_DIR}')
+
+    def test_positive_sosreport_foremanctl_collects_data(
+        self, module_target_sat, sosreport_extract
+    ):
+        """Verify the foremanctl sos plugin activates on a containerized
+        Satellite and collects expected configuration files and command output.
+
+        :id: dc91bb91-d785-49f9-b19d-b0484662ce3f
+
+        :steps:
+            1. Run sosreport with the foremanctl plugin
+            2. Verify foremanctl configuration files are collected
+            3. Verify foremanctl command outputs are collected
+
+        :expectedresults:
+            1. parameters.yaml and inventory files are present in the report
+            2. foremanctl features and foremanctl health output are collected
+        """
+        report = sosreport_extract
+
+        params = module_target_sat.execute(f'test -f {report}/var/lib/foremanctl/parameters.yaml')
+        assert params.status == 0, 'parameters.yaml not collected'
+
+        inventory = module_target_sat.execute(f'test -f {report}/etc/foremanctl/inventory')
+        assert inventory.status == 0, 'foremanctl inventory not collected'
+
+        features = module_target_sat.execute(
+            f'test -f {report}/sos_commands/foremanctl/foremanctl_features'
+        )
+        assert features.status == 0, 'foremanctl features output not collected'
+
+        health = module_target_sat.execute(
+            f'test -f {report}/sos_commands/foremanctl/foremanctl_health'
+        )
+        assert health.status == 0, 'foremanctl health output not collected'
+
+    def test_positive_sosreport_foremanctl_scrub_sensitive_values(
+        self, module_target_sat, sosreport_extract
+    ):
+        """Verify the foremanctl sos plugin scrubs sensitive credentials
+        from parameters.yaml and foremanctl log files while preserving
+        non-sensitive values.
+
+        :id: a8bdb8f7-dd0f-44ee-9722-af4b1815aad2
+
+        :steps:
+            1. Verify passwords exist in the original parameters.yaml
+            2. Run sosreport with the foremanctl plugin
+            3. Check password values in parameters.yaml are scrubbed
+            4. Check non-sensitive values are NOT scrubbed
+            5. Verify foremanctl log files are collected
+            6. Check that sensitive values in logs are scrubbed
+
+        :expectedresults:
+            1. All password values in parameters.yaml are scrubbed
+            2. Non-sensitive values like database names remain intact
+            3. foremanctl log files are present in the report
+            4. Any lines matching sensitive value patterns in logs
+               have their values scrubbed'
+        """
+        # only password exists for now on the default deploy and more can be added in future
+        SENSITIVE_KEYWORD = ('password',)
+        SCRUB_MARKER = '***'
+
+        original = module_target_sat.execute(f'grep -i password {FOREMANCTL_PARAMETERS_FILE}')
+        assert original.stdout.strip(), f'No password entries found in {FOREMANCTL_PARAMETERS_FILE}'
+
+        report = sosreport_extract
+
+        # Verify parameters.yaml scrubbing
+        collected = module_target_sat.execute(f'cat {report}/var/lib/foremanctl/parameters.yaml')
+        assert collected.status == 0, 'Could not read collected parameters.yaml'
+
+        for keyword in SENSITIVE_KEYWORD:
+            matching_lines = [
+                line for line in collected.stdout.splitlines() if keyword in line.lower()
+            ]
+            for line in matching_lines:
+                assert SCRUB_MARKER in line, f'Sensitive value not scrubbed in line: {line}'
+
+        # Verify log file scrubbing
+        log_dir = f'{report}/var/log/foremanctl'
+        log_files = module_target_sat.execute(f'ls {log_dir}/foremanctl*log* 2>/dev/null')
+        assert log_files.status == 0, 'Failed to list foremanctl log files in sosreport'
+
+        sensitive_check = module_target_sat.execute(
+            f'grep -hEi "passw|cred|token|secret" {log_dir}/foremanctl*log* 2>/dev/null'
+        )
+        if sensitive_check.stdout.strip():
+            for line in sensitive_check.stdout.splitlines():
+                assert SCRUB_MARKER in line, f'Sensitive value not scrubbed in log line: {line}'
+
+
+@pytest.mark.foremanctl
+def test_positive_foremanctl_log_level(module_target_sat):
+    """Verify foremanctl deploy log level parameters for Foreman and Proxy services.
+
+    :id: 3170785b-5327-43f6-a2b5-8e3f4049da45
+
+    :steps:
+        1. Deploy with --foreman-log-level=debug --foreman-proxy-log-level=debug --log-level=debug
+        2. Verify all three parameters are persisted in parameters file
+        3. Trigger Foreman activity and verify DEBUG [D] output in foreman journal
+        4. Trigger Proxy activity and verify DEBUG [D] output in foreman-proxy journal
+        5. Reset all log level parameters in a single deploy
+        6. Verify all log level parameters are removed from parameters file
+
+    :expectedresults:
+        1. All log level parameters are persisted correctly
+        2. Both services emit DEBUG-level [D] log entries
+        3. All parameters are removed after reset
+    """
+    sat = module_target_sat
+
+    result = sat.execute(
+        'foremanctl deploy'
+        ' --add-feature hammer'
+        ' --foreman-log-level=debug'
+        ' --foreman-proxy-log-level=debug'
+        ' --log-level=debug',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl deploy with log level parameters failed:\n{result.stderr}'
+    )
+
+    # Verify all parameters are persisted
+    params = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert params.foreman_log_level == 'debug', (
+        f'foreman_log_level not persisted correctly: {params.get("foreman_log_level")}'
+    )
+    assert params.foreman_proxy_log_level == 'debug', (
+        f'foreman_proxy_log_level not persisted correctly: {params.get("foreman_proxy_log_level")}'
+    )
+    assert params.log_level == 'debug', (
+        f'log_level not persisted correctly: {params.get("log_level")}'
+    )
+
+    # Trigger activity and verify DEBUG [D|...] output in foreman journal
+    sat.execute('hammer host list')
+    result = sat.execute(r'journalctl --no-pager -u foreman.service --since "-2 min" | grep "\[D|"')
+    assert result.status == 0, 'No DEBUG-level [D|...] messages found in foreman.service journal'
+
+    # Trigger activity and verify DEBUG [D] output in foreman-proxy journal
+    sat.execute('hammer proxy refresh-features --id 1')
+    result = sat.execute(
+        r'journalctl --no-pager -u foreman-proxy.service --since "-2 min" | grep "\[D\]"'
+    )
+    assert result.status == 0, 'No DEBUG-level [D] messages found in foreman-proxy.service journal'
+
+    # Reset all log level parameters in a single deploy
+    result = sat.execute(
+        'foremanctl deploy'
+        ' --reset-foreman-log-level'
+        ' --reset-foreman-proxy-log-level'
+        ' --reset-log-level',
+        timeout='30m',
+    )
+    assert result.status == 0, f'Reset log level parameters failed:\n{result.stderr}'
+
+    # Verify all parameters are removed
+    params = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert 'foreman_log_level' not in params, (
+        'foreman_log_level still present in parameters after reset'
+    )
+    assert 'foreman_proxy_log_level' not in params, (
+        'foreman_proxy_log_level still present in parameters after reset'
+    )
+    assert 'log_level' not in params, 'log_level still present in parameters after reset'
+
+
+@pytest.mark.foremanctl
+def test_positive_foremanctl_pulp_valkey_log_level(module_target_sat):
+    """Verify foremanctl deploy pulp and valkey log level parameters.
+
+    :id: de48bbb5-7a0f-48fd-a984-98b26dad45e1
+
+    :steps:
+        1. Deploy with --pulp-log-level=debug --valkey-log-level=debug
+        2. Verify both parameters are persisted in parameters file
+        3. Verify PULP_LOG_LEVEL=debug on pulp-api and --loglevel debug on valkey
+        4. Trigger activity and verify debug output in pulp-api and valkey journals
+
+    :expectedresults:
+        1. pulp_log_level and valkey_log_level are persisted correctly
+        2. pulp-api and valkey run with debug log level
+        3. Both service journals show debug-level activity
+    """
+    sat = module_target_sat
+
+    result = sat.execute(
+        'foremanctl deploy --pulp-log-level=debug --valkey-log-level=debug',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl deploy with pulp/valkey log levels failed:\n{result.stderr}'
+    )
+
+    params = sat.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    assert params.pulp_log_level == 'debug', (
+        f'pulp_log_level not persisted correctly: {params.get("pulp_log_level")}'
+    )
+    assert params.valkey_log_level == 'debug', (
+        f'valkey_log_level not persisted correctly: {params.get("valkey_log_level")}'
+    )
+
+    result = sat.execute(
+        "podman inspect pulp-api --format '{{range .Config.Env}}{{println .}}{{end}}' "
+        "| grep '^PULP_LOG_LEVEL='"
+    )
+    assert result.status == 0, f'Failed to read PULP_LOG_LEVEL from pulp-api:\n{result.stderr}'
+    assert 'PULP_LOG_LEVEL=debug' in result.stdout, (
+        f'Expected PULP_LOG_LEVEL=debug, got:\n{result.stdout}'
+    )
+
+    result = sat.execute("podman inspect valkey --format '{{.Config.Cmd}}'")
+    assert result.status == 0, f'Failed to inspect valkey container:\n{result.stderr}'
+    assert '--loglevel' in result.stdout, f'--loglevel missing from valkey cmd:\n{result.stdout}'
+    assert 'debug' in result.stdout, f'Expected debug loglevel on valkey, got:\n{result.stdout}'
+
+    sat.execute('hammer ping')
+    sat.execute('hammer host list')
+    sat.execute('podman exec valkey valkey-cli PING')
+
+    result = sat.execute('journalctl --no-pager -u pulp-api.service --since "-5 min"')
+    assert result.status == 0, f'Failed to read pulp-api.service journal:\n{result.stderr}'
+    assert re.search(r':DEBUG:', result.stdout, re.IGNORECASE), (
+        'No DEBUG messages found in pulp-api.service journal when pulp_log_level=debug'
+    )
+
+    result = sat.execute('journalctl --no-pager -u valkey.service --since "-5 min"')
+    assert result.status == 0, f'Failed to read valkey.service journal:\n{result.stderr}'
+    assert re.search(r'Accepted|debug', result.stdout, re.IGNORECASE), (
+        'No debug-level messages found in valkey.service journal after activity'
+    )

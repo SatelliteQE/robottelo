@@ -21,7 +21,7 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
-from robottelo.enums import NetworkType
+from robottelo.enums import InstallMethod, NetworkType
 from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError, SatelliteHostError
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
@@ -135,11 +135,12 @@ class ContentInfo:
             reached or calculation was not successful).
         """
         filename = url.split('/')[-1]
-        result = self.execute(f'wget -q --spider {url}')
+        ca_opt = f'--ca-certificate={self.ca_cert_file}'
+        result = self.execute(f'wget -q --spider {ca_opt} {url}')
         if result.status != 0:
             raise AssertionError(f'Failed to get `{filename}` from `{url}`.')
         return self.execute(
-            f'wget -qO - {url} | tee {filename} | {sum_type} | awk \'{{print $1}}\''
+            f'wget -qO - {ca_opt} {url} | tee {filename} | {sum_type} | awk \'{{print $1}}\''
         ).stdout.strip()
 
     def upload_manifest(self, org_id, manifest=None, interface='API', timeout=None):
@@ -226,6 +227,20 @@ class ContentInfo:
         assert result.status == 0, 'report failed'
         report = "{" + result.stdout.strip().split("{")[1]
         return json.loads(report)[report_key]
+
+    def get_default_smart_proxy(self):
+        """Get the default smart proxy with Pulpcore feature for this Satellite.
+
+        This is useful for tests that need the content source smart proxy, which may
+        have a different name than the satellite hostname in containerized deployments
+        (e.g., hostname-pulp).
+
+        :return: SmartProxy entity with Pulpcore feature
+        :rtype: nailgun.entities.SmartProxy
+        """
+        return self.api.SmartProxy().search(
+            query={'search': f'feature=Pulpcore and url ~ {self.hostname}'}
+        )[0]
 
 
 class SystemInfo:
@@ -457,7 +472,11 @@ class IoPSetup:
         }
 
     def configure_iop(self):
-        """Configure on prem Advisor engine on Satellite"""
+        """Configure on prem Advisor engine on Satellite.
+
+        Based on install_method: foremanctl uses ``foremanctl deploy --add-feature iop``,
+        installer uses ``satellite-installer --enable-iop --iop-ensure present``.
+        """
         logger.info('Configuring Satellite with local Red Hat Lightspeed')
 
         self.register_to_cdn()
@@ -472,30 +491,33 @@ class IoPSetup:
             iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
         )
 
-        # Set IPv6 podman proxy on Satellite, to pull from container registry
         self.enable_ipv6_podman_proxy()
 
-        # Set up container image path overrides
-        if image_paths := self.get_iop_image_paths():
-            custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
+        if self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('foremanctl deploy --add-feature iop', timeout='30m')
+        else:
+            # Set up container image path overrides for satellite-installer
+            if image_paths := self.get_iop_image_paths():
+                custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
 
-            with open(custom_hiera, 'w') as f:
-                yaml.dump(
-                    image_paths,
-                    f,
-                    sort_keys=False,
-                    default_flow_style=False,
-                )
-            self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
+                with open(custom_hiera, 'w') as f:
+                    yaml.dump(
+                        image_paths,
+                        f,
+                        sort_keys=False,
+                        default_flow_style=False,
+                    )
+                self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
 
-        command = InstallerCommand(
-            'enable-iop',
-            iop_ensure='present',
-            scenario='satellite',
-            foreman_initial_admin_password=settings.server.admin_password,
-        ).get_command()
+            command = InstallerCommand(
+                'enable-iop',
+                iop_ensure='present',
+                scenario='satellite',
+                foreman_initial_admin_password=settings.server.admin_password,
+            ).get_command()
 
-        result = self.execute(command, timeout='30m')
+            result = self.execute(command, timeout='30m')
+
         if result.status != 0:
             raise SatelliteHostError(f'Failed to configure IoP: {result.stdout}')
         if not self.iop_enabled:
@@ -506,86 +528,13 @@ class IoPSetup:
             logger.info('IoP is already disabled. Skipping uninstallation.')
             return
 
-        command = InstallerCommand(
-            iop_ensure='absent',
-        ).get_command()
+        if self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('foremanctl deploy --remove-feature iop', timeout='30m')
+        else:
+            command = InstallerCommand(iop_ensure='absent').get_command()
+            result = self.execute(command, timeout='30m')
 
-        result = self.execute(command, timeout='30m')
         if result.status != 0:
             raise SatelliteHostError(f'Failed to disable IoP: {result.stdout}')
         if self.iop_enabled:
             raise SatelliteHostError('IoP is not disabled')
-
-
-class InstallationVerification:
-    """Installation verification helper methods for Satellite hosts."""
-
-    @staticmethod
-    def assert_hammer_ping_ok(result):
-        """Assert that 'hammer ping' output shows all services as ok.
-
-        :param result: Command result from executing 'hammer ping'
-        """
-        from robottelo.cli import hammer
-
-        assert result.status == 0, 'hammer ping failed'
-        services = hammer.parse_ping(result.stdout)
-        for service_name, status in services.items():
-            assert status == 'ok', f'Service {service_name} status is {status}, expected ok'
-
-    def assert_install_assertions(self):
-        """Assert common post-installation health checks.
-
-        Works with both satellite-installer and foremanctl installation methods.
-        Checks logs, services, and overall system health.
-        """
-        from robottelo.config import settings
-        from robottelo.enums import InstallMethod
-        from robottelo.utils.issue_handlers import is_open
-
-        sat_version = 'stream' if self.is_stream else self.version
-        if settings.server.version.source != 'nightly':
-            assert settings.server.version.release == sat_version
-
-        # Check journald for errors using installation-method-aware service list
-        services = self.get_service_names()
-        service_units = ' '.join([f'-u "{svc}"' for svc in services])
-        result = self.execute(
-            f'journalctl --quiet --no-pager --boot --priority err {service_units}'
-        )
-        assert not result.stdout
-
-        # Check foreman production log
-        result = self.execute(r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log')
-        if not is_open('SAT-21086'):
-            assert not result.stdout
-
-        # Check foreman-installer log (only relevant for satellite-installer method)
-        if self.install_method == InstallMethod.INSTALLER:
-            result = self.execute(
-                r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
-            )
-            assert not result.stdout
-
-        # Check httpd logs, filtering expected transient startup errors
-        # (httpd may start before Foreman/containers are ready, causing brief "Connection refused")
-        result = self.execute(r'grep -iR "error" /var/log/httpd/*')
-        if result.stdout:
-            filtered_errors = [
-                line
-                for line in result.stdout.splitlines()
-                if 'Connection refused' not in line
-                and 'attempt to connect to 127.0.0.1:3000' not in line
-                and 'failed to make connection to backend: localhost' not in line
-            ]
-            assert not filtered_errors, f'Unexpected httpd errors:\n{chr(10).join(filtered_errors)}'
-
-        # Check candlepin logs
-        result = self.execute(r'grep -iR "error" /var/log/candlepin/*')
-        assert not result.stdout
-
-        httpd_log = self.execute('journalctl --unit=httpd')
-        assert 'WARNING' not in httpd_log.stdout
-
-        result = self.cli.Health.check()
-        assert 'FAIL' not in result.stdout

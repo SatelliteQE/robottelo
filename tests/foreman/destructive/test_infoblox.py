@@ -19,7 +19,7 @@ from robottelo.config import settings
 from robottelo.enums import NetworkType
 from robottelo.utils.installer import InstallerCommand
 
-pytestmark = pytest.mark.destructive
+pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
 
 infoblox_package = 'rubygem-infoblox'
 infoblox_dhcp_package = 'rubygem-smart_proxy_dhcp_infoblox'

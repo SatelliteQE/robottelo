@@ -26,7 +26,7 @@ from robottelo.constants import (
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.skip_if_not_set('libvirt')]
+pytestmark = [pytest.mark.skip_if_not_set('libvirt'), pytest.mark.foreman_installer]
 
 
 @pytest.mark.e2e
@@ -111,7 +111,7 @@ def test_positive_end_to_end(session, module_target_sat, module_org, module_loca
             == f'{new_cr_name} ({FOREMAN_PROVIDERS["libvirt"]})'
         )
         assert cr_profile_values['provider_content']['cpus'] == '16'
-        assert cr_profile_values['provider_content']['memory'] == '8192 MB'
+        assert cr_profile_values['provider_content']['memory'] == '8192'
         session.computeresource.delete(new_cr_name)
         assert not session.computeresource.search(new_cr_name)
 
@@ -212,7 +212,7 @@ def test_positive_provision_end_to_end(
             provisioning_host.wait_for_connection()
             assert 'SecureBoot enabled' in provisioning_host.execute('mokutil --sb-state').stdout
 
-        session.host_new.delete(name)
+        session.all_hosts.delete(name)
         assert not sat.api.Host().search(query={'search': f'name="{name}"'})
 
 
@@ -359,7 +359,7 @@ def test_positive_associate_with_custom_profile(
         values = session.computeresource.read_computeprofile(cr_name, COMPUTE_PROFILE_SMALL)
         provider_content = values['provider_content']
         assert provider_content['cpus'] == "1"
-        assert provider_content['memory'] == '6144 MB'
+        assert provider_content['memory'] == '6144'
         assert provider_content['storage'][0]['storage_type'] == storage_data['storage_type']
         assert provider_content['storage'][0]['storage_pool'] == storage_data['storage_pool']
         assert provider_content['storage'][0]['size'] == storage_data['size']

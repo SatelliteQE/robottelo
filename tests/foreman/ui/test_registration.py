@@ -152,10 +152,14 @@ def test_positive_global_registration_end_to_end(
 
     :BZ: 1993874
 
+    :Verifies: SAT-47528
+
     :expectedresults: Host is successfully registered, remote execution and insights
          client work out of the box
 
     :parametrized: yes
+
+    :BlockedBy: SAT-47528
     """
     # Adding IPv6 proxy for IPv6 communication
     rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
@@ -638,6 +642,7 @@ def test_positive_global_registration_form(
         assert pair in cmd
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_global_registration_with_capsule_host(
     capsule_configured,

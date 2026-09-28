@@ -13,6 +13,8 @@
 import pytest
 from requests.exceptions import HTTPError
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.upgrade
 def test_positive_end_to_end_template_combination(request, module_target_sat, module_hostgroup):

@@ -29,7 +29,7 @@ from robottelo.constants import (
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.hosts import Satellite
 
-pytestmark = pytest.mark.destructive
+pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
 
 
 BACKUP_DIR = '/tmp/'

@@ -17,6 +17,8 @@ import re
 from packaging.version import Version
 import pytest
 
+pytestmark = pytest.mark.foreman_installer
+
 
 class TestDiscoveryImage:
     """Pre-upgrade and post-upgrade scenarios to test Foreman Discovery Image version.

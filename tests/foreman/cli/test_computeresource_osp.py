@@ -18,6 +18,8 @@ import pytest
 from robottelo.config import settings
 from robottelo.exceptions import CLIReturnCodeError
 
+pytestmark = pytest.mark.foreman_installer
+
 OSP_SETTINGS = Box(
     username=settings.osp.username,
     password=settings.osp.password,
@@ -29,15 +31,12 @@ OSP_SETTINGS = Box(
 class TestOSPComputeResourceTestCase:
     """OSPComputeResource CLI tests."""
 
-    def cr_cleanup(self, cr_id, id_type, target_sat):
+    def cr_cleanup(self, id_type, value, target_sat):
         """Finalizer for removing CR from Satellite.
         This should remove ssh key pairs from OSP in case of test fail.
         """
-        try:
-            target_sat.cli.ComputeResource.delete({id_type: cr_id})
-            assert not target_sat.cli.ComputeResource.exists(search=(id_type, cr_id))
-        except CLIReturnCodeError:
-            pass
+        target_sat.cli.ComputeResource.delete({id_type: value})
+        assert not target_sat.cli.ComputeResource.exists(search=(id_type, value))
 
     @pytest.fixture
     def osp_version(request):
@@ -76,7 +75,9 @@ class TestOSPComputeResourceTestCase:
                 'url': osp_version,
             }
         )
-        request.addfinalizer(lambda: self.cr_cleanup(compute_resource['id'], id_type, target_sat))
+        request.addfinalizer(
+            lambda: self.cr_cleanup(id_type, compute_resource[id_type], target_sat)
+        )
         assert compute_resource['name'] == name
         assert target_sat.cli.ComputeResource.exists(search=(id_type, compute_resource[id_type]))
 

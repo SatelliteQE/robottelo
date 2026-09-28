@@ -222,3 +222,86 @@ def test_container_repo_sync(container_repo_sync_setup):
             assert all(
                 [len(m['annotations']) == expected_values['annotations_count'] for m in entity_data]
             ), 'Unexpected annotations count'
+
+
+@pytest.fixture
+def evr_upgrade_setup(evr_upgrade_shared_satellite, upgrade_action):
+    """Before upgrade, drop the evr columns and evr extension before the KatelloRecreateEvrConstructs migration runs.
+
+    :id: preupgrade-cbe66e43-392c-4951-a503-e09a5f731479
+
+    :steps:
+        1. Sync a yum repository to populate katello_rpms with RPM data.
+        2. Drop the EVR extension with CASCADE to remove all dependent objects.
+        3. Drop inline EVR constructs (columns, types) if they still exist.
+        4. Trigger the satellite upgrade.
+
+    :expectedresults:
+        1. katello_rpms is populated with RPM rows before the EVR column is dropped.
+        2. EVR extension is not available.
+        3. EVR column is absent from katello_rpms before upgrade.
+        4. EVR column is absent from katello_installed_packages before upgrade.
+    """
+    target_sat = evr_upgrade_shared_satellite
+    with SharedResource(
+        target_sat.hostname, upgrade_action, target_sat=target_sat, action_is_recoverable=True
+    ) as sat_upgrade:
+        org = target_sat.api.Organization(name=gen_alpha()).create()
+        product = target_sat.api.Product(name=gen_alpha(), organization=org).create()
+        repo = target_sat.api.Repository(
+            name=gen_alpha(),
+            product=product,
+            url=settings.repos.yum_1.url,
+            content_type='yum',
+        ).create()
+        repo.sync()
+
+        for stmt in [
+            'DROP EXTENSION IF EXISTS evr CASCADE',
+            'ALTER TABLE katello_rpms DROP COLUMN IF EXISTS evr',
+            'ALTER TABLE katello_installed_packages DROP COLUMN IF EXISTS evr',
+            'DROP TYPE IF EXISTS evr_t CASCADE',
+            'DROP TYPE IF EXISTS evr_array_item CASCADE',
+        ]:
+            target_sat.query_db(stmt, db_user='postgres', output_format='raw')
+
+        sat_upgrade.ready()
+        target_sat._session = None
+        yield target_sat
+
+
+@pytest.mark.evr_upgrades
+def test_evr_migration_recreates_constructs(evr_upgrade_setup):
+    """Post-upgrade, verify the EVR migration recreates all constructs when both the extension and inline columns were
+    absent before the upgrade.
+
+    :id: postupgrade-cbe66e43-392c-4951-a503-e09a5f731479
+
+    :steps:
+        1. Query information_schema.columns for the evr column on katello_installed_packages.
+        2. Query pg_indexes for the EVR composite index on katello_rpms.
+        3. Query katello_rpms for rows with a NULL evr value.
+
+    :expectedresults:
+        1. The evr column exists on katello_installed_packages.
+        2. An EVR index exists on katello_rpms.
+        3. All pre-existing RPM rows have a non-NULL evr value after the migration backfill,
+           implying the evr column and evr_t type were also recreated on katello_rpms.
+    """
+    target_sat = evr_upgrade_setup
+
+    installed_evr = target_sat.query_db(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_name='katello_installed_packages' AND column_name='evr'"
+    )
+    assert installed_evr, 'evr column missing from katello_installed_packages after upgrade'
+
+    evr_index = target_sat.query_db(
+        "SELECT indexname FROM pg_indexes "
+        "WHERE tablename='katello_rpms' AND indexname='index_katello_rpms_on_name_and_arch_and_evr'"
+    )
+    assert evr_index, 'EVR index missing from katello_rpms after upgrade'
+
+    # This test asserts for the evr column on rpm + evr type + non-nil value on yum_1
+    null_evr = target_sat.query_db("SELECT count(*) AS n FROM katello_rpms WHERE evr IS NULL")
+    assert null_evr[0]['n'] == 0, 'Migration did not backfill evr for all existing RPM rows'

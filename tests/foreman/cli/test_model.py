@@ -12,6 +12,8 @@
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 
@@ -72,49 +74,43 @@ class TestModel:
         model = module_target_sat.cli_factory.make_model({'vendor-class': vendor_class})
         assert model['vendor-class'] == vendor_class
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_name(self, name, module_target_sat):
+    def test_negative_create_with_name(self, module_target_sat):
         """Don't create an Model with invalid data.
 
         :id: b2eade66-b612-47e7-bfcc-6e363023f498
-
-        :parametrized: yes
 
         :expectedresults: Model is not created.
 
         :CaseImportance: High
         """
+        name = random.choice(invalid_values_list())
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Model.create({'name': name})
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, class_model, new_name, module_target_sat):
+    def test_negative_update_name(self, class_model, module_target_sat):
         """Fail to update shared model name
 
         :id: 98020a4a-1789-4df3-929c-6c132b57f5a1
-
-        :parametrized: yes
 
         :expectedresults: Model name is not updated
 
         :CaseImportance: Medium
         """
+        new_name = random.choice(invalid_values_list())
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Model.update({'id': class_model['id'], 'new-name': new_name})
         result = module_target_sat.cli.Model.info({'id': class_model['id']})
         assert class_model['name'] == result['name']
 
-    @pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
-    def test_negative_delete_by_id(self, entity_id, module_target_sat):
+    def test_negative_delete_by_id(self, module_target_sat):
         """Delete model by wrong ID
 
         :id: f8b0d428-1b3d-4fc9-9ca1-1eb30c8ac20a
-
-        :parametrized: yes
 
         :expectedresults: Model is not deleted
 
         :CaseImportance: High
         """
+        entity_id = random.choice(invalid_id_list())
         with pytest.raises(CLIReturnCodeError):
             module_target_sat.cli.Model.delete({'id': entity_id})

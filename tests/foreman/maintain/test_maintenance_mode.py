@@ -17,6 +17,8 @@ import yaml
 
 from robottelo.config import robottelo_tmp_dir
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.include_satellite_iop
 @pytest.mark.e2e

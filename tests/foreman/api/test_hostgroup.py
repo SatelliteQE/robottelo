@@ -12,6 +12,8 @@
 
 """
 
+from copy import copy
+import random
 from random import randint
 
 from fauxfactory import gen_string
@@ -20,9 +22,9 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
+from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS
 from robottelo.utils.datafactory import (
     invalid_values_list,
-    parametrized,
     valid_hostgroups_list,
 )
 
@@ -54,6 +56,8 @@ class TestHostGroup:
 
         :expectedresults: Host inherited 'all_puppetclasses' details from
             HostGroup that was used for such Host create procedure
+
+        :BlockedBy: SAT-40445
 
         :BZ: 1107708, 1222118, 1487586
 
@@ -187,23 +191,23 @@ class TestHostGroup:
             == 'Configuration successfully rebuilt.'
         )
 
-    @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))
-    def test_positive_create_with_name(self, name, module_org, module_location, module_target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_create_with_name(self, module_org, module_location, module_target_sat):
         """Create a hostgroup with different names
 
         :id: fd5d353c-fd0c-4752-8a83-8f399b4c3416
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is created with expected name
 
         :CaseImportance: Critical
         """
+        name = random.choice(valid_hostgroups_list())
         hostgroup = module_target_sat.api.HostGroup(
             location=[module_location], name=name, organization=[module_org]
         ).create()
         assert name == hostgroup.name
 
+    @pytest.mark.migration_candidate
     def test_positive_clone(self, hostgroup, target_sat):
         """Create a hostgroup by cloning an existing one
 
@@ -238,6 +242,8 @@ class TestHostGroup:
 
         :expectedresults: A hostgroup is created with expected properties,
             updated and deleted
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: High
         """
@@ -437,18 +443,17 @@ class TestHostGroup:
         hostgroup = target_sat.api.HostGroup(organization=orgs).create()
         assert {org.name for org in orgs}, {org.read().name for org in hostgroup.organization}
 
-    @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))
-    def test_positive_update_name(self, name, hostgroup):
+    @pytest.mark.migration_candidate
+    def test_positive_update_name(self, hostgroup):
         """Update a hostgroup with a new name
 
         :id: 8abb151f-a058-4f47-a1c1-f60a32cd7572
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is updated with expected name
 
         :CaseImportance: Critical
         """
+        name = random.choice(valid_hostgroups_list())
         hostgroup.name = name
         hostgroup = hostgroup.update(['name'])
         assert name == hostgroup.name
@@ -459,6 +464,8 @@ class TestHostGroup:
         :id: fd13ab0e-1a5b-48a0-a852-3fff8306271f
 
         :expectedresults: A hostgroup is updated with expected puppet CA proxy
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: Medium
 
@@ -507,6 +514,8 @@ class TestHostGroup:
 
         :id: 86eca603-2cdd-4563-b6f6-aaa5cea1a723
 
+        :BlockedBy: SAT-40445
+
         :CaseImportance: Medium
 
         :expectedresults: A hostgroup is updated with expected puppet proxy
@@ -530,7 +539,7 @@ class TestHostGroup:
 
         """
         new_content_source = target_sat.api.SmartProxy().search(
-            query={'search': f'url = {target_sat.url}:9090'}
+            query={'search': f'feature = "Pulpcore" and url ~ {target_sat.hostname}'}
         )[0]
         hostgroup.content_source = new_content_source
         hostgroup = hostgroup.update(['content_source'])
@@ -569,35 +578,33 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['organization'])
         assert {org.name for org in new_orgs} == {org.read().name for org in hostgroup.organization}
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_name(self, name, module_org, module_location, module_target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_name(self, module_org, module_location, module_target_sat):
         """Attempt to create a hostgroup with invalid names
 
         :id: 3f5aa17a-8db9-4fe9-b309-b8ec5e739da1
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is not created
 
         :CaseImportance: Critical
         """
+        name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             module_target_sat.api.HostGroup(
                 location=[module_location], name=name, organization=[module_org]
             ).create()
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, new_name, hostgroup):
+    @pytest.mark.migration_candidate
+    def test_negative_update_name(self, hostgroup):
         """Attempt to update a hostgroup with invalid names
 
         :id: 6d8c4738-a0c4-472b-9a71-27c8a3832335
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is not updated
 
         :CaseImportance: Critical
         """
+        new_name = random.choice(invalid_values_list())
         original_name = hostgroup.name
         hostgroup.name = new_name
         with pytest.raises(HTTPError):
@@ -623,6 +630,142 @@ class TestHostGroup:
         ).create()
         assert group_params['name'] == hostgroup.group_parameters_attributes[0]['name']
         assert group_params['value'] == hostgroup.group_parameters_attributes[0]['value']
+
+    def test_hostgroup_synced_content_inheritance(
+        self,
+        module_target_sat,
+        function_sca_manifest_org,
+        function_location,
+    ):
+        """Verify that changing the operating system for a parent hostgroup also updates the operating system
+        and kickstart repository for any child hostgroups
+
+        :id: a302f425-396e-457b-8502-d0a295c9e601
+
+        :Steps:
+            1. Enable and sync the BaseOS and AppStream kickstart repos for the latest and next-to-latest RHEL y-stream.
+            2. Create and publish a content view containing the kickstart repos.
+            3. Create a parent hostgroup associated with the older RHEL version's kickstart repos.
+            4. Create a child hostgroup with the same data as the parent hostgroup.
+            5. Update the operating system of the parent hostgroup to the latest RHEL y-stream
+
+        :ExpectedResults:
+            The operating system and the kickstart repository of the child hostgroup are also updated to the latest RHEL y-stream.
+
+        :Verifies: SAT-40733
+
+        :CustomerScenario: True
+        """
+        NEW_BASEOS = REPOS['kickstart']['rhel10_bos']
+        NEW_APPSTREAM = REPOS['kickstart']['rhel10_aps']
+
+        # Since our repo constants are updated to be current with the latest RHEL y-stream release,
+        # decrement the version from the constants by 1 to get the names of the old kickstart repos
+        OLD_BASEOS = copy(NEW_BASEOS)
+        OLD_APPSTREAM = copy(NEW_APPSTREAM)
+        for constant in [OLD_BASEOS, OLD_APPSTREAM]:
+            base_repo_name, y_stream_version = constant['name'].split('.')
+            y_stream_version = str(int(y_stream_version) - 1)
+            constant['name'] = base_repo_name + '.' + y_stream_version
+            constant['version'] = constant['name'].split()[-1]
+
+        # Enable and sync old and new kickstart repos
+        repos = []
+        for repo in [NEW_BASEOS, NEW_APPSTREAM, OLD_BASEOS, OLD_APPSTREAM]:
+            repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+                basearch=DEFAULT_ARCHITECTURE,
+                org_id=function_sca_manifest_org.id,
+                product=repo['product'],
+                repo=repo['name'],
+                reposet=repo['reposet'],
+                releasever=repo['version'],
+            )
+            repo = module_target_sat.api.Repository(id=repo_id).read()
+            repo.sync()
+            repos.append(repo)
+        repos_dict = dict(
+            zip(['New BaseOS', 'New Appstream', 'Old BaseOS', 'Old AppStream'], repos, strict=True)
+        )
+
+        # Create a content view containing all the synced kickstart repos
+        cv = module_target_sat.api.ContentView(organization=function_sca_manifest_org).create()
+        cv = module_target_sat.api.ContentView(id=cv.id, repository=repos).update(['repository'])
+        cv.publish()
+        cv = cv.read()
+
+        # Get content view environment ID
+        cv_env = module_target_sat.api.ContentViewEnvironment()
+        cv_env_id = [
+            env['id']
+            for env in cv_env.list_content_view_environments()['results']
+            if env['name'] == f'Library/{cv.name}'
+            and env['organization']['id'] == function_sca_manifest_org.id
+        ]
+
+        # Get content source, architecture, and operating system objects for hostgroup creation
+        content_source = module_target_sat.api.SmartProxy().search(
+            query={'search': f'feature = "Pulpcore" and url ~ {module_target_sat.hostname}'}
+        )[0]
+        old_os_id = (
+            module_target_sat.api.OperatingSystem()
+            .search(
+                query={
+                    'search': f'name="RedHat" AND major={OLD_BASEOS["version"].split(".")[0]} AND minor={OLD_BASEOS["version"].split(".")[1]}'
+                }
+            )[0]
+            .id
+        )
+        old_os = module_target_sat.api.OperatingSystem(id=old_os_id).read()
+        arch = (
+            module_target_sat.api.Architecture()
+            .search(query={'search': f'name="{DEFAULT_ARCHITECTURE}"'})[0]
+            .read()
+        )
+
+        # Create a parent host group and a child hostgroup
+        parent_hostgroup = module_target_sat.api.HostGroup(
+            architecture=arch,
+            content_source=content_source,
+            content_view_environment_id=cv_env_id[0],
+            kickstart_repository=repos_dict['Old BaseOS'],
+            location=[function_location],
+            organization=[function_sca_manifest_org],
+            operatingsystem=old_os,
+        ).create()
+
+        child_hostgroup = module_target_sat.api.HostGroup(
+            parent=parent_hostgroup,
+        ).create()
+
+        # Get the new operating system object and use it to update the hostgroup
+        new_os_id = (
+            module_target_sat.api.OperatingSystem()
+            .search(
+                query={
+                    'search': f'name="RedHat" AND major={NEW_BASEOS["version"].split(".")[0]} AND minor={NEW_BASEOS["version"].split(".")[1]}'
+                }
+            )[0]
+            .id
+        )
+        new_os = module_target_sat.api.OperatingSystem(id=new_os_id).read()
+        parent_hostgroup.operatingsystem = new_os
+        parent_hostgroup.update(['operatingsystem'])
+
+        # To get the kickstart repository ID from the hostgroup entity, use read_json(), as
+        # nailgun.HostGroup.read() ignores the kickstart_repository field due to an old bug.
+        # Additionally, values inherited by child hostgroups from parent hostgroups are returned as nil
+        # values when the child hostgroup is queried via the API (see SAT-47322). To work around this,
+        # assert that the child hostgroup operating system has been updated, that the child hostgroup
+        # kickstart repo is None, and that the parent hostgroup kickstart repo has been updated.
+        parent_hostgroup_json = module_target_sat.api.HostGroup(id=parent_hostgroup.id).read_json()
+        child_hostgroup_json = module_target_sat.api.HostGroup(id=child_hostgroup.id).read_json()
+        kickstart_repo = module_target_sat.api.Repository(
+            id=parent_hostgroup_json['kickstart_repository_id']
+        ).read()
+
+        assert child_hostgroup_json['operatingsystem_name'] == f'RedHat {NEW_BASEOS["version"]}'
+        assert child_hostgroup_json['kickstart_repository_id'] is None
+        assert kickstart_repo.name == NEW_BASEOS['name']
 
 
 class TestHostGroupMissingAttr:
@@ -691,6 +834,8 @@ class TestHostGroupMissingAttr:
 
         :id: f93d0866-0073-4577-8777-6d645b63264f
 
+        :BlockedBy: SAT-40445
+
         :CaseImportance: Medium
 
         :expectedresults: Field 'puppet_proxy_name' is returned
@@ -710,6 +855,8 @@ class TestHostGroupMissingAttr:
         response
 
         :id: ab151e09-8e64-4377-95e8-584629750659
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: Medium
 

@@ -24,6 +24,8 @@ from robottelo.constants import (
 )
 from robottelo.utils.shared_resource import SharedResource
 
+pytestmark = pytest.mark.foreman_installer
+
 provisioning_template_kinds = ['provision', 'PXEGrub2', 'PXELinux', 'iPXE']
 
 PXE_LOADER_MAP = {

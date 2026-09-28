@@ -11,6 +11,7 @@
 
 """
 
+import csv
 import random
 
 from broker import Broker
@@ -506,6 +507,113 @@ def test_positive_generate_email_uncompressed():
 
     :CaseImportance: Medium
     """
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.parametrize('setting_update', ['report_auto_gzip_threshold'], indirect=True)
+def test_positive_available_errata_report_gzip(
+    request,
+    target_sat,
+    rhel_contenthost,
+    function_org,
+    function_lce,
+    setting_update,
+):
+    """Verify that reports are gzip-compressed when using the explicit --gzip
+    flag or when the report_auto_gzip_threshold setting is exceeded, and that
+    small reports remain plain text when the threshold is high.
+
+    :id: e145ef06-e66f-440d-a42a-43f288f12c61
+
+    :setup: A content host with applicable errata.
+
+    :steps:
+        1. Register a content host and install an outdated package
+        2. Schedule "Host - Available Errata" report with --gzip 1
+        3. Download report data and verify it is gzip-compressed
+        4. Set report_auto_gzip_threshold to 0 and schedule the report
+        5. Verify the report is auto-gzip-compressed
+        6. Set report_auto_gzip_threshold to 512 and schedule the report
+        7. Verify the report is plain text
+
+    :expectedresults:
+        Report is gzip-compressed with explicit --gzip flag or when threshold
+        is exceeded, and plain text when threshold is high enough.
+
+    :Verifies: SAT-47550
+
+    :customerscenario: true
+    """
+    report_path = f'/tmp/report_gzip_test_{gen_alpha()}'
+    request.addfinalizer(lambda: target_sat.execute(f'rm -f {report_path}'))
+
+    created_vals = target_sat.cli_factory.setup_org_for_a_custom_repo(
+        {
+            'url': settings.repos.yum_6.url,
+            'organization-id': function_org.id,
+            'lifecycle-environment-id': function_lce.id,
+        }
+    )
+    ak = target_sat.api.ActivationKey(id=created_vals['activationkey-id']).read()
+    result = rhel_contenthost.register(
+        activation_keys=ak.name, org=function_org, target=target_sat, loc=None
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    assert rhel_contenthost.subscribed
+    assert rhel_contenthost.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
+    assert rhel_contenthost.execute(f'rpm -q {FAKE_1_CUSTOM_PACKAGE}').status == 0
+
+    schedule_opts = {
+        'name': 'Host - Available Errata',
+        'inputs': 'Installability=applicable',
+        'organization-id': function_org.id,
+    }
+
+    def assert_csv_content(csv_text):
+        rows = list(csv.DictReader(csv_text.strip().splitlines()))
+        assert rows, 'Report CSV contains no data rows'
+        assert any(
+            row['Host'] == rhel_contenthost.hostname
+            and FAKE_1_CUSTOM_PACKAGE_NAME in row['Packages']
+            for row in rows
+        )
+
+    def schedule_and_download(extra_opts=None):
+        opts = {**schedule_opts, **(extra_opts or {})}
+        schedule = target_sat.cli.ReportTemplate.schedule(opts)
+        job_id = schedule.split('Job ID: ', 1)[1].strip()
+        dl = target_sat.execute(
+            f'hammer report-template report-data'
+            f' --name "Host - Available Errata"'
+            f' --job-id {job_id} > {report_path}'
+        )
+        assert dl.status == 0
+
+    # Explicit --gzip flag forces compression
+    schedule_and_download({'gzip': 1})
+    file_check = target_sat.execute(f'file {report_path}')
+    assert 'gzip compressed data' in file_check.stdout
+    decompressed = target_sat.execute(f'zcat {report_path}')
+    assert_csv_content(decompressed.stdout)
+
+    # Threshold 0 forces auto-gzip on all reports regardless of size
+    setting_update.value = '0'
+    setting_update.update({'value'})
+    schedule_and_download()
+    file_check = target_sat.execute(f'file {report_path}')
+    assert 'gzip compressed data' in file_check.stdout
+    decompressed = target_sat.execute(f'zcat {report_path}')
+    assert_csv_content(decompressed.stdout)
+
+    # Threshold 512 MiB is far above any test report size, no gzip
+    setting_update.value = '512'
+    setting_update.update({'value'})
+    schedule_and_download()
+    file_check = target_sat.execute(f'file {report_path}')
+    assert 'ASCII text' in file_check.stdout
+    content = target_sat.execute(f'cat {report_path}')
+    assert_csv_content(content.stdout)
 
 
 def test_negative_create_report_without_name(module_target_sat):

@@ -19,7 +19,7 @@ from robottelo.hosts import ContentHost
 from robottelo.utils import ssh
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = [pytest.mark.run_in_one_thread]
+pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.foreman_installer]
 
 
 @pytest.fixture
