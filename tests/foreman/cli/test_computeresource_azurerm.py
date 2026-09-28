@@ -122,6 +122,8 @@ class TestAzureRMComputeResourceTestCase:
         module_azurerm_cr,
         sat_azure_default_os,
         image,
+        sat_azure_loc,
+        sat_azure_org,
     ):
         """Finish template/Cloud_init image along with username is being Create, Read, Update and
         Delete in AzureRm compute resources
@@ -156,6 +158,8 @@ class TestAzureRMComputeResourceTestCase:
                 'compute-resource': module_azurerm_cr.name,
                 'username': username,
                 'user-data': 'no',
+                'organization-id': sat_azure_org.id,
+                'location-id': sat_azure_loc.id,
             }
         )[0]
         assert img_ft['message'] == 'Image created.'

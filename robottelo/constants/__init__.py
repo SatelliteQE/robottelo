@@ -318,6 +318,7 @@ REPOSET = {
     'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (RPMs)',
     'rhel10_bos': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS (RPMs)',
     'rhel10_aps': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream (RPMs)',
+    'rhel10_ext': 'Red Hat Enterprise Linux 10 for x86_64 - Extensions (RPMs)',
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
@@ -709,6 +710,17 @@ REPOS = {
         'product': PRDS['rhel10'],
         'distro': 'rhel10',
         'key': 'rhel10_aps',
+    },
+    'rhel10_ext': {
+        'id': 'rhel-10-for-x86_64-extensions-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - Extensions RPMs 10',
+        'releasever': '10',
+        'basearch': 'x86_64',
+        'version': '10',
+        'reposet': REPOSET['rhel10_ext'],
+        'product': PRDS['rhel10'],
+        'distro': 'rhel10',
+        'key': 'rhel10_ext',
     },
     'rhel7_optional': {
         'id': 'rhel-7-server-optional-rpms',
@@ -2641,6 +2653,31 @@ class InstallationServices:
         'pulp-content',
         'pulp-worker@*',
         'valkey',
+    ]
+
+    # IoP (Insights on Prem) quadlet container services, only present while IoP is enabled
+    IOP_SERVICES = [
+        'iop-core-engine',
+        'iop-core-gateway',
+        'iop-core-host-inventory-api',
+        'iop-core-host-inventory-migrate',
+        'iop-core-host-inventory',
+        'iop-core-ingress',
+        'iop-core-kafka',
+        'iop-core-puptoo',
+        'iop-core-yuptoo',
+        'iop-service-advisor-backend-api',
+        'iop-service-advisor-backend',
+        'iop-service-remediations-api',
+        'iop-service-vmaas-reposcan',
+        'iop-service-vmaas-webapp-go',
+        'iop-service-vuln-dbupgrade',
+        'iop-service-vuln-evaluator-recalc',
+        'iop-service-vuln-evaluator-upload',
+        'iop-service-vuln-grouper',
+        'iop-service-vuln-listener',
+        'iop-service-vuln-manager',
+        'iop-service-vuln-taskomatic',
     ]
 
 

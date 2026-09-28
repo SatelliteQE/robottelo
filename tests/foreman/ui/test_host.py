@@ -42,7 +42,6 @@ from robottelo.constants import (
     OSCAP_WEEKDAY,
     REPO_TYPE,
     REPOS,
-    ROLES,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.exceptions import APIResponseError
@@ -2525,7 +2524,9 @@ def test_host_status_honors_taxonomies(
             'password': password,
             'mail': 'root@localhost',
             'login': login,
-            'roles': ROLES,
+            # This test only needs core read access. The complete ROLES list also
+            # contains optional plugin roles that are not guaranteed on Foremanctl.
+            'roles': ['Viewer'],
         }
     )
     with target_sat.ui_session(test_name, user=login, password=password) as session:
