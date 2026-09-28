@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Conversionsappliance
+:CaseComponent: convert2rhel
 
 :CaseImportance: Critical
 
