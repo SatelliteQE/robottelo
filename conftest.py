@@ -54,6 +54,7 @@ pytest_plugins = [
     'pytest_fixtures.component.leapp_client',
     'pytest_fixtures.component.maintain',
     'pytest_fixtures.component.mcp',
+    'pytest_fixtures.component.notifications',
     'pytest_fixtures.component.os',
     'pytest_fixtures.component.oscap',
     'pytest_fixtures.component.partition_table',
