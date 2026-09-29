@@ -3281,7 +3281,8 @@ class TestExportImport:
 
         :steps:
             1. Enable the latest RHEL BaseOS repository on the export Satellite and sync.
-            2. Create a content view, add the repository, publish it.
+            2. Create a content view, add the repository, filter in only the
+               ML-DSA-signed packages under test, and publish it.
             3. Export the content view version in exportable or syncable format.
             4. Transfer the export archive to the import Satellite and import it.
             5. Create an activation key on the import Satellite and register the
@@ -3329,9 +3330,41 @@ class TestExportImport:
         target_sat.cli.ContentView.add_repository(
             {'id': cv['id'], 'organization-id': eorg.id, 'repository-id': repo['id']}
         )
+        # Filter in only the ML-DSA-signed packages to keep the export small.
+        filter_name = gen_string('alpha')
+        target_sat.cli.ContentViewFilter.create(
+            {
+                'name': filter_name,
+                'content-view-id': cv['id'],
+                'inclusion': 'yes',
+                'type': 'rpm',
+            }
+        )
+        mldsa_packages = (
+            RHEL10_BASEOS_MLDSA['install_packages'] + RHEL10_BASEOS_MLDSA['download_packages']
+        )
+        for pkg in mldsa_packages:
+            target_sat.cli.ContentViewFilterRule.create(
+                {
+                    'name': pkg,
+                    'content-view-filter': filter_name,
+                    'content-view-id': cv['id'],
+                }
+            )
         target_sat.cli.ContentView.publish({'id': cv['id']})
         cv = target_sat.cli.ContentView.info({'id': cv['id']})
         assert len(cv['versions']) == 1
+
+        # Confirm the filter took effect: the version holds only the ML-DSA
+        # package names, each possibly in several builds. Parse the name out of
+        # each NAME-VERSION-RELEASE.ARCH.rpm filename and compare the name set.
+        export_names = {
+            pkg['filename'][:-4].rsplit('.', 1)[0].rsplit('-', 2)[0]
+            for pkg in target_sat.cli.Package.list(
+                {'content-view-version-id': cv['versions'][0]['id']}
+            )
+        }
+        assert export_names == set(mldsa_packages)
 
         assert target_sat.validate_pulp_filepath(eorg, PULP_EXPORT_DIR) == ''
         export = target_sat.cli.ContentExport.completeVersion(
