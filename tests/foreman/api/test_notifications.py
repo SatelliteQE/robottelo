@@ -27,6 +27,13 @@ from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, repos as repo_constant
 @pytest.fixture
 def admin_user_with_localhost_email(target_sat):
     """Admin user with e-mail set to `root@localhost`."""
+    # Delete any stale users
+    stale_users = target_sat.api.User().search(
+        query={'search': 'mail="root@localhost" and admin=true'}
+    )
+    for stale_user in stale_users:
+        stale_user.delete()
+
     user = target_sat.api.User(
         admin=True,
         default_organization=DEFAULT_ORG,
