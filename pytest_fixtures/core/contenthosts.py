@@ -367,6 +367,33 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
 
 
 @pytest.fixture(scope='module')
+def module_podman_contenthost(request, module_target_sat, module_org, module_activation_key):
+    """A registered RHEL content host with podman that trusts the Satellite's container registry.
+
+    Provides the real user path for podman push/pull against the Satellite registry, instead of
+    running the podman client on the Satellite itself.
+    """
+    ipv6 = module_target_sat.network_type == NetworkType.IPV6
+    request.param = {
+        "rhel_version": settings.content_host.default_rhel_version,
+        "distro": "rhel",
+        "no_containers": True,
+        "network": "ipv6" if ipv6 else "ipv4",
+    }
+    with contenthost_factory(request=request) as host:
+        host.ensure_podman_installed(enable_ipv6_proxy=ipv6)
+        result = host.register(
+            module_org,
+            None,
+            module_activation_key.name,
+            module_target_sat,
+            setup_container_certs=True,
+        )
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        yield host
+
+
+@pytest.fixture(scope='module')
 def module_flatpak_contenthost(request):
     assert request.param['rhel_version'] > 8, 'Unsupported RHEL version'
     request.param['no_containers'] = True
