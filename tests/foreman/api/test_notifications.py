@@ -1,4 +1,4 @@
-"""Test class for Notifications API
+"""Notification API tests for Foreman 5.0 and later on foremanctl hosts.
 
 :Requirement: Notifications
 
@@ -12,8 +12,13 @@
 
 """
 
+from contextlib import ExitStack
+from email import message_from_string
+from email.utils import getaddresses
 from mailbox import mbox
+from pathlib import PurePosixPath
 from re import findall
+from shlex import quote
 from tempfile import mkstemp
 
 from fauxfactory import gen_string
@@ -21,12 +26,16 @@ import pytest
 from wait_for import TimedOutError, wait_for
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, repos as repo_constants
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, DataFile, repos as repo_constants
+
+pytestmark = pytest.mark.foremanctl
+
+MAIL_CATCHER_SCRIPT = DataFile.DATA_DIR.joinpath('mail_catcher.py')
 
 
 @pytest.fixture
-def admin_user_with_localhost_email(target_sat):
-    """Create and clean up only the admin owned by this test."""
+def admin_user_with_localhost_email(target_sat, use_smtp_mail_delivery):
+    """Create and clean up only the uniquely addressed admin owned by this test."""
     user = target_sat.api.User(
         admin=True,
         default_organization=DEFAULT_ORG,
@@ -34,7 +43,7 @@ def admin_user_with_localhost_email(target_sat):
         description='created by nailgun',
         login=gen_string("alphanumeric"),
         password=gen_string("alphanumeric"),
-        mail='root@localhost',
+        mail=use_smtp_mail_delivery['address'],
     ).create()
     try:
         user.mail_enabled = True
@@ -56,8 +65,8 @@ def admin_user_with_custom_settings(request, admin_user_with_localhost_email):
 
 
 @pytest.fixture
-def sysadmin_user_with_subscription_reposync_fail(target_sat):
-    """System admin user with `root@localhost` e-mail
+def sysadmin_user_with_subscription_reposync_fail(target_sat, use_smtp_mail_delivery):
+    """System admin user with a unique localhost e-mail
     and subscription to `Repository sync failure` notification.
     """
     sysadmin_role = target_sat.api.Role().search(query={'search': 'name="System admin"'})[0]
@@ -68,84 +77,277 @@ def sysadmin_user_with_subscription_reposync_fail(target_sat):
         description='created by nailgun',
         login=gen_string("alphanumeric"),
         password=gen_string("alphanumeric"),
-        mail='root@localhost',
+        mail=use_smtp_mail_delivery['address'],
         role=[sysadmin_role.id],
     ).create()
-    user.mail_enabled = True
-    user.update()
-    target_sat.cli.User.mail_notification_add(
-        {
-            'user-id': user.id,
-            'mail-notification': 'repository_sync_failure',
-            'subscription': 'Subscribe',
-        }
-    )
-
-    yield user
-
-    user.delete()
+    try:
+        user.mail_enabled = True
+        user.update()
+        target_sat.cli.User.mail_notification_add(
+            {
+                'user-id': user.id,
+                'mail-notification': 'repository_sync_failure',
+                'subscription': 'Subscribe',
+            }
+        )
+        yield user
+    finally:
+        user.delete()
 
 
 @pytest.fixture
-def reschedule_long_running_tasks_notification(target_sat):
+def reschedule_long_running_tasks_notification(target_sat, use_smtp_mail_delivery):
     """Reschedule long-running tasks checker from midnight (default) to every minute.
     Reset it back after the test.
     """
     default_cron_schedule = '0 0 * * *'
     every_minute_cron_schedule = '* * * * *'
 
-    assert (
-        target_sat.execute(
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
-            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{every_minute_cron_schedule}'"
-        ).status
-        == 0
+    def reschedule(schedule):
+        _execute_checked(
+            target_sat,
+            'podman exec foreman foreman-rake '
+            'foreman_tasks:reschedule_long_running_tasks_checker '
+            f'FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE={quote(schedule)}',
+        )
+
+    try:
+        reschedule(every_minute_cron_schedule)
+        yield
+    finally:
+        reschedule(default_cron_schedule)
+
+
+def _mailpit_command(mailpit, path):
+    return (
+        'podman exec foreman curl --noproxy "*" --fail --silent --show-error --max-time 10 '
+        f'{quote(f"http://{mailpit}:8025{path}")}'
     )
 
-    yield
 
-    assert (
-        target_sat.execute(
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
-            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{default_cron_schedule}'"
-        ).status
-        == 0
+
+def _execute_checked(target_sat, command):
+    result = target_sat.execute(command)
+    assert result.status == 0, f'Command failed: {command}: {result.stderr}'
+    return result
+
+
+def _restore_setting(setting, value):
+    setting.value = value
+    setting.update(['value'])
+
+
+def _change_setting(target_sat, cleanup, name, value):
+    setting = target_sat.api.Setting().search(query={'search': f'name={name}'})[0]
+    cleanup.callback(_restore_setting, setting, setting.value)
+    setting.value = value
+    setting.update(['value'])
+
+
+def _stop_mail_catcher(target_sat, pid_file):
+    # The PID file lives in a private directory; never match the cleanup shell's command line.
+    _execute_checked(
+        target_sat,
+        f'if test -f {quote(pid_file)}; then '
+        f'pid=$(cat {quote(pid_file)}) && '
+        'if kill -0 "$pid" 2>/dev/null; then kill "$pid"; fi; fi',
     )
+
+
+def _mail_catcher_address(target_sat, port):
+    """Select a host address that completes SMTP from the Foreman container."""
+    import json
+
+    network_info = _execute_checked(
+        target_sat,
+        "podman inspect foreman --format '{{.HostConfig.NetworkMode}} "
+        "{{json .NetworkSettings.Networks}}'",
+    ).stdout.strip()
+    network_mode, networks_json = network_info.split(' ', 1)
+    networks = json.loads(networks_json) or {}
+    candidates = ['host.containers.internal']
+    if network_mode == 'host':
+        candidates.append('127.0.0.1')
+    candidates.extend(network['Gateway'] for network in networks.values() if network.get('Gateway'))
+    candidates.append(target_sat.hostname)
+
+    # Ruby is available in the application container; bound DNS, connect and read time together.
+    probe = r'''
+Timeout.timeout(5) do
+  Socket.tcp(ARGV[0], Integer(ARGV[1]), connect_timeout: 3, resolv_timeout: 3) do |socket|
+    raise 'Unexpected SMTP greeting' unless socket.gets == "220 mail-catcher\r\n"
+    socket.write("EHLO robottelo\r\n")
+    raise 'SMTP EHLO failed' unless socket.gets == "250 mail-catcher\r\n"
+    socket.write("QUIT\r\n")
+    raise 'SMTP QUIT failed' unless socket.gets == "221 Bye\r\n"
+  end
+end
+'''
+    failures = []
+    for address in dict.fromkeys(candidates):
+        result = target_sat.execute(
+            f'podman exec foreman ruby -rsocket -rtimeout -e {quote(probe)} '
+            f'{quote(address)} {int(port)}'
+        )
+        if result.status == 0:
+            return address
+        failures.append(f'{address}: {result.stderr.strip() or result.stdout.strip()}')
+    raise AssertionError(
+        'No reachable SMTP catcher from the Foreman container: ' + '; '.join(failures)
+    )
+
+
+def _setup_mail_catcher(target_sat, mails_dir, cleanup):
+    """Start an isolated catcher and register each resource before changing settings."""
+    script_path = f'{mails_dir}/mail_catcher.py'
+    pid_file = f'{mails_dir}/catcher.pid'
+    ready_file = f'{mails_dir}/catcher.ready'
+    target_sat.put(MAIL_CATCHER_SCRIPT, remote_path=script_path)
+    cleanup.callback(_stop_mail_catcher, target_sat, pid_file)
+    _execute_checked(
+        target_sat,
+        f'nohup python3 {quote(script_path)} 0 {quote(mails_dir)} {quote(ready_file)} '
+        f'> {quote(mails_dir)}/catcher.log 2>&1 < /dev/null & '
+        f'echo $! > {quote(pid_file)}',
+    )
+    wait_for(
+        func=target_sat.execute,
+        func_args=[f'test -s {quote(ready_file)}'],
+        fail_condition=lambda res: res.status != 0,
+        timeout=30,
+        delay=1,
+    )
+    pid, port = _execute_checked(target_sat, f'cat {quote(ready_file)}').stdout.split()
+    started_pid = _execute_checked(target_sat, f'cat {quote(pid_file)}').stdout.strip()
+    assert pid == started_pid, 'Readiness was published by a different process'
+    _execute_checked(target_sat, f'kill -0 {int(pid)}')
+    smtp_address = _mail_catcher_address(target_sat, int(port))
+
+    for name, value in (
+        ('smtp_authentication', ''),
+        ('smtp_user_name', ''),
+        ('smtp_enable_starttls_auto', False),
+        ('smtp_address', smtp_address),
+        ('smtp_port', int(port)),
+    ):
+        _change_setting(target_sat, cleanup, name, value)
+
+
+def _setup_file_delivery_method(target_sat, mails_dir, cleanup):
+    """Allow file delivery without relaxing permissions on existing mailboxes."""
+    result = target_sat.execute(f'test -d {quote(mails_dir)}')
+    if result.status == 0:
+        owner, mode = _execute_checked(
+            target_sat, f"stat -c '%u:%g %a' {quote(mails_dir)}"
+        ).stdout.split()
+        cleanup.callback(_execute_checked, target_sat, f'chmod {mode} {quote(mails_dir)}')
+        cleanup.callback(_execute_checked, target_sat, f'chown {owner} {quote(mails_dir)}')
+    else:
+        _execute_checked(target_sat, f'mkdir -m 0700 {quote(mails_dir)}')
+        cleanup.callback(_execute_checked, target_sat, f'rmdir {quote(mails_dir)}')
+    _execute_checked(target_sat, f'chown foreman:foreman {quote(mails_dir)}')
+    _execute_checked(target_sat, f'chmod 0700 {quote(mails_dir)}')
+    _change_setting(target_sat, cleanup, 'delivery_method', 'file')
 
 
 @pytest.fixture(autouse=True)
-def start_postfix_service(target_sat):
-    """Start postfix service (disabled by default)."""
-    assert target_sat.execute('systemctl start postfix').status == 0
+def use_smtp_mail_delivery(target_sat):
+    """Capture mail in a private Mailpit container and restore shared SMTP settings."""
+    lock_dir = '/run/robottelo-notifications.lock'
+    wait_for(
+        func=target_sat.execute,
+        func_args=[f'mkdir -m 0700 {lock_dir}'],
+        fail_condition=lambda res: res.status != 0,
+        timeout=1800,
+        delay=5,
+    )
+    with ExitStack() as cleanup:
+        cleanup.callback(_execute_checked, target_sat, f'rmdir {lock_dir}')
+        networks = _execute_checked(
+            target_sat,
+            "podman inspect foreman --format "
+            "'{{range $name, $network := .NetworkSettings.Networks}}{{$name}} {{end}}'",
+        ).stdout.split()
+        assert networks, 'Foreman must be attached to a Podman network'
+        mailpit = f'robottelo-mailpit-{gen_string("alpha").lower()}'
+        cleanup.callback(_execute_checked, target_sat, f'podman rm -f --ignore {quote(mailpit)}')
+        network_args = ' '.join(f'--network {quote(network)}' for network in networks)
+        image = settings.get('notifications.mailpit_image', 'docker.io/axllent/mailpit:v1.27.4')
+        _execute_checked(
+            target_sat,
+            f'podman run -d --name {quote(mailpit)} {network_args} '
+            f'{quote(image)} '
+            '--smtp :1025 --listen :8025 --smtp-disable-rdns --disable-version-check --max 0',
+        )
+        wait_for(
+            func=target_sat.execute,
+            func_args=[_mailpit_command(mailpit, '/readyz')],
+            fail_condition=lambda res: res.status != 0,
+            timeout=60,
+            delay=1,
+        )
+        workers = _execute_checked(
+            target_sat, "podman ps --filter name=^dynflow-sidekiq- --format '{{.Names}}'"
+        ).stdout.split()
+        probe = 'Timeout.timeout(5) { Net::SMTP.start(ARGV[0], 1025) {} }'
+        for container in ['foreman', *workers]:
+            _execute_checked(
+                target_sat,
+                f'podman exec {quote(container)} ruby -rnet/smtp -rtimeout '
+                f'-e {quote(probe)} {quote(mailpit)}',
+            )
+        for name, value in (
+            ('smtp_authentication', ''),
+            ('smtp_user_name', ''),
+            ('smtp_enable_starttls_auto', False),
+            ('smtp_address', mailpit),
+            ('smtp_port', 1025),
+        ):
+            _change_setting(target_sat, cleanup, name, value)
+        yield {'mailpit': mailpit, 'address': f'root+{gen_string("alphanumeric")}@localhost'}
 
 
 @pytest.fixture
-def clean_root_mailbox(target_sat):
-    """Backup & purge local mailbox of the Satellite's root@localhost user.
-    Restore it afterwards.
-    """
-    root_mailbox = '/var/spool/mail/root'
-    root_mailbox_backup = f'{root_mailbox}-{gen_string("alphanumeric")}.bak'
-    target_sat.execute(f'cp -f {root_mailbox} {root_mailbox_backup}')
-    target_sat.execute(f'truncate -s 0 {root_mailbox}')
-
-    yield root_mailbox
-
-    target_sat.execute(f'mv -f {root_mailbox_backup} {root_mailbox}')
+def clean_root_mailbox(use_smtp_mail_delivery):
+    """Return the freshly created mailbox owned by this test."""
+    return use_smtp_mail_delivery['mailbox']
 
 
-def wait_for_mail(sat_obj, mailbox_file, contains_string, timeout=300, delay=5):
-    """
-    Wait until the desired string is found in the Satellite's mbox file.
-    """
-    try:
-        wait_for(
-            func=sat_obj.execute,
-            func_args=[f"grep --quiet '{contains_string}' {mailbox_file}"],
-            fail_condition=lambda res: res.status != 0,
-            timeout=timeout,
-            delay=delay,
+def _read_mailbox(target_sat, path):
+    mailbox = quote(path)
+    parent = quote(str(PurePosixPath(path).parent))
+    result = target_sat.execute(
+        f'if test -e {mailbox} || test -L {mailbox}; then cat -- {mailbox}; '
+        f'elif test -d {parent} && test -r {parent} && test -x {parent}; then exit 44; '
+        'else exit 1; fi'
+    )
+    assert result.status in (0, 44), f'Could not read mailbox {path}: {result.stderr}'
+    return result.stdout if result.status == 0 else ''
+
+
+def _recipient_messages(content, recipient):
+    # Installer delivery puts all root+ addresses in root's system mailbox.
+    messages = content.split('\nFrom ')
+    for index, raw in enumerate(messages):
+        if index or raw.startswith('From '):
+            raw = raw.split('\n', 1)[-1]
+        message = message_from_string(raw)
+        addresses = getaddresses(message.get_all('To', []) + message.get_all('Cc', []))
+        if recipient in [address for _, address in addresses]:
+            yield message
+
+
+def wait_for_mail(sat_obj, mailbox_file, contains_string, recipient, timeout=300, delay=5):
+    """Wait for the expected text in mail addressed to this test's user."""
+
+    def received():
+        return any(
+            contains_string in message.as_string()
+            for message in _recipient_messages(_read_mailbox(sat_obj, mailbox_file), recipient)
         )
+
+    try:
+        wait_for(func=received, fail_condition=False, timeout=timeout, delay=delay)
     except TimedOutError as err:
         raise AssertionError(
             f'No e-mail with text "{contains_string}" has arrived to mailbox {mailbox_file} '
@@ -155,27 +357,35 @@ def wait_for_mail(sat_obj, mailbox_file, contains_string, timeout=300, delay=5):
 
 
 @pytest.fixture
-def wait_for_long_running_task_mail(target_sat, clean_root_mailbox, long_running_task):
+def wait_for_long_running_task_mail(
+    target_sat, clean_root_mailbox, long_running_task, use_smtp_mail_delivery
+):
     """Wait until the long-running task ID is found in the Satellite's mbox file."""
     return wait_for_mail(
         sat_obj=target_sat,
         mailbox_file=clean_root_mailbox,
         contains_string=long_running_task["task"]["id"],
+        recipient=use_smtp_mail_delivery["address"],
     )
 
 
 @pytest.fixture
 def wait_for_failed_repo_sync_mail(
-    target_sat, clean_root_mailbox, fake_yum_repo, failed_repo_sync_task
+    target_sat, clean_root_mailbox, fake_yum_repo, failed_repo_sync_task, use_smtp_mail_delivery
 ):
     """Wait until the repo name that didn't sync is found in the Satellite's mbox file."""
     return wait_for_mail(
-        sat_obj=target_sat, mailbox_file=clean_root_mailbox, contains_string=fake_yum_repo.name
+        sat_obj=target_sat,
+        mailbox_file=clean_root_mailbox,
+        contains_string=fake_yum_repo.name,
+        recipient=use_smtp_mail_delivery["address"],
     )
 
 
 @pytest.fixture
-def wait_for_no_long_running_task_mail(target_sat, clean_root_mailbox, long_running_task):
+def wait_for_no_long_running_task_mail(
+    target_sat, clean_root_mailbox, long_running_task, use_smtp_mail_delivery
+):
     """Wait and check that no long-running task ID is found in the Satellite's mbox file."""
     timeout = 120
     try:
@@ -183,6 +393,7 @@ def wait_for_no_long_running_task_mail(target_sat, clean_root_mailbox, long_runn
             sat_obj=target_sat,
             mailbox_file=clean_root_mailbox,
             contains_string=long_running_task["task"]["id"],
+            recipient=use_smtp_mail_delivery["address"],
             timeout=timeout,
         )
     except AssertionError:
@@ -287,10 +498,10 @@ def test_positive_notification_for_long_running_tasks(long_running_task, root_ma
     :id: effc1ff2-263b-11ee-b623-000c2989e153
 
     :setup:
-        1. Create an admin user with e-mail 'root@localhost'.
+        1. Create an admin user with a unique localhost e-mail address.
         2. Change the long-running tasks checker cron schedule from '0 0 * * * ' (midnight)
             to '* * * * * ' (every minute).
-        3. Start the `sendmail` service (disabled by default).
+        3. Start the SMTP catcher and configure Foreman to deliver to it.
 
     :steps:
         1. Create a long-running task:
