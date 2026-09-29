@@ -26,7 +26,7 @@ from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, repos as repo_constant
 
 @pytest.fixture
 def admin_user_with_localhost_email(target_sat):
-    """Admin user with e-mail set to `root@localhost`."""
+    """Create and clean up only the admin owned by this test."""
     user = target_sat.api.User(
         admin=True,
         default_organization=DEFAULT_ORG,
@@ -36,12 +36,12 @@ def admin_user_with_localhost_email(target_sat):
         password=gen_string("alphanumeric"),
         mail='root@localhost',
     ).create()
-    user.mail_enabled = True
-    user.update()
-
-    yield user
-
-    user.delete()
+    try:
+        user.mail_enabled = True
+        user.update()
+        yield user
+    finally:
+        user.delete()
 
 
 @pytest.fixture
