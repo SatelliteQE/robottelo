@@ -2073,6 +2073,11 @@ class Capsule(ContentHost, CapsuleMixins):
         )
         self.setup_capsule_repos(release=release)
         if method == InstallMethod.FOREMANCTL:
+            # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
+            self.ensure_podman_installed(enable_ipv6_proxy=True)
+            # Capsule needs registry auth to pull deploy-proxy images
+            self.setup_foremanctl_container_registry()
+
             # Enable Packit repos
             pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
             if pull_requests:
@@ -2093,14 +2098,17 @@ class Capsule(ContentHost, CapsuleMixins):
         # Update system, firewall services and check capsule is already installed from template
         # Setups firewall on Capsule
         self.execute('dnf -y update', timeout=0)
-        assert (
-            self.execute(
-                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
-            ).status
-            == 0
-        ), "firewalld is not present and can't be installed"
-        self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
-        self.execute('firewall-cmd --runtime-to-permanent')
+
+        # Configure firewall based on installation method
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            # Foremanctl/container: use explicit ports as per containerized documentation
+            self.configure_firewall(
+                ports=['8000/tcp', '8443/tcp'],
+                services=['http', 'https'],
+            )
+        else:
+            # Installer: use RH-Satellite-6-capsule service
+            self.configure_firewall(services=['RH-Satellite-6-capsule'])
 
         # Generate certificate, copy it to Capsule, run installer, check it succeeds
         if not capsule_cert_opts:
@@ -2126,8 +2134,6 @@ class Capsule(ContentHost, CapsuleMixins):
                     f'A core service is not running at capsule host\n{result.stdout}'
                 )
         if method == InstallMethod.FOREMANCTL:
-            # Capsule needs registry auth to pull deploy-proxy images
-            self.setup_foremanctl_container_registry()
             result = self.execute(installer)
             if result.status:
                 # before exit download the logs file for further investigation
@@ -2329,17 +2335,9 @@ class Capsule(ContentHost, CapsuleMixins):
             assert self.is_fips_enabled()
 
         # Configure Satellite firewall to open communication
-        assert (
-            self.execute(
-                '(which firewall-cmd || dnf -y install firewalld) && systemctl enable --now firewalld'
-            ).status
-            == 0
-        ), 'firewalld is not present and can\'t be installed'
-        assert (
-            self.execute(
-                'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
-            ).status
-            == 0
+        self.configure_firewall(
+            ports=['8000/tcp', '8443/tcp'],
+            services=['http', 'https'],
         )
 
         # Install Satellite and return result
@@ -2442,7 +2440,21 @@ class Capsule(ContentHost, CapsuleMixins):
             self.register_to_cdn()
             self.setup_rhel_repos()
             self.setup_satellite_repos()
-            self.setup_firewall()
+            # Configure firewall for installer-based Satellite
+            self.configure_firewall(
+                ports=[
+                    '53/udp',
+                    '53/tcp',
+                    '67/udp',
+                    '69/udp',
+                    '80/tcp',
+                    '443/tcp',
+                    '5647/tcp',
+                    '8000/tcp',
+                    '9090/tcp',
+                    '8140/tcp',
+                ],
+            )
             self.install_satellite_or_capsule_package()
 
             default_args = installer_args or [
@@ -2850,25 +2862,6 @@ class Satellite(Capsule, SatelliteMixins):
         return (
             self.execute(f'grep "db_manage: false" {constants.SATELLITE_ANSWER_FILE}').status == 0
         )
-
-    def setup_firewall(self):
-        # Setups firewall on Satellite
-        assert (
-            self.execute(
-                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
-            ).status
-            == 0
-        ), "firewalld is not present and can't be installed"
-        assert (
-            self.execute(
-                command='firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
-                '--add-port="69/udp" --add-port="80/tcp" --add-port="443/tcp" '
-                '--add-port="5647/tcp" --add-port="8000/tcp" --add-port="9090/tcp" '
-                '--add-port="8140/tcp"'
-            ).status
-            == 0
-        )
-        assert self.execute(command='firewall-cmd --runtime-to-permanent').status == 0
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
         """Generate capsule certs, returning the cert path, installer command stdout and args"""
