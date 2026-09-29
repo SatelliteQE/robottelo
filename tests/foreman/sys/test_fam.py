@@ -82,6 +82,7 @@ def install_import_ansible_role(module_target_sat):
 
 
 def common_fam_setup(satellite):
+    satellite.register_to_cdn()
     # The tests need pytest, which is only available in codeready-builder
     satellite.enable_repo(f'codeready-builder-for-rhel-{satellite.os_version.major}-x86_64-rpms')
 
@@ -139,7 +140,6 @@ def common_fam_setup(satellite):
 @pytest.fixture(scope='module')
 def setup_fam(
     module_target_sat,
-    module_subscribe_satellite,
     module_sca_manifest,
     install_import_ansible_role,
     module_capsule_configured,
