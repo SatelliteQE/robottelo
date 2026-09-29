@@ -3173,6 +3173,7 @@ class TestExportImport:
     def test_positive_export_import_podman_repo(
         self,
         target_sat,
+        module_podman_contenthost,
         function_org,
         function_product,
         module_import_sat,
@@ -3193,15 +3194,16 @@ class TestExportImport:
 
         :Verifies: SAT-25265
         """
-        target_sat.ensure_podman_installed(enable_ipv6_proxy=True)
         REPO_NAME = 'fedora'
-        result = target_sat.execute(f'podman pull registry.fedoraproject.org/{REPO_NAME}')
+        result = module_podman_contenthost.execute(
+            f'podman pull registry.fedoraproject.org/{REPO_NAME}'
+        )
         assert result.status == 0
-        large_image_id = target_sat.execute(f'podman images {REPO_NAME} -q')
+        large_image_id = module_podman_contenthost.execute(f'podman images {REPO_NAME} -q')
         assert large_image_id
         large_repo_cmd = f'{(function_org.label)}/{(function_product.label)}/{REPO_NAME}'.lower()
-        result = target_sat.execute(
-            f'podman push --tls-verify=false'
+        result = module_podman_contenthost.execute(
+            f'podman push'
             f' --creds {settings.server.admin_username}:{settings.server.admin_password}'
             f' {large_image_id.stdout.strip()} {target_sat.hostname}/{large_repo_cmd}'
         )
