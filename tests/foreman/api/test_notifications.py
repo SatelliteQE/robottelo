@@ -326,9 +326,12 @@ def root_mailbox_copy(target_sat, clean_root_mailbox):
 
 
 @pytest.fixture
-def long_running_task(target_sat):
-    """Create an async task and set its start time and last report time to two days ago.
-    After the test finishes, the task is cancelled.
+def long_running_task(target_sat, use_file_mail_delivery):
+    """Create an async task forced into a two-days-old ``running`` state.
+
+    The task is launched via the API so a real, cancellable dynflow plan
+    exists, then its state and timestamps are set directly in the DB so the
+    long-running-tasks checker reports on it.
     """
     template_id = (
         target_sat.api.JobTemplate()
@@ -349,10 +352,25 @@ def long_running_task(target_sat):
             'password': settings.server.ssh_password,
         },
     )
+
+    def _task_exists():
+        rows = target_sat.query_db(
+            f"SELECT id FROM foreman_tasks_tasks WHERE id='{job['task']['id']}'"
+        )
+        return bool(rows)
+
+    wait_for(
+        func=_task_exists,
+        fail_condition=lambda exists: not exists,
+        timeout=60,
+        delay=1,
+    )
+
     sql_date_2_days_ago = "now() - INTERVAL '2 days'"
     query = (
         "UPDATE foreman_tasks_tasks "
-        f"SET start_at = {sql_date_2_days_ago}, "
+        "SET state = 'running', result = 'pending', "
+        f"start_at = {sql_date_2_days_ago}, "
         f"started_at = {sql_date_2_days_ago}, "
         f"state_updated_at = {sql_date_2_days_ago} "
         f"WHERE id='{job['task']['id']}'"
