@@ -81,62 +81,6 @@ def install_import_ansible_role(module_target_sat):
     )
 
 
-def common_fam_setup(satellite):
-    satellite.register_to_cdn()
-    # The tests need pytest, which is only available in codeready-builder
-    satellite.enable_repo(f'codeready-builder-for-rhel-{satellite.os_version.major}-x86_64-rpms')
-
-    python = 'python3.12' if satellite.os_version.major == 9 else 'python3'
-
-    satellite.execute(
-        f'dnf install -y ansible-collection-redhat-satellite ansible-core make python3-rpm python3-requests {python}-pytest {python}-pip'
-    )
-    satellite.execute(f'{python} -m pip install ansible-runner')
-    satellite.execute(
-        'chmod +x /usr/share/ansible/collections/ansible_collections/redhat/satellite/tests/vcr_python_wrapper.py'
-    )
-
-    satellite.put(
-        settings.fam.compute_profile.to_yaml(),
-        f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/compute_profile.yml',
-        temp_file=True,
-    )
-
-    # Create fake galaxy.yml to make Makefile happy.
-    # The data in the file is unused, but not being able to load it produces errors in the
-    # logs and is confusing when searching for an actual problem during testing.
-    satellite.put(
-        yaml.safe_dump({'name': 'satellite', 'namespace': 'redhat', 'version': '1.0.0'}),
-        f'{FAM_ROOT_DIR}/galaxy.yml',
-        temp_file=True,
-    )
-
-    # Edit Makefile to not try to rebuild the collection when tests run
-    satellite.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
-
-    # Edit inventory configurations
-    satellite.execute(
-        f"sed -i '/url/ s#http.*#https://{satellite.hostname}#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
-    )
-    satellite.execute(
-        f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
-    )
-
-    # Edit content_import tests
-    # They need to extract data on the Foreman/Satellite machine and use "hosts: foreman" for that
-    # As we're running locally, we can use "hosts: localhost" instead
-    satellite.execute(
-        f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
-    )
-    if satellite.install_method == InstallMethod.FOREMANCTL:
-        # The tests need to ensure the imported content can be read by pulp and chown it to `pulp:pulp`.
-        # As pulp is running in containers now, there is no `pulp` user/group on the host where the tests run,
-        # so we create them manually.
-        satellite.execute(
-            'groupadd --system --gid 700 pulp && useradd --system --uid 700 --gid pulp --no-create-home pulp'
-        )
-
-
 @pytest.fixture(scope='module')
 def setup_fam(
     module_target_sat,
@@ -144,7 +88,7 @@ def setup_fam(
     install_import_ansible_role,
     module_capsule_configured,
 ):
-    common_fam_setup(module_target_sat)
+    module_target_sat.configure_fam()
 
     # Update the settings to point to our Capsule
     settings.set('fam.server.foreman_proxy', module_capsule_configured.hostname)
@@ -204,7 +148,7 @@ def setup_fam(
 
 @pytest.fixture(scope='module')
 def setup_fam_with_idm(idm_sat, module_sca_manifest):
-    common_fam_setup(idm_sat)
+    idm_sat.configure_fam()
 
     # Modify and copy config files to the Satellite
     idm_fam_settings = settings.fam.server.copy()
