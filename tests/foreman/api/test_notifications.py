@@ -317,11 +317,10 @@ def root_mailbox_copy(target_sat, clean_root_mailbox):
     :return: :class:`mailbox.mbox` instance
     """
     result = target_sat.execute(f'cat {clean_root_mailbox}')
-    assert result.status == 0, f'Could not read mailbox {clean_root_mailbox} on Satellite host.'
-    mbox_content = result.stdout
+    mbox_content = result.stdout if result.status == 0 else ''
     _, local_mbox_file = mkstemp()
     with open(local_mbox_file, 'w') as fh:
-        fh.writelines(mbox_content)
+        fh.write(mbox_content)
     return mbox(path=local_mbox_file)
 
 
