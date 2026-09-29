@@ -21,7 +21,11 @@ import pytest
 from wait_for import TimedOutError, wait_for
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, repos as repo_constants
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, DataFile, repos as repo_constants
+from robottelo.enums import InstallMethod
+
+MAIL_CATCHER_PORT = 2525
+MAIL_CATCHER_SCRIPT = DataFile.DATA_DIR.joinpath('mail_catcher.py')
 
 
 @pytest.fixture
@@ -94,51 +98,157 @@ def sysadmin_user_with_subscription_reposync_fail(target_sat):
 
 
 @pytest.fixture
-def reschedule_long_running_tasks_notification(target_sat):
+def reschedule_long_running_tasks_notification(target_sat, use_file_mail_delivery):
     """Reschedule long-running tasks checker from midnight (default) to every minute.
     Reset it back after the test.
     """
     default_cron_schedule = '0 0 * * *'
     every_minute_cron_schedule = '* * * * *'
 
-    assert (
-        target_sat.execute(
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
-            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{every_minute_cron_schedule}'"
-        ).status
-        == 0
+    if target_sat.install_method == InstallMethod.INSTALLER:
+        assert (
+            target_sat.execute(
+                "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
+                f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{every_minute_cron_schedule}'"
+            ).status
+            == 0
+        )
+
+        yield
+
+        assert (
+            target_sat.execute(
+                "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
+                f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{default_cron_schedule}'"
+            ).status
+            == 0
+        )
+        return
+
+    recurring_logic_subquery = (
+        "task_group_id IN ("
+        "SELECT m.task_group_id FROM foreman_tasks_task_group_members m "
+        "JOIN foreman_tasks_tasks t ON t.id = m.task_id "
+        "WHERE t.label = 'Actions::CheckLongRunningTasks'"
+        ")"
     )
+
+    def _set_cron_line(cron_line):
+        result = target_sat.query_db(
+            f"UPDATE foreman_tasks_recurring_logics SET cron_line = '{cron_line}' "
+            f"WHERE state = 'active' AND {recurring_logic_subquery};",
+            output_format='raw',
+        )
+        assert 'UPDATE' in result, f'Failed to reschedule long-running tasks checker: {result}'
+
+    def _trigger_pending_run_now():
+        """Force the currently scheduled (e.g. midnight) delayed plan to fire now."""
+        result = target_sat.query_db(
+            "UPDATE dynflow_delayed_plans SET start_at = now() "
+            "WHERE execution_plan_uuid IN ("
+            "SELECT t.external_id::uuid FROM foreman_tasks_tasks t "
+            "JOIN foreman_tasks_task_group_members m ON m.task_id = t.id "
+            "JOIN foreman_tasks_recurring_logics rl ON rl.task_group_id = m.task_group_id "
+            "WHERE t.label = 'Actions::CheckLongRunningTasks' "
+            "AND rl.state = 'active' AND t.state = 'scheduled'"
+            ");",
+            output_format='raw',
+        )
+        assert 'UPDATE' in result, f'Failed to trigger pending checker run: {result}'
+
+    _set_cron_line(every_minute_cron_schedule)
+    _trigger_pending_run_now()
 
     yield
 
-    assert (
-        target_sat.execute(
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
-            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{default_cron_schedule}'"
-        ).status
-        == 0
-    )
+    _set_cron_line(default_cron_schedule)
 
 
 @pytest.fixture(autouse=True)
-def start_postfix_service(target_sat):
-    """Start postfix service (disabled by default)."""
-    assert target_sat.execute('systemctl start postfix').status == 0
+def use_file_mail_delivery(target_sat):
+    """Make Foreman's outgoing mail deliverable for the duration of the test."""
+    if target_sat.install_method == InstallMethod.INSTALLER:
+        assert target_sat.execute('systemctl start postfix').status == 0
+        yield None
+        return
+
+    mails_dir = '/usr/share/foreman/mails'
+
+    if target_sat.install_method == InstallMethod.FOREMANCTL:
+        smtp_address_setting = target_sat.api.Setting().search(
+            query={'search': 'name=smtp_address'}
+        )[0]
+        smtp_port_setting = target_sat.api.Setting().search(query={'search': 'name=smtp_port'})[0]
+        original_smtp_address = smtp_address_setting.value
+        original_smtp_port = smtp_port_setting.value
+        script_path = f'/tmp/mail_catcher_{gen_string("alpha")}.py'
+
+        try:
+            target_sat.execute(f'mkdir -p {mails_dir} && chmod 0777 {mails_dir}')
+            target_sat.put(MAIL_CATCHER_SCRIPT, remote_path=script_path)
+            target_sat.execute(
+                f'nohup python3 {script_path} {MAIL_CATCHER_PORT} {mails_dir} '
+                f'> /tmp/mail_catcher.log 2>&1 < /dev/null &'
+            )
+            wait_for(
+                func=target_sat.execute,
+                func_args=[f'ss -ltn | grep -q :{MAIL_CATCHER_PORT}'],
+                fail_condition=lambda res: res.status != 0,
+                timeout=30,
+                delay=1,
+            )
+
+            smtp_address_setting.value = 'host.containers.internal'
+            smtp_address_setting.update(['value'])
+            smtp_port_setting.value = MAIL_CATCHER_PORT
+            smtp_port_setting.update(['value'])
+
+            yield mails_dir
+        finally:
+            smtp_address_setting.value = original_smtp_address
+            smtp_address_setting.update(['value'])
+            smtp_port_setting.value = original_smtp_port
+            smtp_port_setting.update(['value'])
+            target_sat.execute(f'pkill -f "{script_path}"; rm -f {script_path}')
+        return
+
+    original = target_sat.api.Setting().search(query={'search': 'name=delivery_method'})[0]
+    original_value = original.value
+
+    target_sat.execute(
+        f'mkdir -p {mails_dir} && chmod 0777 {mails_dir} && chmod 0666 {mails_dir}/* 2>/dev/null; :'
+    )
+    original.value = 'file'
+    original.update(['value'])
+
+    yield mails_dir
+
+    original.value = original_value
+    original.update(['value'])
 
 
 @pytest.fixture
-def clean_root_mailbox(target_sat):
+def clean_root_mailbox(target_sat, use_file_mail_delivery):
     """Backup & purge local mailbox of the Satellite's root@localhost user.
-    Restore it afterwards.
+    Restore if afterwards.
     """
-    root_mailbox = '/var/spool/mail/root'
-    root_mailbox_backup = f'{root_mailbox}-{gen_string("alphanumeric")}.bak'
-    target_sat.execute(f'cp -f {root_mailbox} {root_mailbox_backup}')
-    target_sat.execute(f'truncate -s 0 {root_mailbox}')
+    if target_sat.install_method == InstallMethod.INSTALLER:
+        root_mailbox = '/var/spool/mail/root'
+        root_mailbox_backup = f'{root_mailbox}-{gen_string("alphanumeric")}.bak'
+        target_sat.execute(f'cp -f {root_mailbox} {root_mailbox_backup}')
+        target_sat.execute(f'truncate -s 0 {root_mailbox}')
+
+        yield root_mailbox
+
+        target_sat.execute(f'mv -f {root_mailbox_backup} {root_mailbox}')
+        return
+
+    root_mailbox = f'{use_file_mail_delivery}/root@localhost'
+    target_sat.execute(f'rm -f {root_mailbox}')
 
     yield root_mailbox
 
-    target_sat.execute(f'mv -f {root_mailbox_backup} {root_mailbox}')
+    target_sat.execute(f'rm -f {root_mailbox}')
 
 
 def wait_for_mail(sat_obj, mailbox_file, contains_string, timeout=300, delay=5):
