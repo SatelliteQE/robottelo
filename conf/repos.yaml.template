@@ -31,6 +31,20 @@ REPOS:
   # be pulled from there instead of using the CDN channel. These information is
   # more suited to be used for downstream, downstream-iso and zstream builds.
   CAPSULE_REPO: replace-with-capsule-http-link
+  # ISO images used by the disconnected (offline) installation tests.
+  # Both are downloaded onto the host before it is cut off from the network.
+  DISCONNECTED:
+    # Host serving the Satellite and RHEL compose trees the ISO images are pulled from
+    COMPOSE_HOST: http://compose.example.com
+    # Compose directories for the release under test. Robottelo resolves the newest
+    # matching ISO from these paths.
+    SATELLITE_COMPOSE: replace-with-satellite-compose-url
+    RHEL_COMPOSE: replace-with-rhel-compose-url
+    # Point either URL at an .iso file instead to install one specific image.
+    SATELLITE_ISO_URL: '@format {this.repos.disconnected.satellite_compose}/compose/Satellite/x86_64/iso/'
+    RHEL_ISO_URL: '@format {this.repos.disconnected.rhel_compose}/compose/BaseOS/x86_64/iso/'
+    # Stream composes are unsigned; released composes should keep GPG checks enabled.
+    NOGPGCHECK: false
   SATTOOLS_REPO:
     RHEL6: replace-with-rhel6-http-link
     RHEL7: replace-with-rhel7-http-link
