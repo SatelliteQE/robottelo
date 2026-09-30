@@ -17,10 +17,9 @@ http://<satellite-host>/apidoc/v2/organizations.html
 
 import http
 import json
-from random import randint
+import random
 import tempfile
 from urllib.parse import urljoin
-import random
 
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import mldsa
@@ -31,10 +30,7 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials, settings
 from robottelo.constants import DEFAULT_ORG, ML_DSA_65, RSA, SHA256_WITH_RSA
-from robottelo.utils.datafactory import (
-    invalid_values_list,
-    valid_org_names_list,
-)
+from robottelo.utils.datafactory import invalid_values_list, parametrized, valid_org_names_list
 from robottelo.utils.issue_handlers import is_open
 
 
