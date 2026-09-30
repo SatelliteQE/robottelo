@@ -18,18 +18,18 @@ http://<satellite-host>/apidoc/v2/organizations.html
 import http
 import json
 from random import randint
-
 import tempfile
+from urllib.parse import urljoin
+
 from cryptography import x509
 from cryptography.hazmat.primitives.asymmetric import mldsa
-
 from fauxfactory import gen_string
 from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials
-from robottelo.constants import DEFAULT_ORG, RSA, SHA256_WITH_RSA, ML_DSA_65
+from robottelo.config import get_credentials, settings
+from robottelo.constants import DEFAULT_ORG, ML_DSA_65, RSA, SHA256_WITH_RSA
 from robottelo.utils.datafactory import (
     filtered_datapoint,
     invalid_values_list,
@@ -418,7 +418,7 @@ class TestOrganizationDebugCertificate:
         assert isinstance(cert.public_key(), mldsa.MLDSA65PublicKey)
 
     @pytest.mark.parametrize(
-        'key_algorithm, signature_algorithm',
+        ('key_algorithm', 'signature_algorithm'),
         [(RSA, SHA256_WITH_RSA), (ML_DSA_65, SHA256_WITH_RSA)],
         ids=['rsa', 'mldsa'],
     )
@@ -485,7 +485,7 @@ class TestOrganizationDebugCertificate:
 
     @pytest.mark.parametrize(
         'repo_options',
-        **datafactory.parametrized(
+        **parametrized(
             {'yum': {'content_type': 'yum', 'unprotected': False, 'url': settings.repos.yum_2.url}}
         ),
         indirect=True,
