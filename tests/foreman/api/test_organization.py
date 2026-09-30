@@ -29,7 +29,7 @@ import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
-from robottelo.constants import DEFAULT_ORG
+from robottelo.constants import DEFAULT_ORG, RSA, SHA256_WITH_RSA, ML_DSA_65
 from robottelo.utils.datafactory import (
     filtered_datapoint,
     invalid_values_list,
@@ -411,7 +411,9 @@ class TestOrganizationDebugCertificate:
 
         :CaseImportance: High
         """
-        bundle = function_sca_manifest_org.download_debug_certificate(key_algorithms=[ML_DSA_65])
+        bundle = function_sca_manifest_org.download_debug_certificate(
+            params={'key_algorithms[]': [ML_DSA_65]}
+        )
         cert = _cert_from_bundle(bundle)
         assert isinstance(cert.public_key(), mldsa.MLDSA65PublicKey)
 
@@ -436,7 +438,10 @@ class TestOrganizationDebugCertificate:
         :CaseImportance: High
         """
         bundle = function_sca_manifest_org.download_debug_certificate(
-            key_algorithms=[key_algorithm], signature_algorithms=[signature_algorithm]
+            params={
+                'key_algorithms[]': [key_algorithm],
+                'signature_algorithms[]': [signature_algorithm],
+            }
         )
         cert = _cert_from_bundle(bundle)
         assert cert.signature_algorithm_oid.dotted_string == signature_algorithm
@@ -455,7 +460,7 @@ class TestOrganizationDebugCertificate:
         with pytest.raises(HTTPError) as error:
             function_sca_manifest_org.download_debug_certificate(
                 # TODO: use a real OID that Candlepin rejects (confirm on the box).
-                key_algorithms=['1.2.3.4.5.6.7.8.9']
+                params={'key_algorithms[]': ['1.2.3.4.5.6.7.8.9']}
             )
         assert error.value.response.status_code == 409
 
@@ -471,7 +476,9 @@ class TestOrganizationDebugCertificate:
         :CaseImportance: Medium
         """
         with pytest.raises(HTTPError) as error:
-            function_sca_manifest_org.download_debug_certificate(key_algorithms=['not-an-oid'])
+            function_sca_manifest_org.download_debug_certificate(
+                params={'key_algorithms[]': ['not-an-oid']}
+            )
         # TODO: confirm the exact status on the box (409 is only for unsupported;
         # a malformed value may be 400 or 422).
         assert error.value.response.status_code in (400, 409, 422)
@@ -511,7 +518,7 @@ class TestOrganizationDebugCertificate:
 
         # Download a cert asking for ML-DSA, save it, use it.
         bundle = function_sca_manifest_org.download_debug_certificate(
-            key_algorithms=[ML_DSA_65], signature_algorithms=[SHA256_WITH_RSA]
+            params={'key_algorithms[]': [ML_DSA_65], 'signature_algorithms[]': [SHA256_WITH_RSA]}
         )
         cert_path = f'{tempfile.gettempdir()}/{function_sca_manifest_org.label}.pem'
         with open(cert_path, 'w') as cert_file:
