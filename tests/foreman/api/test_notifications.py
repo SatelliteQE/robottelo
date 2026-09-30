@@ -106,63 +106,21 @@ def reschedule_long_running_tasks_notification(target_sat, use_file_mail_deliver
     default_cron_schedule = '0 0 * * *'
     every_minute_cron_schedule = '* * * * *'
 
-    if target_sat.install_method == InstallMethod.INSTALLER:
-        assert (
-            target_sat.execute(
-                "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
-                f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{every_minute_cron_schedule}'"
-            ).status
-            == 0
+    def _reschedule(cron_line):
+        result = target_sat.execute(
+            "ALLOW_UNSUPPORTED=true foreman-rake "
+            "foreman_tasks:reschedule_long_running_tasks_checker "
+            f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{cron_line}'"
+        )
+        assert result.status == 0, (
+            f'Failed to reschedule long-running tasks checker: {result.stderr}'
         )
 
-        yield
-
-        assert (
-            target_sat.execute(
-                "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
-                f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{default_cron_schedule}'"
-            ).status
-            == 0
-        )
-        return
-
-    recurring_logic_subquery = (
-        "task_group_id IN ("
-        "SELECT m.task_group_id FROM foreman_tasks_task_group_members m "
-        "JOIN foreman_tasks_tasks t ON t.id = m.task_id "
-        "WHERE t.label = 'Actions::CheckLongRunningTasks'"
-        ")"
-    )
-
-    def _set_cron_line(cron_line):
-        result = target_sat.query_db(
-            f"UPDATE foreman_tasks_recurring_logics SET cron_line = '{cron_line}' "
-            f"WHERE state = 'active' AND {recurring_logic_subquery};",
-            output_format='raw',
-        )
-        assert 'UPDATE' in result, f'Failed to reschedule long-running tasks checker: {result}'
-
-    def _trigger_pending_run_now():
-        """Force the currently scheduled (e.g. midnight) delayed plan to fire now."""
-        result = target_sat.query_db(
-            "UPDATE dynflow_delayed_plans SET start_at = now() "
-            "WHERE execution_plan_uuid IN ("
-            "SELECT t.external_id::uuid FROM foreman_tasks_tasks t "
-            "JOIN foreman_tasks_task_group_members m ON m.task_id = t.id "
-            "JOIN foreman_tasks_recurring_logics rl ON rl.task_group_id = m.task_group_id "
-            "WHERE t.label = 'Actions::CheckLongRunningTasks' "
-            "AND rl.state = 'active' AND t.state = 'scheduled'"
-            ");",
-            output_format='raw',
-        )
-        assert 'UPDATE' in result, f'Failed to trigger pending checker run: {result}'
-
-    _set_cron_line(every_minute_cron_schedule)
-    _trigger_pending_run_now()
+    _reschedule(every_minute_cron_schedule)
 
     yield
 
-    _set_cron_line(default_cron_schedule)
+    _reschedule(default_cron_schedule)
 
 
 @pytest.fixture(autouse=True)
