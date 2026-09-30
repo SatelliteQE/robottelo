@@ -30,7 +30,7 @@ from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials, settings
 from robottelo.constants import DEFAULT_ORG, ML_DSA_65, RSA, SHA256_WITH_RSA
-from robottelo.utils.datafactory import invalid_values_list, parametrized, valid_org_names_list
+from robottelo.utils.datafactory import invalid_values_list, valid_org_names_list
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -456,24 +456,13 @@ class TestOrganizationDebugCertificate:
         # a malformed value may be 400 or 422).
         assert error.value.response.status_code in (400, 409, 422)
 
-    @pytest.mark.parametrize(
-        'repo_options',
-        **parametrized(
-            {'yum': {'content_type': 'yum', 'unprotected': False, 'url': settings.repos.yum_2.url}}
-        ),
-        indirect=True,
-    )
-    def test_positive_pqc_cert_accesses_protected_repo(
-        self, function_sca_manifest_org, repo, target_sat
-    ):
+    def test_positive_pqc_cert_accesses_protected_repo(self, function_sca_manifest_org, target_sat):
         """A cert made with specific algorithms can still unlock a protected repo.
 
         Proves the certificate actually works, not just that it parses.
         Based on test_repository.py::test_positive_access_protected_repository.
 
         :id: db55c4fe-b135-4f3d-aa4c-0481e99c1739
-
-        :parametrized: yes
 
         :Verifies: SAT-48622
 
@@ -482,6 +471,10 @@ class TestOrganizationDebugCertificate:
 
         :CaseImportance: High
         """
+        product = target_sat.api.Product(organization=function_sca_manifest_org).create()
+        repo = target_sat.api.Repository(
+            product=product, content_type='yum', unprotected=False, url=settings.repos.yum_2.url
+        ).create()
         repo.sync()
         repo_url = urljoin(repo.full_path, 'repodata/repomd.xml')
         assert repo_url.startswith(target_sat.url)
