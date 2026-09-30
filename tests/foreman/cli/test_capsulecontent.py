@@ -1186,6 +1186,8 @@ def test_positive_container_gateway_db_settings(capsule_configured):
 
     :Verifies: SAT-39480
 
+    :BlockedBy: SAT-50325
+
     :customerscenario: True
     """
     max_connections = random.randint(5, 100)
