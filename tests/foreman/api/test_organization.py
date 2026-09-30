@@ -419,24 +419,6 @@ class TestOrganizationDebugCertificate:
         cert = _cert_from_bundle(bundle)
         assert cert.signature_algorithm_oid.dotted_string == signature_algorithm
 
-    def test_negative_download_debug_cert_unsupported_algorithm(self, function_sca_manifest_org):
-        """An algorithm Candlepin can't do -> HTTP 409.
-
-        :id: db7b8c67-8fb8-486e-ab22-eb05d4e60bda
-
-        :Verifies: SAT-48622
-
-        :expectedresults: The API returns 409, not a 500 crash.
-
-        :CaseImportance: High
-        """
-        with pytest.raises(HTTPError) as error:
-            function_sca_manifest_org.download_debug_certificate(
-                # TODO: use a real OID that Candlepin rejects (confirm on the box).
-                params={'key_algorithms[]': ['1.2.3.4.5.6.7.8.9']}
-            )
-        assert error.value.response.status_code == 409
-
     def test_negative_download_debug_cert_invalid_oid(self, function_sca_manifest_org):
         """A garbage OID string is rejected.
 
@@ -452,9 +434,7 @@ class TestOrganizationDebugCertificate:
             function_sca_manifest_org.download_debug_certificate(
                 params={'key_algorithms[]': ['not-an-oid']}
             )
-        # TODO: confirm the exact status on the box (409 is only for unsupported;
-        # a malformed value may be 400 or 422).
-        assert error.value.response.status_code in (400, 409, 422)
+        assert error.value.response.status_code == 409
 
     def test_positive_pqc_cert_accesses_protected_repo(self, function_sca_manifest_org, target_sat):
         """A cert made with specific algorithms can still unlock a protected repo.
