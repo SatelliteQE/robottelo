@@ -77,6 +77,11 @@ def install_satellite_disconnected_iso(
         'Failed to install podman and skopeo from the offline repositories'
     )
 
+    # 6.20 composes are unsigned for now so keep --nogpgcheck until they are signed
+    release = str(settings.server.version.release)
+    if release.startswith('6.20'):
+        nogpgcheck = True
+
     # Install satellitectl and import the container images from the Satellite ISO.
     # prepare_system copies the whole ISO to /opt/satellite, configures a local repo
     # out of it and skopeo-imports every container image into local storage.
