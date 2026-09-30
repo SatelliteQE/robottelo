@@ -1,0 +1,42 @@
+# copy this file as `settings.local.yaml` and override any config provided under `conf/*.yaml`
+# or preferably use environment variables instead of this file
+# example:
+# `export SATQE_SERVER__HOSTNAME=myserver.redhat.com`
+---
+
+# merge settings from this file with the files that were preloaded from the conf/ directory
+# see: https://www.dynaconf.com/merging/
+dynaconf_merge: true
+
+server:
+  hostnames:
+    # - ip-10-0-167-149.rhos-01.prod.psi.rdu2.redhat.com
+    - ip-10-0-167-210.rhos-01.prod.psi.rdu2.redhat.com
+  version:
+    release: 'stream' # '6.19.4' 'stream'
+    snap: '215.0'
+    rhel_version: '10'
+  network_type: ipv4  # could be one of ["ipv4", "ipv6", "dualstack"]  # update `host_ipv6: true` in broker_settings too
+  install_method: foremanctl  # auto (default), installer, foremanctl
+  ssh_password: "changeme"
+  ssh_username: "vagrant"
+
+capsule:
+  deploy_arguments:
+    deploy_container: true
+
+content_host:
+  network_type: ipv4  # could be one of ["ipv4", "ipv6", "dualstack"]  # update `host_ipv6: true` in broker_settings too
+
+iss:
+  separate_import_sat: true  # false for faster import debug on single target_sat
+
+ui:
+  # grid_url: http://localhost:4444
+  record_video: false  # to avoid "broker.exceptions.AuthenticationError: Password-based authentication failed." on localhost
+
+upgrade:
+  from_version: '6.18'
+  to_version: 'stream'
+
+#ssh_client: {}
