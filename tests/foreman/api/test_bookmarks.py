@@ -25,13 +25,11 @@ from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 CONTROLLERS = list(dict.fromkeys(entity['controller'] for entity in BOOKMARK_ENTITIES_SELECTION))
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_create_with_name(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_name(target_sat):
     """Create a bookmark
 
     :id: aeef0944-379a-4a27-902d-aa5969dbd441
-
-    :parametrized: yes
 
     :steps:
 
@@ -45,18 +43,17 @@ def test_positive_create_with_name(controller, target_sat):
     :CaseImportance: Critical
     """
     name = random.choice(list(valid_data_list().values()))
+    controller = random.choice(CONTROLLERS)
     bm = target_sat.api.Bookmark(controller=controller, name=name, public=False).create()
     assert bm.controller == controller
     assert bm.name == name
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_create_with_query(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_query(target_sat):
     """Create a bookmark
 
     :id: 9fb6d485-92b5-43ea-b776-012c13734100
-
-    :parametrized: yes
 
     :steps:
 
@@ -70,14 +67,15 @@ def test_positive_create_with_query(controller, target_sat):
     :CaseImportance: Critical
     """
     query = random.choice(list(valid_data_list().values()))
+    controller = random.choice(CONTROLLERS)
     bm = target_sat.api.Bookmark(controller=controller, query=query).create()
     assert bm.controller == controller
     assert bm.query == query
 
 
+@pytest.mark.migration_candidate
 @pytest.mark.parametrize('public', [True, False])
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_create_public(controller, public, target_sat):
+def test_positive_create_public(public, target_sat):
     """Create a public bookmark
 
     :id: 511b9bcf-0661-4e44-b1bc-475a1c207aa9
@@ -95,18 +93,17 @@ def test_positive_create_public(controller, public, target_sat):
 
     :CaseImportance: Critical
     """
+    controller = random.choice(CONTROLLERS)
     bm = target_sat.api.Bookmark(controller=controller, public=public).create()
     assert bm.controller == controller
     assert bm.public == public
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_create_with_invalid_name(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_invalid_name(target_sat):
     """Create a bookmark with invalid name
 
     :id: 9a79c561-8225-43fc-8ec7-b6858e9665e2
-
-    :parametrized: yes
 
     :steps:
 
@@ -121,19 +118,18 @@ def test_negative_create_with_invalid_name(controller, target_sat):
     :CaseImportance: Critical
     """
     name = random.choice(invalid_values_list())
+    controller = random.choice(CONTROLLERS)
     with pytest.raises(HTTPError):
         target_sat.api.Bookmark(controller=controller, name=name, public=False).create()
     result = target_sat.api.Bookmark().search(query={'search': f'name="{name}"'})
     assert len(result) == 0
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_create_empty_query(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_empty_query(target_sat):
     """Create a bookmark with empty query
 
     :id: 674d569f-6f86-43ba-b9cc-f43e05e8ab1c
-
-    :parametrized: yes
 
     :steps:
 
@@ -148,19 +144,18 @@ def test_negative_create_empty_query(controller, target_sat):
     :CaseImportance: Critical
     """
     name = gen_string('alpha')
+    controller = random.choice(CONTROLLERS)
     with pytest.raises(HTTPError):
         target_sat.api.Bookmark(controller=controller, name=name, query='').create()
     result = target_sat.api.Bookmark().search(query={'search': f'name="{name}"'})
     assert len(result) == 0
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_create_same_name(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_same_name(target_sat):
     """Create bookmarks with the same names
 
     :id: f78f6e97-da77-4a61-95c2-622c439d325d
-
-    :parametrized: yes
 
     :steps:
 
@@ -176,6 +171,7 @@ def test_negative_create_same_name(controller, target_sat):
     :CaseImportance: Critical
     """
     name = gen_string('alphanumeric')
+    controller = random.choice(CONTROLLERS)
     target_sat.api.Bookmark(controller=controller, name=name).create()
     with pytest.raises(HTTPError):
         target_sat.api.Bookmark(controller=controller, name=name).create()
@@ -183,13 +179,11 @@ def test_negative_create_same_name(controller, target_sat):
     assert len(result) == 1
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_create_null_public(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_null_public(target_sat):
     """Create a bookmark omitting the public parameter
 
     :id: 0a4cb5ea-912b-445e-a874-b345e43d3eac
-
-    :parametrized: yes
 
     :steps:
 
@@ -207,19 +201,18 @@ def test_negative_create_null_public(controller, target_sat):
     :CaseImportance: Critical
     """
     name = gen_string('alphanumeric')
+    controller = random.choice(CONTROLLERS)
     with pytest.raises(HTTPError):
         target_sat.api.Bookmark(controller=controller, name=name, public=None).create()
     result = target_sat.api.Bookmark().search(query={'search': f'name="{name}"'})
     assert len(result) == 0
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_update_name(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_update_name(target_sat):
     """Update a bookmark
 
     :id: 1cde270a-26fb-4cff-bdff-89fef17a7624
-
-    :parametrized: yes
 
     :steps:
 
@@ -233,19 +226,18 @@ def test_positive_update_name(controller, target_sat):
     :CaseImportance: Critical
     """
     new_name = random.choice(list(valid_data_list().values()))
+    controller = random.choice(CONTROLLERS)
     bm = target_sat.api.Bookmark(controller=controller, public=False).create()
     bm.name = new_name
     bm = bm.update(['name'])
     assert bm.name == new_name
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_update_same_name(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_update_same_name(target_sat):
     """Update a bookmark with name already taken
 
     :id: 6becf121-2bea-4f7e-98f4-338bd88b8f4b
-
-    :parametrized: yes
 
     :steps:
 
@@ -260,6 +252,7 @@ def test_negative_update_same_name(controller, target_sat):
     :CaseImportance: Critical
     """
     name = gen_string('alphanumeric')
+    controller = random.choice(CONTROLLERS)
     target_sat.api.Bookmark(controller=controller, name=name).create()
     bm = target_sat.api.Bookmark(controller=controller).create()
     bm.name = name
@@ -269,13 +262,11 @@ def test_negative_update_same_name(controller, target_sat):
     assert bm.name != name
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_update_invalid_name(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_update_invalid_name(target_sat):
     """Update a bookmark with an invalid name
 
     :id: 479795bb-aeed-45b3-a7e3-d3449c808087
-
-    :parametrized: yes
 
     :steps:
 
@@ -289,6 +280,7 @@ def test_negative_update_invalid_name(controller, target_sat):
     :CaseImportance: Critical
     """
     new_name = random.choice(invalid_values_list())
+    controller = random.choice(CONTROLLERS)
     bm = target_sat.api.Bookmark(controller=controller, public=False).create()
     bm.name = new_name
     with pytest.raises(HTTPError):
@@ -297,13 +289,11 @@ def test_negative_update_invalid_name(controller, target_sat):
     assert bm.name != new_name
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_update_query(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_update_query(target_sat):
     """Update a bookmark query
 
     :id: 92a31de2-bebf-4396-94f5-adf59f8d66a5
-
-    :parametrized: yes
 
     :steps:
 
@@ -317,19 +307,18 @@ def test_positive_update_query(controller, target_sat):
     :CaseImportance: Critical
     """
     new_query = random.choice(list(valid_data_list().values()))
+    controller = random.choice(CONTROLLERS)
     bm = target_sat.api.Bookmark(controller=controller).create()
     bm.query = new_query
     bm = bm.update(['query'])
     assert bm.query == new_query
 
 
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_negative_update_empty_query(controller, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_update_empty_query(target_sat):
     """Update a bookmark with an empty query
 
     :id: 948602d3-532a-47fe-b313-91e3fab809bf
-
-    :parametrized: yes
 
     :steps:
 
@@ -342,6 +331,7 @@ def test_negative_update_empty_query(controller, target_sat):
 
     :CaseImportance: Critical
     """
+    controller = random.choice(CONTROLLERS)
     bm = target_sat.api.Bookmark(controller=controller).create()
     bm.query = ''
     with pytest.raises(HTTPError):
@@ -350,14 +340,12 @@ def test_negative_update_empty_query(controller, target_sat):
     assert bm.query != ''
 
 
+@pytest.mark.migration_candidate
 @pytest.mark.parametrize('public', [True, False])
-@pytest.mark.parametrize('controller', CONTROLLERS)
-def test_positive_update_public(controller, public, target_sat):
+def test_positive_update_public(public, target_sat):
     """Update a bookmark public state to private and vice versa
 
     :id: 2717360d-37c4-4bb9-bce1-b1edabdf11b3
-
-    :parametrized: yes
 
     :steps:
 
@@ -371,6 +359,7 @@ def test_positive_update_public(controller, public, target_sat):
 
     :CaseImportance: Critical
     """
+    controller = random.choice(CONTROLLERS)
     bm = target_sat.api.Bookmark(controller=controller, public=not public).create()
     assert bm.public != public
     bm.public = public
