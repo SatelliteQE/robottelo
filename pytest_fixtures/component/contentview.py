@@ -1,27 +1,55 @@
 # Content View Fixtures
 from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
+from requests.exceptions import HTTPError
 
 from robottelo.constants import DEFAULT_CV
+from robottelo.logging import logger
 
 
 @pytest.fixture(scope='module')
 def module_cv(module_org, module_target_sat):
-    return module_target_sat.api.ContentView(organization=module_org).create()
+    cv = module_target_sat.api.ContentView(organization=module_org).create()
+    yield cv
+    try:
+        cv = cv.read()
+        for version in cv.version:
+            version.delete()
+        cv.delete()
+    except HTTPError:
+        logger.exception('Exception while deleting module scope content view in teardown')
 
 
 @pytest.fixture(scope='module')
 def module_published_cv(module_org, module_target_sat):
-    content_view = module_target_sat.api.ContentView(organization=module_org).create()
-    content_view.publish()
-    return content_view.read()
+    cv = module_target_sat.api.ContentView(organization=module_org).create()
+    cv.publish()
+    cv = cv.read()
+    yield cv
+    try:
+        cv = cv.read()
+        for version in cv.version:
+            version.delete()
+        cv.delete()
+    except HTTPError:
+        logger.exception('Exception while deleting module scope published content view in teardown')
 
 
 @pytest.fixture
 def function_published_cv(function_org, target_sat):
-    content_view = target_sat.api.ContentView(organization=function_org).create()
-    content_view.publish()
-    return content_view.read()
+    cv = target_sat.api.ContentView(organization=function_org).create()
+    cv.publish()
+    cv = cv.read()
+    yield cv
+    try:
+        cv = cv.read()
+        for version in cv.version:
+            version.delete()
+        cv.delete()
+    except HTTPError:
+        logger.exception(
+            'Exception while deleting function scope published content view in teardown'
+        )
 
 
 @pytest.fixture(scope="module")
