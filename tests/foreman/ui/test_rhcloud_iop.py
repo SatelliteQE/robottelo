@@ -107,6 +107,7 @@ def create_pathways_recommendation(host):
 
 
 @pytest.mark.e2e
+@pytest.mark.network_sensitive
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.no_containers

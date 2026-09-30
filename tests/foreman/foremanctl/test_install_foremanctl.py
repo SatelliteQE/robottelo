@@ -65,6 +65,7 @@ def module_sat_ready_rhel(request):
 @pytest.fixture(scope='module')
 def module_cap_ready_rhel(request):
     """Deploy bare RHEL system ready for Capsule installation."""
+    param = getattr(request, 'param', 'default')
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
@@ -95,17 +96,27 @@ def module_cap_ready_rhel(request):
         assert cap.execute('dnf install -y satellitectl').status == 0, (
             'Failed to install satellitectl'
         )
+        # Enable fapolicyd/fips after installs
+        if param == 'fapolicyd':
+            assert cap.execute('dnf -y install fapolicyd').status == 0
+            assert cap.execute('systemctl enable --now fapolicyd').status == 0
+            assert cap.execute('systemctl is-active fapolicyd').status == 0
+        if param == 'fips':
+            Broker().execute(
+                workflow='enable-fips',
+                target_vm=cap.name,
+            )
+            cap.connect()
+            assert cap.is_fips_enabled()
         # Unregister capsule in case it's registered to CDN
         cap.unregister()
         # Setup firewall to allow Satellite-Capsule communication
-        assert (
-            cap.execute(
-                'which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld'
-            ).status
-            == 0
-        ), "firewalld is not present and can't be installed"
-        cap.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
-        cap.execute('firewall-cmd --runtime-to-permanent')
+        cap.configure_firewall(
+            ports=['8000/tcp', '8443/tcp'],
+            services=['http', 'https'],
+        )
+        # foremanctl SAT has no Capsule host record; skip teardown host-record lookup/delete
+        cap._skip_context_checkin = True
         yield cap
 
 
@@ -131,7 +142,8 @@ def module_sat_foremanctl_tuning(request):
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.first_sanity
-@pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
+@pytest.mark.network_sensitive
+@pytest.mark.parametrize('module_sat_ready_rhel', ['default', 'fips', 'fapolicyd'], indirect=True)
 def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
     """Run a basic Satellite installation
 
@@ -153,6 +165,13 @@ def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
 @pytest.mark.e2e
 @pytest.mark.pit_server
 @pytest.mark.build_sanity
+@pytest.mark.network_sensitive
+@pytest.mark.parametrize(
+    ('module_sat_ready_rhel', 'module_cap_ready_rhel'),
+    [('default', 'default'), ('fips', 'fips'), ('fapolicyd', 'fapolicyd')],
+    ids=['default', 'fips', 'fapolicyd'],
+    indirect=True,
+)
 def test_capsule_installation_with_foremanctl(
     pytestconfig, module_sat_ready_rhel, module_cap_ready_rhel, module_sca_manifest
 ):
@@ -668,7 +687,6 @@ def foremanctl_capsule_cert_paths(sat, capsule, extract_dir):
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
-@pytest.mark.rhel_ver_match('9')
 def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
     """Verify foremanctl auth-bundle generation and renewal for a capsule.
 
@@ -766,3 +784,37 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
     assert client_fp_after != client_fp_before, (
         'Capsule client cert fingerprint unchanged — renewal did not regenerate it'
     )
+
+
+def test_negative_foremanctl_deploy_with_invalid_certs(module_sat_foremanctl_custom_certs):
+    """Reject invalid certificates during foremanctl deploy without harming Satellite.
+
+    :id: 8258a2e6-04fc-4006-81be-6d35beddae88
+
+    :steps:
+        1. Confirm Satellite is healthy with hammer ping
+        2. Run foremanctl deploy with invalid server certificate and key
+        3. Confirm Satellite is still healthy with hammer ping
+
+    :expectedresults:
+        1. foremanctl deploy fails with a invalid certificate
+        2. Satellite services remain running and hammer ping succeeds
+    """
+    sat = module_sat_foremanctl_custom_certs
+    invalid_crt = '/root/certs/invalid.crt'
+
+    result = sat.execute('hammer ping')
+    assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
+
+    result = sat.execute(
+        'foremanctl deploy --certificate-source=custom_server '
+        f'--certificate-server-certificate {invalid_crt} '
+        '--certificate-server-key /root/certs/invalid.key '
+        '--certificate-server-ca-certificate /root/cacert.crt'
+    )
+
+    assert result.status == 2
+    assert 'verification failed' in result.stdout
+
+    result = sat.execute('hammer ping')
+    assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'

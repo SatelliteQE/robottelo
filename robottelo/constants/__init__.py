@@ -318,6 +318,7 @@ REPOSET = {
     'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (RPMs)',
     'rhel10_bos': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS (RPMs)',
     'rhel10_aps': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream (RPMs)',
+    'rhel10_ext': 'Red Hat Enterprise Linux 10 for x86_64 - Extensions (RPMs)',
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
@@ -710,6 +711,17 @@ REPOS = {
         'distro': 'rhel10',
         'key': 'rhel10_aps',
     },
+    'rhel10_ext': {
+        'id': 'rhel-10-for-x86_64-extensions-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - Extensions RPMs 10',
+        'releasever': '10',
+        'basearch': 'x86_64',
+        'version': '10',
+        'reposet': REPOSET['rhel10_ext'],
+        'product': PRDS['rhel10'],
+        'distro': 'rhel10',
+        'key': 'rhel10_ext',
+    },
     'rhel7_optional': {
         'id': 'rhel-7-server-optional-rpms',
         'name': 'Red Hat Enterprise Linux 7 Server - Optional RPMs x86_64 7Server',
@@ -782,7 +794,9 @@ DEFAULT_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux Server, Premium (Physical 
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
-DEFAULT_OS_SEARCH_QUERY = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
+DEFAULT_OS_SEARCH_QUERY = (
+    'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9" OR major="10")'
+)
 
 
 TIMESTAMP_FMT_ZONE = '%Y-%m-%d %H:%M:%S %Z'  # timezone-aware format (by code: UTC, EST, etc)
@@ -878,7 +892,6 @@ CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
-CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
 CONTAINER_CERTS_PATH = "/etc/containers/certs.d/"
 CERT_DATA = {
     'capsule_hostname': 'capsule.example.com',
@@ -2640,6 +2653,31 @@ class InstallationServices:
         'pulp-content',
         'pulp-worker@*',
         'valkey',
+    ]
+
+    # IoP (Insights on Prem) quadlet container services, only present while IoP is enabled
+    IOP_SERVICES = [
+        'iop-core-engine',
+        'iop-core-gateway',
+        'iop-core-host-inventory-api',
+        'iop-core-host-inventory-migrate',
+        'iop-core-host-inventory',
+        'iop-core-ingress',
+        'iop-core-kafka',
+        'iop-core-puptoo',
+        'iop-core-yuptoo',
+        'iop-service-advisor-backend-api',
+        'iop-service-advisor-backend',
+        'iop-service-remediations-api',
+        'iop-service-vmaas-reposcan',
+        'iop-service-vmaas-webapp-go',
+        'iop-service-vuln-dbupgrade',
+        'iop-service-vuln-evaluator-recalc',
+        'iop-service-vuln-evaluator-upload',
+        'iop-service-vuln-grouper',
+        'iop-service-vuln-listener',
+        'iop-service-vuln-manager',
+        'iop-service-vuln-taskomatic',
     ]
 
 

@@ -395,6 +395,8 @@ def test_positive_end_to_end_with_puppet_class(
     }
 
 
+@pytest.mark.network_sensitive
+@pytest.mark.foreman_installer
 def test_positive_create_and_update_with_subnet(
     module_location, module_org, module_default_subnet, module_target_sat
 ):

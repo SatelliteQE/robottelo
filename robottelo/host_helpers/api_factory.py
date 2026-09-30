@@ -467,6 +467,23 @@ class APIFactory:
             ).create()
         return os
 
+    def get_or_create_default_os(self):
+        """Return the configured default OS, creating it when it is missing."""
+        search_string = f'name="{settings.supportability.content_hosts.default_os_name}"'
+        operating_systems = self._satellite.api.OperatingSystem().search(
+            query={'search': search_string}
+        )
+        if operating_systems:
+            operating_system = operating_systems[0]
+        else:
+            operating_system = self._satellite.api.OperatingSystem(
+                name=settings.supportability.content_hosts.default_os_name,
+                family='Redhat',
+                major=str(self._satellite.os_version.major),
+                minor=str(self._satellite.os_version.minor),
+            ).create()
+        return operating_system.read()
+
     def supported_rhel_ver(self, num=3, fips=False, prefix=''):
         """
         Return: a list of (str), most recent supported RHEL major versions.

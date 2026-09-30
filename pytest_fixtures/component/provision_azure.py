@@ -11,18 +11,12 @@ from robottelo.constants import (
     AZURERM_RHEL7_FT_IMG_URN,
     AZURERM_RHEL9_UD_IMG_URN,
     DEFAULT_ARCHITECTURE,
-    DEFAULT_OS_SEARCH_QUERY,
 )
 
 
 @pytest.fixture(scope='session')
-def sat_azure(request):
-    host_type = getattr(request, 'param', 'sat')
-    if host_type == 'puppet_sat':
-        infra_sat_host = request.getfixturevalue('session_puppet_enabled_sat')
-    else:
-        infra_sat_host = request.getfixturevalue('session_target_sat')
-    return infra_sat_host
+def sat_azure(session_target_sat):
+    return session_target_sat
 
 
 @pytest.fixture(scope='module')
@@ -43,9 +37,7 @@ def sat_azure_domain(sat_azure, sat_azure_loc, sat_azure_org):
 @pytest.fixture(scope='module')
 def sat_azure_default_os(sat_azure):
     """Default OS on the Satellite"""
-    return (
-        sat_azure.api.OperatingSystem().search(query={'search': DEFAULT_OS_SEARCH_QUERY})[0].read()
-    )
+    return sat_azure.api_factory.get_or_create_default_os()
 
 
 @pytest.fixture(scope='module')

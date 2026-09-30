@@ -2,6 +2,7 @@ import contextlib
 from functools import lru_cache
 import json
 import os
+from pathlib import PurePath
 import random
 import re
 from urllib.parse import urljoin
@@ -9,10 +10,12 @@ from urllib.request import urlopen
 
 from broker.hosts import Host
 from fauxfactory import gen_string
+from packaging.version import Version
 import requests
 from wait_for import TimedOutError, wait_for
 import yaml
 
+from robottelo import constants
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import (
@@ -21,8 +24,13 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
-from robottelo.enums import NetworkType
-from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError, SatelliteHostError
+from robottelo.enums import InstallMethod, NetworkType
+from robottelo.exceptions import (
+    CLIReturnCodeError,
+    DownloadFileError,
+    NoManifestProvidedError,
+    SatelliteHostError,
+)
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.host_helpers.ui_factory import UIFactory
@@ -241,6 +249,110 @@ class ContentInfo:
         return self.api.SmartProxy().search(
             query={'search': f'feature=Pulpcore and url ~ {self.hostname}'}
         )[0]
+
+
+class DisconnectedInstall:
+    """Disconnected Satellite installation helper methods."""
+
+    def resolve_iso_url(self, url):
+        """Resolve a URL pointing at a directory of ISO images to a single ISO image.
+
+        Composes name their ISO images after the build, so that the URL of a Stream ISO
+        changes with every compose. Given a directory URL, the newest binary DVD image of
+        the host architecture published in it is picked, while a URL of an ISO image is
+        returned unchanged. The source and boot images published alongside are skipped.
+
+        :param url: URL of an ISO image, or of a directory index listing ISO images
+        :return: URL of a single ISO image
+        """
+        if url.endswith('.iso'):
+            return url
+        index = self.execute(f'curl --fail --silent --location {url}')
+        if index.status != 0:
+            raise DownloadFileError(f'Unable to list the ISO images at {url}:\n{index.stderr}')
+        images = sorted(
+            {
+                image
+                for image in re.findall(r'[\w.+-]+\.iso', index.stdout)
+                if self.arch in image and 'boot' not in image and 'source' not in image
+            }
+        )
+        if not images:
+            raise DownloadFileError(f'No {self.arch} ISO image is published at {url}')
+        logger.info(f'Picked the newest ISO image {images[-1]} out of {images} published at {url}')
+        return f'{url.rstrip("/")}/{images[-1]}'
+
+    def download_iso(self, iso_url, download_dir='/root', timeout='60m'):
+        """Download an ISO image onto the host.
+
+        :param iso_url: URL of the ISO image, or of a directory the newest ISO image
+            published in it is downloaded from
+        :param download_dir: directory the ISO image is downloaded to
+        :param timeout: timeout of the download, ISO images are large
+        :return: path of the downloaded ISO image on the host
+        """
+        iso_url = self.resolve_iso_url(iso_url)
+        iso_path = f'{download_dir}/{PurePath(iso_url).name}'
+        result = self.execute(f'curl --fail --location --output {iso_path} {iso_url}', timeout)
+        if result.status != 0:
+            raise DownloadFileError(f'Unable to download {iso_url}:\n{result.stderr}')
+        return iso_path
+
+    def mount_iso(self, iso_path, mount_point):
+        """Loop-mount an ISO image read-only.
+
+        :param iso_path: path of the ISO image on the host
+        :param mount_point: directory the ISO is mounted at, created when missing
+        """
+        self.execute(f'mkdir -p {mount_point}')
+        result = self.execute(f'mount -o loop,ro {iso_path} {mount_point}')
+        assert result.status == 0, f'Failed to mount {iso_path} at {mount_point}:\n{result.stderr}'
+
+    def setup_offline_rhel_repos(self, mount_point, repos=('BaseOS', 'AppStream')):
+        """Create dnf repositories served from a mounted RHEL binary DVD ISO.
+
+        :param mount_point: directory the RHEL binary DVD ISO is mounted at
+        :param repos: names of the repository directories present on the ISO
+        """
+        # The compose trees publish the ISO of every RHEL version, serving packages of
+        # another version than the host runs would upgrade the base operating system
+        iso_version = self.execute(
+            "awk -F' = ' '/^\\[general\\]/{in_general=1; next} "
+            "/^\\[/{in_general=0} "
+            "in_general && $1==\"version\"{print $2; exit}' "
+            f'{mount_point}/.treeinfo'
+        ).stdout.strip()
+        assert iso_version, f'Unable to detect the RHEL version from {mount_point}/.treeinfo'
+        iso_version = Version(iso_version)
+        assert iso_version.major == self.os_version.major, (
+            f'The RHEL {iso_version} ISO does not match the RHEL {self.os_version} host'
+        )
+        if iso_version.minor != self.os_version.minor:
+            logger.warning(
+                f'The RHEL {iso_version} ISO serves packages of another minor version '
+                f'than the RHEL {self.os_version} host runs'
+            )
+        missing = [
+            repo
+            for repo in repos
+            if self.execute(f'[ -d {mount_point}/{repo}/repodata ]').status != 0
+        ]
+        assert not missing, f'Repositories {missing} not found on the ISO at {mount_point}'
+        self.create_custom_repos(
+            **{f'iso_{repo.lower()}': f'file://{mount_point}/{repo}' for repo in repos}
+        )
+
+    def disconnect_from_network(self):
+        """Cut the host off from every external content source.
+
+        Unregisters from the CDN and drops all repofiles and container registry
+        credentials, so that neither dnf nor podman can reach the Red Hat CDN or
+        the container registry.
+        """
+        self.unregister()
+        self.execute('rm -rf /etc/yum.repos.d/*.repo')
+        self.execute(f'rm -f {constants.PODMAN_AUTHFILE_PATH}')
+        self.execute('podman logout --all')
 
 
 class SystemInfo:
@@ -472,7 +584,11 @@ class IoPSetup:
         }
 
     def configure_iop(self):
-        """Configure on prem Advisor engine on Satellite"""
+        """Configure on prem Advisor engine on Satellite.
+
+        Based on install_method: foremanctl uses ``foremanctl deploy --add-feature iop``,
+        installer uses ``satellite-installer --enable-iop --iop-ensure present``.
+        """
         logger.info('Configuring Satellite with local Red Hat Lightspeed')
 
         self.register_to_cdn()
@@ -487,30 +603,33 @@ class IoPSetup:
             iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
         )
 
-        # Set IPv6 podman proxy on Satellite, to pull from container registry
         self.enable_ipv6_podman_proxy()
 
-        # Set up container image path overrides
-        if image_paths := self.get_iop_image_paths():
-            custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
+        if self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('foremanctl deploy --add-feature iop', timeout='30m')
+        else:
+            # Set up container image path overrides for satellite-installer
+            if image_paths := self.get_iop_image_paths():
+                custom_hiera = f'{robottelo_tmp_dir}/custom-hiera.yaml'
 
-            with open(custom_hiera, 'w') as f:
-                yaml.dump(
-                    image_paths,
-                    f,
-                    sort_keys=False,
-                    default_flow_style=False,
-                )
-            self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
+                with open(custom_hiera, 'w') as f:
+                    yaml.dump(
+                        image_paths,
+                        f,
+                        sort_keys=False,
+                        default_flow_style=False,
+                    )
+                self.put(custom_hiera, '/etc/foreman-installer/custom-hiera.yaml')
 
-        command = InstallerCommand(
-            'enable-iop',
-            iop_ensure='present',
-            scenario='satellite',
-            foreman_initial_admin_password=settings.server.admin_password,
-        ).get_command()
+            command = InstallerCommand(
+                'enable-iop',
+                iop_ensure='present',
+                scenario='satellite',
+                foreman_initial_admin_password=settings.server.admin_password,
+            ).get_command()
 
-        result = self.execute(command, timeout='30m')
+            result = self.execute(command, timeout='30m')
+
         if result.status != 0:
             raise SatelliteHostError(f'Failed to configure IoP: {result.stdout}')
         if not self.iop_enabled:
@@ -521,11 +640,12 @@ class IoPSetup:
             logger.info('IoP is already disabled. Skipping uninstallation.')
             return
 
-        command = InstallerCommand(
-            iop_ensure='absent',
-        ).get_command()
+        if self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('foremanctl deploy --remove-feature iop', timeout='30m')
+        else:
+            command = InstallerCommand(iop_ensure='absent').get_command()
+            result = self.execute(command, timeout='30m')
 
-        result = self.execute(command, timeout='30m')
         if result.status != 0:
             raise SatelliteHostError(f'Failed to disable IoP: {result.stdout}')
         if self.iop_enabled:

@@ -97,6 +97,7 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
     indirect=True,
     ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
+@pytest.mark.network_sensitive
 def test_insights_client_registration_with_http_proxy(
     module_target_sat_insights,
     setup_http_proxy,
@@ -140,6 +141,7 @@ def test_insights_client_registration_with_http_proxy(
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.skipif((not settings.http_proxy.UN_AUTH_PROXY_URL), reason='Missing un_auth_proxy_url')
+@pytest.mark.network_sensitive
 def test_positive_set_content_default_http_proxy(block_fake_repo_access, target_sat):
     """An http proxy can be set to be the global default for repositories.
 

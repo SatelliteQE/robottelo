@@ -509,6 +509,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert sat_files == caps_files
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_iso_library_sync(
         self, module_capsule_configured, module_sca_manifest_org, module_target_sat
@@ -761,6 +762,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == packages_count
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
@@ -781,6 +783,7 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
+    @pytest.mark.network_sensitive
     @pytest.mark.parametrize('endpoint', ['pulpcore', 'katello'])
     def test_flatpak_endpoint(self, target_sat, module_capsule_configured, endpoint):
         """Ensure the Capsules's local flatpak index endpoint is up after install or upgrade.
@@ -802,6 +805,7 @@ class TestCapsuleContentManagement:
         assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
     @pytest.mark.e2e
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos'])
     def test_positive_sync_kickstart_repo(
@@ -896,6 +900,7 @@ class TestCapsuleContentManagement:
         assert sat_pkgs == caps_pkgs
 
     @pytest.mark.e2e
+    @pytest.mark.network_sensitive
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_container_repo_end_to_end(
@@ -1029,6 +1034,7 @@ class TestCapsuleContentManagement:
             )
             assert result.status == 0
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
         self,
@@ -1095,6 +1101,7 @@ class TestCapsuleContentManagement:
             '[defaults]\n'
             f'collections_paths = {coll_path}\n\n'
             '[galaxy]\n'
+            'ignore_certs = True\n'
             'server_list = capsule_galaxy\n\n'
             '[galaxy_server.capsule_galaxy]\n'
             f'url={repo_path}\n'
@@ -1115,6 +1122,7 @@ class TestCapsuleContentManagement:
         assert 'foreman' in result.stdout
         assert 'operations' in result.stdout
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_file_repo(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
@@ -1321,14 +1329,14 @@ class TestCapsuleContentManagement:
         # Delete all capsule sync tasks so that we fall back for audits.
         task_result = target_sat.execute(
             """echo "ForemanTasks::Task.where(action:'Synchronize capsule """
-            f"""\\'{module_capsule_configured.hostname}\\'').delete_all" | foreman-rake console"""
+            f"""\\'{module_capsule_configured.content_hostname}\\'').delete_all" | foreman-rake console"""
         )
         assert task_result.status == 0
 
         # Ensure task records were deleted.
         task_result = target_sat.execute(
             """echo "ForemanTasks::Task.where(action:'Synchronize capsule """
-            f"""\\'{module_capsule_configured.hostname}\\'')" | foreman-rake console"""
+            f"""\\'{module_capsule_configured.content_hostname}\\'')" | foreman-rake console"""
         )
         assert task_result.status == 0
         assert '[]' in task_result.stdout
@@ -1390,9 +1398,7 @@ class TestCapsuleContentManagement:
         repo.sync()
 
         # Set immediate download policy to the capsule, assign it the Library LCE and sync it.
-        proxy = capsule_configured.nailgun_smart_proxy.read()
-        proxy.download_policy = 'immediate'
-        proxy.update(['download_policy'])
+        capsule_configured.update_download_policy('immediate')
 
         capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce_library.id}
@@ -1415,10 +1421,8 @@ class TestCapsuleContentManagement:
         sync_status = capsule_configured.nailgun_capsule.content_sync()
         assert sync_status['result'] == 'success', 'Capsule sync task failed.'
 
-        # datetime string (local time) to search for proper task.
-        timestamp = (datetime.now().replace(microsecond=0) - timedelta(seconds=1)).strftime(
-            '%B %d, %Y at %I:%M:%S %p'
-        )
+        # UTC timestamp (with a 1s margin for clock skew) to search for the proper task.
+        timestamp = datetime.now(UTC) - timedelta(seconds=1)
         # Run orphan cleanup for the capsule.
         target_sat.execute(
             'foreman-rake katello:delete_orphaned_content RAILS_ENV=production '
@@ -1533,15 +1537,18 @@ class TestCapsuleContentManagement:
         assert all(module_capsule_configured.get_artifact_info(checksum=sum) for sum in meta_sums)
 
         # Register a content host and run dnf actions.
-        nc = module_capsule_configured.nailgun_smart_proxy
-        module_target_sat.api.SmartProxy(id=nc.id, organization=[function_org]).update(
+        nsp = module_capsule_configured.nailgun_smart_proxy
+        nc = module_capsule_configured.nailgun_capsule
+        module_target_sat.api.SmartProxy(id=nsp.id, organization=[function_org]).update(
             ['organization']
         )
-        module_target_sat.api.SmartProxy(id=nc.id, location=[default_location]).update(['location'])
+        module_target_sat.api.SmartProxy(id=nsp.id, location=[default_location]).update(
+            ['location']
+        )
 
         result = rhel_contenthost.api_register(
             module_target_sat,
-            smart_proxy=nc,
+            smart_proxy=nsp,
             organization=function_org,
             location=default_location,
             activation_keys=[repos_collection.setup_content_data['activation_key']['name']],
@@ -1635,6 +1642,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
+    @pytest.mark.network_sensitive
     @pytest.mark.parametrize(
         'repos_collection',
         [
@@ -1981,14 +1989,15 @@ class TestCapsuleContentManagement:
 
         res = target_sat.api.Capsule(server_config=sc).search()
         assert len(res) >= 2, 'Expected at least one internal and one or more external Capsule(s).'
-        assert {target_sat.hostname, module_capsule_configured.hostname}.issubset(
-            [caps.name for caps in res]
-        ), 'Internal and/or external Capsule was not listed.'
+        assert {
+            target_sat.content_hostname,
+            module_capsule_configured.content_hostname,
+        }.issubset([caps.name for caps in res]), 'Internal and/or external Capsule was not listed.'
 
         res = target_sat.api.Capsule(
             server_config=sc, id=module_capsule_configured.nailgun_capsule.id
         ).read()
-        assert res.name == module_capsule_configured.hostname, 'External Capsule not found.'
+        assert res.name == module_capsule_configured.content_hostname, 'External Capsule not found.'
 
     def test_positive_reclaim_space(
         self,
@@ -2068,6 +2077,8 @@ class TestCapsuleContentManagement:
         :customerscenario: true
 
         :Verifies: SAT-31400
+
+        :BlockedBy: SAT-50686
 
         :expectedresults:
 
@@ -2218,15 +2229,18 @@ class TestCapsuleContentManagement:
         repos_collection.setup_content(function_org.id, function_lce.id, override=True)
         module_capsule_configured.wait_for_sync(start_time=timestamp)
 
-        nc = module_capsule_configured.nailgun_smart_proxy
-        module_target_sat.api.SmartProxy(id=nc.id, organization=[function_org]).update(
+        nsp = module_capsule_configured.nailgun_smart_proxy
+        nc = module_capsule_configured.nailgun_capsule
+        module_target_sat.api.SmartProxy(id=nsp.id, organization=[function_org]).update(
             ['organization']
         )
-        module_target_sat.api.SmartProxy(id=nc.id, location=[default_location]).update(['location'])
+        module_target_sat.api.SmartProxy(id=nsp.id, location=[default_location]).update(
+            ['location']
+        )
 
         result = rhel_contenthost.api_register(
             module_target_sat,
-            smart_proxy=nc,
+            smart_proxy=nsp,
             organization=function_org,
             location=default_location,
             activation_keys=[repos_collection.setup_content_data['activation_key']['name']],
@@ -2431,6 +2445,7 @@ class TestPodman:
 
 @pytest.mark.pqc
 @pytest.mark.e2e
+@pytest.mark.network_sensitive
 @pytest.mark.rhel_ver_match('N-0')
 @pytest.mark.no_containers
 @pytest.mark.skip_if_not_set('capsule')

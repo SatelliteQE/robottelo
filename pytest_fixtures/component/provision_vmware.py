@@ -10,11 +10,11 @@ from robottelo.hosts import ContentHost
 
 @pytest.fixture(scope='module')
 def vmware(request):
-    versions = {
-        'vmware7': settings.vmware.vcenter7,
-        'vmware8': settings.vmware.vcenter8,
-    }
-    return versions[getattr(request, 'param', 'vmware8')]
+    # Skip vmware7 - EOL and not supported with Satellite 6.19+
+    if getattr(request, 'param', 'vmware8') == 'vmware7':
+        pytest.skip('vCenter 7.0 is EOL and not supported with Satellite 6.19+')
+
+    return settings.vmware.vcenter8
 
 
 @pytest.fixture

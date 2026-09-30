@@ -17,6 +17,9 @@ from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT, LIBRARY_LCE
+from robottelo.content_info import get_repo_files_by_url
+from robottelo.hosts import Capsule, Satellite
 
 pytestmark = [pytest.mark.foremanctl]
 
@@ -24,7 +27,11 @@ BACKUP_DIR = '/tmp/'
 BACKUP_PREFIX = 'backup-'
 BASIC_FILES = {'foremanctl-state.tar.gz', 'metadata.yml', 'config.snar'}
 SAT_FILES = {'candlepin.dump', 'foreman.dump', 'pulp.dump'} | BASIC_FILES
+# A smart proxy carries pulp only, it has no candlepin/foreman databases of its own
+CAPS_FILES = {'container_gateway.dump', 'pulp.dump'} | BASIC_FILES
 CONTENT_FILES = {'pulp-content.tar.gz', 'pulp.snar'}
+# Capsule fixtures a test may pull in, and on which a backup can therefore be taken
+CAPSULE_FIXTURES = ('capsule_configured', 'module_capsule_configured', 'large_capsule_configured')
 
 
 @pytest.fixture(autouse=True, scope='module')
@@ -48,11 +55,24 @@ def install_postgresql_client(module_target_sat):
 
 
 @pytest.fixture(autouse=True)
-def cleanup_backup_dir(module_target_sat):
-    """Clean up backup directories before and after each test."""
-    module_target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+def cleanup_backup_dir(request, module_target_sat):
+    """Clean up backup directories before and after each test.
+
+    A backup can be taken on the Satellite or on a Capsule, so clean up every capsule
+    the test pulls in as well, not just the Satellite.
+    """
+    hosts = [module_target_sat]
+    hosts.extend(
+        request.getfixturevalue(name) for name in CAPSULE_FIXTURES if name in request.fixturenames
+    )
+
+    for host in hosts:
+        host.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+
     yield
-    module_target_sat.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+
+    for host in hosts:
+        host.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
 
 
 def _assert_backup_files(server, backup_dir, skip_pulp=False):
@@ -62,7 +82,7 @@ def _assert_backup_files(server, backup_dir, skip_pulp=False):
     :param backup_dir: Path to the backup directory
     :param skip_pulp: Whether pulp content was skipped in the backup
     """
-    expected_files = SAT_FILES
+    expected_files = SAT_FILES if type(server) is Satellite else CAPS_FILES
     if not skip_pulp:
         expected_files = expected_files | CONTENT_FILES
 
@@ -77,12 +97,15 @@ def _assert_backup_files(server, backup_dir, skip_pulp=False):
 def _create_backup(server, subdir, skip_pulp=False, base_backup=None, wait_for_tasks=True):
     """Run foremanctl backup and return the timestamped backup subdirectory path."""
     cmd = f'foremanctl backup {subdir}'
+    is_capsule = True if type(server) is Capsule else None
     if skip_pulp:
         cmd += ' --skip-pulp-content'
     if base_backup:
         cmd += f' --base-backup {base_backup}'
     if wait_for_tasks:
         cmd += ' --wait-for-tasks'
+    if is_capsule:
+        cmd += ' --target-host proxy'
     result = server.execute(cmd, timeout='30m')
     assert result.status == 0, f'foremanctl backup failed:\n{result.stdout}\n{result.stderr}'
     backup_dir = re.search(r'Location:\s*(\S+)', result.stdout)
@@ -90,7 +113,100 @@ def _create_backup(server, subdir, skip_pulp=False, base_backup=None, wait_for_t
     return backup_dir.group(1)
 
 
-def test_positive_offline_backup(module_target_sat):
+@pytest.mark.destructive
+def test_positive_backup_restore_on_proxy(
+    module_target_sat, module_capsule_configured, module_synced_repos
+):
+    """Verify backup and restore can perform on capsule (smart proxy)
+
+    :id: 8fc00792-313d-41a8-9dfb-40a2fc200b5d
+
+    :setup:
+        1. Custom and RH repositories synced on the Satellite.
+        2. Library lifecycle environment assigned to the capsule and synced,
+           so the capsule holds pulp content to back up.
+
+    :steps:
+        1. Run foremanctl backup <dir> --target-host proxy on proxy server
+        2. Verify the backup command completes and the backup directory is created
+        3. Verify the backup directory contains the expected backup files
+        4. Drop the pulp artifacts on the capsule
+        5. Run foremanctl restore <backup_dir> --target-host proxy --force on proxy server
+        6. Verify the restore command completes successfully
+        7. Verify the capsule is healthy after restore
+        8. Verify the pulp artifacts and the published repo content are back on the capsule
+
+    :expectedresults:
+        1. Backup command exits with status 0 and creates a backup directory
+        2. Backup directory contains the expected database dumps, configuration files
+           and pulp content
+        3. Restore command exits with status 0
+        4. Capsule remains healthy after restore
+        5. The content synced before the backup is served by the capsule again
+
+    :Verifies: SAT-45029
+    """
+    # Assign the Library LCE to the capsule and sync, so there is content to back up
+    org = module_synced_repos['custom'].product.read().organization
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).search(
+        query={'search': f'name={LIBRARY_LCE}'}
+    )[0]
+    module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': lce.id}
+    )
+    sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout='60m')
+    assert sync_status['result'] == 'success', 'Capsule content sync failed'
+
+    repo_url = module_synced_repos['custom'].full_path.replace(
+        module_target_sat.hostname, module_capsule_configured.hostname
+    )
+    assert len(get_repo_files_by_url(repo_url)) == FAKE_0_YUM_REPO_PACKAGES_COUNT, (
+        'Capsule does not serve the expected content before the backup'
+    )
+
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+
+    # Take a backup of capsule data using '--target-host proxy' option.
+    # A smart proxy runs no Foreman tasks, so there is nothing for --wait-for-tasks to wait on.
+    backup_dir = _create_backup(module_capsule_configured, subdir, wait_for_tasks=False)
+
+    # Verify the backup directory was created
+    result = module_capsule_configured.execute(f'test -d {backup_dir}')
+    assert result.status == 0, f'Backup directory {backup_dir} was not created'
+    _assert_backup_files(module_capsule_configured, backup_dir)
+
+    # Drop the pulp artifacts to confirm the restore repopulates them
+    module_capsule_configured.execute('rm -rf /var/lib/pulp/media/artifact')
+
+    # Restore the capsule data from the backup via --target-host
+    result = module_capsule_configured.execute(
+        f'foremanctl restore {backup_dir} --target-host proxy --force',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl restore failed on capsule:\n{result.stdout}\n{result.stderr}'
+    )
+
+    # Verify the capsule is healthy after restore
+    result = module_capsule_configured.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, (
+        f'foremanctl health check failed on capsule after restore:\n{result.stdout}'
+    )
+
+    # Verify the content synced before the backup is restored and served again
+    artifact_count = int(
+        module_capsule_configured.execute(
+            'find /var/lib/pulp/media/artifact -type f | wc -l'
+        ).stdout
+    )
+    assert artifact_count > 0, 'Pulp artifacts were not restored on the capsule'
+
+    assert len(get_repo_files_by_url(repo_url)) == FAKE_0_YUM_REPO_PACKAGES_COUNT, (
+        'Capsule does not serve the expected content after the restore'
+    )
+
+
+def test_positive_offline_backup(module_target_sat, setup_backup_tests):
     """Verify foremanctl backup creates a backup successfully
 
     :id: e9eafa8a-4f1b-458c-b24b-c31d4bc04c4b

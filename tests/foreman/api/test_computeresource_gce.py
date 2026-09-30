@@ -24,14 +24,13 @@ from robottelo.config import settings
 from robottelo.constants import GCE_RHEL_CLOUD_PROJECTS, VALID_GCE_ZONES
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = pytest.mark.foreman_installer
+pytestmark = pytest.mark.skip_if_open('SAT-51000')
 
 
 @pytest.mark.skip_if_not_set('gce')
 class TestGCEComputeResourceTestCases:
     """Tests for ``api/v2/compute_resources``."""
 
-    @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
     def test_positive_crud_gce_cr(self, sat_gce, sat_gce_org, sat_gce_loc, gce_cert):
         """Create, Read, Update and Delete GCE compute resources
 
@@ -228,7 +227,6 @@ class TestGCEHostProvisioningTestCase:
         (is_open('SAT-27997')),
         reason='Google CR APIs failing',
     )
-    @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
     def test_positive_gce_host_provisioned(self, class_host, google_host):
         """Host can be provisioned on Google Cloud
 

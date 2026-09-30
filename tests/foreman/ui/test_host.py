@@ -42,7 +42,6 @@ from robottelo.constants import (
     OSCAP_WEEKDAY,
     REPO_TYPE,
     REPOS,
-    ROLES,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.exceptions import APIResponseError
@@ -2234,6 +2233,7 @@ def change_content_source_prep(
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[789]')
+@pytest.mark.network_sensitive
 def test_change_content_source(session, change_content_source_prep, rhel_contenthost):
     """
     This test exercises different ways to change host's content source
@@ -2524,7 +2524,9 @@ def test_host_status_honors_taxonomies(
             'password': password,
             'mail': 'root@localhost',
             'login': login,
-            'roles': ROLES,
+            # This test only needs core read access. The complete ROLES list also
+            # contains optional plugin roles that are not guaranteed on Foremanctl.
+            'roles': ['Viewer'],
         }
     )
     with target_sat.ui_session(test_name, user=login, password=password) as session:
@@ -4438,8 +4440,8 @@ def test_cv_env_order(module_target_sat, module_org, module_lce, module_cv_repo,
     # Extract the values from the host's CV env list from the UI. Maintain the display order
     # but put them in the same format as the name data from the sub-man CLI command.
     ui_env_list = [
-        f'{ui_envs[0]["lce"]}/{ui_envs[0]["content_view"]}',
-        ui_envs[1]['lce'],
+        f'{ui_envs[0]["lce"]}',
+        f'{ui_envs[1]["lce"]}/{ui_envs[1]["content_view"]}',
     ]
     assert sub_man_env_list == ui_env_list
 

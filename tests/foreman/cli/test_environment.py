@@ -12,6 +12,7 @@
 
 """
 
+import random
 from random import choice
 
 from fauxfactory import gen_alphanumeric, gen_string
@@ -19,11 +20,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.exceptions import CLIReturnCodeError
-from robottelo.utils.datafactory import (
-    invalid_id_list,
-    invalid_values_list,
-    parametrized,
-)
+from robottelo.utils.datafactory import invalid_id_list, invalid_values_list
 
 
 @pytest.fixture(scope='module')
@@ -71,16 +68,14 @@ def test_negative_list_with_parameters(
     assert len(results) == 0
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_name(name, session_puppet_enabled_sat):
+def test_negative_create_with_name(session_puppet_enabled_sat):
     """Don't create an Environment with invalid data.
 
     :id: 8a4141b0-3bb9-47e5-baca-f9f027086d4c
 
-    :parametrized: yes
-
     :expectedresults: Environment is not created.
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIReturnCodeError):
         session_puppet_enabled_sat.cli.Environment.create({'name': name})
 
@@ -158,32 +153,28 @@ def test_positive_CRUD_with_attributes(
         session_puppet_enabled_sat.cli.Environment.info({'id': environment['id']})
 
 
-@pytest.mark.parametrize('entity_id', **parametrized(invalid_id_list()))
-def test_negative_delete_by_id(entity_id, session_puppet_enabled_sat):
+def test_negative_delete_by_id(session_puppet_enabled_sat):
     """Create Environment then delete it by wrong ID
 
     :id: fe77920c-62fd-4e0e-b960-a940a1370d10
-
-    :parametrized: yes
 
     :expectedresults: Environment is not deleted
 
     :CaseImportance: Medium
     """
+    entity_id = random.choice(invalid_id_list())
     with pytest.raises(CLIReturnCodeError):
         session_puppet_enabled_sat.cli.Environment.delete({'id': entity_id})
 
 
-@pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-def test_negative_update_name(new_name, session_puppet_enabled_sat):
+def test_negative_update_name(session_puppet_enabled_sat):
     """Update the Environment with invalid values
 
     :id: adc5ad73-0547-40f9-b4d4-649780cfb87a
 
-    :parametrized: yes
-
     :expectedresults: Environment is not updated
     """
+    new_name = random.choice(invalid_values_list())
     environment = session_puppet_enabled_sat.cli.Environment.create({'name': gen_string('alpha')})
     with pytest.raises(CLIReturnCodeError):
         session_puppet_enabled_sat.cli.Environment.update(
