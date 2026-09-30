@@ -35,6 +35,7 @@ from robottelo.utils.datafactory import (
     parametrized,
     valid_data_list,
     valid_emails_list,
+    valid_first_and_last_name_strings,
     valid_usernames_list,
 )
 
@@ -63,9 +64,7 @@ class TestUser:
         user = target_sat.api.User(login=username).create()
         assert user.login == username
 
-    @pytest.mark.parametrize(
-        'firstname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
-    )
+    @pytest.mark.parametrize('firstname', **parametrized(valid_first_and_last_name_strings()))
     def test_positive_create_with_firstname(self, firstname, target_sat):
         """Create User for all variations of First Name
 
@@ -82,9 +81,7 @@ class TestUser:
         user = target_sat.api.User(firstname=firstname).create()
         assert user.firstname == firstname
 
-    @pytest.mark.parametrize(
-        'lastname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
-    )
+    @pytest.mark.parametrize('lastname', **parametrized(valid_first_and_last_name_strings()))
     def test_positive_create_with_lastname(self, lastname, target_sat):
         """Create User for all variations of Last Name
 
@@ -198,9 +195,7 @@ class TestUser:
         with pytest.raises(HTTPError):
             create_user.update(['login'])
 
-    @pytest.mark.parametrize(
-        'firstname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
-    )
+    @pytest.mark.parametrize('firstname', **parametrized(valid_first_and_last_name_strings()))
     def test_positive_update_firstname(self, create_user, firstname):
         """Update a user and provide new firstname.
 
@@ -218,9 +213,7 @@ class TestUser:
         user = create_user.update(['firstname'])
         assert user.firstname == firstname
 
-    @pytest.mark.parametrize(
-        'lastname', **parametrized(generate_strings_list(exclude_types=['html'], max_length=50))
-    )
+    @pytest.mark.parametrize('lastname', **parametrized(valid_first_and_last_name_strings()))
     def test_positive_update_lastname(self, create_user, lastname):
         """Update a user and provide new lastname.
 
