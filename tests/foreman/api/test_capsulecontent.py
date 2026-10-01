@@ -2511,9 +2511,9 @@ def test_positive_e2e_mldsa_content_via_capsule(
     cv.version[0].promote(data={'environment_ids': function_lce.id})
     caps.wait_for_sync(start_time=timestamp)
 
-    nc = caps.nailgun_smart_proxy
-    sat.api.SmartProxy(id=nc.id, organization=[org]).update(['organization'])
-    sat.api.SmartProxy(id=nc.id, location=[default_location]).update(['location'])
+    nsp = caps.nailgun_smart_proxy
+    sat.api.SmartProxy(id=nsp.id, organization=[org]).update(['organization'])
+    sat.api.SmartProxy(id=nsp.id, location=[default_location]).update(['location'])
 
     cvenv_id = sat.api_factory.get_cvenv_id(cv, function_lce)
     ak = sat.api.ActivationKey(
@@ -2529,9 +2529,9 @@ def test_positive_e2e_mldsa_content_via_capsule(
     assert result.status == 0, f'Host registration via Capsule failed: {result.stderr}'
 
     registered_host = sat.api.Host().search(query={'search': f'name="{host.hostname}"'})[0]
-    assert registered_host.content_facet_attributes['content_source_id'] == nc.id, (
-        'Expected Capsule as content source'
-    )
+    assert (
+        registered_host.content_facet_attributes['content_source_id'] == caps.nailgun_capsule.id
+    ), 'Expected Capsule as content source'
 
     for pkg in RHEL10_BASEOS_MLDSA['install_packages']:
         result = host.execute(f'dnf install -y {pkg}')
