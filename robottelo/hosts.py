@@ -2339,6 +2339,8 @@ class Capsule(ContentHost, CapsuleMixins):
             ports=['8000/tcp', '8443/tcp'],
             services=['http', 'https'],
         )
+        # Ensure deployment never falls back to pulling an image from Quay.
+        self.block_quay_registry()
 
         # Install Satellite and return result
 
