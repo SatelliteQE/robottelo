@@ -119,6 +119,10 @@ def install_satellite_disconnected_iso(
         f'Failed to configure Satellite firewall:\n{firewall_result.stdout}\n{firewall_result.stderr}'
     )
 
+    # Keep the deployment air-gapped even if an image reference points at Quay.
+    # prepare_system has already imported the Satellite images into local storage.
+    sat.block_quay_registry()
+
     deploy_parameters = [
         f'--initial-admin-username {settings.server.admin_username}',
         f'--initial-admin-password {settings.server.admin_password}',

@@ -2392,6 +2392,8 @@ class Capsule(ContentHost, CapsuleMixins):
             ports=['8000/tcp', '8443/tcp'],
             services=['http', 'https'],
         )
+        # Ensure deployment never falls back to pulling an image from Quay.
+        self.block_quay_registry()
 
         # Install satellitectl
         assert self.execute('dnf install -y satellitectl').status == 0, (
