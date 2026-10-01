@@ -2375,11 +2375,6 @@ class Capsule(ContentHost, CapsuleMixins):
                 deploy_network_type=settings.server.network_type,
             ).execute()
 
-        # Install satellitectl
-        assert self.execute('dnf install -y satellitectl').status == 0, (
-            'Failed to install satellitectl'
-        )
-
         if enable_fapolicyd:
             assert self.execute('dnf -y install fapolicyd').status == 0
             assert self.execute('systemctl enable --now fapolicyd').status == 0
@@ -2396,6 +2391,11 @@ class Capsule(ContentHost, CapsuleMixins):
         self.configure_firewall(
             ports=['8000/tcp', '8443/tcp'],
             services=['http', 'https'],
+        )
+
+        # Install satellitectl
+        assert self.execute('dnf install -y satellitectl').status == 0, (
+            'Failed to install satellitectl'
         )
 
         # Install Satellite and return result
