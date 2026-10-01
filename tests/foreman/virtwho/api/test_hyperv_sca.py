@@ -9,8 +9,6 @@
 :team: Proton
 
 :CaseImportance: High
-
-:BlockedBy: SAT-45010
 """
 
 import pytest
