@@ -299,7 +299,6 @@ tests/foreman/api/test_role.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_templatesync.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_user.py @SatelliteQE/team-endeavour
 tests/foreman/api/test_usergroup.py @SatelliteQE/team-endeavour
-tests/foreman/api/test_webhook.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_ansible.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_auth.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_capsule.py @SatelliteQE/team-endeavour
@@ -324,7 +323,6 @@ tests/foreman/cli/test_sso.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_templatesync.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_user.py @SatelliteQE/team-endeavour
 tests/foreman/cli/test_usergroup.py @SatelliteQE/team-endeavour
-tests/foreman/cli/test_webhook.py @SatelliteQE/team-endeavour
 tests/foreman/destructive/test_ansible.py @SatelliteQE/team-endeavour
 tests/foreman/destructive/test_auth.py @SatelliteQE/team-endeavour
 tests/foreman/destructive/test_foreman_rake.py @SatelliteQE/team-endeavour

@@ -6,7 +6,7 @@ navmazing: "tests/foreman/ui/test_repository.py -k 'test_positive_create_as_non_
 pyotp: "tests/foreman/ui/test_ldap_authentication.py -k 'test_positive_login_user_password_otp'"
 pytest-xdist: "tests/foreman/ -n 3 -m 'build_sanity'"
 pytest: "tests/foreman/ -m 'build_sanity'"
-python-box: "tests/foreman/cli/test_webhook.py -k 'test_positive_end_to_end'"
+python-box: "tests/robottelo/test_dependencies.py -k 'test_python_box'"
 requests: "tests/foreman/cli/test_repository.py -k 'test_file_repo_contains_only_newer_file'"
 wait-for: "tests/foreman/cli/test_contentview.py -k 'test_ccv_inc_update_autopublish'"
 wrapanapi: "tests/foreman/api/test_computeresource_gce.py::TestGCEHostProvisioningTestCase::test_positive_gce_host_provisioned[sat]"
