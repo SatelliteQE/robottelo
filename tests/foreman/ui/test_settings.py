@@ -583,6 +583,9 @@ def test_positive_show_unsupported_templates(request, target_sat, module_org, mo
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=module_location.name)
         default_value = target_sat.update_setting('show_unsupported_templates', 'No')
+        request.addfinalizer(
+            lambda: target_sat.update_setting('show_unsupported_templates', default_value)
+        )
         assert not session.provisioningtemplate.search(f'name={pt.name}')
 
         # Verify with show_unsupported_templates=Yes
