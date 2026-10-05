@@ -1761,6 +1761,32 @@ class Capsule(ContentHost, CapsuleMixins):
         return self.satellite.api.SmartProxy().search(query={'search': f'name={self.hostname}'})[0]
 
     @property
+    def nailgun_content_smart_proxy(self):
+        # The content-serving smart proxy. On containerized installs this is the '-pulp'
+        # proxy, which owns content settings (e.g. download policy) that Katello exposes
+        # through the smart_proxies API rather than the capsules API. Prefer the content
+        # proxy when present, otherwise fall back to the management proxy.
+        for name in (self.content_hostname, self.hostname):
+            if results := self.satellite.api.SmartProxy().search(
+                query={'search': f'name="{name}"'}
+            ):
+                return results[0]
+        raise ContentHostError(f'No content SmartProxy found matching hostname {self.hostname}')
+
+    @cached_property
+    def content_hostname(self):
+        """Return the hostname used for content/pulp operations.
+
+        In containerized (foremanctl) deployments, the content service runs on a
+        separate proxy with a '-pulp' suffix. Traditional installs use the base hostname.
+        """
+        # Check if a dedicated content (-pulp) capsule exists (containerized install).
+        pulp_hostname = f'{self.hostname}-pulp'
+        if self.satellite.api.Capsule().search(query={'search': f'name="{pulp_hostname}"'}):
+            return pulp_hostname
+        return self.hostname
+
+    @property
     def satellite(self):
         if self._satellite is None:
             try:
@@ -2105,6 +2131,11 @@ class Capsule(ContentHost, CapsuleMixins):
         )
         self.setup_capsule_repos(release=release)
         if method == InstallMethod.FOREMANCTL:
+            # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
+            self.ensure_podman_installed(enable_ipv6_proxy=True)
+            # Capsule needs registry auth to pull deploy-proxy images
+            self.setup_foremanctl_container_registry()
+
             # Enable Packit repos
             pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
             if pull_requests:
@@ -2125,14 +2156,17 @@ class Capsule(ContentHost, CapsuleMixins):
         # Update system, firewall services and check capsule is already installed from template
         # Setups firewall on Capsule
         self.execute('dnf -y update', timeout=0)
-        assert (
-            self.execute(
-                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
-            ).status
-            == 0
-        ), "firewalld is not present and can't be installed"
-        self.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
-        self.execute('firewall-cmd --runtime-to-permanent')
+
+        # Configure firewall based on installation method
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            # Foremanctl/container: use explicit ports as per containerized documentation
+            self.configure_firewall(
+                ports=['8000/tcp', '8443/tcp'],
+                services=['http', 'https'],
+            )
+        else:
+            # Installer: use RH-Satellite-6-capsule service
+            self.configure_firewall(services=['RH-Satellite-6-capsule'])
 
         # Generate certificate, copy it to Capsule, run installer, check it succeeds
         if not capsule_cert_opts:
@@ -2158,8 +2192,6 @@ class Capsule(ContentHost, CapsuleMixins):
                     f'A core service is not running at capsule host\n{result.stdout}'
                 )
         if method == InstallMethod.FOREMANCTL:
-            # Capsule needs registry auth to pull deploy-proxy images
-            self.setup_foremanctl_container_registry()
             result = self.execute(installer)
             if result.status:
                 # before exit download the logs file for further investigation
@@ -2183,7 +2215,7 @@ class Capsule(ContentHost, CapsuleMixins):
 
     def update_download_policy(self, policy):
         """Updates capsule's download policy to desired value"""
-        proxy = self.nailgun_smart_proxy.read()
+        proxy = self.nailgun_content_smart_proxy.read()
         proxy.download_policy = policy
         proxy.update(['download_policy'])
 
@@ -2343,11 +2375,6 @@ class Capsule(ContentHost, CapsuleMixins):
                 deploy_network_type=settings.server.network_type,
             ).execute()
 
-        # Install satellitectl
-        assert self.execute('dnf install -y satellitectl').status == 0, (
-            'Failed to install satellitectl'
-        )
-
         if enable_fapolicyd:
             assert self.execute('dnf -y install fapolicyd').status == 0
             assert self.execute('systemctl enable --now fapolicyd').status == 0
@@ -2361,17 +2388,16 @@ class Capsule(ContentHost, CapsuleMixins):
             assert self.is_fips_enabled()
 
         # Configure Satellite firewall to open communication
-        assert (
-            self.execute(
-                '(which firewall-cmd || dnf -y install firewalld) && systemctl enable --now firewalld'
-            ).status
-            == 0
-        ), 'firewalld is not present and can\'t be installed'
-        assert (
-            self.execute(
-                'firewall-cmd --permanent --add-service RH-Satellite-6 && firewall-cmd --reload'
-            ).status
-            == 0
+        self.configure_firewall(
+            ports=['8000/tcp', '8443/tcp'],
+            services=['http', 'https'],
+        )
+        # Ensure deployment never falls back to pulling an image from Quay.
+        self.block_quay_registry()
+
+        # Install satellitectl
+        assert self.execute('dnf install -y satellitectl').status == 0, (
+            'Failed to install satellitectl'
         )
 
         # Install Satellite and return result
@@ -2474,7 +2500,21 @@ class Capsule(ContentHost, CapsuleMixins):
             self.register_to_cdn()
             self.setup_rhel_repos()
             self.setup_satellite_repos()
-            self.setup_firewall()
+            # Configure firewall for installer-based Satellite
+            self.configure_firewall(
+                ports=[
+                    '53/udp',
+                    '53/tcp',
+                    '67/udp',
+                    '69/udp',
+                    '80/tcp',
+                    '443/tcp',
+                    '5647/tcp',
+                    '8000/tcp',
+                    '9090/tcp',
+                    '8140/tcp',
+                ],
+            )
             self.install_satellite_or_capsule_package()
 
             default_args = installer_args or [
@@ -2882,25 +2922,6 @@ class Satellite(Capsule, SatelliteMixins):
         return (
             self.execute(f'grep "db_manage: false" {constants.SATELLITE_ANSWER_FILE}').status == 0
         )
-
-    def setup_firewall(self):
-        # Setups firewall on Satellite
-        assert (
-            self.execute(
-                "which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld"
-            ).status
-            == 0
-        ), "firewalld is not present and can't be installed"
-        assert (
-            self.execute(
-                command='firewall-cmd --add-port="53/udp" --add-port="53/tcp" --add-port="67/udp" '
-                '--add-port="69/udp" --add-port="80/tcp" --add-port="443/tcp" '
-                '--add-port="5647/tcp" --add-port="8000/tcp" --add-port="9090/tcp" '
-                '--add-port="8140/tcp"'
-            ).status
-            == 0
-        )
-        assert self.execute(command='firewall-cmd --runtime-to-permanent').status == 0
 
     def capsule_certs_generate(self, capsule, cert_path=None, **extra_kwargs):
         """Generate capsule certs, returning the cert path, installer command stdout and args"""

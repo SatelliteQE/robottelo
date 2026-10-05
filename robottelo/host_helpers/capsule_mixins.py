@@ -344,3 +344,50 @@ class CapsuleInfo:
         ).stdout.strip()
         # assert that proxy has been used
         assert satellite_ip in diff
+
+    def configure_firewall(self, ports=None, services=None):
+        """Configure firewall with specified ports and services.
+
+        Args:
+            ports (list): List of port specifications (e.g., ['8000/tcp', '8443/tcp'])
+            services (list): List of firewall services (e.g., ['http', 'https', 'RH-Satellite-6'])
+
+        Raises:
+            AssertionError: If firewall installation, configuration, or verification fails
+        """
+        # Install and enable firewalld
+        result = self.execute(
+            'which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld'
+        )
+        assert result.status == 0, 'firewalld is not present and can\'t be installed'
+
+        # Add ports if specified
+        if ports:
+            ports_str = ' '.join([f'--add-port={port}' for port in ports])
+            result = self.execute(f'firewall-cmd {ports_str}')
+            assert result.status == 0, f'Failed to add ports: {ports}'
+
+        # Add services if specified
+        if services:
+            services_str = ' '.join([f'--add-service={service}' for service in services])
+            result = self.execute(f'firewall-cmd {services_str}')
+            assert result.status == 0, f'Failed to add services: {services}'
+
+        # Make changes persistent
+        assert self.execute('firewall-cmd --runtime-to-permanent').status == 0
+
+        # Verify configuration - check that ports and services were actually applied
+        firewall_status = self.execute('firewall-cmd --list-all')
+        assert firewall_status.status == 0, 'Failed to verify firewall configuration'
+
+        # Verify each port was added
+        if ports:
+            for port in ports:
+                assert port in firewall_status.stdout, f'Port {port} not found in firewall rules'
+
+        # Verify each service was added
+        if services:
+            for service in services:
+                assert service in firewall_status.stdout, (
+                    f'Service {service} not found in firewall rules'
+                )
