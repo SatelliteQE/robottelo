@@ -451,7 +451,7 @@ def cv_filter_cleanup(sat, filter_id, cv, org, lce):
 )
 @pytest.mark.no_containers
 def test_positive_install_by_host_collection_and_org(
-    module_sca_manifest_org,
+    smart_proxy_module_sca_manifest_org,
     host_collection,
     errata_hosts,
     filter_by_hc,
@@ -487,13 +487,13 @@ def test_positive_install_by_host_collection_and_org(
 
     if filter_by_org == "id":
         organization_key = 'organization-id'
-        organization_value = module_sca_manifest_org.id
+        organization_value = smart_proxy_module_sca_manifest_org.id
     elif filter_by_org == "name":
         organization_key = 'organization'
-        organization_value = module_sca_manifest_org.name
+        organization_value = smart_proxy_module_sca_manifest_org.name
     elif filter_by_org == "title":
         organization_key = 'organization-title'
-        organization_value = module_sca_manifest_org.title
+        organization_value = smart_proxy_module_sca_manifest_org.title
 
     target_sat.cli.JobInvocation.create(
         {
@@ -1245,7 +1245,9 @@ def errata_host(
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')  # Newest major RHEL version (N), and the one prior.
-def test_apply_errata_using_default_content_view(errata_host, module_sca_manifest_org, target_sat):
+def test_apply_errata_using_default_content_view(
+    errata_host, smart_proxy_module_sca_manifest_org, target_sat
+):
     """Updating an applicable errata on a host attached to the default content view
      causes the errata to not be applicable.
 
@@ -1277,7 +1279,7 @@ def test_apply_errata_using_default_content_view(errata_host, module_sca_manifes
             'feature': 'katello_errata_install',
             'search-query': f'name = {errata_host.hostname}',
             'inputs': f'errata={erratum[0]["erratum-id"]}',
-            'organization-id': module_sca_manifest_org.id,
+            'organization-id': smart_proxy_module_sca_manifest_org.id,
         }
     )
     # job invocation started, check status
@@ -1295,7 +1297,9 @@ def test_apply_errata_using_default_content_view(errata_host, module_sca_manifes
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')
-def test_update_applicable_package_using_default_content_view(errata_host, target_sat):
+def test_update_applicable_package_using_default_content_view(
+    errata_host, smart_proxy_module_sca_manifest_org, target_sat
+):
     """Updating an applicable package on a host attached to the default content view causes the
     package to not be applicable or installable.
 
@@ -1332,7 +1336,7 @@ def test_update_applicable_package_using_default_content_view(errata_host, targe
             'feature': 'katello_errata_install',
             'search-query': f'name = {errata_host.hostname}',
             'inputs': f'errata={REPO_WITH_ERRATA["errata"][0]["id"]}',
-            'organization-id': errata_host.nailgun_host.organization.id,
+            'organization-id': smart_proxy_module_sca_manifest_org.id,
         }
     )
     # job invocation created, assert status
@@ -1563,31 +1567,32 @@ def test_positive_verify_errata_recalculate_tasks(target_sat, errata_hosts):
 
     :steps:
         1. Run 'hammer host errata recalculate --host-id NUMBER' (will trigger inside errata_host fixture)
-        2. Check systemctl or journalctl or /var/log/messages for 'dynflow-sidekiq@worker-hosts-queue-1.service'
+        2. Check the hosts-queue dynflow worker log (journald on containerized, /var/log/messages
+           on package-based installs) and systemctl for the worker's PID
 
-    :expectedresults: worker-hosts-queue-1 should proceed with task and this can be cross verify using unique PID
+    :expectedresults: the hosts-queue worker should proceed with the task and this can be
+        cross verified using its unique PID
 
     :customerscenario: true
 
     :BZ: 2249736
     """
     # Recalculate errata command has triggered inside errata_hosts fixture
+    service = target_sat.dynflow_hosts_queue_service
 
-    # get PID of 'worker-hosts-queue-1' from /var/log/messages
-    message_log = target_sat.execute(
-        'grep "dynflow-sidekiq@worker-hosts-queue-1" /var/log/messages | tail -1'
-    )
+    # get PID of the hosts-queue worker from its log (journald or /var/log/messages)
+    message_log = target_sat.grep_dynflow_hosts_queue_log()
     assert message_log.status == 0
-    pattern_1 = r'\[(.*?)\]'  # pattern to capture PID of 'worker-hosts-queue-1'
-    match = re.search(pattern_1, message_log.stdout)
-    pid_log_message = match.group(1)
+    # match the worker's own entries only (``...worker-hosts-queue[PID]``), so we skip
+    # systemd lifecycle records (``systemd[1]``) and PID-less continuation lines
+    worker_pids = re.findall(r'worker-hosts-queue(?:-1)?\[(\d+)\]', message_log.stdout)
+    assert worker_pids, 'No hosts-queue worker log entry carrying a PID was found'
+    pid_log_message = worker_pids[-1]
 
-    # get PID of 'worker-hosts-queue-1' from systemctl command output
-    systemctl_log = target_sat.execute(
-        'systemctl status dynflow-sidekiq@worker-hosts-queue-1.service | grep -i "Main PID:"'
-    )
+    # get PID of the hosts-queue worker from systemctl command output
+    systemctl_log = target_sat.execute(f'systemctl status {service}.service | grep -i "Main PID:"')
     assert systemctl_log.status == 0
-    pattern_2 = r'\: (.*?) \('  # pattern to capture PID of 'worker-hosts-queue-1'
+    pattern_2 = r'\: (.*?) \('  # pattern to capture the worker PID
     match = re.search(pattern_2, systemctl_log.stdout)
     pid_systemctl_cmd = match.group(1)
 
