@@ -2340,18 +2340,18 @@ class Capsule(ContentHost, CapsuleMixins):
     def install_satellite_foremanctl(
         self, enable_fapolicyd=False, enable_fips=False, parameters=None
     ):
-        """Install Satellite using foremanctl deploy method.
+        """Install Satellite using satellitectl deploy method.
 
         Handles full installation path including:
         - Container runtime (podman) installation
         - Container registry authentication
-        - foremanctl package installation
-        - Satellite deployment via foremanctl
+        - satellitectl package installation
+        - Satellite deployment via satellitectl
 
         :param enable_fapolicyd: Enable fapolicyd
         :param enable_fips: Enable FIPS mode
-        :param parameters: Additional parameters for foremanctl deploy
-        :return: Result of final foremanctl deploy command
+        :param parameters: Additional parameters for satellitectl deploy
+        :return: Result of final satellitectl deploy command
         """
         # Add IPv6 proxy for IPv6 communication
         self.enable_ipv6_dnf_and_rhsm_proxy()
@@ -2413,19 +2413,12 @@ class Capsule(ContentHost, CapsuleMixins):
             default_parameters.extend(parameters)
 
         deploy = self.execute(
-            f'foremanctl deploy {" ".join(default_parameters)}',
+            f'satellitectl deploy {" ".join(default_parameters)}',
             timeout='30m',
         )
-        assert deploy.status == 0, f'foremanctl deploy failed:\n{deploy.stderr}'
+        assert deploy.status == 0, f'satellitectl deploy failed:\n{deploy.stderr}'
 
-        deploy_features = self.execute(
-            'foremanctl deploy --add-feature foreman-proxy --add-feature hammer'
-        )
-        assert deploy_features.status == 0, (
-            f'foremanctl deploy --add-feature failed:\n{deploy_features.stderr}'
-        )
-
-        return deploy_features
+        return deploy
 
     def list_foremanctl_features(self, enabled=False, internal=False):
         """Get the list of features as a set of feature names
