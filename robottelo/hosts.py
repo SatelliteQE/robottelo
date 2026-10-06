@@ -2628,6 +2628,38 @@ class Satellite(Capsule, SatelliteMixins):
         """
         return self.execute(f'podman logs dynflow-sidekiq-worker 2>&1 | grep "{pattern}"')
 
+    @property
+    def dynflow_hosts_queue_service(self):
+        """Name of the Dynflow worker systemd unit dedicated to the hosts queue.
+
+        The unit name differs between install methods:
+
+        - satellite-installer: ``dynflow-sidekiq@worker-hosts-queue-1``
+        - foremanctl: the worker runs as a quadlet container whose systemd unit is
+          ``dynflow-sidekiq@worker-hosts-queue`` (no numeric suffix).
+
+        :return: The systemd unit name (without the ``.service`` suffix).
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return 'dynflow-sidekiq@worker-hosts-queue'
+        return 'dynflow-sidekiq@worker-hosts-queue-1'
+
+    def grep_dynflow_hosts_queue_log(self):
+        """Fetch the Dynflow hosts-queue worker log, install-method-aware.
+
+        - satellite-installer: the worker logs to ``/var/log/messages``, so we grep that
+          file for the worker unit.
+        - foremanctl: the worker runs as a quadlet container that logs to journald, so we
+          read the journal for that unit instead (``/var/log/messages`` does not exist in
+          the container-based deployment).
+
+        :return: The command result.
+        """
+        service = self.dynflow_hosts_queue_service
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return self.execute(f'journalctl --no-pager --unit {service}')
+        return self.execute(f'grep "{service}" /var/log/messages')
+
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
 
