@@ -71,8 +71,8 @@ def get_remote_report_checksum(satellite, org_id):
         org_id: organization-id
     """
     remote_paths = [
-        f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org_id}.tar.xz',
-        f'/var/lib/foreman/red_hat_inventory/uploads/report_for_{org_id}.tar.xz',
+        f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org_id}.tar.xz',
+        f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/report_for_{org_id}.tar.xz',
     ]
 
     for path in remote_paths:
