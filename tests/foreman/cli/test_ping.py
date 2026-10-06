@@ -14,11 +14,13 @@
 
 import pytest
 
+from robottelo.utils.datafactory import gen_string
+
 
 @pytest.mark.pit_server
 @pytest.mark.upgrade
 @pytest.mark.parametrize('switch_user', [False, True], ids=['root', 'non-root'])
-def test_positive_ping(target_sat, switch_user):
+def test_positive_ping(request, target_sat, switch_user):
     """hammer ping return code
 
     :id: dfa3ab4f-a64f-4a96-8c7f-d940df22b8bf
@@ -36,7 +38,14 @@ def test_positive_ping(target_sat, switch_user):
 
     :customerscenario: true
     """
-    result = target_sat.execute(f"su - {'postgres' if switch_user else 'root'} -c 'hammer ping'")
+    if switch_user:
+        test_user = gen_string('alpha')
+        user = target_sat.execute(f'useradd {test_user}')
+        assert user.status == 0
+        request.addfinalizer(lambda: target_sat.execute(f'userdel -r {test_user}'))
+    else:
+        test_user = 'root'
+    result = target_sat.execute(f'su - {test_user} -c "hammer ping"')
     assert result.stderr == ''
 
     # Filter lines containing status
