@@ -95,9 +95,7 @@ def test_positive_inventory_generate_upload_cli(
     assert upload_success_msg in result.stdout
 
     local_report_path = robottelo_tmp_dir.joinpath(f'report_for_{org.id}.tar.xz')
-    remote_report_path = (
-        f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    )
+    remote_report_path = f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     wait_for(
         lambda: module_target_sat.get(
             remote_path=str(remote_report_path), local_path=str(local_report_path)
@@ -428,9 +426,7 @@ def test_positive_generate_reports_job_cli(
     generate_report(org, module_target_sat, disconnected=False)
 
     # Verify report was uploaded by checking it exists in the done/ folder
-    remote_report_path = (
-        f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    )
+    remote_report_path = f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     result = module_target_sat.execute(f'test -f {remote_report_path} && echo "exists"')
     assert result.status == 0, (
         f"Report check command failed with status {result.status}: {result.stderr}"
@@ -471,7 +467,9 @@ def test_positive_generate_reports_job_cli_disconnected(
 
     # Verify report was NOT uploaded by checking it's in generated_reports/, not done/
     generated_reports_dir = '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports'
-    done_dir = '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done'
+    done_dir = (
+        '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done'
+    )
 
     # Check report exists in generated_reports/
     result = module_target_sat.execute(
