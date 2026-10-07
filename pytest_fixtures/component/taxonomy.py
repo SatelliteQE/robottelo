@@ -225,6 +225,14 @@ def smart_proxy_location(module_org, module_target_sat, default_smart_proxy):
     return location
 
 
+@pytest.fixture
+def smart_proxy_function_org(function_org, target_sat, default_smart_proxy):
+    """Function-scoped organization with smart proxy assigned"""
+    default_smart_proxy.organization.append(target_sat.api.Organization(id=function_org.id))
+    default_smart_proxy.update(['organization'])
+    return function_org
+
+
 @pytest.fixture(scope='module')
 def smart_proxy_module_org(module_org, module_target_sat, default_smart_proxy):
     """Module-scoped organization with smart proxy assigned"""

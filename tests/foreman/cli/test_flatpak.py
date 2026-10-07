@@ -288,7 +288,7 @@ def test_sync_consume_flatpak_repo_via_library(
     module_target_sat,
     module_flatpak_contenthost,
     function_host_cleanup,
-    function_org,
+    smart_proxy_function_org,
     function_product,
     function_flatpak_remote,
 ):
@@ -355,13 +355,13 @@ def test_sync_consume_flatpak_repo_via_library(
     ak_lib = sat.cli.ActivationKey.create(
         {
             'name': gen_string('alpha'),
-            'organization-id': function_org.id,
+            'organization-id': smart_proxy_function_org.id,
             'content-view-environments': 'Library',
         }
     )
 
     # 3. Register a content host using the AK.
-    res = host.register(function_org, None, ak_lib['name'], sat, force=True)
+    res = host.register(smart_proxy_function_org, None, ak_lib['name'], sat, force=True)
     assert res.status == 0, (
         f'Failed to register host: {host.hostname}\nStdOut: {res.stdout}\nStdErr: {res.stderr}'
     )
@@ -371,7 +371,7 @@ def test_sync_consume_flatpak_repo_via_library(
     remote_name = f'SAT-remote-{gen_string("alpha")}'
     job = module_target_sat.cli_factory.job_invocation(
         {
-            'organization': function_org.name,
+            'organization': smart_proxy_function_org.name,
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': (
                 f'Remote Name={remote_name}, '
@@ -395,7 +395,7 @@ def test_sync_consume_flatpak_repo_via_library(
 
     job = module_target_sat.cli_factory.job_invocation(
         {
-            'organization': function_org.name,
+            'organization': smart_proxy_function_org.name,
             'job-template': 'Flatpak - Install application on host',
             'inputs': (
                 f'Flatpak remote name={remote_name}, Application name={app_name}, '
@@ -425,7 +425,7 @@ def test_sync_consume_flatpak_repo_via_cv(
     module_target_sat,
     module_flatpak_contenthost,
     function_host_cleanup,
-    function_org,
+    smart_proxy_function_org,
     function_lce,
     function_product,
     function_flatpak_remote,
@@ -488,11 +488,11 @@ def test_sync_consume_flatpak_repo_via_cv(
 
     # 2. Create two CVs, put different repos inside, publish and promote them to LCE.
     cv1 = sat.api.ContentView(
-        organization=function_org,
+        organization=smart_proxy_function_org,
         repository=[r['id'] for r in local_repos if r['name'] in repo_names[-2:]],  # Last 2
     ).create()
     cv2 = sat.api.ContentView(
-        organization=function_org,
+        organization=smart_proxy_function_org,
         repository=[r['id'] for r in local_repos if r['name'] in repo_names[:2]],  # First 2
     ).create()
     for cv in [cv1, cv2]:
@@ -502,12 +502,12 @@ def test_sync_consume_flatpak_repo_via_cv(
     # 3. Create an AK assigned with one content view environment only.
     cvenv_id = sat.api_factory.get_cvenv_id(cv1, function_lce)
     ak = sat.api.ActivationKey(
-        organization=function_org,
+        organization=smart_proxy_function_org,
         content_view_environment_ids=[cvenv_id],
     ).create()
 
     # 4. Register a content host using the AK.
-    res = host.register(function_org, None, ak.name, sat, force=True)
+    res = host.register(smart_proxy_function_org, None, ak.name, sat, force=True)
     assert res.status == 0, (
         f'Failed to register host: {host.hostname}\nStdOut: {res.stdout}\nStdErr: {res.stderr}'
     )
@@ -528,7 +528,7 @@ def test_sync_consume_flatpak_repo_via_cv(
         )
     job = module_target_sat.cli_factory.job_invocation(
         {
-            'organization': function_org.name,
+            'organization': smart_proxy_function_org.name,
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': inputs,
             'search-query': f"name = {host.hostname}",
@@ -548,7 +548,7 @@ def test_sync_consume_flatpak_repo_via_cv(
 
     # 7. Install flatpak app from the first CV, ensure it succeeded.
     opts = {
-        'organization': function_org.name,
+        'organization': smart_proxy_function_org.name,
         'job-template': 'Flatpak - Install application on host',
         'search-query': f"name = {host.hostname}",
     }

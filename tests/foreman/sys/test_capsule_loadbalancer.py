@@ -440,7 +440,7 @@ def test_loadbalancer_flatpak(
     setup_haproxy,
     setup_capsules,
     module_target_sat,
-    module_org,
+    smart_proxy_module_org,
     module_location,
     module_flatpak_contenthost,
     function_host_cleanup,
@@ -451,6 +451,8 @@ def test_loadbalancer_flatpak(
     :id: 937674f3-3d0b-4346-8d9f-844d72a5c8e7
 
     :Team: Artemis
+
+    :CaseComponent: Capsule-Content
 
     :setup:
         1. Two capsules set up with a load balancer (HAProxy).
@@ -469,9 +471,9 @@ def test_loadbalancer_flatpak(
         2. Other flatpak repos published in a different CV are isolated.
         3. Flatpak installation works even when one of the capsules is unavailable.
 
-    :Verifies: SAT-36752, SAT-44752
+    :Verifies: SAT-36752, SAT-44752, SAT-52041
 
-    :BlockedBy: SAT-44752
+    :BlockedBy: SAT-52041
 
     """
     sat, host = module_target_sat, module_flatpak_contenthost
@@ -481,7 +483,7 @@ def test_loadbalancer_flatpak(
 
     # 1. Register the content host via the load balancer.
     result = host.register(
-        org=module_org,
+        org=smart_proxy_module_org,
         loc=module_location,
         activation_keys=ak.name,
         target=setup_capsules[0],
@@ -511,7 +513,7 @@ def test_loadbalancer_flatpak(
 
     job = sat.cli_factory.job_invocation(
         {
-            'organization': module_org.name,
+            'organization': smart_proxy_module_org.name,
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': inputs,
             'search-query': f'name = {host.hostname}',
@@ -529,7 +531,7 @@ def test_loadbalancer_flatpak(
 
     # 4. Install flatpak app from cv1, ensure it succeeded.
     opts = {
-        'organization': module_org.name,
+        'organization': smart_proxy_module_org.name,
         'job-template': 'Flatpak - Install application on host',
         'search-query': f'name = {host.hostname}',
     }
