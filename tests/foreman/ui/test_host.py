@@ -1835,6 +1835,7 @@ def module_puppet_enabled_proxy_with_loc(
     session_puppet_enabled_proxy.update(['location'])
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_create_with_puppet_class(
@@ -1896,6 +1897,7 @@ def test_positive_create_with_puppet_class(
         )
 
 
+@pytest.mark.foreman_installer
 def test_positive_inherit_puppet_env_from_host_group_when_create(
     session_puppet_enabled_sat, module_env_search, module_puppet_org, module_puppet_loc
 ):
@@ -1940,6 +1942,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
         assert values['host']['inherit_puppet_environment'] is False
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_set_multi_line_and_with_spaces_parameter_value(
     session_puppet_enabled_sat,
