@@ -2211,6 +2211,7 @@ def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
 
 
 # ---------------------------- PUPPET ENABLED IN INSTALLER TESTS -----------------------
+@pytest.mark.foreman_installer
 @pytest.mark.cli_puppet_enabled
 def test_positive_host_with_puppet(
     session_puppet_enabled_sat,
@@ -2293,6 +2294,7 @@ def function_host_content_source(
     return res
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.cli_puppet_enabled
 def test_positive_list_scparams(
     session_puppet_enabled_sat,
@@ -2345,6 +2347,7 @@ def test_positive_list_scparams(
     assert scp_id in [scp['id'] for scp in host_scparams]
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.cli_puppet_enabled
 def test_positive_create_with_puppet_class_name(
     session_puppet_enabled_sat,
@@ -2386,6 +2389,7 @@ def test_positive_create_with_puppet_class_name(
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.cli_puppet_enabled
 def test_positive_update_host_owner_and_verify_puppet_class_name(
     session_puppet_enabled_sat,
