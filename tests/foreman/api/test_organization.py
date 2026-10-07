@@ -18,18 +18,19 @@ http://<satellite-host>/apidoc/v2/organizations.html
 import http
 import json
 import random
+import tempfile
+from urllib.parse import urljoin
 
+from cryptography import x509
+from cryptography.hazmat.primitives.asymmetric import mldsa
 from fauxfactory import gen_string
 from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials
-from robottelo.constants import DEFAULT_ORG
-from robottelo.utils.datafactory import (
-    invalid_values_list,
-    valid_org_names_list,
-)
+from robottelo.config import get_credentials, settings
+from robottelo.constants import DEFAULT_ORG, ML_DSA_65, RSA, SHA256_WITH_RSA
+from robottelo.utils.datafactory import invalid_values_list, valid_org_names_list
 from robottelo.utils.issue_handlers import is_open
 
 
@@ -320,3 +321,152 @@ class TestOrganizationUpdate:
         }
         with pytest.raises(HTTPError):
             target_sat.api.Organization(id=module_org.id, **update_dict).update([update_field])
+
+
+def _cert_from_bundle(bundle):
+    """Pull the certificate out of a "private key + certificate" download.
+
+    The certificate is the second half; the first half is the private key and
+    won't load as a certificate.
+    """
+    start = '-----BEGIN CERTIFICATE-----'
+    assert start in bundle, 'download had no certificate in it'
+    cert_pem = start + bundle.split(start, 1)[1]
+    return x509.load_pem_x509_certificate(cert_pem.encode())
+
+
+class TestOrganizationDebugCertificate:
+    """Debug-certificate algorithm params (SAT-48622)."""
+
+    def test_positive_download_debug_cert_default(self, function_sca_manifest_org):
+        """Download with no algorithms -> get the default certificate.
+
+        :id: 56375060-2e52-41e2-a999-e5c5ef7e4e6f
+
+        :Verifies: SAT-48622
+
+        :expectedresults: A certificate comes back using the default algorithm.
+
+        :CaseImportance: High
+        """
+        bundle = function_sca_manifest_org.download_debug_certificate()
+        cert = _cert_from_bundle(bundle)
+        assert cert.signature_algorithm_oid.dotted_string == SHA256_WITH_RSA
+
+    def test_positive_download_debug_cert_empty_lists(self, function_sca_manifest_org):
+        """Empty algorithm lists behave the same as passing nothing.
+
+        :id: cf02c729-2f78-43a4-a54a-9423663a15e1
+
+        :Verifies: SAT-48622
+
+        :expectedresults: The default certificate comes back.
+
+        :CaseImportance: Medium
+        """
+        bundle = function_sca_manifest_org.download_debug_certificate(
+            params={
+                'key_algorithms[]': [],
+                'signature_algorithms[]': [],
+            }
+        )
+        cert = _cert_from_bundle(bundle)
+        assert cert.signature_algorithm_oid.dotted_string == SHA256_WITH_RSA
+
+    def test_positive_download_debug_cert_with_mldsa(self, function_sca_manifest_org):
+        """Request a post-quantum (ML-DSA) key and get it back.
+
+        :id: 7a9b032f-493f-4f24-9005-e48fe846c87d
+
+        :Verifies: SAT-48622
+
+        :expectedresults: The certificate uses the requested ML-DSA algorithm.
+
+        :CaseImportance: High
+        """
+        bundle = function_sca_manifest_org.download_debug_certificate(
+            params={'key_algorithms[]': [ML_DSA_65]}
+        )
+        cert = _cert_from_bundle(bundle)
+        assert isinstance(cert.public_key(), mldsa.MLDSA65PublicKey)
+
+    @pytest.mark.parametrize(
+        ('key_algorithm', 'signature_algorithm'),
+        [(RSA, SHA256_WITH_RSA), (ML_DSA_65, SHA256_WITH_RSA)],
+        ids=['rsa', 'mldsa'],
+    )
+    def test_positive_download_debug_cert_with_oids(
+        self, function_sca_manifest_org, key_algorithm, signature_algorithm
+    ):
+        """Request specific algorithms by OID and get them back.
+
+        :id: 15b8f97f-ff00-4fad-87f6-3a6471e1ee00
+
+        :parametrized: yes
+
+        :Verifies: SAT-48622
+
+        :expectedresults: The certificate matches the requested signature OID.
+
+        :CaseImportance: High
+        """
+        bundle = function_sca_manifest_org.download_debug_certificate(
+            params={
+                'key_algorithms[]': [key_algorithm],
+                'signature_algorithms[]': [signature_algorithm],
+            }
+        )
+        cert = _cert_from_bundle(bundle)
+        assert cert.signature_algorithm_oid.dotted_string == signature_algorithm
+
+    def test_negative_download_debug_cert_invalid_oid(self, function_sca_manifest_org):
+        """A garbage OID string is rejected.
+
+        :id: 4c7623b1-b6af-49a6-ac8c-251bc45c7c52
+
+        :Verifies: SAT-48622
+
+        :expectedresults: The API returns a 4xx client error.
+
+        :CaseImportance: Medium
+        """
+        with pytest.raises(HTTPError) as error:
+            function_sca_manifest_org.download_debug_certificate(
+                params={'key_algorithms[]': ['not-an-oid']}
+            )
+        assert error.value.response.status_code == 409
+
+    def test_positive_pqc_cert_accesses_protected_repo(self, function_sca_manifest_org, target_sat):
+        """A cert made with specific algorithms can still unlock a protected repo.
+
+        Proves the certificate actually works, not just that it parses.
+        Based on test_repository.py::test_positive_access_protected_repository.
+
+        :id: db55c4fe-b135-4f3d-aa4c-0481e99c1739
+
+        :Verifies: SAT-48622
+
+        :expectedresults: Repo access is blocked (403) without the cert and
+            allowed (200) with it.
+
+        :CaseImportance: High
+        """
+        product = target_sat.api.Product(organization=function_sca_manifest_org).create()
+        repo = target_sat.api.Repository(
+            product=product, content_type='yum', unprotected=False, url=settings.repos.yum_2.url
+        ).create()
+        repo.sync()
+        repo_url = urljoin(repo.full_path, 'repodata/repomd.xml')
+        assert repo_url.startswith(target_sat.url)
+
+        # No cert -> blocked.
+        assert client.get(repo_url, verify=False).status_code == 403
+
+        # Download a cert asking for ML-DSA, save it, use it.
+        bundle = function_sca_manifest_org.download_debug_certificate(
+            params={'key_algorithms[]': [ML_DSA_65], 'signature_algorithms[]': [SHA256_WITH_RSA]}
+        )
+        cert_path = f'{tempfile.gettempdir()}/{function_sca_manifest_org.label}.pem'
+        with open(cert_path, 'w') as cert_file:
+            cert_file.write(bundle)
+        assert client.get(repo_url, cert=cert_path, verify=False).status_code == 200
