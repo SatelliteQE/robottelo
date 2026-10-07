@@ -431,6 +431,7 @@ VALIDATORS = dict(
         Validator('robottelo.stage_docs_url', default='https://docs.redhat.com'),
         Validator('robottelo.custom_docs_url', default=''),
         Validator('robottelo.settings.ignore_validation_errors', is_type_of=bool, default=False),
+        Validator('robottelo.sosreport_enabled', is_type_of=bool, default=True),
         Validator('robottelo.rhel_source', default='ga', is_in=['ga', 'internal']),
         Validator(
             'robottelo.sat_non_ga_versions',
