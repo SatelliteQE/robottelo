@@ -16,13 +16,13 @@ from broker import Broker
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.config import settings
+from robottelo.config import configure_airgun, configure_nailgun, settings
 from robottelo.constants import (
     FOREMANCTL_PARAMETERS_FILE,
     FOREMANCTL_POSTGRESQL_TUNING_PROFILES,
     InstallationServices,
 )
-from robottelo.hosts import Capsule, Satellite
+from robottelo.hosts import Capsule, Satellite, lru_sat_ready_rhel
 
 pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
 
@@ -46,6 +46,15 @@ def module_sat_ready_rhel(request):
     """Deploy bare RHEL system ready for Satellite installation."""
     param = getattr(request, 'param', 'default')
     deploy_args = param.get('deploy_args', '') if isinstance(param, dict) else ''
+    # In sanity, install onto the shared lru host that target_sat also resolves to.
+    if 'sanity' in request.config.option.markexpr:
+        sat = lru_sat_ready_rhel(settings.server.version.rhel_version)
+        sat.install_satellite_foremanctl(parameters=deploy_args)
+        settings.server.hostname = sat.hostname
+        configure_nailgun()
+        configure_airgun()
+        yield sat
+        return
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
