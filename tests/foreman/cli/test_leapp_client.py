@@ -19,6 +19,8 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, RHEL8_VER, RHEL9_VER, RHEL10_VER
 from robottelo.utils import ohsnap
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.e2e
 @pytest.mark.parametrize(
