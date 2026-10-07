@@ -8,7 +8,6 @@ import pytest
 from xdist import get_xdist_worker_id
 
 from robottelo.config import setting_is_set, settings
-from robottelo.enums import InstallMethod
 from robottelo.hosts import get_sat_rhel_version
 from robottelo.logging import logger
 from robottelo.utils.ohsnap import container_image_properties
@@ -75,8 +74,20 @@ def record_testsuite_timestamp_xml(record_testsuite_property):
 
 
 @pytest.fixture(scope='session', autouse=True)
-def collect_sosreport_on_failure(request, session_target_sat, worker_id):
-    """Collect and download a sosreport when this pytest worker has failures."""
+def collect_sosreport(request, worker_id):
+    """Collect and download a sosreport at the end of the pytest session."""
+    if not settings.robottelo.sosreport_enabled:
+        logger.info('Skipping sosreport collection because it is disabled in configuration')
+        yield
+        return
+
+    try:
+        session_target_sat = request.getfixturevalue('session_target_sat')
+    except pytest.FixtureLookupError:
+        logger.debug('session_target_sat fixture not available, skipping sosreport')
+        yield
+        return
+
     yield
 
     if not session_target_sat:
