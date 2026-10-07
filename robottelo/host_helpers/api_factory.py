@@ -17,6 +17,7 @@ from requests import HTTPError
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
+    DEFAULT_PTABLE,
     PRDS,
     REPO_TYPE,
     REPOS,
@@ -476,11 +477,19 @@ class APIFactory:
         if operating_systems:
             operating_system = operating_systems[0]
         else:
+            architecture = self._satellite.api.Architecture().search(
+                query={'search': f'name="{DEFAULT_ARCHITECTURE}"'}
+            )[0]
+            partition_table = self._satellite.api.PartitionTable().search(
+                query={'search': f'name="{DEFAULT_PTABLE}"'}
+            )[0]
             operating_system = self._satellite.api.OperatingSystem(
                 name=settings.supportability.content_hosts.default_os_name,
                 family='Redhat',
                 major=str(self._satellite.os_version.major),
                 minor=str(self._satellite.os_version.minor),
+                architecture=[architecture],
+                ptable=[partition_table],
             ).create()
         return operating_system.read()
 
