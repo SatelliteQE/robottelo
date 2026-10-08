@@ -369,10 +369,11 @@ def test_positive_available_repositories_endpoint(module_sca_manifest_org, targe
     ).search()[0]
     touch_endpoint = target_sat.api.RepositorySet.available_repositories(reposet)
     assert touch_endpoint['total'] != 0
-    results = target_sat.execute('tail -15 /var/log/foreman/production.log').stdout
-    assert 'Actions::Katello::RepositorySet::ScanCdn' in results
-    assert 'result: success' in results
-    assert 'Failed at scanning for repository' not in results
+    result = target_sat.read_foreman_log()
+    assert result.status == 0, result.stderr
+    assert 'Actions::Katello::RepositorySet::ScanCdn' in result.stdout
+    assert 'result: success' in result.stdout
+    assert 'Failed at scanning for repository' not in result.stdout
 
 
 @pytest.mark.parametrize('unprotected', [True, False], ids=['unprotected', 'protected'])
