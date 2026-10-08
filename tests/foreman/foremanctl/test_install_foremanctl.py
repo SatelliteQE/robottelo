@@ -16,13 +16,13 @@ from broker import Broker
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.config import settings
+from robottelo.config import configure_airgun, configure_nailgun, settings
 from robottelo.constants import (
     FOREMANCTL_PARAMETERS_FILE,
     FOREMANCTL_POSTGRESQL_TUNING_PROFILES,
     InstallationServices,
 )
-from robottelo.hosts import Capsule, Satellite
+from robottelo.hosts import Capsule, Satellite, lru_sat_ready_rhel
 
 pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
 
@@ -46,6 +46,15 @@ def module_sat_ready_rhel(request):
     """Deploy bare RHEL system ready for Satellite installation."""
     param = getattr(request, 'param', 'default')
     deploy_args = param.get('deploy_args', '') if isinstance(param, dict) else ''
+    # In sanity, install onto the shared lru host that target_sat also resolves to.
+    if 'sanity' in request.config.option.markexpr:
+        sat = lru_sat_ready_rhel(settings.server.version.rhel_version)
+        sat.install_satellite_foremanctl(parameters=deploy_args)
+        settings.server.hostname = sat.hostname
+        configure_nailgun()
+        configure_airgun()
+        yield sat
+        return
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
@@ -141,9 +150,16 @@ def module_sat_foremanctl_tuning(request):
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-@pytest.mark.first_sanity
 @pytest.mark.network_sensitive
-@pytest.mark.parametrize('module_sat_ready_rhel', ['default', 'fips', 'fapolicyd'], indirect=True)
+@pytest.mark.parametrize(
+    'module_sat_ready_rhel',
+    [
+        pytest.param('default', marks=[pytest.mark.build_sanity, pytest.mark.first_sanity]),
+        'fips',
+        'fapolicyd',
+    ],
+    indirect=True,
+)
 def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
     """Run a basic Satellite installation
 
@@ -164,11 +180,14 @@ def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-@pytest.mark.build_sanity
 @pytest.mark.network_sensitive
 @pytest.mark.parametrize(
     ('module_sat_ready_rhel', 'module_cap_ready_rhel'),
-    [('default', 'default'), ('fips', 'fips'), ('fapolicyd', 'fapolicyd')],
+    [
+        pytest.param('default', 'default', marks=pytest.mark.build_sanity),
+        ('fips', 'fips'),
+        ('fapolicyd', 'fapolicyd'),
+    ],
     ids=['default', 'fips', 'fapolicyd'],
     indirect=True,
 )
