@@ -1321,6 +1321,9 @@ def test_positive_get_diff_for_cv_envs(module_target_sat, module_sca_manifest_or
         erratum['errata_id']: set(erratum['comparison']) for erratum in result['results']
     }
     assert errata_comparison[CUSTOM_REPO_ERRATA_ID] == {cvv_ids[-1]}
+    assert REAL_0_ERRATA_ID in errata_comparison, (
+        f'{REAL_0_ERRATA_ID} not found in comparison results; rhst7 repo content may have changed'
+    )
     assert errata_comparison[REAL_0_ERRATA_ID] == set(cvv_ids)
 
 
