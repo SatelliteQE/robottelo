@@ -2621,6 +2621,21 @@ class Satellite(Capsule, SatelliteMixins):
             return self.execute(f'journalctl --no-pager --unit foreman | grep "{pattern}"')
         return self.execute(f'grep "{pattern}" /var/log/foreman/production.log')
 
+    def read_httpd_access_log(self, since='2 min ago', lines=100):
+        """Read the Foreman SSL access log, install-method-aware.
+
+        - satellite-installer: tails ``/var/log/httpd/foreman-ssl_access_ssl.log``.
+        - foremanctl: httpd runs as a quadlet container that writes its vhost access
+          log to journald under the ``httpd-ssl-access`` tag.
+
+        :param str since: journald time window, only used on foremanctl.
+        :param int lines: number of lines to tail, only used on satellite-installer.
+        :return: The command result.
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return self.execute(f"journalctl -t httpd-ssl-access --since '{since}' --no-pager")
+        return self.execute(f'tail -n {lines} /var/log/httpd/foreman-ssl_access_ssl.log')
+
     def grep_dynflow_log(self, pattern):
         """Search Dynflow worker logs for a pattern.
 

@@ -367,12 +367,21 @@ def test_positive_available_repositories_endpoint(module_sca_manifest_org, targe
     reposet = target_sat.api.RepositorySet(
         name=constants.REPOSET['rhel7_extra'], product=product
     ).search()[0]
+    # Containerized deployments log to journald, not to production.log, so assert on
+    # the ScanCdn task itself rather than on log file contents.
+    task_query = {'search': 'label = Actions::Katello::RepositorySet::ScanCdn', 'per_page': 1000}
+    previous_ids = {task.id for task in target_sat.api.ForemanTask().search(query=task_query)}
     touch_endpoint = target_sat.api.RepositorySet.available_repositories(reposet)
     assert touch_endpoint['total'] != 0
-    results = target_sat.execute('tail -15 /var/log/foreman/production.log').stdout
-    assert 'Actions::Katello::RepositorySet::ScanCdn' in results
-    assert 'result: success' in results
-    assert 'Failed at scanning for repository' not in results
+    new_tasks = [
+        task.read_json()
+        for task in target_sat.api.ForemanTask().search(query=task_query)
+        if task.id not in previous_ids
+    ]
+    scans = [t for t in new_tasks if str(t['input'].get('product_id')) == str(product.id)]
+    assert scans, 'No new ScanCdn task found for the requested product'
+    assert all(t['state'] == 'stopped' and t['result'] == 'success' for t in scans), scans
+    assert all(not t['humanized']['errors'] for t in scans), scans
 
 
 @pytest.mark.parametrize('unprotected', [True, False], ids=['unprotected', 'protected'])

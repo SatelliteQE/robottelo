@@ -15,6 +15,7 @@
 import json
 import random
 import re
+from shlex import quote
 from string import punctuation
 import tempfile
 import time
@@ -36,6 +37,7 @@ from robottelo.constants import (
     repos as repo_constants,
 )
 from robottelo.content_info import get_repo_files_by_url
+from robottelo.enums import InstallMethod
 from robottelo.logging import logger
 from robottelo.utils import datafactory
 from robottelo.utils.datafactory import parametrized
@@ -1070,19 +1072,31 @@ class TestRepository:
             releasever=None,
         )
         call_entity_method_with_timeout(target_sat.api.Repository(id=repo_id).sync, timeout=1500)
-        with target_sat.session.shell() as sh:
-            sh.send('foreman-rake console')
-            time.sleep(30)  # sleep to allow time for console to open
-            sh.send(f'::Katello::Repository.find({repo_id}).version_href')
-            time.sleep(3)  # give enough time for the command to complete
-        results = sh.result
-        identifier = results.stdout.split('version_href\n"', 1)[1].split('version')[0]
-        target_sat.execute(
-            f'curl -X DELETE {target_sat.url}/{identifier}'
-            f' --cert /etc/foreman/client_cert.pem'
-            f' --key /etc/foreman/client_key.pem'
+        console, prefix = 'foreman-rake console', ''
+        if target_sat.install_method == InstallMethod.FOREMANCTL:
+            # -i preserves stdin into the container; the host foreman-rake wrapper also
+            # rejects non-allow-listed tasks, so run those inside the container too.
+            console, prefix = 'podman exec -i foreman foreman-rake console', 'podman exec foreman '
+        # Emit a unique marker instead of scraping the console prompt format.
+        script = f'puts "REPO_HREF=#{{::Katello::Repository.find({repo_id}).version_href}}"'
+        results = target_sat.execute(f"printf '%s\\n' {quote(script)} | {console}")
+        assert results.status == 0, results.stderr
+        matches = re.findall(r'^REPO_HREF=(/pulp/\S+)', results.stdout, re.MULTILINE)
+        assert len(matches) == 1, results.stdout
+        identifier = matches[0].split('versions/')[0].lstrip('/')
+        # Deliberately corrupt the backend state so correct_repositories has work to do.
+        # --insecure: the Satellite's self-signed CA is not in the foreman container's
+        # trust store; the call is authenticated by client cert and targets the
+        # Satellite's own API, so TLS verification adds nothing to what is under test.
+        deletion = target_sat.execute(
+            f'{prefix}curl --fail --show-error --insecure -X DELETE {target_sat.url}/{identifier}'
+            ' --cert /etc/foreman/client_cert.pem --key /etc/foreman/client_key.pem'
         )
-        command_output = target_sat.execute('foreman-rake katello:correct_repositories COMMIT=true')
+        assert deletion.status == 0, deletion.stderr
+        command_output = target_sat.execute(
+            f'{prefix}foreman-rake katello:correct_repositories COMMIT=true'
+        )
+        assert command_output.status == 0, command_output.stderr
         assert 'Recreating' in command_output.stdout
         assert 'TaskError' not in command_output.stdout
 
