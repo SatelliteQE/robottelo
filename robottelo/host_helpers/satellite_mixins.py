@@ -523,13 +523,26 @@ class AnsibleCollectionSetup:
 
     def configure_fam(self):
         self.register_to_cdn()
+
+        enable_satellite_cmd = InstallerCommand(
+            installer_args=PUPPET_SATELLITE_INSTALLER + ['enable-foreman-compute-libvirt'],
+            installer_opts=PUPPET_COMMON_INSTALLER_OPTS
+            | {
+                'foreman-proxy-dns': 'true',
+                'foreman-proxy-http': 'true',
+                'foreman-proxy-httpboot': 'true',
+            },
+        )
+        result = self.execute(enable_satellite_cmd.get_command(), timeout='20m')
+        assert result.status == 0
+
         # The tests need pytest, which is only available in codeready-builder
         self.enable_repo(f'codeready-builder-for-rhel-{self.os_version.major}-x86_64-rpms')
 
         python = 'python3.12' if self.os_version.major == 9 else 'python3'
 
         self.execute(
-            f'dnf install -y ansible-collection-redhat-satellite ansible-core make python3-rpm python3-requests {python}-pytest {python}-pip'
+            f'dnf install -y --disableplugin=foreman-protector ansible-collection-redhat-satellite ansible-core make python3-rpm python3-requests {python}-pytest {python}-pip'
         )
         self.execute(f'{python} -m pip install ansible-runner')
         self.execute(
