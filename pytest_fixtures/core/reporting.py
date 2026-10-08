@@ -1,4 +1,7 @@
 import datetime
+import os
+from pathlib import Path
+import re
 
 from _pytest.junitxml import xml_key
 import pytest
@@ -68,3 +71,53 @@ def pytest_sessionstart(session):
 def record_testsuite_timestamp_xml(record_testsuite_property):
     now = datetime.datetime.now(datetime.UTC)
     record_testsuite_property('start_time', now.strftime(FMT_XUNIT_TIME))
+
+
+@pytest.fixture(scope='session', autouse=True)
+def collect_sosreport(request, worker_id):
+    """Collect and download a sosreport at the end of the pytest session."""
+    if not settings.robottelo.sosreport_enabled:
+        logger.info('Skipping sosreport collection because it is disabled in configuration')
+        yield
+        return
+
+    session_target_sat = request.getfixturevalue('session_target_sat')
+    yield
+
+    if not session_target_sat:
+        logger.warning('Cannot collect sosreport: no session Satellite is configured')
+        return
+
+    hostname = re.sub(r'[^A-Za-z0-9_.-]', '_', session_target_sat.hostname)
+    artifact_dir = Path(settings.ui.screenshots_path).parent / 'sosreports'
+    artifact_path = artifact_dir / f'sosreport-{hostname}-{worker_id}-{os.getpid()}.tar.xz'
+    remote_tmp_dir = f'/var/tmp/robottelo-sosreport-{worker_id}-{os.getpid()}'
+
+    try:
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        result = session_target_sat.execute(f'install -d -m 0700 {remote_tmp_dir}')
+        if result.status != 0:
+            logger.warning('Could not create remote sosreport directory: %s', result.stderr)
+            return
+
+        result = session_target_sat.execute(
+            f'sos report --batch --tmp-dir {remote_tmp_dir}', timeout='10m'
+        )
+        if result.status != 0:
+            logger.warning('sosreport failed on %s: %s', hostname, result.stderr)
+            return
+
+        archive_query = (
+            f"find {remote_tmp_dir} -maxdepth 1 -type f -name 'sosreport-*.tar.xz' -print -quit"
+        )
+        result = session_target_sat.execute(archive_query)
+        remote_archive = result.stdout.strip()
+        if result.status != 0 or not remote_archive:
+            logger.warning('sosreport archive was not found on %s', hostname)
+            return
+
+        session_target_sat.get(remote_archive, local_path=str(artifact_path))
+        os.chmod(artifact_path, 0o600)
+        logger.info('Downloaded sosreport from %s to %s', hostname, artifact_path)
+    except Exception:
+        logger.exception('Failed to collect sosreport from %s', hostname)
