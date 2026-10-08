@@ -32,6 +32,7 @@ from robottelo.constants import (
     FAKE_9_YUM_SECURITY_ERRATUM,
     FAKE_9_YUM_UPDATED_PACKAGES,
     PRDS,
+    REAL_0_ERRATA_ID,
     REAL_RHEL8_1_ERRATA_ID,
     REAL_RHEL8_1_PACKAGE_FILENAME,
     REPOS,
@@ -1249,62 +1250,79 @@ def test_positive_get_applicable_for_host(
     assert REAL_RHEL8_1_ERRATA_ID in [errata['errata_id'] for errata in erratum]
 
 
-def test_positive_get_diff_for_cv_envs(
-    module_target_sat, module_sca_manifest_org, module_cv, module_lce, activation_key
-):
-    """Generate a difference in errata between a set of environments
-    for a content view
+def test_positive_get_diff_for_cv_envs(module_target_sat, module_sca_manifest_org, module_lce):
+    """Generate a difference in errata between a set of environments for a content view
 
     :id: 96732506-4a89-408c-8d7e-f30c8d469769
 
     :Setup:
+        1. Sync a Red Hat repository containing ``REAL_0_ERRATA_ID`` and publish a content
+            view version promoted to ``module_lce``.
+        2. Add and sync a custom repository containing ``CUSTOM_REPO_ERRATA_ID``, then publish
+            a second version and promote it to ``module_lce``.
+        3. Create a lifecycle environment after ``module_lce`` and promote the second version
+            to it.
 
-        1. Errata synced on satellite server.
-        2. Multiple environments present.
+    :Steps:
+        1. Compare the two latest content view versions using ``GET /katello/api/compare``.
 
-    :Steps: GET /katello/api/compare
-
-    :expectedresults: Difference in errata between a set of environments
-        for a content view is retrieved.
+    :expectedresults:
+        1. ``CUSTOM_REPO_ERRATA_ID`` is associated only with the second version, while
+            ``REAL_0_ERRATA_ID`` is associated with both versions.
 
     """
     org = module_sca_manifest_org
-    # Published content-view-version with repos will be created
-    for repo_url in [settings.repos.yum_9.url, CUSTOM_REPO_URL]:
-        module_target_sat.cli_factory.setup_org_for_a_custom_repo(
-            {
-                'url': repo_url,
-                'organization-id': org.id,
-                'content-view-id': module_cv.id,
-                'lifecycle-environment-id': module_lce.id,
-                'activationkey-id': activation_key.id,
-            }
-        )
+    rh_repo_id = module_target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=org.id,
+        product=PRDS['rhel'],
+        repo=REPOS['rhst7']['name'],
+        reposet=REPOSET['rhst7'],
+    )
+    rh_repo = module_target_sat.api.Repository(id=rh_repo_id).read()
+    rh_repo.sync()
+    content_view = module_target_sat.api.ContentView(
+        organization=org, repository=[rh_repo]
+    ).create()
+    content_view = cv_publish_promote(
+        sat=module_target_sat,
+        org=org,
+        cv=content_view,
+        lce=module_lce,
+    )['content-view']
+
+    product = module_target_sat.api.Product(organization=org).create()
+    repo = module_target_sat.api.Repository(
+        product=product, content_type='yum', url=CUSTOM_REPO_URL
+    ).create()
+    repo.sync()
+    content_view.repository.append(repo.read())
+    content_view = content_view.update(['repository'])
+    promotion_result = cv_publish_promote(
+        sat=module_target_sat,
+        org=org,
+        cv=content_view,
+        lce=module_lce,
+    )
+    content_view = promotion_result['content-view']
+    second_version = promotion_result['content-view-version']
     new_env = module_target_sat.api.LifecycleEnvironment(
         organization=org, prior=module_lce
     ).create()
-    # no need to publish a new version, just promote newest
-    cv_publish_promote(
-        sat=module_target_sat,
-        org=org,
-        cv=module_cv,
-        lce=[module_lce, new_env],
-        needs_publish=False,
-    )
-    module_cv = module_target_sat.api.ContentView(id=module_cv.id).read()
+    second_version.promote(data={'environment_ids': new_env.id, 'force': False})
     # Get last two versions by id to compare
-    cvv_ids = sorted(cvv.id for cvv in module_cv.version)[-2:]
+    cvv_ids = sorted(cvv.id for cvv in content_view.version)[-2:]
     result = module_target_sat.api.Errata().compare(
-        data={'content_view_version_ids': [cvv_id for cvv_id in cvv_ids], 'per_page': '9999'}
+        data={'content_view_version_ids': cvv_ids, 'per_page': '9999'}
     )
-    cvv2_only_errata = next(
-        errata for errata in result['results'] if errata['errata_id'] == CUSTOM_REPO_ERRATA_ID
+    errata_comparison = {
+        erratum['errata_id']: set(erratum['comparison']) for erratum in result['results']
+    }
+    assert errata_comparison[CUSTOM_REPO_ERRATA_ID] == {cvv_ids[-1]}
+    assert REAL_0_ERRATA_ID in errata_comparison, (
+        f'{REAL_0_ERRATA_ID} not found in comparison results; rhst7 repo content may have changed'
     )
-    assert cvv_ids[-1] in cvv2_only_errata['comparison']
-    both_cvvs_errata = next(
-        errata for errata in result['results'] if errata['errata_id'] in FAKE_9_YUM_SECURITY_ERRATUM
-    )
-    assert {cvv_id for cvv_id in cvv_ids} == set(both_cvvs_errata['comparison'])
+    assert errata_comparison[REAL_0_ERRATA_ID] == set(cvv_ids)
 
 
 @pytest.mark.rhel_ver_match('8')
@@ -1730,8 +1748,8 @@ def test_positive_filter_errata_type_other(
         original_packages=True,
     ).create()
 
-    # Publish a second version (~10 minutes).
-    cv.publish(timeout=1200)
+    # Publish a second version (~20 minutes).
+    cv.publish(timeout=2400)
     cv = cv.read()
     version_2 = cv.version[-2].read()  # filtered
     assert '2.0' in version_2.version
