@@ -21,12 +21,23 @@ import pytest
 from wait_for import TimedOutError, wait_for
 
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, repos as repo_constants
+from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG, DataFile, repos as repo_constants
+from robottelo.enums import InstallMethod
+
+MAIL_CATCHER_PORT = 2525
+MAIL_CATCHER_SCRIPT = DataFile.DATA_DIR.joinpath('mail_catcher.py')
 
 
 @pytest.fixture
 def admin_user_with_localhost_email(target_sat):
     """Admin user with e-mail set to `root@localhost`."""
+    # Delete any stale users
+    stale_users = target_sat.api.User().search(
+        query={'search': 'mail="root@localhost" and admin=true'}
+    )
+    for stale_user in stale_users:
+        stale_user.delete()
+
     user = target_sat.api.User(
         admin=True,
         default_organization=DEFAULT_ORG,
@@ -87,7 +98,7 @@ def sysadmin_user_with_subscription_reposync_fail(target_sat):
 
 
 @pytest.fixture
-def reschedule_long_running_tasks_notification(target_sat):
+def reschedule_long_running_tasks_notification(target_sat, use_file_mail_delivery):
     """Reschedule long-running tasks checker from midnight (default) to every minute.
     Reset it back after the test.
     """
@@ -96,7 +107,7 @@ def reschedule_long_running_tasks_notification(target_sat):
 
     assert (
         target_sat.execute(
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
+            "ALLOW_UNSUPPORTED=true foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
             f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{every_minute_cron_schedule}'"
         ).status
         == 0
@@ -106,32 +117,123 @@ def reschedule_long_running_tasks_notification(target_sat):
 
     assert (
         target_sat.execute(
-            "foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
+            "ALLOW_UNSUPPORTED=true foreman-rake foreman_tasks:reschedule_long_running_tasks_checker "
             f"FOREMAN_TASKS_CHECK_LONG_RUNNING_TASKS_CRONLINE='{default_cron_schedule}'"
         ).status
         == 0
     )
 
 
+def _setup_foremanctl_mail_catcher(target_sat, mails_dir):
+    """Setup mail catcher script for FOREMANCTL installation method."""
+    smtp_address_setting = target_sat.api.Setting().search(query={'search': 'name=smtp_address'})[0]
+    smtp_port_setting = target_sat.api.Setting().search(query={'search': 'name=smtp_port'})[0]
+
+    original_smtp_address = smtp_address_setting.value
+    original_smtp_port = smtp_port_setting.value
+    script_path = f'/tmp/mail_catcher_{gen_string("alpha")}.py'
+
+    target_sat.execute(f'mkdir -p {mails_dir} && chmod 0777 {mails_dir}')
+    target_sat.put(MAIL_CATCHER_SCRIPT, remote_path=script_path)
+    target_sat.execute(
+        f'nohup python3 {script_path} {MAIL_CATCHER_PORT} {mails_dir} '
+        f'> /tmp/mail_catcher.log 2>&1 < /dev/null &'
+    )
+    wait_for(
+        func=target_sat.execute,
+        func_args=[f'ss -ltn | grep -q :{MAIL_CATCHER_PORT}'],
+        fail_condition=lambda res: res.status != 0,
+        timeout=30,
+        delay=1,
+    )
+
+    smtp_address_setting.value = 'host.containers.internal'
+    smtp_address_setting.update(['value'])
+    smtp_port_setting.value = MAIL_CATCHER_PORT
+    smtp_port_setting.update(['value'])
+
+    return {
+        'script_path': script_path,
+        'smtp_address_setting': smtp_address_setting,
+        'original_smtp_address': original_smtp_address,
+        'smtp_port_setting': smtp_port_setting,
+        'original_smtp_port': original_smtp_port,
+    }
+
+
+def _teardown_foremanctl_mail_catcher(target_sat, config):
+    """Teardown mail catcher and restore SMTP settings."""
+    config['smtp_address_setting'].value = config['original_smtp_address']
+    config['smtp_address_setting'].update(['value'])
+    config['smtp_port_setting'].value = config['original_smtp_port']
+    config['smtp_port_setting'].update(['value'])
+    target_sat.execute(f'pkill -f "{config["script_path"]}"; rm -f {config["script_path"]}')
+
+
+def _setup_file_delivery_method(target_sat, mails_dir):
+    """Setup file delivery method for standard installation."""
+    original_setting = target_sat.api.Setting().search(query={'search': 'name=delivery_method'})[0]
+
+    target_sat.execute(
+        f'mkdir -p {mails_dir} && chmod 0777 {mails_dir} && chmod 0666 {mails_dir}/* 2>/dev/null; :'
+    )
+    original_setting.value = 'file'
+    original_setting.update(['value'])
+
+    return original_setting
+
+
 @pytest.fixture(autouse=True)
-def start_postfix_service(target_sat):
-    """Start postfix service (disabled by default)."""
-    assert target_sat.execute('systemctl start postfix').status == 0
+def use_file_mail_delivery(target_sat):
+    """Make Foreman's outgoing mail deliverable for the duration of the test."""
+    if target_sat.install_method == InstallMethod.INSTALLER:
+        assert target_sat.execute('systemctl start postfix').status == 0
+        yield None
+        return
+
+    mails_dir = '/usr/share/foreman/mails'
+
+    if target_sat.install_method == InstallMethod.FOREMANCTL:
+        config = None
+        try:
+            config = _setup_foremanctl_mail_catcher(target_sat, mails_dir)
+            yield mails_dir
+        finally:
+            if config:
+                _teardown_foremanctl_mail_catcher(target_sat, config)
+        return
+
+    original_setting = _setup_file_delivery_method(target_sat, mails_dir)
+    original_value = original_setting.value
+
+    yield mails_dir
+
+    original_setting.value = original_value
+    original_setting.update(['value'])
 
 
 @pytest.fixture
-def clean_root_mailbox(target_sat):
+def clean_root_mailbox(target_sat, use_file_mail_delivery):
     """Backup & purge local mailbox of the Satellite's root@localhost user.
     Restore it afterwards.
     """
-    root_mailbox = '/var/spool/mail/root'
-    root_mailbox_backup = f'{root_mailbox}-{gen_string("alphanumeric")}.bak'
-    target_sat.execute(f'cp -f {root_mailbox} {root_mailbox_backup}')
-    target_sat.execute(f'truncate -s 0 {root_mailbox}')
+    if target_sat.install_method == InstallMethod.INSTALLER:
+        root_mailbox = '/var/spool/mail/root'
+        root_mailbox_backup = f'{root_mailbox}-{gen_string("alphanumeric")}.bak'
+        target_sat.execute(f'cp -f {root_mailbox} {root_mailbox_backup}')
+        target_sat.execute(f'truncate -s 0 {root_mailbox}')
+
+        yield root_mailbox
+
+        target_sat.execute(f'mv -f {root_mailbox_backup} {root_mailbox}')
+        return
+
+    root_mailbox = f'{use_file_mail_delivery}/root@localhost'
+    target_sat.execute(f'rm -f {root_mailbox}')
 
     yield root_mailbox
 
-    target_sat.execute(f'mv -f {root_mailbox_backup} {root_mailbox}')
+    target_sat.execute(f'rm -f {root_mailbox}')
 
 
 def wait_for_mail(sat_obj, mailbox_file, contains_string, timeout=300, delay=5):
@@ -200,18 +302,20 @@ def root_mailbox_copy(target_sat, clean_root_mailbox):
     :return: :class:`mailbox.mbox` instance
     """
     result = target_sat.execute(f'cat {clean_root_mailbox}')
-    assert result.status == 0, f'Could not read mailbox {clean_root_mailbox} on Satellite host.'
-    mbox_content = result.stdout
+    mbox_content = result.stdout if result.status == 0 else ''
     _, local_mbox_file = mkstemp()
     with open(local_mbox_file, 'w') as fh:
-        fh.writelines(mbox_content)
+        fh.write(mbox_content)
     return mbox(path=local_mbox_file)
 
 
 @pytest.fixture
-def long_running_task(target_sat):
-    """Create an async task and set its start time and last report time to two days ago.
-    After the test finishes, the task is cancelled.
+def long_running_task(target_sat, use_file_mail_delivery):
+    """Create an async task forced into a two-days-old ``running`` state.
+
+    The task is launched via the API so a real, cancellable dynflow plan
+    exists, then its state and timestamps are set directly in the DB so the
+    long-running-tasks checker reports on it.
     """
     template_id = (
         target_sat.api.JobTemplate()
@@ -232,10 +336,25 @@ def long_running_task(target_sat):
             'password': settings.server.ssh_password,
         },
     )
+
+    def _task_exists():
+        rows = target_sat.query_db(
+            f"SELECT id FROM foreman_tasks_tasks WHERE id='{job['task']['id']}'"
+        )
+        return bool(rows)
+
+    wait_for(
+        func=_task_exists,
+        fail_condition=lambda exists: not exists,
+        timeout=60,
+        delay=1,
+    )
+
     sql_date_2_days_ago = "now() - INTERVAL '2 days'"
     query = (
         "UPDATE foreman_tasks_tasks "
-        f"SET start_at = {sql_date_2_days_ago}, "
+        "SET state = 'running', result = 'pending', "
+        f"start_at = {sql_date_2_days_ago}, "
         f"started_at = {sql_date_2_days_ago}, "
         f"state_updated_at = {sql_date_2_days_ago} "
         f"WHERE id='{job['task']['id']}'"
