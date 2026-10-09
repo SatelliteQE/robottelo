@@ -3326,14 +3326,14 @@ def test_positive_change_power_state(
                 )
             session.all_hosts.change_power_state(state='Power Off', select_all_hosts=True)
             # Wait for the modal to close and table to refresh after power state change
-            session.browser.plugin.ensure_page_safe(timeout='20s')
+            session.browser.plugin.ensure_page_safe(timeout=20)
             # UI check
             for host in vm_names_with_domains:
                 state = session.all_hosts.read_power_state_icon(host_name=host)
                 assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
             session.all_hosts.change_power_state(state='Start', select_all_hosts=True)
             # Wait for the modal to close and table to refresh after power state change
-            session.browser.plugin.ensure_page_safe(timeout='20s')
+            session.browser.plugin.ensure_page_safe(timeout=20)
             for host in vm_names_with_domains:
                 state = session.all_hosts.read_power_state_icon(host_name=host)
                 assert state['state'] == 'On', f"Host {host} state didn't change to On"
@@ -3342,7 +3342,7 @@ def test_positive_change_power_state(
             session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
             session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
             # Wait for the modal to close and table to refresh after power state change
-            session.browser.plugin.ensure_page_safe(timeout='20s')
+            session.browser.plugin.ensure_page_safe(timeout=20)
             for host in vm_names_with_domains:
                 state = session.all_hosts.read_power_state_icon(host_name=host)
                 assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
