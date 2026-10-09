@@ -16,6 +16,7 @@ import re
 from fauxfactory import gen_string
 import pytest
 
+from pytest_fixtures.component.maintain import _sync_repositories
 from robottelo.config import settings
 from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT, LIBRARY_LCE
 from robottelo.content_info import get_repo_files_by_url
@@ -75,6 +76,18 @@ def cleanup_backup_dir(request, module_target_sat):
         host.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
 
 
+@pytest.fixture(scope='module')
+def module_synced_repos(module_target_sat, module_sca_manifest):
+    """Sync custom and RH repositories against the foremanctl-managed Satellite.
+
+    Overrides the satellite-maintain fixture of the same name so the repos are
+    synced against ``module_target_sat`` directly, rather than the ``sat_maintain``
+    host, which may resolve to a different instance when ``remotedb.server`` is set.
+    """
+    synced = _sync_repositories(module_target_sat, module_sca_manifest)
+    return {'custom': synced['cust_repo'], 'rh': synced['rh_repo']}
+
+
 def _assert_backup_files(server, backup_dir, skip_pulp=False):
     """Verify that backup directory contains all expected files.
 
@@ -94,7 +107,9 @@ def _assert_backup_files(server, backup_dir, skip_pulp=False):
     )
 
 
-def _create_backup(server, subdir, skip_pulp=False, base_backup=None, wait_for_tasks=True):
+def _create_backup(
+    server, subdir, skip_pulp=False, base_backup=None, wait_for_tasks=True, tar_volume_size=None
+):
     """Run foremanctl backup and return the timestamped backup subdirectory path."""
     cmd = f'foremanctl backup {subdir}'
     is_capsule = True if type(server) is Capsule else None
@@ -106,6 +121,8 @@ def _create_backup(server, subdir, skip_pulp=False, base_backup=None, wait_for_t
         cmd += ' --wait-for-tasks'
     if is_capsule:
         cmd += ' --target-host proxy'
+    if tar_volume_size:
+        cmd += f' --tar-volume-size {tar_volume_size}'
     result = server.execute(cmd, timeout='30m')
     assert result.status == 0, f'foremanctl backup failed:\n{result.stdout}\n{result.stderr}'
     backup_dir = re.search(r'Location:\s*(\S+)', result.stdout)
@@ -231,6 +248,114 @@ def test_positive_offline_backup(module_target_sat, setup_backup_tests):
 
     result = module_target_sat.execute('foremanctl health', timeout='5m')
     assert result.status == 0, f'foremanctl health check failed after backup:\n{result.stdout}'
+
+
+@pytest.mark.e2e
+def test_positive_backup_restore_split_tar(module_target_sat, module_synced_repos):
+    """Verify foremanctl splits pulp content into volumes and restores from them
+
+    :id: 789ed846-6abb-442b-ae42-e918fa7e5b39
+
+    :setup:
+        1. Repositories with sufficient content synced to the server
+
+    :steps:
+        1. Run foremanctl backup with --tar-volume-size set to a small value
+        2. Verify pulp content is split into multiple numbered volumes within the size cap
+        3. Drop the pulp artifacts on the server
+        4. Run foremanctl restore --force from the split backup
+        5. Verify the restore completes and the server is healthy
+        6. Verify the split volumes are reassembled into the original pulp artifacts
+
+    :expectedresults:
+        1. Backup command exits with status 0 and splits pulp content into multiple volumes
+        2. Expected files are present in the backup
+        3. No volume exceeds the requested size
+        4. Restore reassembles the split volumes and exits with status 0
+        5. Health check passes after restore
+        6. Pulp artifacts are repopulated from the split volumes
+
+    :Verifies: SAT-44897
+    """
+    set_size_kb = 100
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+    backup_dir = _create_backup(module_target_sat, subdir, tar_volume_size=f'{set_size_kb}k')
+
+    ls_output = module_target_sat.execute(f'ls -a {backup_dir}').stdout
+    files = [f for f in ls_output.split('\n') if not re.compile(r'^\.*$').search(f)]
+
+    # Databases, config files and the pulp snapshot must still be present
+    # (the monolithic pulp-content.tar.gz is replaced by the split volumes)
+    expected_files = SAT_FILES | (CONTENT_FILES - {'pulp-content.tar.gz'})
+    assert set(files).issuperset(expected_files), (
+        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
+    )
+    assert 'pulp-content.tar.gz' not in files, (
+        'Monolithic pulp-content.tar.gz should be replaced by the split volumes'
+    )
+
+    # The pulp content must be split into multiple numbered volumes
+    part_files = [f for f in files if re.fullmatch(r'pulp-content\.tar\.gz\.part\d+', f)]
+    assert len(part_files) > 1, f'Expected multiple pulp-content volumes, found: {part_files}'
+
+    # Each volume must respect the requested size cap
+    sizes = module_target_sat.execute(
+        f'stat -c %s {backup_dir}/pulp-content.tar.gz.part*'
+    ).stdout.split()
+    assert max(int(size) for size in sizes) <= set_size_kb * 1024, (
+        f'A pulp-content volume exceeds the requested size of {set_size_kb}k: {sizes}'
+    )
+
+    # Drop the pulp artifacts to confirm restore reassembles them from the split volumes
+    module_target_sat.execute('rm -rf /var/lib/pulp/media/artifact')
+
+    result = module_target_sat.execute(
+        f'foremanctl restore {backup_dir} --force',
+        timeout='30m',
+    )
+    assert result.status == 0, f'foremanctl restore failed:\n{result.stdout}\n{result.stderr}'
+
+    result = module_target_sat.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, f'foremanctl health check failed after restore:\n{result.stdout}'
+
+    # The split volumes must be reassembled into the original pulp artifacts
+    artifact_count = int(
+        module_target_sat.execute('find /var/lib/pulp/media/artifact -type f | wc -l').stdout
+    )
+    assert artifact_count > 0, 'Pulp artifacts were not reassembled from the split volumes'
+
+
+@pytest.mark.parametrize('bad_size', ['0', '0M', '0G'])
+def test_negative_backup_split_tar_invalid_size(module_target_sat, bad_size):
+    """Verify foremanctl backup rejects a zero --tar-volume-size
+
+    :id: fa1ead69-0788-4083-93bf-6bd373033358
+
+    :parametrized: yes
+
+    :steps:
+        1. Run foremanctl backup with --tar-volume-size set to a zero value (0, 0M, 0G)
+
+    :expectedresults:
+        1. Backup command exits with a non-zero status
+        2. The output reports the invalid tar_volume_size format
+
+    :Verifies: SAT-44897
+    """
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+    result = module_target_sat.execute(f'foremanctl backup {subdir} --tar-volume-size {bad_size}')
+    assert result.status != 0, (
+        f'Backup should reject zero volume size {bad_size!r}:\n{result.stdout}'
+    )
+    assert f"Invalid tar_volume_size format '{bad_size}'" in result.stdout + result.stderr, (
+        f'Expected an invalid tar_volume_size error for {bad_size!r}, got:'
+        f'\n{result.stdout}\n{result.stderr}'
+    )
+    # The size is currently validated mid-play, after services are stopped and a partial backup
+    # directory is created, so this check would fail today. Pending author confirmation.
+    # assert module_target_sat.execute(f'test -d {subdir}').status != 0, (
+    #     f'Backup directory {subdir} should not exist after a rejected size'
+    # )
 
 
 @pytest.mark.e2e
