@@ -218,6 +218,14 @@ class ContentInfo:
         # removes metadata filename
         return os.path.dirname(re.sub(rf'.*{PULP_EXPORT_DIR}', PULP_IMPORT_DIR, export_message))
 
+    def get_reported_value(self, report_key):
+        """
+        Runs satellite-maintain report generate and extracts the value for a given key
+        """
+        result = self.execute(f'satellite-maintain report generate | grep -i "{report_key}"')
+        assert result.status == 0, 'report failed or key not found'
+        return "".join(result.stdout.split(":", 1)[1].split())
+
 
 class SystemInfo:
     """Things that needs access to satellite shell for gaining satellite system configuration"""
