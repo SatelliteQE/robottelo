@@ -5,6 +5,7 @@ from robottelo.host_helpers.contenthost_mixins import (
     VersionedContent,
 )
 from robottelo.host_helpers.satellite_mixins import (
+    AnsibleCollectionSetup,
     ContentInfo,
     EnablePluginsSatellite,
     Factories,
@@ -23,6 +24,12 @@ class CapsuleMixins(CapsuleInfo, EnablePluginsCapsule):
 
 
 class SatelliteMixins(
-    ContentInfo, Factories, SystemInfo, EnablePluginsSatellite, ProvisioningSetup, IoPSetup
+    ContentInfo,
+    Factories,
+    SystemInfo,
+    EnablePluginsSatellite,
+    ProvisioningSetup,
+    IoPSetup,
+    AnsibleCollectionSetup,
 ):
     pass
