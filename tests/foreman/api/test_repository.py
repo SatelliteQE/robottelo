@@ -1072,30 +1072,34 @@ class TestRepository:
             releasever=None,
         )
         call_entity_method_with_timeout(target_sat.api.Repository(id=repo_id).sync, timeout=1500)
-        console, prefix = 'foreman-rake console', ''
-        if target_sat.install_method == InstallMethod.FOREMANCTL:
-            # -i preserves stdin into the container; the host foreman-rake wrapper also
-            # rejects non-allow-listed tasks, so run those inside the container too.
-            console, prefix = 'podman exec -i foreman foreman-rake console', 'podman exec foreman '
         # Emit a unique marker instead of scraping the console prompt format.
         script = f'puts "REPO_HREF=#{{::Katello::Repository.find({repo_id}).version_href}}"'
-        results = target_sat.execute(f"printf '%s\\n' {quote(script)} | {console}")
+        results = target_sat.execute(f"printf '%s\\n' {quote(script)} | foreman-rake console")
         assert results.status == 0, results.stderr
         matches = re.findall(r'^REPO_HREF=(/pulp/\S+)', results.stdout, re.MULTILINE)
         assert len(matches) == 1, results.stdout
         identifier = matches[0].split('versions/')[0].lstrip('/')
+        cert = '/etc/foreman/client_cert.pem'
+        key = '/etc/foreman/client_key.pem'
+        if target_sat.install_method == InstallMethod.FOREMANCTL:
+            # foremanctl stores the host client certificate/key under its certs
+            # directory instead of the installer paths used by RPM deployments.
+            cert = f'/var/lib/foremanctl/certs/certs/{target_sat.hostname}-client.crt'
+            key = f'/var/lib/foremanctl/certs/private/{target_sat.hostname}-client.key'
         # Deliberately corrupt the backend state so correct_repositories has work to do.
-        # --insecure: the Satellite's self-signed CA is not in the foreman container's
-        # trust store; the call is authenticated by client cert and targets the
+        # --insecure: the call is authenticated by client cert and targets the
         # Satellite's own API, so TLS verification adds nothing to what is under test.
         deletion = target_sat.execute(
-            f'{prefix}curl --fail --show-error --insecure -X DELETE {target_sat.url}/{identifier}'
-            ' --cert /etc/foreman/client_cert.pem --key /etc/foreman/client_key.pem'
+            f'curl --fail --show-error --insecure -X DELETE {target_sat.url}/{identifier}'
+            f' --cert {cert} --key {key}'
         )
         assert deletion.status == 0, deletion.stderr
-        command_output = target_sat.execute(
-            f'{prefix}foreman-rake katello:correct_repositories COMMIT=true'
-        )
+        command = 'foreman-rake katello:correct_repositories COMMIT=true'
+        if target_sat.install_method == InstallMethod.FOREMANCTL:
+            # The foremanctl host wrapper only allows selected rake actions;
+            # run this Katello maintenance task in the Foreman container.
+            command = f'podman exec foreman {command}'
+        command_output = target_sat.execute(command)
         assert command_output.status == 0, command_output.stderr
         assert 'Recreating' in command_output.stdout
         assert 'TaskError' not in command_output.stdout

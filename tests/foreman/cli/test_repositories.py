@@ -75,9 +75,6 @@ def test_negative_invalid_repo_fails_publish(
     """
     repo = module_repository
     console = 'foreman-rake console'
-    if target_sat.install_method == InstallMethod.FOREMANCTL:
-        # -i preserves stdin into the container, otherwise the piped script is dropped
-        console = 'podman exec -i foreman foreman-rake console'
     # Scope to this test's repository (RootRepository.last can pick up another
     # worker's repo) and emit a marker so we can prove the script actually ran.
     script = (
@@ -216,6 +213,7 @@ def test_purge_pulp_tasks(module_target_sat, module_org, module_repository, sett
         the Pulp model inside the pulp-api container instead.
         """
         if module_target_sat.install_method == InstallMethod.FOREMANCTL:
+            # TODO(SAT-50686): Switch back to pulp-cli once foremanctl exposes it.
             result = module_target_sat.execute(
                 'podman exec pulp-api pulpcore-manager shell -c '
                 '"from pulpcore.app.models import Task; print(Task.objects.count())"'

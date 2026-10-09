@@ -19,6 +19,7 @@ from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
 import requests
 from requests.exceptions import HTTPError
+from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
@@ -373,15 +374,26 @@ def test_positive_available_repositories_endpoint(module_sca_manifest_org, targe
     previous_ids = {task.id for task in target_sat.api.ForemanTask().search(query=task_query)}
     touch_endpoint = target_sat.api.RepositorySet.available_repositories(reposet)
     assert touch_endpoint['total'] != 0
-    new_tasks = [
-        task.read_json()
-        for task in target_sat.api.ForemanTask().search(query=task_query)
-        if task.id not in previous_ids
-    ]
-    scans = [t for t in new_tasks if str(t['input'].get('product_id')) == str(product.id)]
-    assert scans, 'No new ScanCdn task found for the requested product'
-    assert all(t['state'] == 'stopped' and t['result'] == 'success' for t in scans), scans
-    assert all(not t['humanized']['errors'] for t in scans), scans
+
+    def new_product_scan_tasks():
+        return [
+            task
+            for task in target_sat.api.ForemanTask().search(query=task_query)
+            if task.id not in previous_ids
+            and str(task.read_json()['input'].get('product_id')) == str(product.id)
+        ]
+
+    scans, _ = wait_for(
+        new_product_scan_tasks,
+        fail_condition=lambda tasks: not tasks,
+        timeout=300,
+        delay=5,
+    )
+    scan_results = []
+    for task in scans:
+        task.poll(timeout=300, must_succeed=True)
+        scan_results.append(task.read_json())
+    assert all(not task['humanized']['errors'] for task in scan_results), scan_results
 
 
 @pytest.mark.parametrize('unprotected', [True, False], ids=['unprotected', 'protected'])
