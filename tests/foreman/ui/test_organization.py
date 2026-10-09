@@ -295,6 +295,59 @@ def test_positive_download_debug_cert_after_refresh(session, target_sat, functio
         )
 
 
+def test_positive_debug_cert_algorithm_selection(session, module_target_sat, function_org):
+    """Verify debug certificate algorithm dropdown and certificate download
+
+    :id: bf2e94ed-b51e-4aa8-8037-2743a55051f4
+
+    :steps:
+        1. Create an organization
+        2. Navigate to organization edit page
+        3. Select rsaEncryption algorithm from dropdown
+        4. Generate debug certificate via UI
+        5. Verify the downloaded certificate uses rsaEncryption
+
+    :expectedresults:
+        1. Algorithm can be selected from dropdown
+        2. Debug certificate is generated and downloaded successfully
+        3. Certificate uses the rsaEncryption algorithm
+
+    :Verifies: SAT-48624
+
+    :CaseImportance: High
+    """
+    org = function_org
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org.name)
+
+        # Use airgun to select algorithm and generate certificate via UI
+        local_cert_path = session.organization.generate_debug_cert(org.name, 'rsaEncryption')
+        assert local_cert_path, 'Certificate file was not downloaded'
+
+        # Read the downloaded certificate
+        with open(local_cert_path) as cert_file:
+            cert_content = cert_file.read()
+
+        assert cert_content
+        assert '-----BEGIN CERTIFICATE-----' in cert_content
+
+        # Upload certificate to Satellite for openssl verification
+        remote_cert_path = '/tmp/debug_cert_test.pem'
+        module_target_sat.put(local_path=local_cert_path, remote_path=remote_cert_path)
+
+        try:
+            # Use openssl to verify the certificate uses rsaEncryption
+            result = module_target_sat.execute(f'openssl x509 -in {remote_cert_path} -text -noout')
+            assert result.status == 0
+            cert_text = result.stdout
+
+            # Verify rsaEncryption is in the certificate
+            assert 'rsaEncryption' in cert_text
+        finally:
+            # Clean up remote temporary file
+            module_target_sat.execute(f'rm -f {remote_cert_path}')
+
+
 def test_positive_errata_view_organization_switch(
     session, module_org, module_lce, module_repos_col, module_target_sat
 ):

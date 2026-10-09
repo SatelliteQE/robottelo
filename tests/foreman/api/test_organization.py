@@ -320,3 +320,38 @@ class TestOrganizationUpdate:
         }
         with pytest.raises(HTTPError):
             target_sat.api.Organization(id=module_org.id, **update_dict).update([update_field])
+
+    def test_positive_key_algorithms_endpoint(self, module_org, target_sat):
+        """Verify the key_algorithms API endpoint returns available algorithms
+
+        :id: f11866ac-04f9-4570-8061-b6292d7155af
+
+        :steps:
+            1. Create an organization
+            2. Query the key_algorithms endpoint for that organization
+            3. Verify the response contains algorithm data
+
+        :expectedresults:
+            1. The endpoint returns a 200 status code
+            2. The response contains a 'results' key with algorithm data
+            3. At least one algorithm (rsaEncryption) is returned
+            4. Each algorithm has required fields: oid, name, signature_oid
+
+        :Verifies: SAT-48624
+
+        :CaseImportance: High
+        """
+        # Query the key_algorithms endpoint using nailgun
+        data = module_org.key_algorithms()
+
+        # Verify at least one algorithm is returned (rsaEncryption on non-PQC satellites)
+        algorithms = data['results']
+        assert any(alg['name'] == 'rsaEncryption' for alg in algorithms)
+
+        # Verify each algorithm has required fields
+        for algorithm in algorithms:
+            assert 'oid' in algorithm
+            assert 'name' in algorithm
+            assert 'signature_oid' in algorithm
+            assert algorithm['oid']  # OID should not be empty
+            assert algorithm['name']  # Name should not be empty
