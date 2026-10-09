@@ -268,8 +268,16 @@ def module_import_sat(module_target_sat, satellite_factory):
 
 @pytest.fixture
 def function_import_org_at_isat(module_import_sat):
-    """Creates an Organization for content import."""
-    return module_import_sat.api.Organization().create()
+    """Creates an Organization for content import with the default smart proxy assigned."""
+    org = module_import_sat.api.Organization().create()
+    default_proxy = (
+        module_import_sat.api.SmartProxy()
+        .search(query={'search': f'name={module_import_sat.hostname}'})[0]
+        .read()
+    )
+    default_proxy.organization.append(module_import_sat.api.Organization(id=org.id))
+    default_proxy.update(['organization'])
+    return org
 
 
 @pytest.fixture
