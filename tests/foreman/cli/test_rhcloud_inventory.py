@@ -199,7 +199,7 @@ def test_positive_sync_inventory_status_missing_host_ip(
         'id'
     ]
     update_ip = module_target_sat.execute(
-        f'echo "Host.find({rhcloud_host}).update(ip: nil)" | ALLOW_UNSUPPORTED=true foreman-rake console'
+        f'echo "Host.find({rhcloud_host}).update(ip: nil)" |  foreman-rake console'
     )
     assert 'true' in update_ip.stdout
     result = module_target_sat.execute(cmd)
@@ -372,7 +372,7 @@ def test_positive_generate_all_reports_job(target_sat):
         with target_sat.session.shell() as sh:
             # On foremanctl, foreman-rake is a wrapper that rejects tasks not on its allowlist.
             # ALLOW_UNSUPPORTED=true lets it through. The var is harmless on satellite-installer.
-            sh.send('ALLOW_UNSUPPORTED=true foreman-rake console')
+            sh.send('foreman-rake console')
             time.sleep(30)  # sleep to allow time for console to open
             sh.send(f'ForemanTasks.async_task({generate_report_jobs})')
             time.sleep(3)  # sleep for the cmd execution
