@@ -2407,6 +2407,11 @@ class TestPodman:
         assert image_pull.status == 0
         large_image_id = image_pull.stdout.strip()
         assert large_image_id
+        trust = module_capsule_configured.execute(
+            f'install -D -m 0644 {module_capsule_configured.ca_cert_file} '
+            f'/etc/containers/certs.d/{module_capsule_configured.hostname}/ca.crt'
+        )
+        assert trust.status == 0, trust.stderr
         result = module_capsule_configured.execute(
             f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password} {large_image_id} {module_capsule_configured.hostname}/{IMAGE_NAME_TAG}'
         )

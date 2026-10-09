@@ -75,6 +75,18 @@ def _get_image_tags_count(repo, sat):
     return sat.cli.Repository.info({'id': repo['id']})
 
 
+def _create_satellite_ca_content_credential(sat, org):
+    """Create an SSL CA content credential from the Satellite's own CA cert."""
+    if isinstance(org, dict):
+        org = sat.api.Organization(id=org['id'])
+    return sat.api.ContentCredential(
+        organization=org,
+        name=gen_string('alpha'),
+        content_type='cert',
+        content=sat.session.sftp_read(sat.ca_cert_file, return_data=True),
+    ).create()
+
+
 def _validated_image_tags_count(repo, sat):
     """Wrapper around Repository.info(), that returns once
     container-image-tags in repo is greater than 0.
@@ -1010,6 +1022,8 @@ class TestRepository:
         repo_options_2['organization-id'] = module_org.id
         repo_options_2['product-id'] = prod_2['id']
         repo_options_2['url'] = repo.get('published-at')
+        ca = _create_satellite_ca_content_credential(module_target_sat, module_org)
+        repo_options_2['ssl-ca-cert-id'] = ca.id
         repo_2 = module_target_sat.cli_factory.make_repository(repo_options_2)
         module_target_sat.cli.Repository.update({'id': repo_2['id'], 'description': ['Downstream']})
         repo_2 = module_target_sat.cli.Repository.info({'id': repo_2['id']})
@@ -2273,6 +2287,7 @@ class TestAnsibleCollectionRepository:
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         published_url = repo['published-at']
+        ca = _create_satellite_ca_content_credential(target_sat, import_org)
         # sync from different org
         prod_2 = target_sat.cli_factory.make_product(
             {'organization-id': import_org['id'], 'description': 'Sync from Satellite'}
@@ -2282,6 +2297,7 @@ class TestAnsibleCollectionRepository:
                 'organization-id': import_org['id'],
                 'product-id': prod_2['id'],
                 'url': published_url,
+                'ssl-ca-cert-id': ca.id,
                 'content-type': 'ansible_collection',
                 'ansible-collection-requirements': '{collections: \
                     [{ name: theforeman.operations, version: "0.1.0"}]}',
