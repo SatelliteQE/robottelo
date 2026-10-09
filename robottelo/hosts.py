@@ -2718,22 +2718,25 @@ class Satellite(Capsule, SatelliteMixins):
         return self.execute(f'grep -- {pattern} /var/log/foreman/production.log')
 
     def read_foreman_log(self, since='1 hour ago', lines=100):
-        """Read Foreman's production log, install-method-aware.
+        """Read Foreman and orchestrator logs from journald.
 
-        - satellite-installer: tails ``/var/log/foreman/production.log``.
-        - foremanctl: Foreman logs to journald under the systemd unit ``foreman``.
+        Containerized Satellite logs Foreman and Dynflow orchestration work under
+        separate systemd units. Read both so failures that happen after Foreman hands
+        work to Dynflow are included in the returned log output.
 
-        :param str since: journald time window, only used on foremanctl.
-        :param int lines: number of lines to tail, only used on satellite-installer.
+        :param str since: journald time window.
+        :param int lines: number of journal lines to return.
         :return: The command result.
         """
-        if self.install_method == InstallMethod.FOREMANCTL:
-            return self.execute(
-                f'journalctl --no-pager --unit foreman --since {shlex.quote(since)}'
-            )
-        return self.execute(f'tail -n {lines} /var/log/foreman/production.log')
+        return self.execute(
+            'journalctl --no-pager '
+            '--unit foreman '
+            '--unit dynflow-sidekiq@orchestrator '
+            f'--since {shlex.quote(since)} '
+            f'--lines {int(lines)}'
+        )
 
-    def read_httpd_access_log(self, since='2 min ago', lines=100):
+    def read_httpd_access_log(self, since='1 hour ago', lines=100):
         """Read the Foreman SSL access log, install-method-aware.
 
         - satellite-installer: tails ``/var/log/httpd/foreman-ssl_access_ssl.log``.
@@ -3530,7 +3533,8 @@ class Satellite(Capsule, SatelliteMixins):
         rake_command = 'foreman-rake katello:delete_orphaned_content RAILS_ENV=production'
         if smart_proxy_id:
             rake_command = f'{rake_command} SMART_PROXY_ID={smart_proxy_id}'
-        self.execute(rake_command)
+        result = self.execute(rake_command)
+        assert result.status == 0, result.stderr
         self.wait_for_tasks(
             search_query=(
                 'label = Actions::Katello::OrphanCleanup::RemoveOrphans'
