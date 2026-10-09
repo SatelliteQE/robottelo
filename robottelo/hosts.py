@@ -2008,7 +2008,10 @@ class Satellite(Capsule, SatelliteMixins):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
 
         logger.debug(f'Installing nailgun for new_version: {new_version}')
-        nailgun_ref = 'master' if new_version == 'stream' else f'{new_version}.z'
+        xy_version = (
+            '.'.join(new_version.split('.')[:2]) if new_version != 'stream' else new_version
+        )
+        nailgun_ref = 'master' if new_version == 'stream' else f'{xy_version}.z'
 
         # Use file locking to prevent race conditions when multiple xdist workers
         # try to install/uninstall nailgun simultaneously
