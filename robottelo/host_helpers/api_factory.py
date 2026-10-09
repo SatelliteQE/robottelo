@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from fauxfactory import gen_ipaddr, gen_mac, gen_string
 from nailgun.client import request
 from nailgun.entity_mixins import call_entity_method_with_timeout
+from packaging.version import Version
 from requests import HTTPError
 
 from robottelo.config import settings
@@ -313,6 +314,82 @@ class APIFactory:
             search_query=f'id ^ "{",".join(task["id"] for task in sync_tasks)}"',
             poll_timeout=1800,
         )
+
+    def serve_capsule_container_images(
+        self, org, rhel_major=None, satellite_tag=None, base_image_tags=None
+    ):
+        """Publish the Capsule container images on the Satellite registry.
+
+        Creates a product, one Docker repository per Capsule container image pulling from the
+        foremanctl container registry (``settings.server.container_registry``, the same source
+        the Capsule deploy-proxy uses), and syncs them, so a Capsule can pull its images from
+        the Satellite instead of registry.redhat.io.
+
+        Tags must match what the Capsule requests during deploy-proxy. The satellite/* images
+        are tagged with the Satellite x.y release, the rhelN/* base images with their own tags.
+
+        :param org: organization the product is created in
+        :param rhel_major: RHEL major of the images (default: the Satellite version's RHEL major)
+        :param satellite_tag: tag of the satellite/* images (default: the Satellite x.y release)
+        :param base_image_tags: name-to-tag mapping for the rhelN/* base images (default: latest)
+        :return: registry path (<org_label>/<product_label>) the images publish under
+        """
+        registry = settings.server.container_registry
+        registry_url = registry.url if '://' in registry.url else f'https://{registry.url}'
+        rhel_major = rhel_major or Version(str(settings.server.version.rhel_version)).major
+        if satellite_tag is None:
+            satellite_tag = (
+                'stream'
+                if self._satellite.is_stream
+                else '.'.join(str(settings.server.version.release).split('.')[:2])
+            )
+        base_image_tags = base_image_tags or {}
+        # (name, upstream name, tag); name matches the upstream's final component so the
+        # published path lines up with the mirror on the Capsule.
+        images = [
+            (
+                f'foreman-proxy-rhel{rhel_major}',
+                f'satellite/foreman-proxy-rhel{rhel_major}',
+                satellite_tag,
+            ),
+            (f'pulp-rhel{rhel_major}', f'satellite/pulp-rhel{rhel_major}', satellite_tag),
+            (
+                'postgresql-16',
+                f'rhel{rhel_major}/postgresql-16',
+                base_image_tags.get('postgresql-16', 'latest'),
+            ),
+            ('valkey-8', f'rhel{rhel_major}/valkey-8', base_image_tags.get('valkey-8', 'latest')),
+        ]
+        product = self._satellite.api.Product(
+            name='Capsule Container Images', organization=org
+        ).create()
+        for name, upstream_name, tag in images:
+            self._satellite.api.Repository(
+                name=name,
+                product=product,
+                content_type=REPO_TYPE['docker'],
+                url=registry_url,
+                docker_upstream_name=upstream_name,
+                include_tags=[tag],
+                upstream_username=registry.username,
+                upstream_password=registry.password,
+            ).create()
+        product.sync(timeout=3600)
+        registry_path = f'{org.label}/{product.label}'.lower()
+        # Confirm the images are actually served by the Satellite registry.
+        result = self._satellite.execute(
+            'curl --cacert /var/lib/foremanctl/certs/certs/ca-bundle.crt --silent --fail '
+            f'--user {settings.server.admin_username}:{settings.server.admin_password} '
+            f'https://{self._satellite.hostname}/v2/_catalog'
+        )
+        assert result.status == 0, f'Failed to query Satellite registry catalog:\n{result.stderr}'
+        for name, _, _ in images:
+            expected = f'{registry_path}/{name}'
+            assert expected in result.stdout, (
+                f'Image {expected} not found in Satellite registry catalog:\n{result.stdout}'
+            )
+        # Path follows default registry name pattern <org>/<product>/<repository>
+        return registry_path
 
     def one_to_one_names(self, name):
         """Generate the names Satellite might use for a one to one field.
