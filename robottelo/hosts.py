@@ -2131,14 +2131,18 @@ class Capsule(ContentHost, CapsuleMixins):
         self._satellite = satellite
         method = satellite.install_method
 
-        self.register_to_cdn()
-        # register_to_cdn() -> reset_rhsm() clears _satellite; rebind sat_host.
-        self._satellite = satellite
-        self.setup_rhel_repos()
+        registered_to_sat = (
+            self.subscribed and self.identity.get('registered_to') == satellite.hostname
+        )
+        if not registered_to_sat:
+            self.register_to_cdn()
+            # register_to_cdn() -> reset_rhsm() clears _satellite; rebind sat_host.
+            self._satellite = satellite
+            self.setup_rhel_repos()
+            self.setup_capsule_repos(release=release)
         product_rpm_name = (
             self.container_rpm_name if method == InstallMethod.FOREMANCTL else self.product_rpm_name
         )
-        self.setup_capsule_repos(release=release)
         if method == InstallMethod.FOREMANCTL:
             # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
             self.ensure_podman_installed(enable_ipv6_proxy=True)
