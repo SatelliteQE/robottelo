@@ -16,6 +16,7 @@ import yaml
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import (
+    FAM_ROOT_DIR,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     PUPPET_COMMON_INSTALLER_OPTS,
@@ -525,3 +526,74 @@ class IoPSetup:
             raise SatelliteHostError(f'Failed to disable IoP: {result.stdout}')
         if self.iop_enabled:
             raise SatelliteHostError('IoP is not disabled')
+
+
+class AnsibleCollectionSetup:
+    """Helper for configuring Satellite to be able to run AnsibleCollection test suite."""
+
+    def configure_fam(self):
+        self.register_to_cdn()
+
+        enable_satellite_cmd = InstallerCommand(
+            installer_args=PUPPET_SATELLITE_INSTALLER + ['enable-foreman-compute-libvirt'],
+            installer_opts=PUPPET_COMMON_INSTALLER_OPTS
+            | {
+                'foreman-proxy-dns': 'true',
+                'foreman-proxy-http': 'true',
+                'foreman-proxy-httpboot': 'true',
+            },
+        )
+        result = self.execute(enable_satellite_cmd.get_command(), timeout='20m')
+        assert result.status == 0
+
+        # The tests need pytest, which is only available in codeready-builder
+        self.enable_repo(f'codeready-builder-for-rhel-{self.os_version.major}-x86_64-rpms')
+
+        python = 'python3.12' if self.os_version.major == 9 else 'python3'
+
+        self.execute(
+            f'dnf install -y --disableplugin=foreman-protector ansible-collection-redhat-satellite ansible-core make python3-rpm python3-requests {python}-pytest {python}-pip'
+        )
+        self.execute(f'{python} -m pip install ansible-runner')
+        self.execute(
+            'chmod +x /usr/share/ansible/collections/ansible_collections/redhat/satellite/tests/vcr_python_wrapper.py'
+        )
+
+        self.put(
+            settings.fam.compute_profile.to_yaml(),
+            f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/compute_profile.yml',
+            temp_file=True,
+        )
+
+        # Create fake galaxy.yml to make Makefile happy.
+        # The data in the file is unused, but not being able to load it produces errors in the
+        # logs and is confusing when searching for an actual problem during testing.
+        self.put(
+            yaml.safe_dump({'name': 'satellite', 'namespace': 'redhat', 'version': '1.0.0'}),
+            f'{FAM_ROOT_DIR}/galaxy.yml',
+            temp_file=True,
+        )
+
+        # Edit Makefile to not try to rebuild the collection when tests run
+        self.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
+
+        # Edit inventory configurations
+        self.execute(
+            f"sed -i '/url/ s#http.*#https://{self.hostname}#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+        )
+        self.execute(
+            f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+        )
+
+        # Edit content_import tests
+        # They need to extract data on the Foreman/Satellite machine and use "hosts: foreman" for that
+        # As we're running locally, we can use "hosts: localhost" instead
+        self.execute(
+            f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
+        )
+
+        # Edit katello_smart_proxy tests to not delete the Capsule
+        # https://github.com/theforeman/foreman-ansible-modules/pull/1969
+        self.execute(
+            f"sed -i '94,112d' {FAM_ROOT_DIR}/tests/test_playbooks/katello_smart_proxy.yml"
+        )

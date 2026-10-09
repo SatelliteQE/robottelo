@@ -82,52 +82,14 @@ def install_import_ansible_role(module_target_sat):
     )
 
 
-def common_fam_setup(satellite):
-    satellite.put(
-        settings.fam.compute_profile.to_yaml(),
-        f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/compute_profile.yml',
-        temp_file=True,
-    )
-
-    # Create fake galaxy.yml to make Makefile happy.
-    # The data in the file is unused, but not being able to load it produces errors in the
-    # logs and is confusing when searching for an actual problem during testing.
-    satellite.put(
-        yaml.safe_dump({'name': 'satellite', 'namespace': 'redhat', 'version': '1.0.0'}),
-        f'{FAM_ROOT_DIR}/galaxy.yml',
-        temp_file=True,
-    )
-
-    # Edit Makefile to not try to rebuild the collection when tests run
-    satellite.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
-
-    # Edit Makefile to use passed-in pytest
-    # Can be removed once https://github.com/theforeman/foreman-ansible-modules/pull/1788
-    # is present in all relevant branches
-    satellite.execute(f"sed -i '/test_crud/ s/pytest/$(PYTEST_COMMAND)/' {FAM_ROOT_DIR}/Makefile")
-
-    # Edit inventory configurations
-    satellite.execute(
-        f"sed -i '/url/ s#http.*#https://localhost#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
-    )
-    satellite.execute(
-        f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
-    )
-
-    # Edit content_import tests
-    # They need to extract data on the Foreman/Satellite machine and use "hosts: foreman" for that
-    # As we're running locally, we can use "hosts: localhost" instead
-    satellite.execute(
-        f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
-    )
-
-
 @pytest.fixture(scope='module')
 def setup_fam(
-    module_target_sat, module_sca_manifest, install_import_ansible_role, module_capsule_configured
+    module_target_sat,
+    module_sca_manifest,
+    install_import_ansible_role,
+    module_capsule_configured,
 ):
-    # Execute AAP WF for FAM setup
-    Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
+    module_target_sat.configure_fam()
 
     # Update the settings to point to our Capsule
     settings.set('fam.server.foreman_proxy', module_capsule_configured.hostname)
@@ -137,14 +99,6 @@ def setup_fam(
         settings.fam.server.to_yaml(),
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
         temp_file=True,
-    )
-
-    common_fam_setup(module_target_sat)
-
-    # Edit repos used in tests
-    # Until https://github.com/theforeman/foreman-ansible-modules/pull/1899 is in
-    module_target_sat.execute(
-        f"sed -i 's#https://repos.fedorapeople.org/pulp/pulp/demo_repos/zoo/#https://fixtures.pulpproject.org/rpm-signed/#' {FAM_ROOT_DIR}/tests/test_playbooks/*.yml"
     )
 
     # Upload manifest to test playbooks directory
@@ -194,8 +148,7 @@ def setup_fam(
 
 @pytest.fixture(scope='module')
 def setup_fam_with_idm(idm_sat, module_sca_manifest):
-    # Execute AAP WF for FAM setup
-    Broker().execute(workflow='fam-test-setup', source_vm=idm_sat.name)
+    idm_sat.configure_fam()
 
     # Modify and copy config files to the Satellite
     idm_fam_settings = settings.fam.server.copy()
@@ -214,8 +167,6 @@ def setup_fam_with_idm(idm_sat, module_sca_manifest):
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
         temp_file=True,
     )
-
-    common_fam_setup(idm_sat)
 
     # Upload manifest to test playbooks directory
     idm_sat.put(str(module_sca_manifest.path), str(module_sca_manifest.name))
@@ -261,7 +212,7 @@ def idm_sat(satellite_factory, ad_data):
 
 @pytest.mark.pit_server
 @pytest.mark.run_in_one_thread
-def test_positive_ansible_modules_installation(target_sat):
+def test_positive_ansible_modules_installation(setup_fam, module_target_sat):
     """Foreman ansible modules installation test
 
     :id: 553a927e-2665-4227-8542-0258d7b1ccc4
@@ -270,13 +221,13 @@ def test_positive_ansible_modules_installation(target_sat):
         available and supported modules are contained
     """
     # list installed modules
-    result = target_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
+    result = module_target_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
     assert result.status == 0
     installed_modules = result.stdout.split('\n')
     installed_modules.remove('')
     # see help for installed modules
     for module_name in installed_modules:
-        result = target_sat.execute(f'ansible-doc redhat.satellite.{module_name} -s')
+        result = module_target_sat.execute(f'ansible-doc redhat.satellite.{module_name} -s')
         assert result.status == 0
         doc_name = result.stdout.split('\n')[1].lstrip()[:-1]
         assert doc_name == module_name
