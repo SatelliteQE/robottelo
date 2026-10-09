@@ -10,6 +10,7 @@ import json
 from pathlib import Path, PurePath
 import random
 import re
+from shlex import quote
 import subprocess
 import sys
 from tempfile import NamedTemporaryFile
@@ -2617,9 +2618,36 @@ class Satellite(Capsule, SatelliteMixins):
         :param str pattern: The pattern to grep for.
         :return: The command result.
         """
+        pattern = quote(pattern)
         if self.install_method == InstallMethod.FOREMANCTL:
-            return self.execute(f'journalctl --no-pager --unit foreman | grep "{pattern}"')
-        return self.execute(f'grep "{pattern}" /var/log/foreman/production.log')
+            return self.execute(
+                'tmp=$(mktemp) || exit 2; '
+                'journalctl --no-pager --unit foreman >"$tmp" 2>&1; '
+                'journal_status=$?; '
+                'if [ "$journal_status" -ne 0 ]; then '
+                'cat "$tmp"; rm -f "$tmp"; exit 2; '
+                'fi; '
+                f'grep -- {pattern} "$tmp"; '
+                'grep_status=$?; '
+                'rm -f "$tmp"; '
+                'exit "$grep_status"'
+            )
+        return self.execute(f'grep -- {pattern} /var/log/foreman/production.log')
+
+    def read_httpd_access_log(self, since='1 hour ago', lines=100):
+        """Read the Foreman SSL access log, install-method-aware.
+
+        - satellite-installer: tails ``/var/log/httpd/foreman-ssl_access_ssl.log``.
+        - foremanctl: httpd runs as a quadlet container that writes its vhost access
+          log to journald under the ``httpd-ssl-access`` tag.
+
+        :param str since: journald time window, only used on foremanctl.
+        :param int lines: number of lines to tail, only used on satellite-installer.
+        :return: The command result.
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return self.execute(f"journalctl -t httpd-ssl-access --since '{since}' --no-pager")
+        return self.execute(f'tail -n {lines} /var/log/httpd/foreman-ssl_access_ssl.log')
 
     def grep_dynflow_log(self, pattern):
         """Search Dynflow worker logs for a pattern.
@@ -3403,7 +3431,10 @@ class Satellite(Capsule, SatelliteMixins):
         rake_command = 'foreman-rake katello:delete_orphaned_content RAILS_ENV=production'
         if smart_proxy_id:
             rake_command = f'{rake_command} SMART_PROXY_ID={smart_proxy_id}'
-        self.execute(rake_command)
+        if self.install_method == InstallMethod.FOREMANCTL:
+            rake_command = f'podman exec foreman {rake_command}'
+        result = self.execute(rake_command)
+        assert result.status == 0, result.stderr
         self.wait_for_tasks(
             search_query=(
                 'label = Actions::Katello::OrphanCleanup::RemoveOrphans'
