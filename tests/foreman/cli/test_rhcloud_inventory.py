@@ -86,16 +86,16 @@ def test_positive_inventory_generate_upload_cli(
     :CaseAutomation: Automated
     """
     org = rhcloud_manifest_org
-    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
+    # On foremanctl, foreman-rake is a wrapper that rejects tasks not on its allowlist.
+    # ALLOW_UNSUPPORTED=true lets it through. The var is harmless on satellite-installer.
+    cmd = f'ALLOW_UNSUPPORTED=true organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
     upload_success_msg = f"Generated and uploaded inventory report for organization '{org.name}'"
     result = module_target_sat.execute(cmd)
     assert result.status == 0
     assert upload_success_msg in result.stdout
 
     local_report_path = robottelo_tmp_dir.joinpath(f'report_for_{org.id}.tar.xz')
-    remote_report_path = (
-        f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    )
+    remote_report_path = f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     wait_for(
         lambda: module_target_sat.get(
             remote_path=str(remote_report_path), local_path=str(local_report_path)
@@ -144,7 +144,9 @@ def test_positive_inventory_recommendation_sync(
     :CaseAutomation: Automated
     """
     org = rhcloud_manifest_org
-    cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
+    # On foremanctl, foreman-rake is a wrapper that rejects tasks not on its allowlist.
+    # ALLOW_UNSUPPORTED=true lets it through. The var is harmless on satellite-installer.
+    cmd = f'ALLOW_UNSUPPORTED=true organization_id={org.id} foreman-rake rh_cloud_insights:sync'
     timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     result = module_target_sat.execute(cmd)
     wait_for(
@@ -188,14 +190,16 @@ def test_positive_sync_inventory_status_missing_host_ip(
     :customerscenario: true
     """
     org = rhcloud_manifest_org
-    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
+    # On foremanctl, foreman-rake is a wrapper that rejects tasks not on its allowlist.
+    # ALLOW_UNSUPPORTED=true lets it through. The var is harmless on satellite-installer.
+    cmd = f'ALLOW_UNSUPPORTED=true organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
     success_msg = f"Synchronized inventory for organization '{org.name}'"
     timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})[
         'id'
     ]
     update_ip = module_target_sat.execute(
-        f'echo "Host.find({rhcloud_host}).update(ip: nil)" | foreman-rake console'
+        f'echo "Host.find({rhcloud_host}).update(ip: nil)" |  foreman-rake console'
     )
     assert 'true' in update_ip.stdout
     result = module_target_sat.execute(cmd)
@@ -366,6 +370,8 @@ def test_positive_generate_all_reports_job(target_sat):
     try:
         target_sat.update_setting('allow_auto_inventory_upload', False)
         with target_sat.session.shell() as sh:
+            # On foremanctl, foreman-rake is a wrapper that rejects tasks not on its allowlist.
+            # ALLOW_UNSUPPORTED=true lets it through. The var is harmless on satellite-installer.
             sh.send('foreman-rake console')
             time.sleep(30)  # sleep to allow time for console to open
             sh.send(f'ForemanTasks.async_task({generate_report_jobs})')
@@ -411,18 +417,16 @@ def test_positive_generate_reports_job_cli(
 
     # Clean up any existing reports for this organization to ensure clean state
     module_target_sat.execute(
-        f'rm -f /var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
+        f'rm -f /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     )
     module_target_sat.execute(
-        f'rm -f /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+        f'rm -f /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
     )
 
     generate_report(org, module_target_sat, disconnected=False)
 
     # Verify report was uploaded by checking it exists in the done/ folder
-    remote_report_path = (
-        f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    )
+    remote_report_path = f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     result = module_target_sat.execute(f'test -f {remote_report_path} && echo "exists"')
     assert result.status == 0, (
         f"Report check command failed with status {result.status}: {result.stderr}"
@@ -453,17 +457,19 @@ def test_positive_generate_reports_job_cli_disconnected(
 
     # Clean up any existing reports for this organization to ensure clean state
     module_target_sat.execute(
-        f'rm -f /var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
+        f'rm -f /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
     )
     module_target_sat.execute(
-        f'rm -f /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+        f'rm -f /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
     )
 
     generate_report(org, module_target_sat, disconnected=True)
 
     # Verify report was NOT uploaded by checking it's in generated_reports/, not done/
-    generated_reports_dir = '/var/lib/foreman/red_hat_inventory/generated_reports'
-    done_dir = '/var/lib/foreman/red_hat_inventory/uploads/done'
+    generated_reports_dir = '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports'
+    done_dir = (
+        '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done'
+    )
 
     # Check report exists in generated_reports/
     result = module_target_sat.execute(
