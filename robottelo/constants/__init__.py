@@ -318,6 +318,7 @@ REPOSET = {
     'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (RPMs)',
     'rhel10_bos': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS (RPMs)',
     'rhel10_aps': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream (RPMs)',
+    'rhel10_ext': 'Red Hat Enterprise Linux 10 for x86_64 - Extensions (RPMs)',
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
@@ -710,6 +711,17 @@ REPOS = {
         'distro': 'rhel10',
         'key': 'rhel10_aps',
     },
+    'rhel10_ext': {
+        'id': 'rhel-10-for-x86_64-extensions-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - Extensions RPMs 10',
+        'releasever': '10',
+        'basearch': 'x86_64',
+        'version': '10',
+        'reposet': REPOSET['rhel10_ext'],
+        'product': PRDS['rhel10'],
+        'distro': 'rhel10',
+        'key': 'rhel10_ext',
+    },
     'rhel7_optional': {
         'id': 'rhel-7-server-optional-rpms',
         'name': 'Red Hat Enterprise Linux 7 Server - Optional RPMs x86_64 7Server',
@@ -782,7 +794,9 @@ DEFAULT_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux Server, Premium (Physical 
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
-DEFAULT_OS_SEARCH_QUERY = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
+DEFAULT_OS_SEARCH_QUERY = (
+    'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9" OR major="10")'
+)
 
 
 TIMESTAMP_FMT_ZONE = '%Y-%m-%d %H:%M:%S %Z'  # timezone-aware format (by code: UTC, EST, etc)
@@ -878,7 +892,6 @@ CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
-CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
 CONTAINER_CERTS_PATH = "/etc/containers/certs.d/"
 CERT_DATA = {
     'capsule_hostname': 'capsule.example.com',
@@ -966,7 +979,7 @@ REAL_RHEL9_OUTDATED_PACKAGE_FILENAME = 'python3-gofer-2.12.5-7.1.el9sat.noarch'
 REAL_RHEL9_PACKAGE = 'python3-gofer'
 REAL_RHEL10_OUTDATED_PACKAGE_FILENAME = 'katello-host-tools-4.4.0-1.el10sat.noarch'
 REAL_RHEL10_PACKAGE = 'katello-host-tools'
-REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # for rhst7 (update every GA day)
+REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # immutable; from EOL/frozen rhst7 (Sat Tools 6.9, RHEL7)
 REAL_1_ERRATA_ID = 'RHBA-2012:1076'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHBA-2012:0707'  # for REAL_0_RH_PACKAGE
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
@@ -2111,12 +2124,6 @@ BOOKMARK_ENTITIES_SELECTION = [
         'controller': 'provisioning_templates',
         'session_name': 'provisioningtemplate',
     },
-    {
-        'name': 'ArfReport',
-        'controller': 'arf_reports',
-        'session_name': 'arfreport',
-        'skip_for_ui': True,  # search bar is only available when reports exist; otherwise the welcome page renders
-    },
 ]
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
@@ -2606,6 +2613,16 @@ class InstallationServices:
         'tomcat',
     ]
 
+    INSTALLER_CAPSULE_SERVICES = [
+        'foreman-proxy',
+        'httpd',
+        'postgresql',
+        'pulpcore-api',
+        'pulpcore-content',
+        'pulpcore-worker@*',
+        'redis',
+    ]
+
     # foremanctl quadlet container services
     FOREMANCTL_SERVICES = [
         'candlepin',
@@ -2622,9 +2639,17 @@ class InstallationServices:
         'valkey',
     ]
 
-    # IoP (Insights on Prem) services. These run as podman containers regardless
-    # of the core install method, so the same names apply to both. They only
-    # exist while IoP is enabled, so they are opt-in via get_service_names().
+    FOREMANCTL_CAPSULE_SERVICES = [
+        'foreman-proxy',
+        'httpd',
+        'postgresql',
+        'pulp-api',
+        'pulp-content',
+        'pulp-worker@*',
+        'valkey',
+    ]
+
+    # IoP (Insights on Prem) quadlet container services, only present while IoP is enabled
     IOP_SERVICES = [
         'iop-core-engine',
         'iop-core-gateway',
