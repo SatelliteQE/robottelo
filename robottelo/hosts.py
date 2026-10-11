@@ -1864,10 +1864,13 @@ class Capsule(ContentHost, CapsuleMixins):
 
     @property
     def rex_pub_key(self):
-        if settings.server.install_method == InstallMethod.FOREMANCTL:
+        if self.install_method == InstallMethod.FOREMANCTL:
             if 'remote-execution' in self.list_foremanctl_features(enabled=True):
                 result = self.execute(
-                    f"podman exec foreman-proxy bash -c 'cat {self.rex_key_path}'"
+                    'podman exec foreman-proxy '
+                    'bash -c \'cat '
+                    '$(getent passwd foreman-proxy | cut -d: -f6)'
+                    '/.ssh/id_rsa_foreman_proxy.pub\''
                 )
             else:
                 raise SatelliteHostError('remote-execution feature is not enabled')
