@@ -89,6 +89,25 @@ def module_autosync_setting(request, module_target_sat, module_capsule_configure
     setting_entity.update({'value'})
 
 
+@pytest.fixture(scope='module')
+def module_capsule_podman_contenthost(
+    module_podman_contenthost,
+    module_capsule_configured,
+    module_org,
+    module_activation_key,
+):
+    """A podman content host registered to Capsule and trusting the Capsule registry."""
+    result = module_podman_contenthost.register(
+        module_org,
+        None,
+        module_activation_key.name,
+        module_capsule_configured,
+        setup_container_certs=True,
+    )
+    assert result.status == 0, f'Failed to register host to Capsule: {result.stderr}'
+    return module_podman_contenthost
+
+
 @pytest.mark.run_in_one_thread
 class TestCapsuleContentManagement:
     """Content Management related tests, which exercise katello with pulp
@@ -2380,41 +2399,33 @@ class TestPodman:
 
     def test_negative_podman_capsule_push(
         self,
-        module_target_sat,
-        module_product,
-        module_org,
-        module_lce,
         module_capsule_configured,
+        module_capsule_podman_contenthost,
     ):
-        """Attempt to push a Podman image to a Capsule/Smart Proxy
+        """Attempt to push a Podman image from a content host to a Capsule/Smart Proxy
 
         :id: 310f629a-837a-4457-980e-d2f4345b495e
 
         :steps:
-            1. Using podman, pull an image from the fedoraproject registry.
-            2. Attempt to push this image to a Capsule/Smart Proxy
+            1. On a content host, use podman to pull an image from the fedoraproject registry.
+            2. Attempt to push this image from the content host to a Capsule/Smart Proxy.
 
         :expectedresults: Podman containers cannot be pushed to a Capsule/Smart Proxy and an appropriate
             error is returned when attempting to do so.
 
         :CaseImportance: High
         """
-        module_capsule_configured.ensure_podman_installed(enable_ipv6_proxy=True)
         IMAGE_NAME_TAG = 'fedora:latest'
-        image_pull = module_capsule_configured.execute(
+        image_pull = module_capsule_podman_contenthost.execute(
             f'podman pull registry.fedoraproject.org/{IMAGE_NAME_TAG}'
         )
         assert image_pull.status == 0
         large_image_id = image_pull.stdout.strip()
         assert large_image_id
-        trust = module_capsule_configured.execute(
-            f'install -D -m 0644 {module_capsule_configured.ca_cert_file} '
-            f'/etc/containers/certs.d/{module_capsule_configured.hostname}/ca.crt'
-        )
-        assert trust.status == 0, trust.stderr
-        result = module_capsule_configured.execute(
+        result = module_capsule_podman_contenthost.execute(
             f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password} {large_image_id} {module_capsule_configured.hostname}/{IMAGE_NAME_TAG}'
         )
+        assert result.status != 0
         assert 'Pushing content is unsupported' in result.stderr
 
     def test_negative_login_without_pass(
