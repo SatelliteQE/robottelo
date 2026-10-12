@@ -5,6 +5,7 @@ import os
 from pathlib import PurePath
 import random
 import re
+import shlex
 from urllib.parse import urljoin
 from urllib.request import urlopen
 
@@ -486,6 +487,11 @@ class ProvisioningSetup:
         :param server_fqdn: Libvirt server FQDN
         :return: None
         """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            # Foremanctl keeps the application user inside the container, not on the host.
+            self._configure_foremanctl_libvirt_cr(server_fqdn)
+            return
+
         # Generate SSH key-pair for foreman user and copy public key to libvirt server
         self.execute('sudo -u foreman ssh-keygen -q -t rsa -f ~foreman/.ssh/id_rsa -N "" <<< y')
         self.execute('echo "StrictHostKeyChecking accept-new" >> ~foreman/.ssh/config')
@@ -500,6 +506,121 @@ class ProvisioningSetup:
             f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
         )
         assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
+
+    def _configure_foremanctl_libvirt_cr(self, server_fqdn):
+        """Configure SSH access for Foreman's containerized application user."""
+        # Read the account from the image instead of assuming a fixed UID or home directory.
+        account = self.execute('podman exec foreman getent passwd foreman')
+        assert account.status == 0, (
+            f'Could not find the foreman account in the Foreman container:\n'
+            f'{account.stdout=}\n{account.stderr=}'
+        )
+        account_fields = account.stdout.strip().split(':')
+        assert len(account_fields) == 7, (
+            f'Unexpected foreman account entry in the Foreman container: {account.stdout!r}'
+        )
+        assert account_fields[0] == 'foreman', (
+            f'Unexpected user in the Foreman container account entry: {account.stdout!r}'
+        )
+        foreman_uid, foreman_gid, foreman_home = (
+            account_fields[2],
+            account_fields[3],
+            account_fields[5],
+        )
+        assert foreman_uid.isdecimal(), f'Invalid foreman UID: {foreman_uid!r}'
+        assert foreman_gid.isdecimal(), f'Invalid foreman GID: {foreman_gid!r}'
+        assert foreman_home.startswith('/'), f'Invalid foreman home directory: {foreman_home!r}'
+        assert ':' not in foreman_home, f'Invalid foreman home directory: {foreman_home!r}'
+        ssh_dir = f'{foreman_home.rstrip("/")}/.ssh'
+        container_identity = f'{ssh_dir}/id_rsa'
+        container_config = f'{ssh_dir}/config'
+
+        key_dir_result = self.execute('mktemp -d /tmp/robottelo-libvirt.XXXXXX')
+        assert key_dir_result.status == 0, (
+            f'Could not create a temporary SSH key directory:\n'
+            f'{key_dir_result.stdout=}\n{key_dir_result.stderr=}'
+        )
+        key_dir = key_dir_result.stdout.strip()
+        identity = f'{key_dir}/id_rsa'
+        public_identity = f'{identity}.pub'
+
+        try:
+            # Reuse the container key so repeated setup does not add new keys to authorized_keys.
+            key_check = (
+                f'test -s {shlex.quote(container_identity)} && '
+                f'test -s {shlex.quote(f"{container_identity}.pub")}'
+            )
+            existing_key = self.execute(
+                f'podman exec --user 0 foreman sh -c {shlex.quote(key_check)}'
+            )
+            if existing_key.status:
+                # Create the initial SSH key pair on the Satellite, then copy it into Foreman's container.
+                result = self.execute(f'ssh-keygen -q -t rsa -f {shlex.quote(identity)} -N ""')
+                assert result.status == 0, f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+
+                for source, destination in (
+                    (identity, container_identity),
+                    (public_identity, f'{container_identity}.pub'),
+                ):
+                    result = self.execute(
+                        f'podman cp {shlex.quote(source)} {shlex.quote(f"foreman:{destination}")}'
+                    )
+                    assert result.status == 0, (
+                        f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+                    )
+            else:
+                # ssh-copy-id needs both key files to detect an already-installed key.
+                for source in (container_identity, f'{container_identity}.pub'):
+                    result = self.execute(
+                        f'podman cp {shlex.quote(f"foreman:{source}")} {shlex.quote(key_dir)}'
+                    )
+                    assert result.status == 0, (
+                        f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+                    )
+
+            # ssh-copy-id runs on the host; it installs the public half on the libvirt server.
+            result = self.execute(
+                f'sshpass -p {shlex.quote(settings.server.ssh_password)} ssh-copy-id '
+                f'-o StrictHostKeyChecking=no -i {shlex.quote(identity)} '
+                f'{shlex.quote(f"root@{server_fqdn}")}'
+            )
+            assert result.status == 0, f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+
+            # Keep any existing SSH settings, adding non-interactive host-key acceptance once.
+            strict_host_checking = 'StrictHostKeyChecking accept-new'
+            config_command = (
+                f'touch {shlex.quote(container_config)} && '
+                f'if ! grep -qFx {shlex.quote(strict_host_checking)} '
+                f'{shlex.quote(container_config)}; then '
+                f'printf "%s\\n" {shlex.quote(strict_host_checking)} '
+                f'>> {shlex.quote(container_config)}; fi'
+            )
+            permissions_command = ' && '.join(
+                (
+                    f'chown -R {foreman_uid}:{foreman_gid} {shlex.quote(ssh_dir)}',
+                    f'chmod 0700 {shlex.quote(ssh_dir)}',
+                    f'chmod 0600 {shlex.quote(container_identity)}',
+                    f'chmod 0644 {shlex.quote(f"{container_identity}.pub")}',
+                    f'chmod 0600 {shlex.quote(container_config)}',
+                )
+            )
+            for command in (config_command, permissions_command):
+                result = self.execute(f'podman exec --user 0 foreman sh -c {shlex.quote(command)}')
+                assert result.status == 0, f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+
+            # Verify SSH using the same container account and home that libvirt will use.
+            result = self.execute(
+                f'podman exec --user {foreman_uid}:{foreman_gid} '
+                f'--env HOME={shlex.quote(foreman_home)} foreman ssh '
+                f'-i {shlex.quote(container_identity)} -o BatchMode=yes '
+                f'-o IdentitiesOnly=yes {shlex.quote(f"root@{server_fqdn}")} true'
+            )
+            assert result.status == 0, (
+                f'Foreman container could not SSH to the Libvirt server:\n'
+                f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+            )
+        finally:
+            self.execute(f'rm -rf -- {shlex.quote(key_dir)}')
 
     def provisioning_cleanup(self, hostname, interface='API'):
         if interface == 'CLI':
