@@ -2214,10 +2214,13 @@ def change_content_source_prep(
         content_view_environment_ids=[cvenv_id], organization=org.id
     ).create()
 
-    # Edit capsule's taxonomies
-    capsule = module_target_sat.cli.Capsule.update(
+    capsule = module_capsule_configured
+    content_capsule_id = capsule.nailgun_capsule.id
+
+    # Assign taxonomies and content to the same content-serving proxy.
+    module_target_sat.cli.Capsule.update(
         {
-            'name': module_capsule_configured.hostname,
+            'id': content_capsule_id,
             'organization-ids': org.id,
             'location-ids': loc.id,
         }
@@ -2225,7 +2228,7 @@ def change_content_source_prep(
 
     module_target_sat.cli.Capsule.content_add_lifecycle_environment(
         {
-            'id': module_capsule_configured.nailgun_capsule.id,
+            'id': content_capsule_id,
             'organization-id': org.id,
             'lifecycle-environment': lce.name,
         }
@@ -2268,15 +2271,15 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
             entities_list=[
                 rhel_contenthost.hostname,
             ],
-            content_source=capsule[0]['name'],
+            content_source=capsule.content_hostname,
             lce=lce.name,
             content_view=content_view.name,
         )
         rhel_contenthost_post_values = rhel_contenthost.nailgun_host.content_facet_attributes
         content_source_from_script = re.search(r'--server.hostname=\"(.*?)\"', generated_script)
 
-        assert content_source_from_script.group(1) == capsule[0]['name']
-        assert rhel_contenthost_post_values['content_source']['name'] == capsule[0]['name']
+        assert content_source_from_script.group(1) == capsule.hostname
+        assert rhel_contenthost_post_values['content_source']['name'] == capsule.content_hostname
         assert rhel_contenthost_post_values['content_view']['name'] == content_view.name
         assert rhel_contenthost_post_values['lifecycle_environment']['name'] == lce.name
 
