@@ -815,6 +815,8 @@ def test_positive_end_to_end_with_image(
 
     :expectedresults: A host is created with expected image, image is removed and
         host is updated with expected image
+
+    :BlockedBy: SAT-44974
     """
     # Configure SSH authentication for libvirt connection before creating image
     module_target_sat.configure_libvirt_cr(server_fqdn=libvirt.fqdn)
