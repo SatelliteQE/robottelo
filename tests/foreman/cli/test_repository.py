@@ -12,6 +12,7 @@
 
 """
 
+from contextlib import suppress
 from random import choice
 from string import punctuation
 
@@ -75,16 +76,26 @@ def _get_image_tags_count(repo, sat):
     return sat.cli.Repository.info({'id': repo['id']})
 
 
-def _create_satellite_ca_content_credential(sat, org):
+def _create_satellite_ca_content_credential(sat, org, request):
     """Create an SSL CA content credential from the Satellite's own CA cert."""
     if isinstance(org, dict):
         org = sat.api.Organization(id=org['id'])
-    return sat.api.ContentCredential(
+    cert_content = sat.session.sftp_read(sat.ca_cert_file, return_data=True)
+    if isinstance(cert_content, bytes):
+        cert_content = cert_content.decode()
+    credential = sat.api.ContentCredential(
         organization=org,
         name=gen_string('alpha'),
         content_type='cert',
-        content=sat.session.sftp_read(sat.ca_cert_file, return_data=True),
+        content=cert_content,
     ).create()
+
+    def _delete_credential():
+        with suppress(Exception):
+            credential.delete()
+
+    request.addfinalizer(_delete_credential)
+    return credential
 
 
 def _validated_image_tags_count(repo, sat):
@@ -979,7 +990,9 @@ class TestRepository:
             ]
         ),
     )
-    def test_mirror_on_sync_removes_rpm(self, module_org, repo, repo_options_2, module_target_sat):
+    def test_mirror_on_sync_removes_rpm(
+        self, request, module_org, repo, repo_options_2, module_target_sat
+    ):
         """
             Check that a package removed upstream is removed downstream when the repo
             is next synced if mirror-on-sync is enabled (the default setting).
@@ -1022,7 +1035,7 @@ class TestRepository:
         repo_options_2['organization-id'] = module_org.id
         repo_options_2['product-id'] = prod_2['id']
         repo_options_2['url'] = repo.get('published-at')
-        ca = _create_satellite_ca_content_credential(module_target_sat, module_org)
+        ca = _create_satellite_ca_content_credential(module_target_sat, module_org, request)
         repo_options_2['ssl-ca-cert-id'] = ca.id
         repo_2 = module_target_sat.cli_factory.make_repository(repo_options_2)
         module_target_sat.cli.Repository.update({'id': repo_2['id'], 'description': ['Downstream']})
@@ -2271,7 +2284,7 @@ class TestAnsibleCollectionRepository:
         ids=['ansible_galaxy'],
         indirect=True,
     )
-    def test_positive_sync_ansible_collection_from_satellite(self, repo, target_sat):
+    def test_positive_sync_ansible_collection_from_satellite(self, request, repo, target_sat):
         """Sync ansible collection from another organization
 
         :id: f7897a56-d014-4189-b4c7-df8f15aaf30a
@@ -2286,7 +2299,7 @@ class TestAnsibleCollectionRepository:
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         published_url = repo['published-at']
-        ca = _create_satellite_ca_content_credential(target_sat, import_org)
+        ca = _create_satellite_ca_content_credential(target_sat, import_org, request)
         # sync from different org
         prod_2 = target_sat.cli_factory.make_product(
             {'organization-id': import_org['id'], 'description': 'Sync from Satellite'}
