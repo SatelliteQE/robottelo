@@ -54,8 +54,7 @@ def enable_cloud_connector(target_sat):
 def test_positive_inventory_generate_upload_cli(
     rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat
 ):
-    """Tests Insights inventory generation and upload via foreman-rake commands:
-    https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
+    """Tests Insights inventory generation and upload via hammer CLI.
 
     :id: f2da9506-97d4-4d1c-b373-9f71a52b8ab8
 
@@ -64,35 +63,42 @@ def test_positive_inventory_generate_upload_cli(
     :steps:
 
         0. Create a VM and register to insights within org having manifest.
-        1. Generate and upload report for all organizations
-            # /usr/sbin/foreman-rake rh_cloud_inventory:report:generate_upload
-        2. Generate and upload report for specific organization
-            # export organization_id=1
-            # /usr/sbin/foreman-rake rh_cloud_inventory:report:generate_upload
-        3. Generate report for specific organization (don't upload)
-            # export organization_id=1
-            # export target=/var/lib/foreman/red_hat_inventory/generated_reports/
-            # /usr/sbin/foreman-rake rh_cloud_inventory:report:generate
-        4. Upload previously generated report
-            (needs to be named 'report_for_#{organization_id}.tar.gz')
-            # export organization_id=1
-            # export target=/var/lib/foreman/red_hat_inventory/generated_reports/
-            # /usr/sbin/foreman-rake rh_cloud_inventory:report:upload
+        1. Generate and upload report for specific organization using hammer CLI:
+            # hammer insights inventory generate-report --organization-id=1
+        2. Wait for the report generation task to complete.
+        3. Verify the report is uploaded to the done/ directory.
 
-    :expectedresults: Inventory is generated and uploaded to cloud.redhat.com.
+    :expectedresults:
+        1. Report generation task completes successfully.
+        2. Report is generated and uploaded to cloud.redhat.com.
+        3. Report file is accessible and contains valid host data.
 
     :BZ: 1957129, 1895953, 1956190
 
     :CaseAutomation: Automated
     """
     org = rhcloud_manifest_org
-    # On foremanctl, foreman-rake is a wrapper that rejects tasks not on its allowlist.
-    # ALLOW_UNSUPPORTED=true lets it through. The var is harmless on satellite-installer.
-    cmd = f'ALLOW_UNSUPPORTED=true organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
-    upload_success_msg = f"Generated and uploaded inventory report for organization '{org.name}'"
-    result = module_target_sat.execute(cmd)
-    assert result.status == 0
-    assert upload_success_msg in result.stdout
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
+
+    # Use hammer CLI to generate and upload report
+    result = module_target_sat.cli.Insights.inventory_generate_report({'organization-id': org.id})
+    success_msg = "Report generation started successfully"
+    assert success_msg in result
+
+    # Wait for report generation to complete
+    generate_job_name = 'ForemanInventoryUpload::Async::HostInventoryReportJob'
+    wait_for(
+        lambda: (
+            module_target_sat.api.ForemanTask()
+            .search(query={'search': f'{generate_job_name} and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success'
+        ),
+        timeout=400,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
 
     local_report_path = robottelo_tmp_dir.joinpath(f'report_for_{org.id}.tar.xz')
     remote_report_path = f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
@@ -170,18 +176,18 @@ def test_positive_sync_inventory_status_missing_host_ip(
     rhcloud_registered_hosts,
     module_target_sat,
 ):
-    """Sync inventory status via foreman-rake commands with missing IP.
+    """Sync inventory status via hammer CLI with missing IP.
 
     :id: 372c03df-038b-49fb-a509-bb28edf178f3
 
     :steps:
 
         1. Create a vm and register to insights within org having manifest.
-        2. Remove IP from host.
-        3. Sync inventory status for specific organization.
-            # export organization_id=1
-            # /usr/sbin/foreman-rake rh_cloud_inventory:sync
-
+        2. Remove IP from host using foreman-rake console.
+        3. Sync inventory status for specific organization using hammer CLI:
+            # hammer insights inventory sync --organization-id=1
+        4. Wait for sync task to complete.
+        5. Verify sync task output shows correct host status counts.
 
     :expectedresults: Inventory status is successfully synced for satellite host with missing IP.
 
@@ -190,10 +196,6 @@ def test_positive_sync_inventory_status_missing_host_ip(
     :customerscenario: true
     """
     org = rhcloud_manifest_org
-    # On foremanctl, foreman-rake is a wrapper that rejects tasks not on its allowlist.
-    # ALLOW_UNSUPPORTED=true lets it through. The var is harmless on satellite-installer.
-    cmd = f'ALLOW_UNSUPPORTED=true organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
-    success_msg = f"Synchronized inventory for organization '{org.name}'"
     timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})[
         'id'
@@ -202,9 +204,11 @@ def test_positive_sync_inventory_status_missing_host_ip(
         f'echo "Host.find({rhcloud_host}).update(ip: nil)" |  foreman-rake console'
     )
     assert 'true' in update_ip.stdout
-    result = module_target_sat.execute(cmd)
-    assert result.status == 0
-    assert success_msg in result.stdout
+
+    # Use hammer CLI to sync inventory status
+    result = module_target_sat.cli.Insights.inventory_sync({'organization-id': org.id})
+    success_msg = "Inventory sync task started successfully"
+    assert success_msg in result
     # Check task details
     wait_for(
         lambda: (
