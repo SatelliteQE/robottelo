@@ -45,8 +45,9 @@ def sync_roles(target_sat):
     yield {'task': sync, 'roles': roles}
     roles_list = target_sat.cli.Ansible.roles_list()
     for role in roles_list:
-        role_id = role.get('id')
-        target_sat.cli.Ansible.roles_delete({'id': role_id})
+        if role.get('name') in roles:
+            role_id = role.get('id')
+            target_sat.cli.Ansible.roles_delete({'id': role_id})
 
 
 @pytest.fixture(scope='module')
