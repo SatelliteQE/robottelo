@@ -79,20 +79,32 @@ if [[ -z "$LABEL" ]]; then
   exit 1
 fi
 
-if ! gh label list --repo "$REPO" --search "$LABEL" --json name \
-    | jq -e --arg l "$LABEL" 'any(.[]; .name == $l)' >/dev/null; then
+if ! LABELS=$(gh label list --repo "$REPO" --search "$LABEL" --json name); then
+  echo "Failed to list labels in $REPO." >&2
+  exit 1
+fi
+
+if ! jq -e --arg l "$LABEL" 'any(.[]; .name == $l)' >/dev/null <<<"$LABELS"; then
   echo "Label '$LABEL' does not exist in $REPO -- create it first (or check the name)." >&2
   exit 1
 fi
 
-echo "Fetching open, non-draft PRs targeting $BASE_BRANCH without the '$LABEL' label..."
+echo "Fetching open, non-draft PRs targeting $BASE_BRANCH that need '$LABEL'..."
+
+# --paginate retrieves every page rather than silently stopping at gh's
+# default/explicit result limit. --slurp combines the page arrays into one
+# JSON value before flattening them below.
+PR_DATA=$(gh api --method GET --paginate --slurp "repos/$REPO/pulls" \
+  -f state=open -f base="$BASE_BRANCH" -f per_page=100)
 
 mapfile -t PR_ENTRIES < <(
-  gh pr list --repo "$REPO" --state open --base "$BASE_BRANCH" \
-    --json number,isDraft,labels --limit 300 \
-  | jq -r --arg l "$LABEL" \
-      '.[] | select(.isDraft == false) | select([.labels[].name] | index($l) | not) |
-       [.number, ([.labels[].name] | index("No-CherryPick") != null)] | @tsv'
+  jq -r --arg label "$LABEL" '
+    flatten[]
+    | select(.draft == false)
+    | {number, labels: [.labels[].name]}
+    | select((.labels | index($label) | not) or (.labels | index("No-CherryPick") != null))
+    | @base64
+  ' <<<"$PR_DATA"
 )
 
 if [[ ${#PR_ENTRIES[@]} -eq 0 ]]; then
@@ -100,27 +112,42 @@ if [[ ${#PR_ENTRIES[@]} -eq 0 ]]; then
   exit 0
 fi
 
-echo "Found ${#PR_ENTRIES[@]} PR(s) to label."
+echo "Found ${#PR_ENTRIES[@]} PR(s) to label or repair."
 
 for entry in "${PR_ENTRIES[@]}"; do
-  pr="${entry%%$'\t'*}"
-  has_no_cherrypick="${entry##*$'\t'}"
+  pr_data=$(printf '%s' "$entry" | base64 --decode)
+  pr=$(jq -r '.number' <<<"$pr_data")
+  labels=$(jq -c '.labels' <<<"$pr_data")
+  has_no_cherrypick=$(jq -r 'index("No-CherryPick") != null' <<<"$labels")
+  has_label=$(jq -r --arg label "$LABEL" 'index($label) != null' <<<"$labels")
 
   if [[ "$DRY_RUN" == true ]]; then
-    echo "[dry-run] would label #$pr with $LABEL"
-    if [[ "$has_no_cherrypick" == "true" ]]; then
-      echo "[dry-run] would flip #$pr from No-CherryPick to CherryPick"
+    if [[ "$has_label" == true ]]; then
+      echo "[dry-run] would repair #$pr: flip No-CherryPick to CherryPick"
+    else
+      echo "[dry-run] would label #$pr with $LABEL"
+      if [[ "$has_no_cherrypick" == true ]]; then
+        echo "[dry-run] would also flip #$pr from No-CherryPick to CherryPick"
+      fi
     fi
     continue
   fi
 
-  echo "Labeling #$pr..."
-  gh pr edit "$pr" --repo "$REPO" --add-label "$LABEL"
+  updated_labels=$(jq -c --arg label "$LABEL" '
+    .
+    | if index($label) == null then . + [$label] else . end
+    | if index("No-CherryPick") != null
+      then map(select(. != "No-CherryPick"))
+      | if index("CherryPick") == null then . + ["CherryPick"] else . end
+      else .
+      end
+  ' <<<"$labels")
 
-  if [[ "$has_no_cherrypick" == "true" ]]; then
-    echo "  #$pr had No-CherryPick -- flipping to CherryPick"
-    gh pr edit "$pr" --repo "$REPO" --remove-label "No-CherryPick" --add-label "CherryPick"
-  fi
+  echo "Updating labels on #$pr..."
+  # Replace all labels in one request. Besides avoiding a partial transition,
+  # this also lets a rerun repair a PR where an earlier invocation only added
+  # the z-stream label before failing to flip No-CherryPick.
+  gh api --method PUT "repos/$REPO/issues/$pr/labels" --input - <<<"{\"labels\":$updated_labels}"
 done
 
 echo "Done."
