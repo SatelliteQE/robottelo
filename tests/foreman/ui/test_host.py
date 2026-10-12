@@ -1316,7 +1316,7 @@ def test_positive_validate_inherited_cvenv_ansiblerole(session, target_sat, modu
 
     :BZ: 1391656, 2094912
     """
-    SELECTED_ROLE = 'RedHatInsights.insights-client'
+    SELECTED_ROLE = 'redhat.satellite.hostgroups'
     cv_name = gen_string('alpha')
     lce_name = gen_string('alphanumeric')
     cv = target_sat.api_factory.cv_publish_promote(
@@ -1334,6 +1334,14 @@ def test_positive_validate_inherited_cvenv_ansiblerole(session, target_sat, modu
     )
     target_sat.cli.Ansible.roles_sync(
         {'role-names': SELECTED_ROLE, 'proxy-id': target_sat.nailgun_smart_proxy.id}
+    )
+    wait_for(
+        lambda: bool(
+            target_sat.api.AnsibleRoles().search(query={'search': f'name="{SELECTED_ROLE}"'})
+        ),
+        timeout=60,
+        delay=2,
+        logger=logger,
     )
     cv_env_id = target_sat.api_factory.get_cvenv_id(cv, lce)
     hostgroup = target_sat.cli_factory.hostgroup(
