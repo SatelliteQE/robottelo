@@ -296,15 +296,6 @@ def common_test_positive_run_modules_and_roles(satellite, ansible_module, extra_
     ):
         pytest.skip(f"{ansible_module} module test lacks proper setup")
 
-    if ansible_module in [
-        'activation_key',  # multi-CV environment conflict with deprecated params
-        'activation_keys_role',  # deprecation warning: content_view/lifecycle_environment params
-        'content_rhel_role',  # deprecation warning: content_view/lifecycle_environment params
-        'convert2rhel',  # deprecation warning: content_view/lifecycle_environment params
-        'repository_set_info',  # deprecation warning: content_view/lifecycle_environment params
-    ]:
-        pytest.skip(f"{ansible_module} module test needs fixes for multiCV-enabled Katello")
-
     # Skip FAM tests that don't work yet on containerized setups
     if (
         satellite.install_method == InstallMethod.FOREMANCTL
