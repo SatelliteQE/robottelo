@@ -2107,7 +2107,12 @@ class Capsule(ContentHost, CapsuleMixins):
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
     def capsule_setup(
-        self, sat_host=None, capsule_cert_opts=None, release=None, **installer_kwargs
+        self,
+        sat_host=None,
+        capsule_cert_opts=None,
+        release=None,
+        container_images_source='cdn',
+        **installer_kwargs,
     ):
         """Set up the Capsule host according to the installation method.
 
@@ -2118,6 +2123,7 @@ class Capsule(ContentHost, CapsuleMixins):
             sat_host: Satellite host object
             capsule_cert_opts: Certificate options for capsule
             release: Override capsule version release for upgrade testing (Default: settings.capsule.version.release)
+            container_images_source: Source for Capsule to pull its container images from (Default: cdn)
         Kwargs:
             installer_kwargs: Additional installer arguments
         """
@@ -2125,19 +2131,31 @@ class Capsule(ContentHost, CapsuleMixins):
         self._satellite = satellite
         method = satellite.install_method
 
-        self.register_to_cdn()
-        # register_to_cdn() -> reset_rhsm() clears _satellite; rebind sat_host.
-        self._satellite = satellite
-        self.setup_rhel_repos()
+        registered_to_sat = (
+            self.subscribed and self.identity.get('registered_to') == satellite.hostname
+        )
+        if not registered_to_sat:
+            self.register_to_cdn()
+            # register_to_cdn() -> reset_rhsm() clears _satellite; rebind sat_host.
+            self._satellite = satellite
+            self.setup_rhel_repos()
+            self.setup_capsule_repos(release=release)
         product_rpm_name = (
             self.container_rpm_name if method == InstallMethod.FOREMANCTL else self.product_rpm_name
         )
-        self.setup_capsule_repos(release=release)
         if method == InstallMethod.FOREMANCTL:
             # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
             self.ensure_podman_installed(enable_ipv6_proxy=True)
-            # Capsule needs registry auth to pull deploy-proxy images
-            self.setup_foremanctl_container_registry()
+            if container_images_source == 'satellite':
+                # Serve the Capsule container images from the Satellite and pull them from there.
+                org = satellite.api.Organization().search(
+                    query={'search': f'name="{constants.DEFAULT_ORG}"'}
+                )[0]
+                product_path = satellite.api_factory.serve_capsule_container_images(org)
+                self.pull_container_images_from_satellite(satellite, product_path)
+            else:
+                # Capsule needs registry auth to pull deploy-proxy images
+                self.setup_foremanctl_container_registry()
 
             # Enable Packit repos
             pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
@@ -2339,6 +2357,35 @@ class Capsule(ContentHost, CapsuleMixins):
                 'Container registry credentials not configured. '
                 'Set CONTAINER_REGISTRY.USERNAME and CONTAINER_REGISTRY.PASSWORD in conf/server.yaml'
             )
+
+    def pull_container_images_from_satellite(self, satellite, product_path):
+        """Redirect this Capsule's container image pulls to the Satellite registry.
+
+        Authenticates to the Satellite registry and writes a Podman mirror configuration so
+        registry.redhat.io/satellite and registry.redhat.io/rhelN image references are pulled
+        from the Satellite instead of registry.redhat.io.
+
+        :param satellite: Satellite host serving the Capsule container images
+        :param product_path: registry path the images publish under on the Satellite,
+            e.g. my_organization/capsule_container_images
+        """
+        # Pulls are redirected to the Satellite, so authenticate with Satellite credentials.
+        self.podman_login(
+            username=settings.server.admin_username,
+            password=settings.server.admin_password,
+            registry=satellite.hostname,
+        )
+        # Mirror the satellite/* and rhelN/* prefixes to the Satellite product path.
+        location = f'{satellite.hostname}/{product_path}'
+        mirror_conf = '\n'.join(
+            f'[[registry]]\nprefix = "registry.redhat.io/{prefix}"\nlocation = "{location}"\n'
+            for prefix in ('satellite', f'rhel{self.os_version.major}')
+        )
+        result = self.execute(
+            f'cat > /etc/containers/registries.conf.d/50-foremanctl-mirror.conf <<EOF\n'
+            f'{mirror_conf}EOF'
+        )
+        assert result.status == 0, f'Failed to write Podman mirror config: {result.stderr}'
 
     def install_satellite_foremanctl(
         self, enable_fapolicyd=False, enable_fips=False, parameters=None
