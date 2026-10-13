@@ -201,7 +201,8 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
         f'Registration should succeed when already registered, got: {result.status}'
     )
     assert 'This system is already registered' in str(result.stdout)
-    assert 'Host' in str(result.stdout) and 'successfully configured' in str(result.stdout)
+    assert 'Host' in str(result.stdout)
+    assert 'successfully configured' in str(result.stdout)
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
