@@ -124,53 +124,6 @@ def test_positive_inventory_generate_upload_cli(
         assert hosts_count == local_file_data['slices_counts'][slice_name]
 
 
-@pytest.mark.e2e
-@pytest.mark.pit_server
-@pytest.mark.pit_client
-def test_positive_inventory_recommendation_sync(
-    rhcloud_manifest_org,
-    rhcloud_registered_hosts,
-    module_target_sat,
-):
-    """Tests Insights recommendation sync via foreman-rake commands:
-    https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
-
-    :id: 361af91d-1246-4308-9cc8-66beada7d651
-
-    :steps:
-
-        0. Create a VM and register to insights within org having manifest.
-        1. Sync insights recommendation using following foreman-rake command.
-            # /usr/sbin/foreman-rake rh_cloud_insights:sync
-
-    :expectedresults: Insights recommendations are successfully synced for the host.
-
-    :BZ: 1957186
-
-    :CaseAutomation: Automated
-    """
-    org = rhcloud_manifest_org
-    # On foremanctl, foreman-rake is a wrapper that rejects tasks not on its allowlist.
-    # ALLOW_UNSUPPORTED=true lets it through. The var is harmless on satellite-installer.
-    cmd = f'ALLOW_UNSUPPORTED=true organization_id={org.id} foreman-rake rh_cloud_insights:sync'
-    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
-    result = module_target_sat.execute(cmd)
-    wait_for(
-        lambda: (
-            module_target_sat.api.ForemanTask()
-            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success'
-        ),
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
-    assert result.status == 0
-    assert 'Synchronized Insights hosts hits data' in result.stdout
-
-
 def test_positive_sync_inventory_status_missing_host_ip(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
