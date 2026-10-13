@@ -188,7 +188,6 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
 
     :parametrized: yes
 
-    :Verifies: SAT-39249
     """
     rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert rhel_contenthost.subscribed
