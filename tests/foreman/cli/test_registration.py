@@ -179,7 +179,7 @@ def test_upgrade_katello_ca_consumer_rpm(module_org, module_location, target_sat
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
-def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
+def test_positive_register_twice(module_ak_with_cv, module_org, rhel_contenthost, target_sat):
     """Attempt to register a host twice to Satellite
 
     :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
