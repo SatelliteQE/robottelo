@@ -197,7 +197,9 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
     )
     # Since commit ce8bf3c05 (Fixes #39249), registration succeeds when host is already
     # registered because the script checks if UUID exists and continues if found
-    assert result.status == 0, f'Registration should succeed when already registered, got: {result.status}'
+    assert result.status == 0, (
+        f'Registration should succeed when already registered, got: {result.status}'
+    )
     assert 'This system is already registered' in str(result.stdout)
     assert 'Host' in str(result.stdout) and 'successfully configured' in str(result.stdout)
 
