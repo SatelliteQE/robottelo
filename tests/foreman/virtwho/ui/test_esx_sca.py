@@ -677,7 +677,16 @@ class TestVirtwhoConfigforEsx:
             3. Check if hostnames are NOT in generated report
             4. Check if ipv4 addresses are NOT in generated report
             5. Check if hypervisor_type and hypervisor_version fields are IN report
+            6. Check if virtual_host_uuid in the satellite namespace facts maps to the
+               hypervisor's subscription_facet uuid
 
+
+        :expectedresults:
+            1. Hostnames are NOT in generated report.
+            2. Ipv4 addresses are NOT in generated report.
+            3. hypervisor_type and hypervisor_version fields are IN report.
+            4. virtual_host_uuid in the satellite namespace facts matches the hypervisor's
+               subscription_facet uuid.
 
         :CaseImportance: High
 
@@ -726,3 +735,17 @@ class TestVirtwhoConfigforEsx:
         assert any(
             'hypervisor_type' in item and 'hypervisor_version' in item for item in host_data
         ), "'hypervisor_type' and 'hypervisor_version' not found"
+        # Verify that virtual_host_uuid is IN the satellite namespace facts for guests
+        # and that it maps to the hypervisor's subscription_facet uuid
+        hypervisor_host = module_target_sat.api.Host().search(query={'search': hypervisor_name})[0]
+        expected_uuid = hypervisor_host.read_json()['subscription_facet_attributes']['uuid']
+        virtual_host_uuids = [
+            fact['facts']['virtual_host_uuid']
+            for item in host_data
+            for fact in item.get('facts', [])
+            if fact.get('namespace') == 'satellite' and 'virtual_host_uuid' in fact['facts']
+        ]
+        assert expected_uuid in virtual_host_uuids, (
+            f"hypervisor uuid '{expected_uuid}' not found in virtual_host_uuid "
+            f"values: {virtual_host_uuids}"
+        )
