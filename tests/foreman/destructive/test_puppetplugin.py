@@ -30,7 +30,7 @@ puppet_cli_commands = [
 
 err_msg = 'Error: No such sub-command'
 
-pytestmark = [pytest.mark.destructive, pytest.mark.e2e, pytest.mark.foreman_installer]
+pytestmark = [pytest.mark.destructive, pytest.mark.e2e]
 
 
 def assert_puppet_status(server, expected):

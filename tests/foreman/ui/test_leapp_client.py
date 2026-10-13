@@ -17,8 +17,6 @@ import pytest
 from robottelo.constants import RHEL8_VER, RHEL9_VER
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = pytest.mark.foreman_installer
-
 
 @pytest.mark.skipif(
     is_open('SAT-36237'),

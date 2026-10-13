@@ -46,7 +46,6 @@ def puppet_hostgroup(module_puppet_org, module_puppet_loc, session_puppet_enable
 class TestHostGroup:
     """Tests for host group entity."""
 
-    @pytest.mark.foreman_installer
     @pytest.mark.upgrade
     def test_inherit_puppetclass(self, session_puppet_enabled_sat):
         """Host that created from HostGroup entity with PuppetClass
@@ -234,7 +233,6 @@ class TestHostGroup:
 
         assert hostgroup_cloned_reduced.items() <= hostgroup_origin.items()
 
-    @pytest.mark.foreman_installer
     def test_positive_create_with_properties(
         self, module_puppet_org, module_puppet_loc, session_puppet_enabled_sat
     ):
@@ -460,7 +458,6 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['name'])
         assert name == hostgroup.name
 
-    @pytest.mark.foreman_installer
     def test_positive_update_puppet_ca_proxy(self, puppet_hostgroup, session_puppet_enabled_sat):
         """Update a hostgroup with a new puppet CA proxy
 
@@ -512,7 +509,6 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['realm'])
         assert hostgroup.realm.read().name == new_realm.name
 
-    @pytest.mark.foreman_installer
     def test_positive_update_puppet_proxy(self, puppet_hostgroup, session_puppet_enabled_sat):
         """Update a hostgroup with a new puppet proxy
 
@@ -832,7 +828,6 @@ class TestHostGroupMissingAttr:
             f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
         )
 
-    @pytest.mark.foreman_installer
     def test_positive_read_puppet_proxy_name(self, session_puppet_enabled_sat):
         """Read a hostgroup created with puppet proxy and inspect server's
         response
@@ -855,7 +850,6 @@ class TestHostGroupMissingAttr:
         assert 'puppet_proxy_name' in hg
         assert proxy.name == hg['puppet_proxy_name']
 
-    @pytest.mark.foreman_installer
     def test_positive_read_puppet_ca_proxy_name(self, session_puppet_enabled_sat):
         """Read a hostgroup created with puppet ca proxy and inspect server's
         response

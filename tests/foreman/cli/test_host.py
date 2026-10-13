@@ -2211,7 +2211,6 @@ def test_positive_tracer_list_and_resolve(tracer_host, target_sat):
 
 
 # ---------------------------- PUPPET ENABLED IN INSTALLER TESTS -----------------------
-@pytest.mark.foreman_installer
 @pytest.mark.cli_puppet_enabled
 def test_positive_host_with_puppet(
     session_puppet_enabled_sat,
@@ -2286,14 +2285,14 @@ def function_host_content_source(
         }
     )
     target_sat.cli.Capsule.update(
-        {'id': module_capsule_configured.nailgun_capsule.id, 'organization-ids': [module_org.id]}
+        {'name': module_capsule_configured.hostname, 'organization-ids': [module_org.id]}
     )
+    # target_sat.cli.Capsule.info({'name': module_capsule_configured.hostname})
     res = rhel_contenthost.register(module_org, None, module_ak_with_cv_repo.name, target_sat)
     assert res.status == 0, f'Failed to register host: {res.stderr}'
     return res
 
 
-@pytest.mark.foreman_installer
 @pytest.mark.cli_puppet_enabled
 def test_positive_list_scparams(
     session_puppet_enabled_sat,
@@ -2346,7 +2345,6 @@ def test_positive_list_scparams(
     assert scp_id in [scp['id'] for scp in host_scparams]
 
 
-@pytest.mark.foreman_installer
 @pytest.mark.cli_puppet_enabled
 def test_positive_create_with_puppet_class_name(
     session_puppet_enabled_sat,
@@ -2388,7 +2386,6 @@ def test_positive_create_with_puppet_class_name(
     assert module_puppet_classes[0].name in [puppet['name'] for puppet in host_classes]
 
 
-@pytest.mark.foreman_installer
 @pytest.mark.cli_puppet_enabled
 def test_positive_update_host_owner_and_verify_puppet_class_name(
     session_puppet_enabled_sat,
@@ -2481,27 +2478,23 @@ def test_positive_create_and_update_with_content_source(
         or host['content-information']['content-source']['name'] == ''
     )
 
-    # Assign the content-serving proxy to the host's taxonomies before switching.
-    content_capsule_id = module_capsule_configured.nailgun_capsule.id
+    # set a new proxy
     target_sat.cli.Capsule.update(
-        {
-            'id': content_capsule_id,
-            'organization-ids': [module_org.id],
-            'locations': [host['location']['name']],
-        }
+        {'name': module_capsule_configured.hostname, 'organization-id': module_org.id}
     )
     target_sat.cli.Capsule.content_add_lifecycle_environment(
         {
-            'id': content_capsule_id,
+            'name': module_capsule_configured.hostname,
             'organization-id': module_org.id,
-            'lifecycle-environment-id': module_lce.id,
+            'environment-id': module_lce.id,
         }
     )
-    target_sat.cli.Host.update({'id': host['id'], 'content-source-id': content_capsule_id})
+    target_sat.cli.Host.update(
+        {'id': host['id'], 'content-source': module_capsule_configured.hostname}
+    )
     host = target_sat.cli.Host.info({'id': host['id']})
     assert (
-        host['content-information']['content-source']['name']
-        == module_capsule_configured.content_hostname
+        host['content-information']['content-source']['name'] == module_capsule_configured.hostname
     )
 
     # run an ansible job that makes a host aware that it should use a different content source
@@ -2516,7 +2509,7 @@ def test_positive_create_and_update_with_content_source(
     package = 'at'
     assert rhel_contenthost.execute(f'rpm -q {package}').status != 0
     assert rhel_contenthost.execute(f'dnf -y install {package}').status != 0
-    target_sat.cli.Capsule.content_synchronize({'id': content_capsule_id})
+    target_sat.cli.Capsule.content_synchronize({'name': module_capsule_configured.hostname})
     assert rhel_contenthost.execute(f'dnf -y install {package}').status == 0
     assert rhel_contenthost.execute(f'rpm -q {package}').status == 0
 

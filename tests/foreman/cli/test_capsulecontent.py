@@ -155,19 +155,6 @@ def _dictionarize_counts(data):
     return refactored_data
 
 
-def _add_organization_to_capsule_smart_proxies(satellite, capsule, organization):
-    """Add an organization to each distinct capsule SmartProxy, preserving existing ones."""
-    proxy_ids = {
-        capsule.nailgun_smart_proxy.id,
-        capsule.nailgun_content_smart_proxy.id,
-    }
-    for proxy_id in proxy_ids:
-        proxy = satellite.api.SmartProxy(id=proxy_id).read()
-        if organization.id not in {org.id for org in proxy.organization}:
-            proxy.organization.append(satellite.api.Organization(id=organization.id))
-            proxy.update(['organization'])
-
-
 @pytest.mark.parametrize(
     'repos_collection',
     [
@@ -848,7 +835,7 @@ def test_sync_consume_flatpak_repo_via_library(
     module_capsule_configured,
     setting_update,
     module_flatpak_contenthost,
-    smart_proxy_function_org,
+    function_org,
     function_product,
     function_lce_library,
     function_flatpak_remote,
@@ -876,15 +863,16 @@ def test_sync_consume_flatpak_repo_via_library(
         1. Entire workflow works and allows user to install a flatpak app at the registered
            contenthost.
 
-    :BlockedBy: SAT-52041
-
-    :Verifies: SAT-44554, SAT-52041
+    :BlockedBy: SAT-44554
 
     """
     sat, caps, host = module_target_sat, module_capsule_configured, module_flatpak_contenthost
 
-    # Associate the organization with both the management and content proxies.
-    _add_organization_to_capsule_smart_proxies(sat, caps, smart_proxy_function_org)
+    # Associate the organization and its Library to the capsule.
+    res = sat.cli.Capsule.update(
+        {'name': module_capsule_configured.hostname, 'organization-ids': function_org.id}
+    )
+    assert 'proxy updated' in str(res)
 
     caps.nailgun_capsule.content_add_lifecycle_environment(
         data={'environment_id': function_lce_library.id}
@@ -918,13 +906,13 @@ def test_sync_consume_flatpak_repo_via_library(
     ak_lib = sat.cli.ActivationKey.create(
         {
             'name': gen_string('alpha'),
-            'organization-id': smart_proxy_function_org.id,
+            'organization-id': function_org.id,
             'content-view-environments': 'Library',
         }
     )
 
     # Register a content host using the AK via Capsule.
-    res = host.register(smart_proxy_function_org, None, ak_lib['name'], caps, force=True)
+    res = host.register(function_org, None, ak_lib['name'], caps, force=True)
     assert res.status == 0, (
         f'Failed to register host: {host.hostname}\nStdOut: {res.stdout}\nStdErr: {res.stderr}'
     )
@@ -934,7 +922,7 @@ def test_sync_consume_flatpak_repo_via_library(
     remote_name = f'CAPS-remote-{gen_string("alpha")}'
     job = module_target_sat.cli_factory.job_invocation(
         {
-            'organization': smart_proxy_function_org.name,
+            'organization': function_org.name,
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': (
                 f'Remote Name={remote_name}, '
@@ -959,7 +947,7 @@ def test_sync_consume_flatpak_repo_via_library(
 
     job = module_target_sat.cli_factory.job_invocation(
         {
-            'organization': smart_proxy_function_org.name,
+            'organization': function_org.name,
             'job-template': 'Flatpak - Install application on host',
             'inputs': (
                 f'Flatpak remote name={remote_name}, Application name={app_name}, '
@@ -994,7 +982,7 @@ def test_sync_consume_flatpak_repo_via_cv(
     setting_update,
     module_flatpak_contenthost,
     function_host_cleanup,
-    smart_proxy_function_org,
+    function_org,
     function_product,
     function_lce,
     function_flatpak_remote,
@@ -1026,15 +1014,16 @@ def test_sync_consume_flatpak_repo_via_cv(
         1. Flatpak repos published in a CV are installable on a host via the CV through Capsule.
         2. Other flatpak repos published in a different CV are isolated from the first CV.
 
-    :BlockedBy: SAT-52041
-
-    :Verifies: SAT-44554, SAT-52041
+    :BlockedBy: SAT-44554
 
     """
     sat, caps, host = module_target_sat, module_capsule_configured, module_flatpak_contenthost
 
-    # Associate the organization with both the management and content proxies.
-    _add_organization_to_capsule_smart_proxies(sat, caps, smart_proxy_function_org)
+    # Associate the organization and LCE to the capsule.
+    res = sat.cli.Capsule.update(
+        {'name': module_capsule_configured.hostname, 'organization-ids': function_org.id}
+    )
+    assert 'proxy updated' in str(res)
 
     caps.nailgun_capsule.content_add_lifecycle_environment(data={'environment_id': function_lce.id})
     res = caps.nailgun_capsule.content_lifecycle_environments()
@@ -1069,11 +1058,11 @@ def test_sync_consume_flatpak_repo_via_cv(
 
     # Create two CVs, put different repos inside, publish and promote them to LCE.
     cv1 = sat.api.ContentView(
-        organization=smart_proxy_function_org,
+        organization=function_org,
         repository=[r['id'] for r in local_repos if r['name'] in repo_names[-2:]],  # Last 2
     ).create()
     cv2 = sat.api.ContentView(
-        organization=smart_proxy_function_org,
+        organization=function_org,
         repository=[r['id'] for r in local_repos if r['name'] in repo_names[:2]],  # First 2
     ).create()
     timestamp = datetime.now(UTC)
@@ -1085,12 +1074,12 @@ def test_sync_consume_flatpak_repo_via_cv(
     # Create an AK assigned with one content view environment only.
     cvenv_id = sat.api_factory.get_cvenv_id(cv1, function_lce)
     ak_cv = sat.api.ActivationKey(
-        organization=smart_proxy_function_org,
+        organization=function_org,
         content_view_environment_ids=[cvenv_id],
     ).create()
 
     # Register a content host using the AK via Capsule.
-    res = host.register(smart_proxy_function_org, None, ak_cv.name, caps, force=True)
+    res = host.register(function_org, None, ak_cv.name, caps, force=True)
     assert res.status == 0, (
         f'Failed to register host: {host.hostname}\nStdOut: {res.stdout}\nStdErr: {res.stderr}'
     )
@@ -1111,7 +1100,7 @@ def test_sync_consume_flatpak_repo_via_cv(
         )
     job = module_target_sat.cli_factory.job_invocation(
         {
-            'organization': smart_proxy_function_org.name,
+            'organization': function_org.name,
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': inputs,
             'search-query': f'name = {host.hostname}',
@@ -1131,7 +1120,7 @@ def test_sync_consume_flatpak_repo_via_cv(
 
     # Install flatpak app from the first CV, ensure it succeeded.
     opts = {
-        'organization': smart_proxy_function_org.name,
+        'organization': function_org.name,
         'job-template': 'Flatpak - Install application on host',
         'search-query': f'name = {host.hostname}',
     }

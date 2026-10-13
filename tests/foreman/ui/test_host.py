@@ -1111,9 +1111,10 @@ def test_positive_search_by_reported_data(
             )
 
 
-def test_positive_search_by_configuration_status_alias(target_sat, function_host):
+@pytest.mark.usefixtures('function_host')
+def test_positive_search_by_configuration_status_alias(target_sat):
     """
-    Search for host by new alias `configuration_status` within its organization and location.
+    Search for host by new alias `configuration_status`.
 
     :id: 6af725d2-44fe-4b04-a8d6-ce8321a673d4
 
@@ -1134,8 +1135,8 @@ def test_positive_search_by_configuration_status_alias(target_sat, function_host
     ]
 
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=function_host.organization.read().name)
-        session.location.select(loc_name=function_host.location.read().name)
+        session.organization.select(org_name=ANY_CONTEXT['org'])
+        session.location.select(loc_name=ANY_CONTEXT['location'])
 
         for search_param in search_params:
             results = {}
@@ -1834,7 +1835,6 @@ def module_puppet_enabled_proxy_with_loc(
     session_puppet_enabled_proxy.update(['location'])
 
 
-@pytest.mark.foreman_installer
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_create_with_puppet_class(
@@ -1896,7 +1896,6 @@ def test_positive_create_with_puppet_class(
         )
 
 
-@pytest.mark.foreman_installer
 def test_positive_inherit_puppet_env_from_host_group_when_create(
     session_puppet_enabled_sat, module_env_search, module_puppet_org, module_puppet_loc
 ):
@@ -1941,7 +1940,6 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
         assert values['host']['inherit_puppet_environment'] is False
 
 
-@pytest.mark.foreman_installer
 @pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_set_multi_line_and_with_spaces_parameter_value(
     session_puppet_enabled_sat,
@@ -2213,13 +2211,10 @@ def change_content_source_prep(
         content_view_environment_ids=[cvenv_id], organization=org.id
     ).create()
 
-    capsule = module_capsule_configured
-    content_capsule_id = capsule.nailgun_capsule.id
-
-    # Assign taxonomies and content to the same content-serving proxy.
-    module_target_sat.cli.Capsule.update(
+    # Edit capsule's taxonomies
+    capsule = module_target_sat.cli.Capsule.update(
         {
-            'id': content_capsule_id,
+            'name': module_capsule_configured.hostname,
             'organization-ids': org.id,
             'location-ids': loc.id,
         }
@@ -2227,7 +2222,7 @@ def change_content_source_prep(
 
     module_target_sat.cli.Capsule.content_add_lifecycle_environment(
         {
-            'id': content_capsule_id,
+            'id': module_capsule_configured.nailgun_capsule.id,
             'organization-id': org.id,
             'lifecycle-environment': lce.name,
         }
@@ -2270,15 +2265,15 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
             entities_list=[
                 rhel_contenthost.hostname,
             ],
-            content_source=capsule.content_hostname,
+            content_source=capsule[0]['name'],
             lce=lce.name,
             content_view=content_view.name,
         )
         rhel_contenthost_post_values = rhel_contenthost.nailgun_host.content_facet_attributes
         content_source_from_script = re.search(r'--server.hostname=\"(.*?)\"', generated_script)
 
-        assert content_source_from_script.group(1) == capsule.hostname
-        assert rhel_contenthost_post_values['content_source']['name'] == capsule.content_hostname
+        assert content_source_from_script.group(1) == capsule[0]['name']
+        assert rhel_contenthost_post_values['content_source']['name'] == capsule[0]['name']
         assert rhel_contenthost_post_values['content_view']['name'] == content_view.name
         assert rhel_contenthost_post_values['lifecycle_environment']['name'] == lce.name
 
@@ -3328,14 +3323,14 @@ def test_positive_change_power_state(
                 )
             session.all_hosts.change_power_state(state='Power Off', select_all_hosts=True)
             # Wait for the modal to close and table to refresh after power state change
-            session.browser.plugin.ensure_page_safe(timeout=20)
+            session.browser.plugin.ensure_page_safe(timeout='20s')
             # UI check
             for host in vm_names_with_domains:
                 state = session.all_hosts.read_power_state_icon(host_name=host)
                 assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
             session.all_hosts.change_power_state(state='Start', select_all_hosts=True)
             # Wait for the modal to close and table to refresh after power state change
-            session.browser.plugin.ensure_page_safe(timeout=20)
+            session.browser.plugin.ensure_page_safe(timeout='20s')
             for host in vm_names_with_domains:
                 state = session.all_hosts.read_power_state_icon(host_name=host)
                 assert state['state'] == 'On', f"Host {host} state didn't change to On"
@@ -3344,7 +3339,7 @@ def test_positive_change_power_state(
             session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
             session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
             # Wait for the modal to close and table to refresh after power state change
-            session.browser.plugin.ensure_page_safe(timeout=20)
+            session.browser.plugin.ensure_page_safe(timeout='20s')
             for host in vm_names_with_domains:
                 state = session.all_hosts.read_power_state_icon(host_name=host)
                 assert state['state'] == 'Off', f"Host {host} state didn't change to Off"

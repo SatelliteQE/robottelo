@@ -22,8 +22,6 @@ from robottelo.config import settings
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import invalid_id_list, invalid_values_list
 
-pytestmark = pytest.mark.foreman_installer
-
 
 @pytest.fixture(scope='module')
 def module_locations(session_puppet_enabled_sat):

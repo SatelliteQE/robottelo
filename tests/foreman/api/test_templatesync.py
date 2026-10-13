@@ -29,8 +29,6 @@ from robottelo.constants import (
 )
 from robottelo.logging import logger
 
-pytestmark = pytest.mark.foreman_installer
-
 git = settings.git
 
 

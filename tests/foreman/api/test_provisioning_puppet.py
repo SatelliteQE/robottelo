@@ -21,7 +21,6 @@ from wait_for import wait_for
 from robottelo.utils.issue_handlers import is_open
 
 
-@pytest.mark.foreman_installer
 @pytest.mark.e2e
 def test_positive_puppet_bootstrap(
     session_puppet_enabled_sat,

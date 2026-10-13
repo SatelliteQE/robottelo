@@ -15,8 +15,6 @@
 from fauxfactory import gen_string
 import pytest
 
-pytestmark = pytest.mark.foreman_installer
-
 
 @pytest.fixture(scope='module')
 def module_puppet_class(session_puppet_enabled_sat):

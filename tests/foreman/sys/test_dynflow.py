@@ -14,8 +14,6 @@
 
 import pytest
 
-pytestmark = pytest.mark.foreman_installer
-
 
 @pytest.mark.e2e
 def test_positive_setup_dynflow(target_sat):

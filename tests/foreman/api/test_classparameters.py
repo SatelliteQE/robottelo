@@ -74,7 +74,6 @@ def module_puppet(session_puppet_enabled_sat):
 
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
-@pytest.mark.foreman_installer
 @pytest.mark.skipif(
     not settings.robottelo.repos_hosting_url, reason='repos_hosting_url is not defined'
 )
