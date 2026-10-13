@@ -1111,10 +1111,9 @@ def test_positive_search_by_reported_data(
             )
 
 
-@pytest.mark.usefixtures('function_host')
-def test_positive_search_by_configuration_status_alias(target_sat):
+def test_positive_search_by_configuration_status_alias(target_sat, function_host):
     """
-    Search for host by new alias `configuration_status`.
+    Search for host by new alias `configuration_status` within its organization and location.
 
     :id: 6af725d2-44fe-4b04-a8d6-ce8321a673d4
 
@@ -1135,8 +1134,8 @@ def test_positive_search_by_configuration_status_alias(target_sat):
     ]
 
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=ANY_CONTEXT['org'])
-        session.location.select(loc_name=ANY_CONTEXT['location'])
+        session.organization.select(org_name=function_host.organization.read().name)
+        session.location.select(loc_name=function_host.location.read().name)
 
         for search_param in search_params:
             results = {}
