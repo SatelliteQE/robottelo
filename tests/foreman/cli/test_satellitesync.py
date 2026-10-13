@@ -268,8 +268,16 @@ def module_import_sat(module_target_sat, satellite_factory):
 
 @pytest.fixture
 def function_import_org_at_isat(module_import_sat):
-    """Creates an Organization for content import."""
-    return module_import_sat.api.Organization().create()
+    """Creates an Organization for content import with the default smart proxy assigned."""
+    org = module_import_sat.api.Organization().create()
+    default_proxy = (
+        module_import_sat.api.SmartProxy()
+        .search(query={'search': f'name={module_import_sat.hostname}'})[0]
+        .read()
+    )
+    default_proxy.organization.append(module_import_sat.api.Organization(id=org.id))
+    default_proxy.update(['organization'])
+    return org
 
 
 @pytest.fixture
@@ -3173,6 +3181,7 @@ class TestExportImport:
     def test_positive_export_import_podman_repo(
         self,
         target_sat,
+        module_podman_contenthost,
         function_org,
         function_product,
         module_import_sat,
@@ -3193,15 +3202,16 @@ class TestExportImport:
 
         :Verifies: SAT-25265
         """
-        target_sat.ensure_podman_installed(enable_ipv6_proxy=True)
         REPO_NAME = 'fedora'
-        result = target_sat.execute(f'podman pull registry.fedoraproject.org/{REPO_NAME}')
+        result = module_podman_contenthost.execute(
+            f'podman pull registry.fedoraproject.org/{REPO_NAME}'
+        )
         assert result.status == 0
-        large_image_id = target_sat.execute(f'podman images {REPO_NAME} -q')
+        large_image_id = module_podman_contenthost.execute(f'podman images {REPO_NAME} -q')
         assert large_image_id
         large_repo_cmd = f'{(function_org.label)}/{(function_product.label)}/{REPO_NAME}'.lower()
-        result = target_sat.execute(
-            f'podman push --tls-verify=false'
+        result = module_podman_contenthost.execute(
+            f'podman push'
             f' --creds {settings.server.admin_username}:{settings.server.admin_password}'
             f' {large_image_id.stdout.strip()} {target_sat.hostname}/{large_repo_cmd}'
         )
@@ -3281,7 +3291,8 @@ class TestExportImport:
 
         :steps:
             1. Enable the latest RHEL BaseOS repository on the export Satellite and sync.
-            2. Create a content view, add the repository, publish it.
+            2. Create a content view, add the repository, filter in only the
+               ML-DSA-signed packages under test, and publish it.
             3. Export the content view version in exportable or syncable format.
             4. Transfer the export archive to the import Satellite and import it.
             5. Create an activation key on the import Satellite and register the
@@ -3329,9 +3340,41 @@ class TestExportImport:
         target_sat.cli.ContentView.add_repository(
             {'id': cv['id'], 'organization-id': eorg.id, 'repository-id': repo['id']}
         )
+        # Filter in only the ML-DSA-signed packages to keep the export small.
+        filter_name = gen_string('alpha')
+        target_sat.cli.ContentViewFilter.create(
+            {
+                'name': filter_name,
+                'content-view-id': cv['id'],
+                'inclusion': 'yes',
+                'type': 'rpm',
+            }
+        )
+        mldsa_packages = (
+            RHEL10_BASEOS_MLDSA['install_packages'] + RHEL10_BASEOS_MLDSA['download_packages']
+        )
+        for pkg in mldsa_packages:
+            target_sat.cli.ContentViewFilterRule.create(
+                {
+                    'name': pkg,
+                    'content-view-filter': filter_name,
+                    'content-view-id': cv['id'],
+                }
+            )
         target_sat.cli.ContentView.publish({'id': cv['id']})
         cv = target_sat.cli.ContentView.info({'id': cv['id']})
         assert len(cv['versions']) == 1
+
+        # Confirm the filter took effect: the version holds only the ML-DSA
+        # package names, each possibly in several builds. Parse the name out of
+        # each NAME-VERSION-RELEASE.ARCH.rpm filename and compare the name set.
+        export_names = {
+            pkg['filename'][:-4].rsplit('.', 1)[0].rsplit('-', 2)[0]
+            for pkg in target_sat.cli.Package.list(
+                {'content-view-version-id': cv['versions'][0]['id']}
+            )
+        }
+        assert export_names == set(mldsa_packages)
 
         assert target_sat.validate_pulp_filepath(eorg, PULP_EXPORT_DIR) == ''
         export = target_sat.cli.ContentExport.completeVersion(

@@ -84,14 +84,6 @@ def get_repos_config(settings):
 
 def get_ohsnap_repos(settings):
     data = {}
-    data['CAPSULE_REPO'] = get_ohsnap_repo_url(
-        settings,
-        repo='capsule',
-        product='capsule',
-        release=settings.capsule.version.release,
-        os_release=settings.capsule.version.rhel_version,
-        snap=settings.capsule.version.snap,
-    )
 
     data['SATELLITE_REPO'] = get_ohsnap_repo_url(
         settings,

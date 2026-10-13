@@ -2484,6 +2484,41 @@ class TestFileRepository:
             f'Expected HTTP 200 for {iso_path}, got {result.stdout.strip()}'
         )
 
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content_type': 'file', 'url': repo_constants.CUSTOM_FILE_REPO}]),
+        indirect=True,
+    )
+    def test_positive_sync_file_repo_with_skip_metadata_check(self, repo, target_sat):
+        """Verify skip_metadata_check parameter is accepted for file repositories
+
+        :id: 55feff08-7705-4f47-885a-1e1ba7b13c38
+
+        :steps:
+            1. Create a file repository
+            2. Sync the repository normally
+            3. Sync again with skip_metadata_check=True
+
+        :expectedresults:
+            1. Initial sync succeeds
+            2. Sync with skip_metadata_check succeeds without error
+            3. Previously would error with "Cannot skip metadata check on non-yum/deb repositories"
+
+        :Verifies: SAT-49549
+        """
+        # Initial sync
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['file'] > 0, 'Repository should contain files after sync'
+
+        # Sync with skip_metadata_check - should not raise an error
+        result = repo.sync(data={'skip_metadata_check': True})
+        assert result, 'Sync with skip_metadata_check should succeed'
+
+        # Verify repository still has content
+        repo = repo.read()
+        assert repo.content_counts['file'] > 0, 'Repository should still contain files'
+
 
 @pytest.mark.skip_if_not_set('container_repo')
 class TestTokenAuthContainerRepository:

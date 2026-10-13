@@ -184,47 +184,6 @@ jobs:
               labels: ["No-CherryPick"]
             })
 
-  branch-protection:
-    runs-on: ubuntu-latest
-    needs: auto-branching-new-downstream-release
-    if: success()
-    steps:
-      - name: Create branch protection
-        run: |
-          TOKEN=${{ secrets._REPO_ADMIN_TOKEN }}
-          OWNER=${{ github.repository_owner }}
-          REPO=${{ github.event.repository.name }}
-          BRANCH="${{ github.event.inputs.target_branch }}" # Adjust branch name as needed
-          # Branch protection payload
-          PROTECTION_PAYLOAD='{
-            "required_status_checks": {
-                "strict": true,
-                "contexts": ["Code Quality (3.12)", "Code Quality (3.13)", "Code Quality (3.14)", "Enforcing cherrypick labels"]
-            },
-            "required_linear_history": true,
-            "enforce_admins": null,
-            "required_pull_request_reviews": null,
-            "restrictions": null,
-            "allow_force_pushes": null,
-            "allow_deletions": null
-          }'
-          # Call GitHub API to update branch protection
-          PROTECTION_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-              -X PUT \
-              -H "Accept: application/vnd.github.luke-cage-preview+json" \
-              -H "Authorization: token $TOKEN" \
-              -d "$PROTECTION_PAYLOAD" \
-              "https://api.github.com/repos/$OWNER/$REPO/branches/$BRANCH/protection")
-
-          if [[ $PROTECTION_RESPONSE -eq 200 ]]; then
-            echo "Branch protection successfully updated."
-            echo "protection-outcome=success" >> "$GITHUB_OUTPUT"
-          else
-            echo "Failed to update branch protection. HTTP status code: $PROTECTION_RESPONSE"
-            echo "protection-outcome=failure" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-
   auto-branching-master:
     name: master - raise PR with changes
     runs-on: ubuntu-latest

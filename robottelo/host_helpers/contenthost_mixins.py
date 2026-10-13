@@ -120,6 +120,14 @@ class VersionedContent:
         product, release, v_major, repo = self._dogfood_helper(product, release, repo)
         return dogfood_repository(settings.ohsnap, repo, product, release, v_major, snap, self.arch)
 
+    def block_quay_registry(self):
+        """Block pulls from quay.io via a containers registries.conf drop-in."""
+        self.put(
+            '[[registry]]\nlocation = "quay.io"\nblocked = true\n',
+            '/etc/containers/registries.conf.d/block-quay.conf',
+            temp_file=True,
+        )
+
     def configure_stage_registry_override(self):
         """Configure Podman to pull stage container images from the production registry.
 

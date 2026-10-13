@@ -608,19 +608,15 @@ class TestDockerActivationKey:
 
 
 class TestPodman:
-    """Tests specific to using podman push/pull on Satellite
+    """Tests specific to using podman push/pull against the Satellite registry from a
+    registered content host.
 
     :CaseComponent: ContainerImageManagement
 
     :team: Artemis
     """
 
-    @pytest.fixture(scope='class')
-    def enable_podman(module_product, module_target_sat):
-        """Install podman on the Satellite."""
-        module_target_sat.ensure_podman_installed(enable_ipv6_proxy=True)
-
-    def test_podman_push(self, module_target_sat, module_product, module_org, enable_podman):
+    def test_podman_push(self, module_target_sat, module_podman_contenthost, module_org):
         """Push a small and large container image to Pulp, and verify the results
 
         :id: 488adc49-899e-4739-8bca-0cd255da63ae
@@ -637,55 +633,54 @@ class TestPodman:
         """
         SMALL_REPO_NAME = 'arianna'
         LARGE_REPO_NAME = 'fedora'
+        # Use a dedicated product to isolate other repos within shared module_product.
+        product = module_target_sat.api.Product(organization=module_org).create()
         assert (
-            module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{SMALL_REPO_NAME}').status
+            module_podman_contenthost.execute(
+                f'podman pull {FEDORA_REGISTRY}/{SMALL_REPO_NAME}'
+            ).status
             == 0
         )
         assert (
-            module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{LARGE_REPO_NAME}').status
+            module_podman_contenthost.execute(
+                f'podman pull {FEDORA_REGISTRY}/{LARGE_REPO_NAME}'
+            ).status
             == 0
         )
-        small_image_id = module_target_sat.execute(
+        small_image_id = module_podman_contenthost.execute(
             f'podman images {FEDORA_REGISTRY}/{SMALL_REPO_NAME}:latest -q'
         )
         assert small_image_id
-        large_image_id = module_target_sat.execute(
+        large_image_id = module_podman_contenthost.execute(
             f'podman images {FEDORA_REGISTRY}/{LARGE_REPO_NAME}:latest -q'
         )
         assert large_image_id
         # Podman pushes require lowercase org and product labels
-        small_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{SMALL_REPO_NAME}'.lower()
-        large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{LARGE_REPO_NAME}'.lower()
+        small_repo_cmd = f'{(module_org.label)}/{(product.label)}/{SMALL_REPO_NAME}'.lower()
+        large_repo_cmd = f'{(module_org.label)}/{(product.label)}/{LARGE_REPO_NAME}'.lower()
         # Push both repos
         creds = f"{settings.server.admin_username}:{settings.server.admin_password}"
-        result = module_target_sat.execute(
+        result = module_podman_contenthost.execute(
             f'podman push --creds {creds} {small_image_id.stdout.strip()} {module_target_sat.hostname}/{small_repo_cmd}'
         )
         assert result.status == 0, result.stderr
 
-        result = module_target_sat.execute(
+        result = module_podman_contenthost.execute(
             f'podman push --creds {creds} {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
         )
         assert result.status == 0, result.stderr
 
-        result = module_target_sat.execute('pulp container repository -t push list')
-        assert (
-            f'{(module_org.label)}/{(module_product.label)}/{SMALL_REPO_NAME}'.lower()
-            in result.stdout
-        )
-        assert (
-            f'{(module_org.label)}/{(module_product.label)}/{LARGE_REPO_NAME}'.lower()
-            in result.stdout
-        )
-        product_contents = module_product.read()
-        for repo in product_contents.repository:
-            repo = module_target_sat.api.Repository(id=repo.id).read()
-            assert repo.is_container_push
-            assert repo.name in [SMALL_REPO_NAME, LARGE_REPO_NAME]
-            assert repo.label == repo.name
+        # Verify both images were pushed as container-push repositories under the product
+        product_repos = [
+            module_target_sat.api.Repository(id=repo.id).read()
+            for repo in product.read().repository
+        ]
+        assert {repo.name for repo in product_repos} == {SMALL_REPO_NAME, LARGE_REPO_NAME}
+        assert all(repo.is_container_push for repo in product_repos)
+        assert all(repo.label == repo.name for repo in product_repos)
 
     def test_cv_podman(
-        self, module_target_sat, module_product, module_org, module_lce, enable_podman
+        self, module_target_sat, module_podman_contenthost, module_product, module_org, module_lce
     ):
         """Push a container image to Pulp and perform various Content View actions with it
 
@@ -703,20 +698,29 @@ class TestPodman:
         :CaseImportance: High
         """
         REPO_NAME = 'fedora'
-        assert module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{REPO_NAME}').status == 0
-        large_image_id = module_target_sat.execute(
+        assert (
+            module_podman_contenthost.execute(f'podman pull {FEDORA_REGISTRY}/{REPO_NAME}').status
+            == 0
+        )
+        large_image_id = module_podman_contenthost.execute(
             f'podman images {FEDORA_REGISTRY}/{REPO_NAME}:latest -q'
         )
         assert large_image_id
         large_repo_cmd = f'{(module_org.label)}/{(module_product.label)}/{REPO_NAME}'.lower()
 
         creds = f"{settings.server.admin_username}:{settings.server.admin_password}"
-        result = module_target_sat.execute(
+        result = module_podman_contenthost.execute(
             f'podman push --creds {creds} {large_image_id.stdout.strip()} {module_target_sat.hostname}/{large_repo_cmd}'
         )
         assert result.status == 0, result.stderr
 
-        repo = module_target_sat.api.Repository(id=module_product.read().repository[0].id).read()
+        # Read the repo by the name we just pushed rather than by position, since sibling
+        # test classes seed the shared module_product with their own repos.
+        product_repos = [
+            module_target_sat.api.Repository(id=r.id).read()
+            for r in module_product.read().repository
+        ]
+        repo = next(r for r in product_repos if r.name == REPO_NAME)
         # Create a CV and add Podman repo to it, then publish
         cv = module_target_sat.api.ContentView(organization=module_org.id).create()
         cv.repository = [repo]
@@ -754,7 +758,7 @@ class TestPodman:
         assert cvv.docker_repository_count == 0
 
     def test_podman_push_existing_tag(
-        self, module_target_sat, module_product, module_org, enable_podman
+        self, module_target_sat, module_podman_contenthost, module_product, module_org
     ):
         """Push two different container images to the same product with the same tag.
 
@@ -774,11 +778,17 @@ class TestPodman:
         image_tag = 'test_tag'
         image_1 = f'{image_name}:latest'
         image_2 = f'{image_name}:41'
-        assert module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{image_1}').status == 0
-        assert module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{image_2}').status == 0
-        image_1_id = module_target_sat.execute(f'podman images {image_1} -q')
+        assert (
+            module_podman_contenthost.execute(f'podman pull {FEDORA_REGISTRY}/{image_1}').status
+            == 0
+        )
+        assert (
+            module_podman_contenthost.execute(f'podman pull {FEDORA_REGISTRY}/{image_2}').status
+            == 0
+        )
+        image_1_id = module_podman_contenthost.execute(f'podman images {image_1} -q')
         assert image_1_id
-        image_2_id = module_target_sat.execute(f'podman images {image_2} -q')
+        image_2_id = module_podman_contenthost.execute(f'podman images {image_2} -q')
         assert image_2_id
         # Podman pushes require lowercase org and product labels
         distribution_path = (
@@ -786,11 +796,11 @@ class TestPodman:
         )
         # Push both repos
         creds = f'{settings.server.admin_username}:{settings.server.admin_password}'
-        result = module_target_sat.execute(
+        result = module_podman_contenthost.execute(
             f'podman push --creds {creds} {image_1_id.stdout.strip()} {module_target_sat.hostname}/{distribution_path}'
         )
         assert result.status == 0, result.stderr
-        result = module_target_sat.execute(
+        result = module_podman_contenthost.execute(
             f'podman push --creds {creds} {image_2_id.stdout.strip()} {module_target_sat.hostname}/{distribution_path}'
         )
         assert result.status == 0, result.stderr
@@ -807,17 +817,12 @@ class TestPodman:
         assert not any(
             t['name'] == image_tag for m in manifests if m is not tagged for t in m['tags']
         )
-        # Check that the appropriate message is logged
+        # Check that the appropriate message is logged (install-method-aware)
         log_message = f"Removing 1 duplicate docker tag associations in repository '{image_name}'"
-        assert (
-            module_target_sat.execute(
-                f"""grep "{log_message}" /var/log/foreman/production.log"""
-            ).status
-            == 0
-        )
+        assert module_target_sat.grep_foreman_log(log_message).status == 0
 
     def test_cosign_sign_pushed_image(
-        self, request, module_target_sat, module_product, module_org, enable_podman
+        self, request, module_target_sat, module_podman_contenthost, module_product, module_org
     ):
         """Sign a container image in Satellite's registry using cosign.
 
@@ -841,56 +846,59 @@ class TestPodman:
         image_ref = f'{module_target_sat.hostname}/{repo_path}'
         key_dir = '/tmp/cosign-test'
         digest_file = '/tmp/cosign-push-digest'
-        request.addfinalizer(lambda: module_target_sat.execute(f'rm -rf {key_dir} {digest_file}'))
+        request.addfinalizer(
+            lambda: module_podman_contenthost.execute(f'rm -rf {key_dir} {digest_file}')
+        )
+
+        # cosign is fetched from GitHub via curl, which needs the system proxy on IPv6-only hosts
+        module_podman_contenthost.enable_ipv6_system_proxy()
 
         # Log in to Satellite's registry so cosign can inherit the credentials
-        result = module_target_sat.execute(
+        result = module_podman_contenthost.execute(
             f'podman login -u {settings.server.admin_username}'
             f' -p {settings.server.admin_password} {module_target_sat.hostname}'
         )
         assert result.status == 0, f'podman login failed: {result.stderr}'
 
         # Pull and push a container image to Satellite's registry
-        result = module_target_sat.execute(f'podman pull {FEDORA_REGISTRY}/{image_name}')
+        result = module_podman_contenthost.execute(f'podman pull {FEDORA_REGISTRY}/{image_name}')
         assert result.status == 0, f'podman pull failed: {result.stderr}'
-        pull_image_id = module_target_sat.execute(
+        pull_image_id = module_podman_contenthost.execute(
             f'podman images {FEDORA_REGISTRY}/{image_name}:latest -q'
         ).stdout.strip()
         assert pull_image_id, f'Could not find image ID for {FEDORA_REGISTRY}/{image_name}'
-        result = module_target_sat.execute(
+        result = module_podman_contenthost.execute(
             f'podman push --digestfile {digest_file} {pull_image_id} {image_ref}'
         )
         assert result.status == 0, f'podman push failed: {result.stderr}'
 
         # Build a digest reference for cosign (it requires digest, not tag)
-        digest = module_target_sat.execute(f'cat {digest_file}').stdout.strip()
+        digest = module_podman_contenthost.execute(f'cat {digest_file}').stdout.strip()
         image_ref_digest = f'{image_ref}@{digest}'
 
-        # Install cosign via RPM
-        result = module_target_sat.execute(
+        # Install the cosign static binary. The version-less release asset is served via a
+        # github.com redirect (not the rate-limited api.github.com), so no API call is needed.
+        result = module_podman_contenthost.execute(
             'command -v cosign || {'
-            ' COSIGN_VERSION=$(curl -fsSL'
-            ' https://api.github.com/repos/sigstore/cosign/releases/latest'
-            ' | python3 -c "import sys,json; print(json.load(sys.stdin)[\'tag_name\'].lstrip(\'v\'))");'
-            ' curl -fsSL -O'
-            ' "https://github.com/sigstore/cosign/releases/latest/download/cosign-${COSIGN_VERSION}-1.x86_64.rpm"'
-            ' && rpm -ivh "cosign-${COSIGN_VERSION}-1.x86_64.rpm"; }'
+            ' curl -fsSL -o /usr/local/bin/cosign'
+            ' https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64'
+            ' && chmod +x /usr/local/bin/cosign; }'
         )
         assert result.status == 0, f'cosign installation failed: {result.stderr}'
-        module_target_sat.execute(f'rm -rf {key_dir} && mkdir {key_dir}')
-        result = module_target_sat.execute(
+        module_podman_contenthost.execute(f'rm -rf {key_dir} && mkdir {key_dir}')
+        result = module_podman_contenthost.execute(
             f'cd {key_dir} && COSIGN_PASSWORD="" cosign generate-key-pair'
         )
         assert result.status == 0, f'cosign key generation failed: {result.stderr}'
 
         # Create a signing config with no services (disables tlog upload)
-        result = module_target_sat.execute(
+        result = module_podman_contenthost.execute(
             f'cosign signing-config create --out {key_dir}/signing-config.json'
         )
         assert result.status == 0, f'cosign signing-config create failed: {result.stderr}'
 
         # Sign the image by digest
-        result = module_target_sat.execute(
+        result = module_podman_contenthost.execute(
             f'COSIGN_PASSWORD="" cosign sign'
             f' --signing-config {key_dir}/signing-config.json'
             f' --key {key_dir}/cosign.key {image_ref_digest}'
@@ -898,7 +906,7 @@ class TestPodman:
         assert result.status == 0, f'cosign sign failed: {result.stderr}'
 
         # Verify the signature
-        result = module_target_sat.execute(
+        result = module_podman_contenthost.execute(
             f'cosign verify --insecure-ignore-tlog=true'
             f' --key {key_dir}/cosign.pub {image_ref_digest}'
         )

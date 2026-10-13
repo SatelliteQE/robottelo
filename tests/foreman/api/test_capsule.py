@@ -142,6 +142,7 @@ def test_positive_update_url(request, target_sat):
         assert proxy.url == url
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.skip_if_not_set('fake_capsules')
 @pytest.mark.upgrade
 def test_positive_import_puppet_classes(

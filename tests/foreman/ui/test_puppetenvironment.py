@@ -17,6 +17,8 @@ import pytest
 from robottelo.constants import LIBRARY_LCE
 from robottelo.utils.datafactory import gen_string
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.e2e
 @pytest.mark.upgrade

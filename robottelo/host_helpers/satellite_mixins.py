@@ -2,27 +2,37 @@ import contextlib
 from functools import lru_cache
 import json
 import os
+from pathlib import PurePath
 import random
 import re
+import shlex
 from urllib.parse import urljoin
 from urllib.request import urlopen
 
 from broker.hosts import Host
 from fauxfactory import gen_string
+from packaging.version import Version
 import requests
 from wait_for import TimedOutError, wait_for
 import yaml
 
+from robottelo import constants
 from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import (
+    FAM_ROOT_DIR,
     PULP_EXPORT_DIR,
     PULP_IMPORT_DIR,
     PUPPET_COMMON_INSTALLER_OPTS,
     PUPPET_SATELLITE_INSTALLER,
 )
 from robottelo.enums import InstallMethod, NetworkType
-from robottelo.exceptions import CLIReturnCodeError, NoManifestProvidedError, SatelliteHostError
+from robottelo.exceptions import (
+    CLIReturnCodeError,
+    DownloadFileError,
+    NoManifestProvidedError,
+    SatelliteHostError,
+)
 from robottelo.host_helpers.api_factory import APIFactory
 from robottelo.host_helpers.cli_factory import CLIFactory
 from robottelo.host_helpers.ui_factory import UIFactory
@@ -243,6 +253,110 @@ class ContentInfo:
         )[0]
 
 
+class DisconnectedInstall:
+    """Disconnected Satellite installation helper methods."""
+
+    def resolve_iso_url(self, url):
+        """Resolve a URL pointing at a directory of ISO images to a single ISO image.
+
+        Composes name their ISO images after the build, so that the URL of a Stream ISO
+        changes with every compose. Given a directory URL, the newest binary DVD image of
+        the host architecture published in it is picked, while a URL of an ISO image is
+        returned unchanged. The source and boot images published alongside are skipped.
+
+        :param url: URL of an ISO image, or of a directory index listing ISO images
+        :return: URL of a single ISO image
+        """
+        if url.endswith('.iso'):
+            return url
+        index = self.execute(f'curl --fail --silent --location {url}')
+        if index.status != 0:
+            raise DownloadFileError(f'Unable to list the ISO images at {url}:\n{index.stderr}')
+        images = sorted(
+            {
+                image
+                for image in re.findall(r'[\w.+-]+\.iso', index.stdout)
+                if self.arch in image and 'boot' not in image and 'source' not in image
+            }
+        )
+        if not images:
+            raise DownloadFileError(f'No {self.arch} ISO image is published at {url}')
+        logger.info(f'Picked the newest ISO image {images[-1]} out of {images} published at {url}')
+        return f'{url.rstrip("/")}/{images[-1]}'
+
+    def download_iso(self, iso_url, download_dir='/root', timeout='60m'):
+        """Download an ISO image onto the host.
+
+        :param iso_url: URL of the ISO image, or of a directory the newest ISO image
+            published in it is downloaded from
+        :param download_dir: directory the ISO image is downloaded to
+        :param timeout: timeout of the download, ISO images are large
+        :return: path of the downloaded ISO image on the host
+        """
+        iso_url = self.resolve_iso_url(iso_url)
+        iso_path = f'{download_dir}/{PurePath(iso_url).name}'
+        result = self.execute(f'curl --fail --location --output {iso_path} {iso_url}', timeout)
+        if result.status != 0:
+            raise DownloadFileError(f'Unable to download {iso_url}:\n{result.stderr}')
+        return iso_path
+
+    def mount_iso(self, iso_path, mount_point):
+        """Loop-mount an ISO image read-only.
+
+        :param iso_path: path of the ISO image on the host
+        :param mount_point: directory the ISO is mounted at, created when missing
+        """
+        self.execute(f'mkdir -p {mount_point}')
+        result = self.execute(f'mount -o loop,ro {iso_path} {mount_point}')
+        assert result.status == 0, f'Failed to mount {iso_path} at {mount_point}:\n{result.stderr}'
+
+    def setup_offline_rhel_repos(self, mount_point, repos=('BaseOS', 'AppStream')):
+        """Create dnf repositories served from a mounted RHEL binary DVD ISO.
+
+        :param mount_point: directory the RHEL binary DVD ISO is mounted at
+        :param repos: names of the repository directories present on the ISO
+        """
+        # The compose trees publish the ISO of every RHEL version, serving packages of
+        # another version than the host runs would upgrade the base operating system
+        iso_version = self.execute(
+            "awk -F' = ' '/^\\[general\\]/{in_general=1; next} "
+            "/^\\[/{in_general=0} "
+            "in_general && $1==\"version\"{print $2; exit}' "
+            f'{mount_point}/.treeinfo'
+        ).stdout.strip()
+        assert iso_version, f'Unable to detect the RHEL version from {mount_point}/.treeinfo'
+        iso_version = Version(iso_version)
+        assert iso_version.major == self.os_version.major, (
+            f'The RHEL {iso_version} ISO does not match the RHEL {self.os_version} host'
+        )
+        if iso_version.minor != self.os_version.minor:
+            logger.warning(
+                f'The RHEL {iso_version} ISO serves packages of another minor version '
+                f'than the RHEL {self.os_version} host runs'
+            )
+        missing = [
+            repo
+            for repo in repos
+            if self.execute(f'[ -d {mount_point}/{repo}/repodata ]').status != 0
+        ]
+        assert not missing, f'Repositories {missing} not found on the ISO at {mount_point}'
+        self.create_custom_repos(
+            **{f'iso_{repo.lower()}': f'file://{mount_point}/{repo}' for repo in repos}
+        )
+
+    def disconnect_from_network(self):
+        """Cut the host off from every external content source.
+
+        Unregisters from the CDN and drops all repofiles and container registry
+        credentials, so that neither dnf nor podman can reach the Red Hat CDN or
+        the container registry.
+        """
+        self.unregister()
+        self.execute('rm -rf /etc/yum.repos.d/*.repo')
+        self.execute(f'rm -f {constants.PODMAN_AUTHFILE_PATH}')
+        self.execute('podman logout --all')
+
+
 class SystemInfo:
     """Things that needs access to satellite shell for gaining satellite system configuration"""
 
@@ -373,6 +487,11 @@ class ProvisioningSetup:
         :param server_fqdn: Libvirt server FQDN
         :return: None
         """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            # Foremanctl keeps the application user inside the container, not on the host.
+            self._configure_foremanctl_libvirt_cr(server_fqdn)
+            return
+
         # Generate SSH key-pair for foreman user and copy public key to libvirt server
         self.execute('sudo -u foreman ssh-keygen -q -t rsa -f ~foreman/.ssh/id_rsa -N "" <<< y')
         self.execute('echo "StrictHostKeyChecking accept-new" >> ~foreman/.ssh/config')
@@ -387,6 +506,121 @@ class ProvisioningSetup:
             f'su foreman -s /bin/bash -c "virsh -c qemu+ssh://root@{server_fqdn}/system list"'
         )
         assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
+
+    def _configure_foremanctl_libvirt_cr(self, server_fqdn):
+        """Configure SSH access for Foreman's containerized application user."""
+        # Read the account from the image instead of assuming a fixed UID or home directory.
+        account = self.execute('podman exec foreman getent passwd foreman')
+        assert account.status == 0, (
+            f'Could not find the foreman account in the Foreman container:\n'
+            f'{account.stdout=}\n{account.stderr=}'
+        )
+        account_fields = account.stdout.strip().split(':')
+        assert len(account_fields) == 7, (
+            f'Unexpected foreman account entry in the Foreman container: {account.stdout!r}'
+        )
+        assert account_fields[0] == 'foreman', (
+            f'Unexpected user in the Foreman container account entry: {account.stdout!r}'
+        )
+        foreman_uid, foreman_gid, foreman_home = (
+            account_fields[2],
+            account_fields[3],
+            account_fields[5],
+        )
+        assert foreman_uid.isdecimal(), f'Invalid foreman UID: {foreman_uid!r}'
+        assert foreman_gid.isdecimal(), f'Invalid foreman GID: {foreman_gid!r}'
+        assert foreman_home.startswith('/'), f'Invalid foreman home directory: {foreman_home!r}'
+        assert ':' not in foreman_home, f'Invalid foreman home directory: {foreman_home!r}'
+        ssh_dir = f'{foreman_home.rstrip("/")}/.ssh'
+        container_identity = f'{ssh_dir}/id_rsa'
+        container_config = f'{ssh_dir}/config'
+
+        key_dir_result = self.execute('mktemp -d /tmp/robottelo-libvirt.XXXXXX')
+        assert key_dir_result.status == 0, (
+            f'Could not create a temporary SSH key directory:\n'
+            f'{key_dir_result.stdout=}\n{key_dir_result.stderr=}'
+        )
+        key_dir = key_dir_result.stdout.strip()
+        identity = f'{key_dir}/id_rsa'
+        public_identity = f'{identity}.pub'
+
+        try:
+            # Reuse the container key so repeated setup does not add new keys to authorized_keys.
+            key_check = (
+                f'test -s {shlex.quote(container_identity)} && '
+                f'test -s {shlex.quote(f"{container_identity}.pub")}'
+            )
+            existing_key = self.execute(
+                f'podman exec --user 0 foreman sh -c {shlex.quote(key_check)}'
+            )
+            if existing_key.status:
+                # Create the initial SSH key pair on the Satellite, then copy it into Foreman's container.
+                result = self.execute(f'ssh-keygen -q -t rsa -f {shlex.quote(identity)} -N ""')
+                assert result.status == 0, f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+
+                for source, destination in (
+                    (identity, container_identity),
+                    (public_identity, f'{container_identity}.pub'),
+                ):
+                    result = self.execute(
+                        f'podman cp {shlex.quote(source)} {shlex.quote(f"foreman:{destination}")}'
+                    )
+                    assert result.status == 0, (
+                        f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+                    )
+            else:
+                # ssh-copy-id needs both key files to detect an already-installed key.
+                for source in (container_identity, f'{container_identity}.pub'):
+                    result = self.execute(
+                        f'podman cp {shlex.quote(f"foreman:{source}")} {shlex.quote(key_dir)}'
+                    )
+                    assert result.status == 0, (
+                        f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+                    )
+
+            # ssh-copy-id runs on the host; it installs the public half on the libvirt server.
+            result = self.execute(
+                f'sshpass -p {shlex.quote(settings.server.ssh_password)} ssh-copy-id '
+                f'-o StrictHostKeyChecking=no -i {shlex.quote(identity)} '
+                f'{shlex.quote(f"root@{server_fqdn}")}'
+            )
+            assert result.status == 0, f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+
+            # Keep any existing SSH settings, adding non-interactive host-key acceptance once.
+            strict_host_checking = 'StrictHostKeyChecking accept-new'
+            config_command = (
+                f'touch {shlex.quote(container_config)} && '
+                f'if ! grep -qFx {shlex.quote(strict_host_checking)} '
+                f'{shlex.quote(container_config)}; then '
+                f'printf "%s\\n" {shlex.quote(strict_host_checking)} '
+                f'>> {shlex.quote(container_config)}; fi'
+            )
+            permissions_command = ' && '.join(
+                (
+                    f'chown -R {foreman_uid}:{foreman_gid} {shlex.quote(ssh_dir)}',
+                    f'chmod 0700 {shlex.quote(ssh_dir)}',
+                    f'chmod 0600 {shlex.quote(container_identity)}',
+                    f'chmod 0644 {shlex.quote(f"{container_identity}.pub")}',
+                    f'chmod 0600 {shlex.quote(container_config)}',
+                )
+            )
+            for command in (config_command, permissions_command):
+                result = self.execute(f'podman exec --user 0 foreman sh -c {shlex.quote(command)}')
+                assert result.status == 0, f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+
+            # Verify SSH using the same container account and home that libvirt will use.
+            result = self.execute(
+                f'podman exec --user {foreman_uid}:{foreman_gid} '
+                f'--env HOME={shlex.quote(foreman_home)} foreman ssh '
+                f'-i {shlex.quote(container_identity)} -o BatchMode=yes '
+                f'-o IdentitiesOnly=yes {shlex.quote(f"root@{server_fqdn}")} true'
+            )
+            assert result.status == 0, (
+                f'Foreman container could not SSH to the Libvirt server:\n'
+                f'{result.status=}\n{result.stdout=}\n{result.stderr=}'
+            )
+        finally:
+            self.execute(f'rm -rf -- {shlex.quote(key_dir)}')
 
     def provisioning_cleanup(self, hostname, interface='API'):
         if interface == 'CLI':
@@ -538,3 +772,62 @@ class IoPSetup:
             raise SatelliteHostError(f'Failed to disable IoP: {result.stdout}')
         if self.iop_enabled:
             raise SatelliteHostError('IoP is not disabled')
+
+
+class AnsibleCollectionSetup:
+    """Helper for configuring Satellite to be able to run AnsibleCollection test suite."""
+
+    def configure_fam(self):
+        self.register_to_cdn()
+        # The tests need pytest, which is only available in codeready-builder
+        self.enable_repo(f'codeready-builder-for-rhel-{self.os_version.major}-x86_64-rpms')
+
+        python = 'python3.12' if self.os_version.major == 9 else 'python3'
+
+        self.execute(
+            f'dnf install -y ansible-collection-redhat-satellite ansible-core make python3-rpm python3-requests {python}-pytest {python}-pip'
+        )
+        self.execute(f'{python} -m pip install ansible-runner')
+        self.execute(
+            'chmod +x /usr/share/ansible/collections/ansible_collections/redhat/satellite/tests/vcr_python_wrapper.py'
+        )
+
+        self.put(
+            settings.fam.compute_profile.to_yaml(),
+            f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/compute_profile.yml',
+            temp_file=True,
+        )
+
+        # Create fake galaxy.yml to make Makefile happy.
+        # The data in the file is unused, but not being able to load it produces errors in the
+        # logs and is confusing when searching for an actual problem during testing.
+        self.put(
+            yaml.safe_dump({'name': 'satellite', 'namespace': 'redhat', 'version': '1.0.0'}),
+            f'{FAM_ROOT_DIR}/galaxy.yml',
+            temp_file=True,
+        )
+
+        # Edit Makefile to not try to rebuild the collection when tests run
+        self.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
+
+        # Edit inventory configurations
+        self.execute(
+            f"sed -i '/url/ s#http.*#https://{self.hostname}#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+        )
+        self.execute(
+            f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
+        )
+
+        # Edit content_import tests
+        # They need to extract data on the Foreman/Satellite machine and use "hosts: foreman" for that
+        # As we're running locally, we can use "hosts: localhost" instead
+        self.execute(
+            f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
+        )
+        if self.install_method == InstallMethod.FOREMANCTL:
+            # The tests need to ensure the imported content can be read by pulp and chown it to `pulp:pulp`.
+            # As pulp is running in containers now, there is no `pulp` user/group on the host where the tests run,
+            # so we create them manually.
+            self.execute(
+                'groupadd --system --gid 700 pulp && useradd --system --uid 700 --gid pulp --no-create-home pulp'
+            )

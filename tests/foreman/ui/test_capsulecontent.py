@@ -93,20 +93,21 @@ def test_positive_content_counts_for_mixed_cv(
     cvv = cv.version[-1].read()
     lces = [function_lce.name, function_lce_library.name]
 
+    content_proxy = module_capsule_configured.nailgun_content_smart_proxy.read()
+    content_proxy.organization = [*content_proxy.organization, function_org]
+    content_proxy.update(['organization'])
+
     with target_sat.ui_session() as session:
-        session.capsule.edit(
-            module_capsule_configured.hostname, add_organizations=[function_org.name]
-        )
         session.organization.select(org_name=function_org.name)
 
         # Assign the Capsule with the LCE where the setup CVV is promoted to.
         session.capsule.edit(
-            module_capsule_configured.hostname,
+            module_capsule_configured.content_hostname,
             add_lces=lces,
         )
 
         # Check the capsule lists correct LCE and CV names but no content counts before sync.
-        details = session.capsule.read_details(module_capsule_configured.hostname)
+        details = session.capsule.read_details(module_capsule_configured.content_hostname)
         assert set(lces) == set(details['content']), 'Wrong LCEs listed'
         assert function_lce.name in details['content'], 'Assigned LCE not listed'
 
@@ -147,7 +148,7 @@ def test_positive_content_counts_for_mixed_cv(
                 )
 
         # Sync the Capsule and get the content counts again.
-        session.capsule.optimized_sync(module_capsule_configured.hostname)
+        session.capsule.optimized_sync(module_capsule_configured.content_hostname)
         target_sat.wait_for_tasks(
             search_query='label = Actions::Katello::CapsuleContent::Sync',
             search_rate=10,
@@ -158,7 +159,7 @@ def test_positive_content_counts_for_mixed_cv(
             search_rate=5,
             max_tries=5,
         )
-        details = session.capsule.read_details(module_capsule_configured.hostname)
+        details = session.capsule.read_details(module_capsule_configured.content_hostname)
 
         # Get the content counts from Satellite side and compare them with Capsule.
         sat_repos = [target_sat.api.Repository(id=repo.id).read() for repo in cvv.repository]
@@ -216,7 +217,9 @@ def test_positive_content_counts_for_mixed_cv(
                     'per_page': '1000',
                 }
             )
-            session.capsule.refresh_lce_counts(module_capsule_configured.hostname, lce_name=lce)
+            session.capsule.refresh_lce_counts(
+                module_capsule_configured.content_hostname, lce_name=lce
+            )
             target_sat.wait_for_tasks(
                 search_query='label = Actions::Katello::CapsuleContent::UpdateContentCounts',
                 search_rate=5,
@@ -231,8 +234,8 @@ def test_positive_content_counts_for_mixed_cv(
             assert len(t2) == len(t1) + 1, 'Update CC task was not triggered'
 
         # Remove the LCEs from Capsule and ensure they are not listed anymore.
-        session.capsule.edit(module_capsule_configured.hostname, remove_all_lces=True)
-        details = session.capsule.read_details(module_capsule_configured.hostname)
+        session.capsule.edit(module_capsule_configured.content_hostname, remove_all_lces=True)
+        details = session.capsule.read_details(module_capsule_configured.content_hostname)
         assert 'content' not in details, 'Content still listed for removed LCEs'
 
 
@@ -309,14 +312,15 @@ def test_positive_content_counts_granular_update(
         f'{repo.content_counts["package_group"]} Package groups',
     ]
 
+    content_proxy = module_capsule_configured.nailgun_content_smart_proxy.read()
+    content_proxy.organization = [*content_proxy.organization, function_org]
+    content_proxy.update(['organization'])
+
     with module_target_sat.ui_session() as session:
-        session.capsule.edit(
-            module_capsule_configured.hostname, add_organizations=[function_org.name]
-        )
         session.organization.select(org_name=function_org.name)
 
         # 3. Ensure no counts were calculated yet for both CVs, both LCEs.
-        details = session.capsule.read_details(module_capsule_configured.hostname)
+        details = session.capsule.read_details(module_capsule_configured.content_hostname)
         assert all(
             details['content'][lce.name][cv.name]['expanded_repo_details'][1] == empty_counts
             for lce in [lce1, lce2]
@@ -325,7 +329,7 @@ def test_positive_content_counts_granular_update(
 
         # 4. Refresh counts for the first CV in the first LCE, check entity IDs in the Update task.
         session.capsule.refresh_lce_counts(
-            module_capsule_configured.hostname, lce_name=lce1.name, cv_name=cv1.name
+            module_capsule_configured.content_hostname, lce_name=lce1.name, cv_name=cv1.name
         )
         timestamp = (datetime.now(UTC) - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
         task = module_target_sat.api.ForemanTask().search(
@@ -339,7 +343,7 @@ def test_positive_content_counts_granular_update(
 
         # 5. Ensure the counts were updated for the first CV and
         #    the second CV stayed untouched, as well as the second LCE.
-        details = session.capsule.read_details(module_capsule_configured.hostname)
+        details = session.capsule.read_details(module_capsule_configured.content_hostname)
         assert details['content'][lce1.name][cv1.name]['expanded_repo_details'][1] == valid_counts
         assert details['content'][lce1.name][cv2.name]['expanded_repo_details'][1] == empty_counts
         assert all(
@@ -348,7 +352,9 @@ def test_positive_content_counts_granular_update(
         )
 
         # 6. Refresh counts for the second LCE, check entity IDs in the Update task.
-        session.capsule.refresh_lce_counts(module_capsule_configured.hostname, lce_name=lce2.name)
+        session.capsule.refresh_lce_counts(
+            module_capsule_configured.content_hostname, lce_name=lce2.name
+        )
         timestamp = (datetime.now(UTC) - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M')
         task = module_target_sat.api.ForemanTask().search(
             query={
@@ -361,7 +367,7 @@ def test_positive_content_counts_granular_update(
 
         # 7. Ensure the counts were updated for the second LCE and
         #    the second CV in the first LCE stayed untouched.
-        details = session.capsule.read_details(module_capsule_configured.hostname)
+        details = session.capsule.read_details(module_capsule_configured.content_hostname)
         assert all(
             details['content'][lce2.name][cv.name]['expanded_repo_details'][1] == valid_counts
             for cv in cvs
@@ -425,13 +431,14 @@ def test_partially_synced_library(
     )
 
     # 4. Ensure the correct content counts are shown for both repositories.
+    content_proxy = module_capsule_configured.nailgun_content_smart_proxy.read()
+    content_proxy.organization = [*content_proxy.organization, function_sca_manifest_org]
+    content_proxy.update(['organization'])
+
     with module_target_sat.ui_session() as session:
-        session.capsule.edit(
-            module_capsule_configured.hostname, add_organizations=[function_sca_manifest_org.name]
-        )
         session.organization.select(org_name=function_sca_manifest_org.name)
 
-        details = session.capsule.read_details(module_capsule_configured.hostname)
+        details = session.capsule.read_details(module_capsule_configured.content_hostname)
 
         # Get the content counts from Satellite side and compare them with Capsule.
         sat_repos = [module_target_sat.api.Repository(id=repo.id).read() for repo in rh_repos]
@@ -472,7 +479,7 @@ def test_hide_reclaim_space_warning(module_target_sat, setting_update):
     """
     with module_target_sat.ui_session() as session:
         # Navigate to the internal capsule details page, verify the warning is displayed.
-        details = session.capsule.read_details(module_target_sat.hostname)
+        details = session.capsule.read_details(module_target_sat.content_hostname)
         assert 'reclaim_space_warning' in details['overview']
         assert (
             'Warning: reclaiming space will delete all cached content'
@@ -484,5 +491,5 @@ def test_hide_reclaim_space_warning(module_target_sat, setting_update):
         setting_update.update({'value'})
 
         # Navigate to the internal capsule details page, verify the warning is gone.
-        details = session.capsule.read_details(module_target_sat.hostname)
+        details = session.capsule.read_details(module_target_sat.content_hostname)
         assert 'reclaim_space_warning' not in details['overview']
