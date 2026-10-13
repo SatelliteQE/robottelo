@@ -184,18 +184,22 @@ def test_negative_register_twice(module_ak_with_cv, module_org, rhel_contenthost
 
     :id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
 
-    :expectedresults: host cannot be registered twice
+    :expectedresults: Registration succeeds even when already registered (UUID exists)
 
     :parametrized: yes
+
+    :Verifies: SAT-39249
     """
     rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
     assert rhel_contenthost.subscribed
     result = rhel_contenthost.register(
         module_org, None, module_ak_with_cv.name, target_sat, force=False
     )
-    # host being already registered.
-    assert result.status == 1
-    assert 'This system is already registered' in str(result.stderr)
+    # Since commit ce8bf3c05 (Fixes #39249), registration succeeds when host is already
+    # registered because the script checks if UUID exists and continues if found
+    assert result.status == 0, f'Registration should succeed when already registered, got: {result.status}'
+    assert 'This system is already registered' in str(result.stdout)
+    assert 'Host' in str(result.stdout) and 'successfully configured' in str(result.stdout)
 
 
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
