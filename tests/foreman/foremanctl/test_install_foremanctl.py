@@ -202,10 +202,12 @@ def test_capsule_installation_with_foremanctl(
         1. Use Satellite deployed with foremanctl.
         2. Configure RHEL and Capsule repos on Satellite
         3. Register Capsule machine to consume Satellite content
-        4. Install and setup Capsule server using foremanctl
+        4. Serve the Capsule container images from the Satellite and configure the
+           Capsule to pull them from the Satellite instead of registry.redhat.io
+        5. Install and setup Capsule server using foremanctl
 
     :expectedresults:
-        1. Capsule is installed and setup correctly
+        1. Capsule is installed and setup correctly using images served by the Satellite
         2. no unexpected errors in logs
         3. health check runs successfully
     """
@@ -230,6 +232,11 @@ def test_capsule_installation_with_foremanctl(
     module_sat_ready_rhel.api_factory.sync_capsule_repos(module_cap_ready_rhel, org, ak)
 
     module_cap_ready_rhel.register(org, None, ak.name, module_sat_ready_rhel)
+
+    # Serve the Capsule container images from the Satellite and redirect the Capsule's
+    # image pulls to it, so deploy-proxy installs from the Satellite-served images.
+    product_path = module_sat_ready_rhel.api_factory.serve_capsule_container_images(org)
+    module_cap_ready_rhel.pull_container_images_from_satellite(module_sat_ready_rhel, product_path)
 
     # Setup Capsule
     result = module_cap_ready_rhel.execute(cmd_args)
