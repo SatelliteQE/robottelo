@@ -10,6 +10,7 @@ import json
 from pathlib import Path, PurePath
 import random
 import re
+import shlex
 import subprocess
 import sys
 from tempfile import NamedTemporaryFile
@@ -1847,6 +1848,44 @@ class Capsule(ContentHost, CapsuleMixins):
     @cached_property
     def url(self):
         return f'https://{self.hostname}'
+
+    def pulp_api(self, path):
+        """GET a Pulp API v3 path or full Pulp href and return its JSON."""
+        api_path = f'/{path.lstrip("/")}'
+        if api_path == '/pulp/api/v3':
+            api_path += '/'
+        elif not api_path.startswith('/pulp/api/v3/'):
+            api_path = f'/pulp/api/v3{api_path}'
+        url = f'{self.url}{api_path}'
+
+        # Pulp status is public; protected requests run on the host with its client key.
+        if api_path.rstrip('/') == '/pulp/api/v3/status':
+            response = requests.get(url, verify=settings.server.verify_ca, timeout=30)
+            response.raise_for_status()
+            return response.json()
+
+        certs_dir = Path(FOREMANCTL_CA_CERT_PATH).parent
+        command = [
+            'curl',
+            '--fail',
+            '--silent',
+            '--show-error',
+            '--max-time',
+            '30',
+            '--cacert',
+            str(certs_dir / 'server-ca.crt'),
+            '--cert',
+            str(certs_dir / f'{self.hostname}-client.crt'),
+            '--key',
+            str(certs_dir.parent / 'private' / f'{self.hostname}-client.key'),
+            url,
+        ]
+        result = self.execute(shlex.join(command))
+        if result.status:
+            raise ContentHostError(
+                f'Pulp API GET {url} failed with curl status {result.status}: {result.stderr}'
+            )
+        return json.loads(result.stdout)
 
     @cached_property
     def url_katello_ca_rpm(self):
