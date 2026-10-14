@@ -10,6 +10,7 @@
 
 :CaseAutomation: Automated
 
+:BlockedBy: SAT-40441
 """
 
 import random
@@ -20,6 +21,8 @@ import pytest
 from robottelo.constants import SNIPPET_DATA_FILE, DataFile
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import invalid_names_list, valid_data_list
+
+pytestmark = pytest.mark.foreman_installer
 
 
 class TestTailoringFiles:
