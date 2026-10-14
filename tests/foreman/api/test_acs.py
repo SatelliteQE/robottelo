@@ -121,6 +121,87 @@ def test_positive_CRUD_all_types(
         module_target_sat.api.AlternateContentSource(id=new_acs.id).read()
 
 
+@pytest.mark.foremanctl
+@pytest.mark.parametrize('proxy_field', ['smart_proxy_ids', 'smart_proxy_names'])
+def test_negative_reject_non_pulp_proxy_for_acs_create_update(
+    request, module_target_sat, proxy_field
+):
+    """Only the content smart proxy can be assigned to an ACS.
+
+    :id: 8a75a904-12bf-4288-99e8-78044059e830
+
+    :parametrized: yes
+
+    :steps:
+        1. Identify the Satellite's content and management smart proxies.
+        2. Create an ACS with the content proxy.
+        3. Try to update the ACS with the management proxy.
+        4. Remove its proxy and assign the content proxy again.
+        5. Try to create an ACS with the management proxy.
+
+    :expectedresults:
+        1. The content proxy can be assigned during creation and update.
+        2. The management proxy update is rejected without changing the ACS's proxies.
+        3. Creation with the management proxy is rejected without creating an ACS.
+    """
+    # 1. Identify the Satellite's content and management smart proxies.
+    content_proxy = module_target_sat.nailgun_content_smart_proxy
+    management_proxy = module_target_sat.nailgun_smart_proxy
+    assert content_proxy.id != management_proxy.id
+
+    proxy_attribute = 'id' if proxy_field == 'smart_proxy_ids' else 'name'
+    content_value = getattr(content_proxy, proxy_attribute)
+    management_value = getattr(management_proxy, proxy_attribute)
+    error_msg = 'must have the Pulp feature to be used with alternate content sources'
+
+    # 2. Create an ACS with the content proxy.
+    acs_params = {
+        'name': gen_string('alpha'),
+        'alternate_content_source_type': 'custom',
+        'content_type': 'yum',
+        'base_url': PULP_FIXTURE_ROOT,
+        'subpaths': PULP_SUBPATHS_COMBINED['yum'],
+        'verify_ssl': False,
+    }
+    acs = module_target_sat.api.AlternateContentSource(
+        **acs_params, **{proxy_field: [content_value]}
+    ).create()
+    request.addfinalizer(acs.delete)
+    assert [proxy.id for proxy in acs.read().smart_proxies] == [content_proxy.id]
+
+    # 3. Try to update the ACS with the management proxy.
+    setattr(acs, proxy_field, [management_value])
+    with pytest.raises(HTTPError) as update_error:
+        acs.update([proxy_field])
+    assert update_error.value.response.status_code == 422
+    assert error_msg in update_error.value.response.text
+    assert management_proxy.name in update_error.value.response.text
+    assert [proxy.id for proxy in acs.read().smart_proxies] == [content_proxy.id]
+
+    # 4. Remove its proxy and assign the content proxy again.
+    setattr(acs, proxy_field, [])
+    acs.update([proxy_field])
+    assert not acs.read().smart_proxies
+    setattr(acs, proxy_field, [content_value])
+    acs.update([proxy_field])
+    assert [proxy.id for proxy in acs.read().smart_proxies] == [content_proxy.id]
+
+    # 5. Try to create an ACS with the management proxy.
+    non_pulp_params = {
+        **acs_params,
+        'name': gen_string('alpha'),
+        proxy_field: [management_value],
+    }
+    with pytest.raises(HTTPError) as create_error:
+        module_target_sat.api.AlternateContentSource(**non_pulp_params).create()
+    assert create_error.value.response.status_code == 422
+    assert error_msg in create_error.value.response.text
+    assert management_proxy.name in create_error.value.response.text
+    assert not module_target_sat.api.AlternateContentSource().search(
+        query={'search': f'name="{non_pulp_params["name"]}"'}
+    )
+
+
 def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
     """Perform bulk actions with an ACS.
 
