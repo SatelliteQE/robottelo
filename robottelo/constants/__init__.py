@@ -2130,7 +2130,7 @@ STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'ht
 
 VMWARE_CONSTANTS = {
     'folder': 'vm',
-    'scsicontroller': 'LSI Logic Parallel',
+    'scsicontroller': 'VMware Paravirtual',
     'virtualhw_version': 'Default',
     'pool': 'Resources',
     'network_interface_name': 'VMXNET 3',
