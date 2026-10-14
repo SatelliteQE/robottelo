@@ -2658,7 +2658,7 @@ class InstallationServices:
         'iop-core-puptoo',
         'iop-core-yuptoo',
         'iop-service-advisor-backend-api',
-        'iop-service-advisor-backend',
+        'iop-service-advisor-backend-service',
         'iop-service-remediations-api',
         'iop-service-vmaas-reposcan',
         'iop-service-vmaas-webapp-go',
