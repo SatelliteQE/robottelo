@@ -3821,6 +3821,38 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
         assert hosts_in_host_col[host_col_names[1]] == []
 
 
+def test_positive_all_hosts_manage_host_collections_with_no_hc_created(
+    target_sat, function_org, function_location
+):
+    """
+    On All Hosts page verify the flow for bulk-assigning Host Collections
+    to the host when the selected organization has no Host Collections.
+
+    :id: 272a8821-1055-4f87-b646-87ab379b074a
+
+    :steps:
+        1. Create a fake host in an organization with no host collections.
+        2. Select the host on All Hosts page and open Change associations -> Host collections.
+        3. Click Create host collection in the empty-state modal.
+
+    :expectedresults:
+        1. The modal displays No host collections yet.
+        2. The user is redirected to the New Host Collection page.
+
+    :Verifies: SAT-39460
+    """
+    host = target_sat.cli_factory.make_fake_host(
+        {'organization': function_org.name, 'location': function_location.name}
+    )
+    try:
+        with target_sat.ui_session() as session:
+            session.organization.select(org_name=function_org.name)
+            session.location.select(loc_name=function_location.name)
+            assert session.all_hosts.create_host_collection_from_empty_state(host.name)
+    finally:
+        target_sat.api.Host(id=host.id).delete()
+
+
 @pytest.mark.parametrize(
     'module_repos_collection_with_setup',
     [{'YumRepository': {'url': settings.repos.yum_3.url}}],
