@@ -10,6 +10,7 @@
 
 :CaseImportance: High
 
+:BlockedBy: SAT-40441
 """
 
 import pytest
