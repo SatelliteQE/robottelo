@@ -26,6 +26,8 @@ from robottelo.utils.datafactory import (
     valid_data_list,
 )
 
+pytestmark = pytest.mark.foreman_installer
+
 
 class TestOpenScap:
     """Tests related to the oscap cli hammer plugin"""

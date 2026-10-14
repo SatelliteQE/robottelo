@@ -17,6 +17,8 @@ import pytest
 from robottelo.constants import DataFile
 from robottelo.utils.datafactory import gen_string
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.upgrade
 def test_positive_end_to_end(

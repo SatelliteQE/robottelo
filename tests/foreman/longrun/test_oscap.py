@@ -26,6 +26,8 @@ from robottelo.constants import (
 from robottelo.exceptions import ContentHostError, ProxyError
 from robottelo.logging import logger
 
+pytestmark = pytest.mark.foreman_installer
+
 ak_name = {
     'rhel10': f'ak_{gen_string("alpha")}_rhel10',
     'rhel9': f'ak_{gen_string("alpha")}_rhel9',

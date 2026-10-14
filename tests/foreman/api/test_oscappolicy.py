@@ -15,6 +15,8 @@
 from fauxfactory import gen_string
 import pytest
 
+pytestmark = pytest.mark.foreman_installer
+
 
 class TestOscapPolicy:
     """Implements Oscap Policy tests in API."""

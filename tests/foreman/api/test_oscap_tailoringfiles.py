@@ -16,6 +16,8 @@ import pytest
 
 from robottelo.utils.datafactory import gen_string
 
+pytestmark = pytest.mark.foreman_installer
+
 
 class TestTailoringFile:
     """Implements Tailoring Files tests in API."""

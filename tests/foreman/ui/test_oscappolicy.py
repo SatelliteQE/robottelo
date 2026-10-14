@@ -17,6 +17,8 @@ import pytest
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.utils.datafactory import gen_string
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture(scope='module')
 def module_host_group(default_location, default_org, module_target_sat):
