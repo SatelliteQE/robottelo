@@ -16,31 +16,9 @@ import pytest
 import yaml
 
 from robottelo.config import settings
+from robottelo.constants import InstallationServices
+from robottelo.enums import InstallMethod
 from robottelo.utils.installer import InstallerCommand
-
-IOP_SERVICES = [
-    'iop-core-engine',
-    'iop-core-gateway',
-    'iop-core-host-inventory-api',
-    'iop-core-host-inventory-migrate',
-    'iop-core-host-inventory',
-    'iop-core-ingress',
-    'iop-core-kafka',
-    'iop-core-puptoo',
-    'iop-core-yuptoo',
-    'iop-service-advisor-backend-api',
-    'iop-service-advisor-backend',
-    'iop-service-remediations-api',
-    'iop-service-vmaas-reposcan',
-    'iop-service-vmaas-webapp-go',
-    'iop-service-vuln-dbupgrade',
-    'iop-service-vuln-evaluator-recalc',
-    'iop-service-vuln-evaluator-upload',
-    'iop-service-vuln-grouper',
-    'iop-service-vuln-listener',
-    'iop-service-vuln-manager',
-    'iop-service-vuln-taskomatic',
-]
 
 
 @pytest.mark.no_containers
@@ -70,74 +48,92 @@ def test_positive_install_iop_custom_certs(
     """
     satellite = sat_ready_rhel
     host = rhel_contenthost
-    iop_settings = settings.rh_cloud.iop
-
-    # Satellite + IoP installation
 
     # Set IPv6 proxy for shell commands
     satellite.enable_ipv6_system_proxy()
 
-    # Install satellite packages
-    satellite.download_repofile(
-        product='satellite',
-        release=settings.server.version.release,
-        snap=settings.server.version.snap,
-    )
-    satellite.register_to_cdn()
-    satellite.execute('dnf -y update')
-    satellite.install_satellite_or_capsule_package()
+    # Satellite + IoP installation with custom certs, based on install method
+    if satellite.install_method == InstallMethod.FOREMANCTL:
+        # Containerized: deploy Satellite with custom certs via satellitectl, then add the
+        # IoP feature with the method-aware helper (foremanctl deploy --add-feature iop).
+        satellite.install_satellite_foremanctl(
+            parameters=[
+                '--certificate-source custom_server',
+                f'--certificate-server-certificate /root/{certs_data["cert_file_name"]}',
+                f'--certificate-server-key /root/{certs_data["key_file_name"]}',
+                f'--certificate-server-ca-certificate /root/{certs_data["ca_bundle_file_name"]}',
+            ],
+        )
+        satellite.configure_iop()
+    else:
+        # Installer: install the Satellite package and run satellite-installer with custom
+        # certs and IoP enabled in a single run.
+        iop_settings = settings.rh_cloud.iop
 
-    # Set up firewall
-    satellite.configure_firewall(
-        ports=[
-            '53/udp',
-            '53/tcp',
-            '67/udp',
-            '69/udp',
-            '80/tcp',
-            '443/tcp',
-            '5647/tcp',
-            '8000/tcp',
-            '9090/tcp',
-            '8140/tcp',
-        ],
-    )
+        satellite.download_repofile(
+            product='satellite',
+            release=settings.server.version.release,
+            snap=settings.server.version.snap,
+        )
+        satellite.register_to_cdn()
+        satellite.execute('dnf -y update')
+        satellite.install_satellite_or_capsule_package()
 
-    # Set IPv6 proxy for podman to pull images
-    satellite.enable_ipv6_podman_proxy()
+        # Set up firewall
+        satellite.configure_firewall(
+            ports=[
+                '53/udp',
+                '53/tcp',
+                '67/udp',
+                '69/udp',
+                '80/tcp',
+                '443/tcp',
+                '5647/tcp',
+                '8000/tcp',
+                '9090/tcp',
+                '8140/tcp',
+            ],
+        )
 
-    # Log in to container registry
-    result = satellite.execute(
-        f'podman login --authfile /etc/foreman/registry-auth.json -u {iop_settings.stage_username!r} -p {iop_settings.stage_token!r} {iop_settings.stage_registry}'
-    )
-    assert result.status == 0, f'Error logging in to container registry: {result.stdout}'
+        # Set IPv6 proxy for podman to pull images, then log in to the IoP container registry
+        satellite.enable_ipv6_podman_proxy()
+        satellite.podman_login(
+            iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
+        )
 
-    # Set up container image path overrides
-    custom_hiera_yaml = yaml.dump(
-        {f'iop::{service}::image': path for service, path in iop_settings.image_paths.items()}
-    )
-    satellite.execute(f'echo "{custom_hiera_yaml}" > /etc/foreman-installer/custom-hiera.yaml')
+        # Set up container image path overrides
+        custom_hiera_yaml = yaml.dump(satellite.get_iop_image_paths())
+        satellite.execute(f'echo "{custom_hiera_yaml}" > /etc/foreman-installer/custom-hiera.yaml')
 
-    command = InstallerCommand(
-        'enable-iop',
-        'certs-update-server',
-        'certs-update-server-ca',
-        scenario='satellite',
-        certs_server_cert=f'/root/{certs_data["cert_file_name"]}',
-        certs_server_key=f'/root/{certs_data["key_file_name"]}',
-        certs_server_ca_cert=f'/root/{certs_data["ca_bundle_file_name"]}',
-        foreman_initial_admin_password=settings.server.admin_password,
-    ).get_command()
+        command = InstallerCommand(
+            'enable-iop',
+            'certs-update-server',
+            'certs-update-server-ca',
+            scenario='satellite',
+            certs_server_cert=f'/root/{certs_data["cert_file_name"]}',
+            certs_server_key=f'/root/{certs_data["key_file_name"]}',
+            certs_server_ca_cert=f'/root/{certs_data["ca_bundle_file_name"]}',
+            foreman_initial_admin_password=settings.server.admin_password,
+        ).get_command()
 
-    result = satellite.execute(command, timeout='30m')
-    assert result.status == 0
+        result = satellite.execute(command, timeout='30m')
+        assert result.status == 0
 
-    result = satellite.execute('hammer ping')
-    assert result.stdout.count('Status:') == result.stdout.count(' ok')
+    # Assert IoP is enabled
+    assert satellite.iop_enabled, 'IoP is not enabled after installation'
 
-    # Assert all services are running
-    result = satellite.execute('satellite-maintain health check --label services-up -y')
-    assert result.status == 0, 'Not all services are running'
+    # Assert all services (including IoP) are running (method-aware)
+    if satellite.install_method == InstallMethod.INSTALLER:
+        result = satellite.execute('hammer ping')
+        assert result.stdout.count('Status:') == result.stdout.count(' ok')
+        result = satellite.execute('satellite-maintain health check --label services-up -y')
+        assert result.status == 0, 'Not all services are running'
+    else:
+        service_status = satellite.verify_services_running(
+            satellite.get_service_names(include_iop=True)
+        )
+        failed_services = [svc for svc, running in service_status.items() if not running]
+        assert not failed_services, f'Services not running: {failed_services}'
 
     org = satellite.api.Organization().create()
     satellite.upload_manifest(org.id, module_sca_manifest.content)
@@ -242,7 +238,7 @@ def test_disable_enable_iop(module_satellite_iop, module_sca_manifest, rhel_cont
 
     result = satellite.execute('satellite-maintain service status -b')
     assert 'FAIL' not in result.stdout, 'Services not running'
-    assert not any(service in result.stdout for service in IOP_SERVICES), (
+    assert not any(service in result.stdout for service in InstallationServices.IOP_SERVICES), (
         'IoP services not disabled'
     )
 
@@ -268,7 +264,9 @@ def test_disable_enable_iop(module_satellite_iop, module_sca_manifest, rhel_cont
 
     result = satellite.execute('satellite-maintain service status -b')
     assert 'FAIL' not in result.stdout, 'Services not running'
-    assert all(service in result.stdout for service in IOP_SERVICES), 'IoP services not enabled'
+    assert all(service in result.stdout for service in InstallationServices.IOP_SERVICES), (
+        'IoP services not enabled'
+    )
 
     # Verify insights-client re-registration again
     result = host.execute('rm -f /etc/insights-client/machine-id; insights-client --register')
@@ -325,10 +323,22 @@ def test_insights_client_registration_with_http_proxy(
 
     :customerscenario: true
     """
+    satellite = module_target_sat_insights
+    org = module_els_manifest_org
+
+    # Associate the org with the smart proxy so insights/rex registration works (required
+    # for IoP, mirroring the rhcloud_manifest_org fixture).
+    proxy = satellite.nailgun_smart_proxy.read()
+    if org.id not in [proxy_org.id for proxy_org in proxy.organization]:
+        proxy.organization = [*proxy.organization, org]
+        proxy.update(['organization'])
+
+    # Configure remote execution before registering insights, matching enable_insights().
+    rhel_contenthost.configure_rex(satellite=satellite, org=org, register=False)
     rhel_contenthost.configure_insights_client(
-        module_target_sat_insights,
+        satellite,
         activation_key_with_els_manifest_org,
-        module_els_manifest_org,
+        org,
         f"rhel{rhel_contenthost.os_version.major}",
     )
     assert rhel_contenthost.execute('insights-client --register').status == 0
