@@ -10,12 +10,15 @@
 
 :CaseImportance: High
 
+:BlockedBy: SAT-40441
 """
 
 import pytest
 
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.utils.datafactory import gen_string
+
+pytestmark = pytest.mark.foreman_installer
 
 
 @pytest.fixture(scope='module')
