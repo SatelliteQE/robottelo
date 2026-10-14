@@ -37,6 +37,12 @@ def sync_roles(target_sat):
     """Sync all redhat.satellite roles and delete when finished
     Returns: A dict of the sync response and role names
     """
+    target_sat.execute(
+        "mkdir -p /var/lib/foreman-proxy/ansible/collections/ansible_collections/redhat/"
+    )
+    target_sat.execute(
+        f"cp -a {FAM_ROOT_DIR} /var/lib/foreman-proxy/ansible/collections/ansible_collections/redhat/satellite"
+    )
     roles = [f'redhat.satellite.{role}' for role in RH_SAT_ROLES]
     proxy_list = target_sat.cli.Proxy.list({'search': f'name={target_sat.hostname}'})
     proxy_id = proxy_list[0].get('id')
@@ -54,7 +60,7 @@ def install_import_ansible_role(module_target_sat):
     """Installs and imports the thulium_drake.motd role used in the luna_hostgroup test playbook"""
 
     def create_fake_role(module_target_sat, role_name, role_metadata):
-        base_dir = '/usr/share/ansible/roles'
+        base_dir = '/var/lib/foreman-proxy/ansible/roles'
         role_dir = f'{base_dir}/{role_name}'
         meta_dir = f'{role_dir}/meta'
         tasks_dir = f'{role_dir}/tasks'
@@ -244,8 +250,7 @@ def test_positive_ansible_modules_installation(setup_fam, module_target_sat):
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-@pytest.mark.foreman_installer
-def test_positive_import_run_roles(sync_roles, target_sat):
+def test_positive_import_run_roles(sync_roles, target_sat, request):
     """Import a FAM role and run the role on the Satellite
 
     :id: d3379fd3-b847-43ce-a51f-c02170e7b267
@@ -253,8 +258,10 @@ def test_positive_import_run_roles(sync_roles, target_sat):
     :expectedresults: fam roles import and run successfully
     """
     roles = sync_roles.get('roles')
-    target_sat.cli.Host.ansible_roles_assign({'ansible-roles': roles, 'name': target_sat.hostname})
-    play = target_sat.cli.Host.ansible_roles_play({'name': target_sat.hostname})
+    host = target_sat.cli_factory.make_fake_host()
+    request.addfinalizer(target_sat.api.Host(id=host.id).delete)
+    target_sat.cli.Host.ansible_roles_assign({'ansible-roles': roles, 'id': host.id})
+    play = target_sat.cli.Host.ansible_roles_play({'id': host.id})
     assert 'Ansible roles are being played' in play[0]['message']
 
 
