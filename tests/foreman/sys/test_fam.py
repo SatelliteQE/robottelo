@@ -186,9 +186,21 @@ def idm_sat(satellite_factory, ad_data):
     new_sat.register_to_cdn()
     ipa_host = IPAHost(new_sat)
     ipa_host.enroll_idm_and_configure_external_auth()
-    new_sat.install(InstallerCommand('foreman-ipa-authentication-api true'))
+    if new_sat.install_method == InstallMethod.FOREMANCTL:
+        result = new_sat.execute('foremanctl deploy --external-authentication ipa_with_api')
+        assert result.status == 0, (
+            f'Failed to enable IPA with API authentication: {result.stdout}\n{result.stderr}'
+        )
+    else:
+        result = new_sat.install(InstallerCommand('foreman-ipa-authentication-api true'))
+        assert result.status == 0, 'Installer failed to enable IPA with API authentication'
     # Installs requests-gssapi package to be able to use GSSAPI authentication
-    new_sat.execute('yum -y --disableplugin=foreman-protector install python3-requests-gssapi')
+    result = new_sat.execute(
+        'dnf -y --disableplugin=foreman-protector install python3-requests-gssapi'
+    )
+    assert result.status == 0, (
+        f'Failed to install python3-requests-gssapi:\n{result.stdout}\n{result.stderr}'
+    )
     # Configures hammer to use sessions and negotiate auth
     new_sat.execute(f"sed -i '/:username.*/d' {HAMMER_CONFIG}")
     new_sat.execute(f"sed -i '/:password.*/d' {HAMMER_CONFIG}")
@@ -272,7 +284,6 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
 
 @pytest.mark.destructive
 @pytest.mark.parametrize('ansible_module', FAM_IDM_TEST_PLAYBOOKS)
-@pytest.mark.foreman_installer
 def test_positive_run_modules_and_roles_kerberos_auth(idm_sat, setup_fam_with_idm, ansible_module):
     """Run limited set of modules and roles on a Satellite with Kerberos authentication
 
