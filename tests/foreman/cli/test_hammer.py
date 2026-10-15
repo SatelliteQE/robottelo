@@ -48,8 +48,6 @@ def format_commands_diff(commands_diff):
     """Format the commands differences into a human readable format."""
     output = io.StringIO()
     for key, value in sorted(commands_diff.items()):
-        if key == 'hammer':
-            continue
         output.write('{}{}\n'.format(key, ' (new command)' if value['added_command'] else ''))
         if value.get('added_subcommands'):
             output.write('  Added subcommands:\n')
