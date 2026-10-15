@@ -622,7 +622,7 @@ def test_positive_usage_limit(module_org, module_location, target_sat, content_h
     result = vm2.register(module_org, module_location, new_ak['name'], target_sat)
     assert not vm2.subscribed
     assert result.status, 'Second registration was expected to fail'
-    assert f"Max Hosts ({max_hosts}) reached for activation key '{new_ak.name}'" in result.stderr
+    assert f"Max Hosts ({max_hosts}) reached for activation key '{new_ak.name}'" in result.stdout
 
 
 def test_positive_update_host_collection(module_org, module_target_sat):
