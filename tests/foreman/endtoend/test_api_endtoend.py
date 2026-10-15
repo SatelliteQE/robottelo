@@ -951,6 +951,13 @@ def filtered_api_paths():
         # Discovery is not yet supported on containerized (foremanctl) installs
         filtered_paths.pop('discovered_hosts', None)
         filtered_paths.pop('discovery_rules', None)
+    if is_open('SAT-40441'):
+        # SCAP (OpenSCAP) is not yet supported on containerized (foremanctl) installs
+        filtered_paths.pop('arf_reports', None)
+        filtered_paths.pop('policies', None)
+        filtered_paths.pop('scap_content_profiles', None)
+        filtered_paths.pop('scap_contents', None)
+        filtered_paths.pop('tailoring_files', None)
     return filtered_paths
 
 
