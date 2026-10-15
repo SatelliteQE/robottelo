@@ -29,7 +29,7 @@ from robottelo.config import (
     user_nailgun_config,
 )
 from robottelo.constants.repos import CUSTOM_RPM_REPO
-from robottelo.enums import InstallMethod
+from robottelo.utils.issue_handlers import is_open
 
 API_PATHS = {
     'activation_keys': (
@@ -947,7 +947,7 @@ def filtered_api_paths():
         filtered_paths[endpoint] = tuple(
             path for path in filtered_paths[endpoint] if path not in missing_paths
         )
-    if settings.server.install_method == InstallMethod.FOREMANCTL:
+    if is_open('SAT-40240'):
         # Discovery is not yet supported on containerized (foremanctl) installs
         filtered_paths.pop('discovered_hosts', None)
         filtered_paths.pop('discovery_rules', None)
