@@ -502,7 +502,6 @@ def function_sca_manifest():
 @pytest.mark.e2e              # End-to-end tests
 @pytest.mark.stubbed          # Not yet implemented
 @pytest.mark.destructive      # Forces deployment of a new Satellite instance for a particular test case (more expensive)
-@pytest.mark.skip_if_open()   # Skip if BZ/issue open
 @pytest.mark.migration_candidate # Candidate for migration to Foreman, Katello or any other plugin
 ```
 
@@ -547,9 +546,6 @@ Tests that require a specific Satellite install method should use `foreman_insta
 ```
 
 ### Custom Plugins
-
-**Issue Handlers** (`pytest_plugins/issue_handlers.py`):
-- `@pytest.mark.skip_if_open('SAT-12345')`: Skip if Jira is open
 
 **Fixture Markers** (`pytest_plugins/fixture_markers.py`):
 - Automatically parametrizes fixtures based on markers
