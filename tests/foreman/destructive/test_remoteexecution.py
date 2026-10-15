@@ -415,6 +415,8 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
 
     :expectedresults: Verify the job has been run successfully against the host, Sat's public key hasn't been added to host's authorized_keys and CA verification has been used instead
 
+    :BlockedBy: SAT-47568
+
 
     :parametrized: yes
     """
@@ -495,6 +497,8 @@ class TestCockpit:
         :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
 
         :expectedresults: Cockpit page is loaded and displays sat host info
+
+        :BlockedBy: SAT-47568
 
         :BZ: 1876220
 
