@@ -1354,6 +1354,8 @@ class TestPullProviderRex:
 
         :expectedresults: Verify the job was successfully ran against the host converted to mqtt
 
+        :BlockedBy: SAT-40479
+
         :CaseImportance: Critical
 
         :parametrized: yes
@@ -1449,6 +1451,8 @@ class TestPullProviderRex:
         :id: d4ae37db-d3b6-41b3-bd98-48c29389e4c5
 
         :expectedresults: Verify the job was successfully ran against the host registered to mqtt, in the correct directory
+
+        :BlockedBy: SAT-40479
 
         :BZ: 2217079
 
@@ -1564,6 +1568,8 @@ class TestPullProviderRex:
 
         :expectedresults: Verify the job was successfully ran against the host registered to mqtt,
             effective user setting is honored.
+
+        :BlockedBy: SAT-40479
 
         :CaseImportance: Critical
 
@@ -1688,6 +1694,8 @@ class TestPullProviderRex:
 
         :expectedresults: Job is resumed when host comes back online
 
+        :BlockedBy: SAT-40479
+
         :CaseImportance: Critical
 
         :parametrized: yes
@@ -1772,6 +1780,8 @@ class TestPullProviderRex:
         :id: 8c644404-4a26-4e18-ac59-138fd53ffc44
 
         :expectedresults: Verify that errata were successfully applied on host registered to mqtt
+
+        :BlockedBy: SAT-40479
 
         :CaseImportance: Critical
 
