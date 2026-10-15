@@ -100,7 +100,7 @@ def test_positive_hostgroups_full_nested_names(
 def test_positive_run_default_job_template(
     target_sat,
     rex_contenthost,
-    module_org,
+    smart_proxy_module_org,
 ):
     """Run a job template on a host
 
@@ -127,7 +127,7 @@ def test_positive_run_default_job_template(
     hostname = rex_contenthost.hostname
 
     with target_sat.ui_session() as session:
-        session.organization.select(module_org.name)
+        session.organization.select(smart_proxy_module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         # Search with retry to handle potential context/indexing delays
         result = wait_for(
@@ -160,7 +160,9 @@ def test_positive_run_default_job_template(
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-def test_rex_through_host_details(target_sat, rex_contenthost, module_org):
+def test_rex_through_host_details(
+    target_sat, rex_contenthost, smart_proxy_module_org
+):
     """Run remote execution using the new host details page
 
     :id: ee625595-4995-43b2-9e6d-633c9b33ff93
@@ -183,7 +185,7 @@ def test_rex_through_host_details(target_sat, rex_contenthost, module_org):
         'target_hosts_and_inputs.command': 'ls',
     }
     with target_sat.ui_session() as session:
-        session.organization.select(module_org.name)
+        session.organization.select(smart_proxy_module_org.name)
         session.host_new.schedule_job(hostname, job_args)
         task_result = target_sat.wait_for_tasks(
             search_query=(f'Remote action: Run ls on {hostname}'),
@@ -212,7 +214,7 @@ def test_rex_through_host_details(target_sat, rex_contenthost, module_org):
     'ui_user', [{'admin': True}, {'admin': False}], indirect=True, ids=['adminuser', 'nonadminuser']
 )
 def test_positive_run_custom_job_template(
-    module_org, default_location, target_sat, ui_user, rex_contenthost
+    smart_proxy_module_org, default_location, target_sat, ui_user, rex_contenthost
 ):
     """Run a job template on a host
 
@@ -242,7 +244,7 @@ def test_positive_run_custom_job_template(
         ui_user.update(['location'])
     job_template_name = gen_string('alpha')
     with target_sat.ui_session() as session:
-        session.organization.select(module_org.name)
+        session.organization.select(smart_proxy_module_org.name)
         session.location.select(default_location.name)
         # Search with retry to handle potential context/indexing delays
         result = wait_for(
@@ -280,7 +282,9 @@ def test_positive_run_custom_job_template(
 
 @pytest.mark.upgrade
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-def test_positive_run_job_template_multiple_hosts(module_org, target_sat, rex_contenthosts):
+def test_positive_run_job_template_multiple_hosts(
+    smart_proxy_module_org, target_sat, rex_contenthosts
+):
     """Run a job template against multiple hosts
 
     :id: c4439ec0-bb80-47f6-bc31-fa7193bfbeeb
@@ -301,9 +305,9 @@ def test_positive_run_job_template_multiple_hosts(module_org, target_sat, rex_co
     host_names = []
     for vm in rex_contenthosts:
         host_names.append(vm.hostname)
-        vm.configure_rex(satellite=target_sat, org=module_org)
+        vm.configure_rex(satellite=target_sat, org=smart_proxy_module_org)
     with target_sat.ui_session() as session:
-        session.organization.select(module_org.name)
+        session.organization.select(smart_proxy_module_org.name)
         for host in host_names:
             # Search with retry to handle potential context/indexing delays
             result = wait_for(
