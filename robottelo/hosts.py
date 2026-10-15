@@ -2468,6 +2468,10 @@ class Capsule(ContentHost, CapsuleMixins):
         )
         assert deploy.status == 0, f'satellitectl deploy failed:\n{deploy.stderr}'
 
+        # IPv6-only: set content HTTP proxy so Satellite can reach the CDN for content sync
+        if not self.network_type.has_ipv4:
+            self.enable_satellite_http_proxy()
+
         return deploy
 
     def list_foremanctl_features(self, enabled=False, internal=False):
