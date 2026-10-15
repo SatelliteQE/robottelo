@@ -6312,6 +6312,12 @@
           "name": "create",
           "options": [
             {
+              "help": "Allow this Capsule to authenticate to the container registry using its SSL client certificate",
+              "name": "container-registry-auth-enabled",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
               "help": "Download Policy of the capsule, must be one of on_demand, immediate, inherit, streamed",
               "name": "download-policy",
               "shortname": null,
@@ -6773,6 +6779,12 @@
           "description": "Update a Capsule",
           "name": "update",
           "options": [
+            {
+              "help": "Allow this Capsule to authenticate to the container registry using its SSL client certificate",
+              "name": "container-registry-auth-enabled",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
             {
               "help": "Download Policy of the capsule, must be one of on_demand, immediate, inherit, streamed",
               "name": "download-policy",
@@ -39674,6 +39686,12 @@
           "name": "create",
           "options": [
             {
+              "help": "Allow this Capsule to authenticate to the container registry using its SSL client certificate",
+              "name": "container-registry-auth-enabled",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
+            {
               "help": "Download Policy of the capsule, must be one of on_demand, immediate, inherit, streamed",
               "name": "download-policy",
               "shortname": null,
@@ -40135,6 +40153,12 @@
           "description": "Update a Capsule",
           "name": "update",
           "options": [
+            {
+              "help": "Allow this Capsule to authenticate to the container registry using its SSL client certificate",
+              "name": "container-registry-auth-enabled",
+              "shortname": null,
+              "value": "BOOLEAN"
+            },
             {
               "help": "Download Policy of the capsule, must be one of on_demand, immediate, inherit, streamed",
               "name": "download-policy",
@@ -47050,6 +47074,49 @@
           "subcommands": []
         },
         {
+          "description": "Show organization",
+          "name": "manifest-info",
+          "options": [
+            {
+              "help": "Show specified fields or predefined field sets only. (See below)",
+              "name": "fields",
+              "shortname": null,
+              "value": "LIST"
+            },
+            {
+              "help": "Organization id",
+              "name": "id",
+              "shortname": null,
+              "value": "NUMBER"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "label",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Organization title",
+              "name": "title",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "Print help ----------------|-----|-------- | ALL | DEFAULT ----------------|-----|-------- name   | x   | x | x   | x date | x   | x date     | x   | x number  | x   | x ----------------|-----|-------- you can find option types and the value an option can accept: One of true/false, yes/no, 1/0 Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Possible values are described in the option's description Path to a file Comma-separated list of key=value. JSON is acceptable and preferred way for such parameters Comma separated list of values. Values containing comma should be quoted or escaped with backslash. JSON is acceptable and preferred way for such parameters Any combination of possible values described in the option's description Numeric value. Integer Comma separated list of values defined by a schema. JSON is acceptable and preferred way for such parameters Value described in the option's description. Mostly simple string",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
           "description": "Refresh previously imported manifest for Red Hat provider",
           "name": "refresh-manifest",
           "options": [
@@ -50971,6 +51038,12 @@
                   "value": null
                 },
                 {
+                  "help": "Do not send the notification when there is nothing to report. Relevant only for summary notifications",
+                  "name": "skip-if-empty",
+                  "shortname": null,
+                  "value": "BOOLEAN"
+                },
+                {
                   "help": "Mail notification subscription option, e.g. Subscribe, Subscribe to my hosts or Subscribe to all hosts. Required for host built and config error state",
                   "name": "subscription",
                   "shortname": null,
@@ -51206,6 +51279,12 @@
                   "name": "organization-title",
                   "shortname": null,
                   "value": null
+                },
+                {
+                  "help": "Do not send the notification when there is nothing to report. Relevant only for summary notifications",
+                  "name": "skip-if-empty",
+                  "shortname": null,
+                  "value": "BOOLEAN"
                 },
                 {
                   "help": "Mail notification subscription option, e.g. Subscribe, Subscribe to my hosts or Subscribe to all hosts. Required for host built and config error state",
