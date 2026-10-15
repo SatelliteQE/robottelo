@@ -277,6 +277,8 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost, function_org):
 
     :expectedresults: Verify the job has been run successfully against the host, Sat's public key hasn't been added to host's authorized_keys and CA verification has been used instead
 
+    :BlockedBy: SAT-47566
+
     :parametrized: yes
     """
     sat = ca_sat[0]
@@ -307,6 +309,8 @@ def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost, function_org):
     :id: 7ddd170b-d489-4e2a-93af-ccf0c1a9d4ca
 
     :expectedresults: Verify the job has failed against the host
+
+    :BlockedBy: SAT-47566
 
     :parametrized: yes
     """
@@ -349,6 +353,8 @@ def test_positive_ssh_ca_host_only(
 
     :expectedresults: Verify the job has been run successfully against the host
 
+    :BlockedBy: SAT-47566
+
     :parametrized: yes
     """
     sat = target_sat
@@ -380,6 +386,8 @@ def test_negative_ssh_ca_host_wrong_cert(
     :id: 9e23d27d-a3a8-4c0d-9a0f-892d392aa660
 
     :expectedresults: Verify the job has failed against the host
+
+    :BlockedBy: SAT-47566
 
     :parametrized: yes
     """
@@ -415,7 +423,7 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
 
     :expectedresults: Verify the job has been run successfully against the host, Sat's public key hasn't been added to host's authorized_keys and CA verification has been used instead
 
-    :BlockedBy: SAT-47568
+    :BlockedBy: SAT-47568, SAT-47566
 
 
     :parametrized: yes
