@@ -2699,3 +2699,14 @@ class DataFile(Box):
     EXPIRED_MANIFEST_FILE = DATA_DIR.joinpath(EXPIRED_MANIFEST)
     USAGE_REPORT_ITEMS = DATA_DIR.joinpath('usage_report.yml')
     USAGE_REPORT_ITEMS_CONDENSED = DATA_DIR.joinpath('usage_report_condensed.yml')
+
+
+class CertificateAlgorithmOIDs:
+    """OID strings for certificate algorithms (SAT-48622)."""
+
+    # Signature algorithms
+    SHA256_WITH_RSA = "1.2.840.113549.1.1.11"
+
+    # Key algorithms
+    RSA = "1.2.840.113549.1.1.1"
+    ML_DSA_65 = "2.16.840.1.101.3.4.3.18"  # Post-quantum (not yet supported by Candlepin)
