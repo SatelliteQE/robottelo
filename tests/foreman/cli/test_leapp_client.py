@@ -158,6 +158,8 @@ def test_positive_ygdrassil_client_after_leapp_upgrade(
         1. Update RHEL OS major version to another major version
         2. Check that pull mode rex is working after upgrade
 
+    :BlockedBy: SAT-40479
+
     :CaseComponent: RemoteExecution
     """
     login = settings.server.admin_username
