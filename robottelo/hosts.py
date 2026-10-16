@@ -3743,9 +3743,15 @@ class IPAHost(Host):
             # restart sssd
             assert self.execute('systemctl restart sssd.service').status == 0
 
-        result = self.satellite.install(InstallerCommand('foreman-ipa-authentication true'))
-        assert result.status == 0, 'Installer failed to enable IPA authentication.'
-        self.satellite.cli.Service.restart()
+        if self.satellite.install_method == InstallMethod.FOREMANCTL:
+            result = self.satellite.execute('foremanctl deploy --external-authentication ipa')
+            assert result.status == 0, (
+                f'Failed to enable IPA authentication: {result.stdout}\n{result.stderr}'
+            )
+        else:
+            result = self.satellite.install(InstallerCommand('foreman-ipa-authentication true'))
+            assert result.status == 0, 'Installer failed to enable IPA authentication.'
+            self.satellite.cli.Service.restart()
 
     def _kinit_admin(self):
         result = self.execute(f'echo {self.ldap_user_passwd} | kinit admin')
