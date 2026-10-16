@@ -1849,8 +1849,11 @@ class Capsule(ContentHost, CapsuleMixins):
     def url(self):
         return f'https://{self.hostname}'
 
-    def pulp_api(self, path):
-        """GET a Pulp API v3 path or full Pulp href and return its JSON."""
+    def pulp_api(self, path, method='GET', payload=None):
+        """Request a Pulp API v3 path or full Pulp href and return its JSON.
+
+        Send ``payload`` as JSON when provided.
+        """
         api_path = f'/{path.lstrip("/")}'
         if api_path == '/pulp/api/v3':
             api_path += '/'
@@ -1859,7 +1862,7 @@ class Capsule(ContentHost, CapsuleMixins):
         url = f'{self.url}{api_path}'
 
         # Pulp status is public; protected requests run on the host with its client key.
-        if api_path.rstrip('/') == '/pulp/api/v3/status':
+        if method == 'GET' and api_path.rstrip('/') == '/pulp/api/v3/status':
             response = requests.get(url, verify=settings.server.verify_ca, timeout=30)
             response.raise_for_status()
             return response.json()
@@ -1878,12 +1881,18 @@ class Capsule(ContentHost, CapsuleMixins):
             str(certs_dir / f'{self.hostname}-client.crt'),
             '--key',
             str(certs_dir.parent / 'private' / f'{self.hostname}-client.key'),
-            url,
         ]
+        if method != 'GET':
+            command.extend(['--request', method])
+        if payload is not None:
+            command.extend(
+                ['--header', 'Content-Type: application/json', '--data', json.dumps(payload)]
+            )
+        command.append(url)
         result = self.execute(shlex.join(command))
         if result.status:
             raise ContentHostError(
-                f'Pulp API GET {url} failed with curl status {result.status}: {result.stderr}'
+                f'Pulp API {method} {url} failed with curl status {result.status}: {result.stderr}'
             )
         return json.loads(result.stdout)
 
@@ -3502,7 +3511,12 @@ class Satellite(Capsule, SatelliteMixins):
     def run_repos_refresh(self):
         """Run repo refresh rake task"""
         timestamp = datetime.now(UTC).replace(microsecond=0)
-        self.execute('foreman-rake katello:refresh_repos')
+        # foremanctl requires an explicit override for this Katello Rake task.
+        result = self.execute('ALLOW_UNSUPPORTED=true foreman-rake katello:refresh_repos')
+        if result.status:
+            raise SatelliteHostError(
+                f'Failed to refresh repositories:\n{result.stdout}\n{result.stderr}'
+            )
         self.wait_for_tasks(
             search_query=(
                 'label = Actions::Pulp3::Orchestration::Repository::RefreshRepos'
