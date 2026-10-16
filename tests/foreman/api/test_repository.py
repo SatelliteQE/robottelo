@@ -12,7 +12,6 @@
 
 """
 
-import json
 import random
 import re
 from string import punctuation
@@ -2766,11 +2765,7 @@ class TestPythonRepository:
         remote_href = target_sat.execute(
             f'echo "::Katello::Repository.find({repo.id}).remote_href" | foreman-rake console'
         ).stdout.split('"')[1]
-        remote_result = target_sat.execute(
-            f'pulp --no-verify-ssl --refresh-api python remote show --href "{remote_href}"'
-        )
-        assert remote_result.status == 0, remote_result.stderr
-        remote = json.loads(remote_result.stdout)
+        remote = target_sat.pulp_api(remote_href)
         assert remote['policy'] == default_policy
 
         repo.download_policy = updated_policy
@@ -2781,9 +2776,5 @@ class TestPythonRepository:
         repo = repo.read()
         assert repo.content_counts['python_package'] > 0
 
-        remote_result = target_sat.execute(
-            f'pulp --no-verify-ssl --refresh-api python remote show --href "{remote_href}"'
-        )
-        assert remote_result.status == 0, remote_result.stderr
-        remote = json.loads(remote_result.stdout)
+        remote = target_sat.pulp_api(remote_href)
         assert remote['policy'] == updated_policy
