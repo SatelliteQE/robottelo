@@ -1,7 +1,9 @@
 # Lifecycle Environment Fixtures
 import pytest
+from requests.exceptions import HTTPError
 
 from robottelo.constants import LIBRARY_LCE
+from robottelo.logging import logger
 
 
 @pytest.fixture(scope='session')
@@ -13,12 +15,24 @@ def default_lce(session_target_sat):
 
 @pytest.fixture(scope='module')
 def module_lce(module_org, module_target_sat):
-    return module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    lce = module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
+    yield lce
+    try:
+        lce.delete()
+    except HTTPError:
+        logger.exception('Exception while deleting module scope lifecycle environment in teardown')
 
 
 @pytest.fixture
 def function_lce(function_org, target_sat):
-    return target_sat.api.LifecycleEnvironment(organization=function_org).create()
+    lce = target_sat.api.LifecycleEnvironment(organization=function_org).create()
+    yield lce
+    try:
+        lce.delete()
+    except HTTPError:
+        logger.exception(
+            'Exception while deleting function scope lifecycle environment in teardown'
+        )
 
 
 @pytest.fixture(scope='module')
