@@ -3526,10 +3526,6 @@ class Satellite(Capsule, SatelliteMixins):
             max_tries=10,
         )
 
-    def set_pulp_cli_safemode(self, safe):
-        """Set safemode for pulp cli"""
-        self.execute(f'sed -i "s/dry_run.*/dry_run = {str(safe).lower()}/g" /etc/pulp/cli.toml')
-
     @property
     def iop_enabled(self):
         """Return boolean indicating whether IoP (local Red Hat Lightspeed) is enabled."""
