@@ -444,6 +444,51 @@ def test_positive_search_by_org(target_sat):
     assert act_key.id == keys[0].id
 
 
+def test_positive_create_with_ordered_content_view_environments(target_sat):
+    """Create an activation key with CVEnv assignments in a specified priority order.
+
+    :id: e3284ee6-4d81-41c0-b7e5-7630f5ea34d4
+
+    :steps:
+        1. Create two lifecycle environments and content views.
+        2. Publish each content view and promote it to its lifecycle environment.
+        3. Create an activation key with the CVEnv IDs in reverse creation order.
+        4. Read the activation key.
+
+    :expectedresults: The activation key reports its content view environments
+        in the supplied order.
+
+    :Verifies: SAT-51801
+    """
+    org = target_sat.api.Organization().create()
+    lces = [target_sat.api.LifecycleEnvironment(organization=org).create() for _ in range(2)]
+    cvs = [target_sat.api.ContentView(organization=org).create() for _ in range(2)]
+
+    for cv, lce in zip(cvs, lces, strict=True):
+        cv.publish()
+        cv = cv.read()
+        cv.version[0].promote(data={'environment_ids': lce.id})
+
+    cvenv_ids = [
+        target_sat.api_factory.get_cvenv_id(cv, lce) for cv, lce in zip(cvs, lces, strict=True)
+    ]
+    ordered_cvenv_ids = list(reversed(cvenv_ids))
+    activation_key = target_sat.api.ActivationKey(
+        organization=org,
+        content_view_environment_ids=ordered_cvenv_ids,
+    ).create()
+
+    activation_key = target_sat.api.ActivationKey(id=activation_key.id).read()
+    actual_assignments = [
+        (cvenv['content_view']['id'], cvenv['lifecycle_environment']['id'])
+        for cvenv in activation_key.content_view_environments
+    ]
+    expected_assignments = [
+        (cv.id, lce.id) for cv, lce in reversed(list(zip(cvs, lces, strict=True)))
+    ]
+    assert actual_assignments == expected_assignments
+
+
 def test_positive_search_by_environment(target_sat):
     """Verify that the environment-scoped activation keys API endpoint
     returns only activation keys associated with the specified lifecycle
