@@ -542,7 +542,7 @@ API_PATHS = {
         '/api/organizations/:organization_id/rh_cloud/report',
         '/api/organizations/:organization_id/rh_cloud/inventory_sync',
         '/api/organizations/:organization_id/rh_cloud/missing_hosts',
-        '/api/rh_cloud/enable_connector',
+        '/api/rh_cloud/announce_to_sources',
     ),
     'interfaces': (
         '/api/hosts/:host_id/interfaces',
