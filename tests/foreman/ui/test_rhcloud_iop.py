@@ -111,7 +111,7 @@ def create_pathways_recommendation(host):
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match(r'^(?![78]).*')
+@pytest.mark.rhel_ver_match(r'^(?!7).*')
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_e2e(
     rhel_insights_vm,
@@ -296,7 +296,7 @@ def test_iop_rhcloud_inventory_e2e(
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match(r'^(?![78]).*')
+@pytest.mark.rhel_ver_match(r'^(?!7).*')
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_remediate_multiple_hosts(
     rhel_insights_vms,
@@ -370,7 +370,7 @@ def test_iop_recommendations_remediate_multiple_hosts(
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match(r'^(?![78]).*')
+@pytest.mark.rhel_ver_match(r'^(?!7).*')
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_host_details_e2e(
     rhel_insights_vm,
@@ -518,7 +518,7 @@ def test_iop_negative_rhcloud_inventory_upload_not_displayed(module_target_sat_i
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('10')
+@pytest.mark.rhel_ver_match(r'^(?!7).*')
 @pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
 def test_iop_recommendations_remediation_type_and_status(
     rhel_insights_vm,
