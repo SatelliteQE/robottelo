@@ -12,10 +12,9 @@
 
 """
 
-import json
-
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
@@ -370,8 +369,7 @@ def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_pro
     :id: ab0f3734-40bd-4524-b8b9-0ab857ca3c3f
 
     :setup:
-        1. Disable pulp CLI safe mode.
-        2. Create a product, repo and HTTP proxy.
+        1. Create a product, repo and HTTP proxy.
 
     :steps:
         1. Get repository remote's href.
@@ -382,7 +380,9 @@ def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_pro
     :expectedresults:
         1. Repo refresh restores remote's original proxy_url value.
 
-    :verifies: SAT-26741
+    :verifies: SAT-26741, SAT-52508
+
+    :BlockedBy: SAT-52508
 
     :customerscenario: true
     """
@@ -407,16 +407,27 @@ def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_pro
     ).stdout.split('"')[1]
 
     # Ensure proxy_url matches the one from setup.
-    remote = json.loads(sat.execute(f'pulp rpm remote show --href "{href}"').stdout)
+    remote = sat.pulp_api(href)
     assert remote['proxy_url'] == http_proxy.url
 
     # Set fake value to proxy_url, ensure it's written.
     fake_proxy_url = 'http://my.proxy.com:3128'
-    sat.execute(f'pulp --force rpm remote update --href "{href}" --proxy-url "{fake_proxy_url}"')
-    remote = json.loads(sat.execute(f'pulp rpm remote show --href "{href}"').stdout)
+    task_href = sat.pulp_api(href, method='PATCH', payload={'proxy_url': fake_proxy_url})['task']
+    task, _ = wait_for(
+        lambda: sat.pulp_api(task_href),
+        fail_condition=lambda task: (
+            task['state'] not in ('completed', 'failed', 'canceled', 'skipped')
+        ),
+        timeout=120,
+        delay=2,
+    )
+    assert task['state'] == 'completed', (
+        f'Pulp task {task_href} ended in {task["state"]}: {task.get("error")}'
+    )
+    remote = sat.pulp_api(href)
     assert remote['proxy_url'] == fake_proxy_url
 
     # Refresh repos via rake and ensure the original proxy_url has been restored.
     sat.run_repos_refresh()
-    remote = json.loads(sat.execute(f'pulp rpm remote show --href "{href}"').stdout)
+    remote = sat.pulp_api(href)
     assert remote['proxy_url'] == http_proxy.url
