@@ -21,6 +21,7 @@ import pytest
 from robottelo.config import get_credentials, user_nailgun_config
 from robottelo.logging import logger
 from robottelo.utils.datafactory import parametrized
+from robottelo.utils.issue_handlers import is_open
 
 VALID_ENTITIES = {
     entities.ActivationKey,
@@ -111,7 +112,8 @@ def get_entities_for_unauthorized(all_entities, exclude_entities, max_num=10):
 
 # Entities whose component is not yet supported on containerized (foremanctl) installs.
 # Parametrize values for these classes are marked so they're deselected under foremanctl.
-FOREMAN_INSTALLER_ONLY_ENTITIES = {entities.DiscoveryRule}
+# Gated on the tracking issue so the marking stops applying once Discovery is supported.
+FOREMAN_INSTALLER_ONLY_ENTITIES = {entities.DiscoveryRule} if is_open('SAT-40240') else set()
 
 
 def entities_to_dict(entities_set):
