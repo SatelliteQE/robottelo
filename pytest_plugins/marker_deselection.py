@@ -79,7 +79,7 @@ def pytest_collection_modifyitems(items, config):
         item_marks = [mark.name for mark in item.iter_markers()]
 
         if incompatible_marker and incompatible_marker in item_marks:
-            logger.info(
+            logger.debug(
                 f'Deselected test {item.nodeid} due to install method '
                 f'{install_method.value} (marker: {incompatible_marker})'
             )
