@@ -362,23 +362,32 @@ def module_capsule_configured_ansible(module_capsule_configured):
     return module_capsule_configured
 
 
+@pytest.fixture(scope='module')
+def enable_api(request):
+    """Whether to enable Kerberos authentication for the API and Hammer."""
+    return getattr(request, 'param', False)
+
+
 @pytest.fixture(scope='module', params=['IDM', 'AD'])
 def parametrized_enrolled_sat(
     request,
     satellite_factory,
     ad_data,
+    enable_api,
 ):
-    """Yields a Satellite enrolled into [IDM, AD] as parameter."""
+    """Yield an IDM/AD-enrolled Satellite, optionally enabling API authentication."""
     new_sat = satellite_factory()
     new_sat.enable_satellite_ipv6_http_proxy()
     ipa_host = IPAHost(new_sat)
     new_sat.register_to_cdn()
     if 'IDM' in request.param:
-        ipa_host.enroll_idm_and_configure_external_auth()
+        ipa_host.enroll_idm_and_configure_external_auth(enable_api=enable_api)
         yield new_sat
         ipa_host.disenroll_idm()
     else:
-        shortened_hostname = new_sat.enroll_ad_and_configure_external_auth(ad_data)
+        shortened_hostname = new_sat.enroll_ad_and_configure_external_auth(
+            ad_data, enable_api=enable_api
+        )
         if shortened_hostname is not None:
             new_sat.shortened_hostname = shortened_hostname
         yield new_sat

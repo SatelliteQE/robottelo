@@ -16,7 +16,6 @@ from robottelo.constants import (
 from robottelo.hosts import IPAHost, RHBKHost, RHSSOHost
 from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.installer import InstallerCommand
 
 LOGGEDOUT = 'Logged out.'
 
@@ -492,35 +491,3 @@ def sessions_tear_down(parametrized_enrolled_sat):
         parametrized_enrolled_sat.execute(
             f'rm -f {HAMMER_SESSIONS}/https_{parametrized_enrolled_sat.shortened_hostname}'
         )
-
-
-@pytest.fixture
-def configure_ipa_api(
-    request,
-    parametrized_enrolled_sat,
-    enabled=True,
-):
-    """Enable Kerberos authentication in Hammer."""
-    if enabled:
-        # Normal ipa authentication needs to be enabled already
-        assert (
-            parametrized_enrolled_sat.execute(
-                'satellite-installer --help | grep foreman-ipa-authentication[^-] | grep true'
-            ).status
-            == 0
-        )
-    original_value = (
-        parametrized_enrolled_sat.execute(
-            'satellite-installer --help | grep foreman-ipa-authentication-api | grep true'
-        ).status
-        == 0
-    )
-    result = parametrized_enrolled_sat.install(
-        InstallerCommand(f'foreman-ipa-authentication-api {"true" if enabled else "false"}')
-    )
-    assert result.status == 0, 'Installer failed to enable IPA API authentication.'
-    yield
-    result = parametrized_enrolled_sat.install(
-        InstallerCommand(f'foreman-ipa-authentication-api {"true" if original_value else "false"}')
-    )
-    assert result.status == 0, 'Installer failed to reset IPA API authentication.'

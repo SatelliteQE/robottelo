@@ -78,6 +78,7 @@ from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
+from robottelo.utils.satellitectl import SatellitectlCommand
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -3230,11 +3231,12 @@ class Satellite(Capsule, SatelliteMixins):
             result = rhel_contenthost.execute(f'subscription-manager repos --enable {repo_label}')
             assert result.status == 0, f'Failed to enable repository {repo_label}: {result.stderr}'
 
-    def enroll_ad_and_configure_external_auth(self, ad_data):
+    def enroll_ad_and_configure_external_auth(self, ad_data, enable_api=False):
         """Enroll Satellite Server to an AD Server.
 
         :param ad_data: Callable method that returns AD server details
         :type ad_data: Callable
+        :param bool enable_api: Enable Kerberos authentication for the API and Hammer.
         :return: New Satellite hostname if hostname changed, otherwise None
         """
         ad_data = ad_data()
@@ -3379,9 +3381,12 @@ class Satellite(Capsule, SatelliteMixins):
                 timeout='30m',
             )
 
-        # enable the foreman-ipa-authentication feature
-        result = self.install(InstallerCommand('foreman-ipa-authentication true'))
-        assert result.status == 0
+        # Enable Kerberos authentication in Satellite.
+        command = SatellitectlCommand(
+            'deploy', external_authentication='ipa_with_api' if enable_api else 'ipa'
+        )
+        result = self.execute(command.get_command(), timeout=0)
+        assert result.status == 0, 'Failed to enable IPA authentication.'
 
         # unset GssapiLocalName (BZ#1787630)
         assert (
@@ -3704,8 +3709,11 @@ class IPAHost(Host):
         self.execute(f'ipa service-del HTTP/{self.satellite.hostname}')
         self.execute(f'ipa host-del {self.satellite.hostname}')
 
-    def enroll_idm_and_configure_external_auth(self):
-        """Enroll the Satellite Server to an IDM Server."""
+    def enroll_idm_and_configure_external_auth(self, enable_api=False):
+        """Enroll the Satellite Server to an IDM Server.
+
+        :param bool enable_api: Enable Kerberos authentication for the API and Hammer.
+        """
         result = self.satellite.execute(
             'yum -y --disableplugin=foreman-protector install ipa-client ipa-admintools'
         )
@@ -3748,15 +3756,12 @@ class IPAHost(Host):
             # restart sssd
             assert self.execute('systemctl restart sssd.service').status == 0
 
-        if self.satellite.install_method == InstallMethod.FOREMANCTL:
-            result = self.satellite.execute('foremanctl deploy --external-authentication ipa')
-            assert result.status == 0, (
-                f'Failed to enable IPA authentication: {result.stdout}\n{result.stderr}'
-            )
-        else:
-            result = self.satellite.install(InstallerCommand('foreman-ipa-authentication true'))
-            assert result.status == 0, 'Installer failed to enable IPA authentication.'
-            self.satellite.cli.Service.restart()
+        command = SatellitectlCommand(
+            'deploy', external_authentication='ipa_with_api' if enable_api else 'ipa'
+        )
+        result = self.satellite.execute(command.get_command(), timeout=0)
+        assert result.status == 0, 'Failed to enable IPA authentication.'
+        self.satellite.cli.Service.restart()
 
     def _kinit_admin(self):
         result = self.execute(f'echo {self.ldap_user_passwd} | kinit admin')
