@@ -101,7 +101,6 @@ CaseComponent:
     - Upgrades
     - UsersandRoles
     - Virt-whoConfigurePlugin
-    - HooksandWebhooks
     required: true
     type: choice
 CaseImportance:
