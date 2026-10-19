@@ -183,6 +183,8 @@ def test_positive_update_capsule_with_hammer(module_capsule_configured, target_s
 
     :verifies: SAT-31371
 
+    :BlockedBy: SAT-52557
+
     :customerscenario: true
 
     """
