@@ -21,6 +21,7 @@ import pytest
 from robottelo.config import get_credentials, user_nailgun_config
 from robottelo.logging import logger
 from robottelo.utils.datafactory import parametrized
+from robottelo.utils.issue_handlers import is_open
 
 VALID_ENTITIES = {
     entities.ActivationKey,
@@ -109,6 +110,12 @@ def get_entities_for_unauthorized(all_entities, exclude_entities, max_num=10):
     return sorted(list(all_entities - exclude_entities), key=lambda x: x.__name__)[:max_num]
 
 
+# Entities whose component is not yet supported on containerized (foremanctl) installs.
+# Parametrize values for these classes are marked so they're deselected under foremanctl.
+# Gated on the tracking issue so the marking stops applying once Discovery is supported.
+FOREMAN_INSTALLER_ONLY_ENTITIES = {entities.DiscoveryRule} if is_open('SAT-40240') else set()
+
+
 def entities_to_dict(entities_set):
     """Convert a set of entity classes to a dictionary with class names as keys.
 
@@ -118,10 +125,21 @@ def entities_to_dict(entities_set):
         entities_set: A set or list of entity classes
 
     Returns:
-        dict: Dictionary with entity class names as keys and classes as values,
-              sorted by class name for consistent ordering across runs
+        dict: Dictionary with entity class names as keys and classes (or
+              marked ``pytest.param`` instances) as values, sorted by class
+              name for consistent ordering across runs
     """
-    return OrderedDict(sorted((entity_cls.__name__, entity_cls) for entity_cls in entities_set))
+    return OrderedDict(
+        sorted(
+            (
+                entity_cls.__name__,
+                pytest.param(entity_cls, marks=pytest.mark.foreman_installer)
+                if entity_cls in FOREMAN_INSTALLER_ONLY_ENTITIES
+                else entity_cls,
+            )
+            for entity_cls in entities_set
+        )
+    )
 
 
 class TestEntity:
