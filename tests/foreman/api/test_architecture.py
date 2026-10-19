@@ -24,12 +24,11 @@ from robottelo.utils.datafactory import (
 )
 
 
-@pytest.mark.migration_candidate
-def test_positive_CRUD(default_os, target_sat):
+def test_positive_CRUD_architecture(default_os, target_sat):
     """Create a new Architecture with several attributes, update the name
     and delete the Architecture itself.
 
-    :id: 80bca2c0-a6a1-4676-a036-bd918812d600
+    :id: f691190d-292b-43c1-b9f5-0c5471415792
 
     :expectedresults: Architecture should be created, modified and deleted successfully
         with given attributes.

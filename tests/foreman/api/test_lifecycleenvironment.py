@@ -38,6 +38,67 @@ def lce(module_org, module_target_sat):
     return module_target_sat.api.LifecycleEnvironment(organization=module_org).create()
 
 
+@pytest.mark.upgrade
+@pytest.mark.migration_candidate
+def test_positive_crud(module_org, module_target_sat):
+    """Create, read, update, and delete one lifecycle environment.
+
+    :id: 675e874d-32a1-4eb0-818e-fe9d9fb22a12
+
+    :steps:
+        1. Create a lifecycle environment with name, label, and description.
+        2. Read it and verify the field values.
+        3. Update name, description, registry name pattern, and unauthenticated pull.
+        4. Read it again and verify the updated field values.
+        5. Delete it and verify it can no longer be read.
+
+    :expectedresults: Field values match after create and update, and the
+        lifecycle environment is gone after delete.
+
+    :CaseImportance: Critical
+    """
+    name = gen_string('alpha')
+    label = gen_string('alpha')
+    description = gen_string('alpha')
+    lce = module_target_sat.api.LifecycleEnvironment(
+        name=name,
+        label=label,
+        description=description,
+        organization=module_org,
+    ).create()
+
+    lce = lce.read()
+    assert lce.name == name
+    assert lce.label == label
+    assert lce.description == description
+    assert lce.organization.id == module_org.id
+    assert lce.prior.read().name == LIBRARY_LCE
+    assert lce.registry_unauthenticated_pull is False
+
+    new_name = gen_string('alpha')
+    new_description = gen_string('alpha')
+    registry_name_pattern = (
+        f'{gen_string("alpha", 5)}-<%= organization.label %>/<%= repository.docker_upstream_name %>'
+    )
+    lce.name = new_name
+    lce.description = new_description
+    lce.registry_name_pattern = registry_name_pattern
+    lce.registry_unauthenticated_pull = True
+    lce.update(['name', 'description', 'registry_name_pattern', 'registry_unauthenticated_pull'])
+
+    lce = lce.read()
+    assert lce.name == new_name
+    assert lce.description == new_description
+    assert lce.label == label
+    assert lce.registry_name_pattern == registry_name_pattern
+    assert lce.registry_unauthenticated_pull is True
+    assert lce.organization.id == module_org.id
+
+    lce.delete()
+    with pytest.raises(HTTPError):
+        lce.read()
+
+
 @pytest.mark.migration_candidate
 def test_positive_create_with_name(target_sat):
     """Create lifecycle environment with valid name only
