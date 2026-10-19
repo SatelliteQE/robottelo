@@ -1252,6 +1252,8 @@ class TestRexUsers:
         :expectedresults: Only users with execute_jobs_on_infrastructure_host perm
             can run rex against Satellite
 
+        :BlockedBy: SAT-52557
+
         :caseautomation: Automated
 
         :parametrized: yes

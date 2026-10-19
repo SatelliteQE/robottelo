@@ -122,6 +122,8 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
 
     :expectedresults: Should fail
 
+    :BlockedBy: SAT-52557
+
     :BZ: 2152951
 
     :CaseImportance: Medium
