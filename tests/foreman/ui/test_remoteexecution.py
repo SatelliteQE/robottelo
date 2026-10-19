@@ -250,11 +250,13 @@ def test_positive_run_custom_job_template(
         # Search with retry to handle potential context/indexing delays
         result = wait_for(
             lambda: session.all_hosts.search(f"name = {hostname}"),
-            timeout=30,
+            timeout=60,
             delay=2,
-            fail_condition=[],
+            fail_condition=lambda rows: not any(
+                row.get('Name') == hostname for row in rows
+            ),
         ).out
-        assert result[0]['Name'] == hostname
+        assert any(row.get('Name') == hostname for row in result)
         session.jobtemplate.create(
             {
                 'template.name': job_template_name,
