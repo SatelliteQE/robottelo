@@ -17,7 +17,8 @@ from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
 
-from robottelo.config import robottelo_tmp_dir, settings, user_nailgun_config
+from robottelo.config import settings, user_nailgun_config
+from robottelo.constants import ANSIBLE_ROLES_PATH
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
 
@@ -82,21 +83,11 @@ class TestAnsibleCfgMgmt:
 
         :customerscenario: true
         """
-        http_proxy = (
-            f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-            if not target_sat.network_type.has_ipv4
-            else ''
-        )
-        assert (
-            target_sat.execute(
-                f'{http_proxy}ansible-galaxy collection install -p /usr/share/ansible/collections '
-                'xprazak2.forklift_collection'
-            ).status
-            == 0
-        )
+        target_sat.install_ansible_collections(['xprazak2.forklift_collection'])
         proxy_id = target_sat.nailgun_smart_proxy.id
         playbook_fetch = target_sat.api.AnsiblePlaybooks().fetch(data={'proxy_id': proxy_id})
         playbooks_count = len(playbook_fetch['results']['playbooks_names'])
+        assert playbooks_count > 0, 'No Ansible playbooks were fetched from Capsule'
         playbook_sync = target_sat.api.AnsiblePlaybooks().sync(data={'proxy_id': proxy_id})
         assert playbook_sync['action'] == "Sync playbooks"
 
@@ -195,6 +186,7 @@ class TestAnsibleREX:
         :BZ: 2164400
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
+        target_sat.install_ansible_roles([SELECTED_ROLE])
         rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
         if rhel_contenthost.os_version.major <= 7:
             rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
@@ -266,6 +258,8 @@ class TestAnsibleREX:
 
         :BZ: 2167396, 2190464, 2184117
         """
+        SELECTED_ROLE = 'RedHatInsights.insights-client'
+        target_sat.install_ansible_roles([SELECTED_ROLE])
         with Broker.multi_manager(
             rhel9={
                 'host_class': ContentHost,
@@ -287,7 +281,6 @@ class TestAnsibleREX:
             },
         ) as multi_hosts:
             hosts = [multi_hosts['rhel9'][0], multi_hosts['rhel8'][0], multi_hosts['rhel7'][0]]
-            SELECTED_ROLE = 'RedHatInsights.insights-client'
             for host in hosts:
                 result = host.register(
                     module_org, module_location, module_ak_with_synced_repo.name, target_sat
@@ -672,10 +665,9 @@ class TestAnsibleREX:
           when: ansible_check_mode
         """
         role_name = gen_string('alpha')
-        role_task_file = f'{robottelo_tmp_dir}/playbook.yml'
-        with open(role_task_file, 'w') as f:
-            f.write(data)
-        target_sat.put(role_task_file, f'/etc/ansible/roles/{role_name}/tasks/main.yml')
+        role_dir = f'{ANSIBLE_ROLES_PATH}/{role_name}'
+        target_sat.put(data, f'{role_dir}/tasks/main.yml', temp_file=True)
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {role_dir}'))
 
         # Register contenthost and assign the custom role
         result = rhel_contenthost.register(
@@ -687,6 +679,7 @@ class TestAnsibleREX:
         target_host = rhel_contenthost.nailgun_host
         target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [role_name]})
         role_id = target_sat.api.AnsibleRoles().search(query={'search': f'name={role_name}'})[0].id
+        request.addfinalizer(lambda: target_sat.cli.Ansible.roles_delete({'id': role_id}))
         target_sat.api.Host(id=target_host.id).add_ansible_role(data={'ansible_role_id': role_id})
         host_roles = target_host.list_ansible_roles()
         assert host_roles[0]['name'] == role_name
