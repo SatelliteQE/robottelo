@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 import re
 
 from fauxfactory import gen_string
+from pulp_glue.common.exceptions import PulpException
 import pytest
 
 from robottelo.config import settings
@@ -133,7 +134,12 @@ def test_pulp_status(target_sat):
         1. The Pulp API is reachable and returns status data.
         2. The pulp components are alive according to provided status.
     """
-    status = target_sat.pulp_glue.call('status_read')
+    try:
+        status = target_sat.pulp_glue.call('status_read')
+    except PulpException as error:
+        if 'CERTIFICATE_VERIFY_FAILED' in str(error):
+            error.add_note(target_sat.pulp_glue_tls_diagnostics())
+        raise
     now = datetime.now(UTC)
     assert status['database_connection']['connected']
     assert status['redis_connection']['connected']

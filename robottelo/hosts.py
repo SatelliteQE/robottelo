@@ -7,9 +7,11 @@ from functools import cached_property, lru_cache
 import importlib
 import io
 import json
+import os
 from pathlib import Path, PurePath
 import random
 import re
+import shlex
 import subprocess
 import sys
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -1901,6 +1903,42 @@ class Capsule(ContentHost, CapsuleMixins):
         except Exception:
             runner_cert_tempdir.cleanup()
             raise
+
+    def pulp_glue_tls_diagnostics(self):
+        """Describe TLS settings used by Pulp Glue and check the host's CA."""
+        schema_url = urljoin(self.url, '/pulp/api/v3/docs/api.json')
+        configured_ca = self.pulp_glue.verify_ssl
+        with requests.Session() as session:
+            session.verify = configured_ca
+            request_settings = session.merge_environment_settings(schema_url, {}, None, None, None)
+        proxy_selected = bool(requests.utils.select_proxy(schema_url, request_settings['proxies']))
+
+        host_ca = Path(FOREMANCTL_CA_CERT_PATH).parent / 'server-ca.crt'
+        command = (
+            "curl --disable --noproxy '*' --silent --show-error --output /dev/null "
+            "--write-out '%{http_code}' "
+            '--connect-timeout 5 --max-time 15 '
+            f'--cacert {shlex.quote(str(host_ca))} {shlex.quote(schema_url)}'
+        )
+        try:
+            probe = self.execute(command)
+            host_check = (
+                f'exit={probe.status}, HTTP status={probe.stdout.strip()}, '
+                f'stderr={probe.stderr.strip()!r}'
+            )
+        except Exception as error:
+            # Diagnostics must not replace the original Pulp exception.
+            host_check = f'probe raised {type(error).__name__}: {error}'
+
+        return (
+            f'Pulp TLS diagnostics for {schema_url} (pytest runner):\n'
+            f'  configured CA: {configured_ca}\n'
+            f'  effective Requests CA: {request_settings["verify"]}\n'
+            f'  REQUESTS_CA_BUNDLE set: {bool(os.environ.get("REQUESTS_CA_BUNDLE"))}\n'
+            f'  CURL_CA_BUNDLE set: {bool(os.environ.get("CURL_CA_BUNDLE"))}\n'
+            f'  HTTPS proxy selected: {proxy_selected}\n'
+            f'  direct host curl with {host_ca}: {host_check}'
+        )
 
     @cached_property
     def url_katello_ca_rpm(self):
