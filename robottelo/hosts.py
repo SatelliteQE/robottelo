@@ -10,10 +10,9 @@ import json
 from pathlib import Path, PurePath
 import random
 import re
-import shlex
 import subprocess
 import sys
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 import time
 from urllib.parse import urljoin, urlparse, urlsplit, urlunsplit
 
@@ -26,6 +25,8 @@ from dynaconf.vendor.box.exceptions import BoxKeyError
 from fauxfactory import gen_alpha, gen_string
 from nailgun import entities
 from packaging.version import Version
+from pulp_glue.common.authentication import GlueAuthProvider
+from pulp_glue.common.context import PulpContext
 import pytest
 import requests
 from ssh2.exceptions import AuthenticationError
@@ -1732,6 +1733,25 @@ class ContentHost(Host, ContentHostMixins):
             logger.warning(f'Podman is not logged into container registry {registry}')
 
 
+class _HostPulpContext(PulpContext):
+    """Keep copied TLS files available to Pulp Glue and support generic href reads.
+
+    Pulp Glue uses paths to the CA certificate, client certificate, and key
+    copied to the pytest runner. Holding their ``TemporaryDirectory`` here
+    keeps those paths valid for the lifetime of this context.
+    """
+
+    def __init__(self, *args, runner_cert_tempdir, **kwargs):
+        self._runner_cert_tempdir = runner_cert_tempdir
+        super().__init__(*args, **kwargs)
+
+    def read_href(self, href):
+        """Read any Pulp href, as ``pulp show --href`` does."""
+        # Pulp CLI uses Pulp Glue's artifact read operation with an arbitrary
+        # resource href substituted for its path parameter.
+        return self.call('artifacts_read', parameters={'artifact_href': href})
+
+
 class Capsule(ContentHost, CapsuleMixins):
     rex_key_path = '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     product_rpm_name = 'satellite-capsule'
@@ -1849,52 +1869,38 @@ class Capsule(ContentHost, CapsuleMixins):
     def url(self):
         return f'https://{self.hostname}'
 
-    def pulp_api(self, path, method='GET', payload=None):
-        """Request a Pulp API v3 path or full Pulp href and return its JSON.
-
-        Send ``payload`` as JSON when provided.
-        """
-        api_path = f'/{path.lstrip("/")}'
-        if api_path == '/pulp/api/v3':
-            api_path += '/'
-        elif not api_path.startswith('/pulp/api/v3/'):
-            api_path = f'/pulp/api/v3{api_path}'
-        url = f'{self.url}{api_path}'
-
-        # Pulp status is public; protected requests run on the host with its client key.
-        if method == 'GET' and api_path.rstrip('/') == '/pulp/api/v3/status':
-            response = requests.get(url, verify=settings.server.verify_ca, timeout=30)
-            response.raise_for_status()
-            return response.json()
-
-        certs_dir = Path(FOREMANCTL_CA_CERT_PATH).parent
-        command = [
-            'curl',
-            '--fail',
-            '--silent',
-            '--show-error',
-            '--max-time',
-            '30',
-            '--cacert',
-            str(certs_dir / 'server-ca.crt'),
-            '--cert',
-            str(certs_dir / f'{self.hostname}-client.crt'),
-            '--key',
-            str(certs_dir.parent / 'private' / f'{self.hostname}-client.key'),
-        ]
-        if method != 'GET':
-            command.extend(['--request', method])
-        if payload is not None:
-            command.extend(
-                ['--header', 'Content-Type: application/json', '--data', json.dumps(payload)]
+    @cached_property
+    def pulp_glue(self):
+        """Return a Pulp Glue context using this host's client certificate."""
+        host_certs_dir = Path(FOREMANCTL_CA_CERT_PATH).parent
+        runner_cert_tempdir = TemporaryDirectory(prefix='robottelo-pulp-')
+        runner_certs_dir = Path(runner_cert_tempdir.name)
+        host_cert_paths = {
+            'server-ca.crt': host_certs_dir / 'server-ca.crt',
+            'client.crt': host_certs_dir / f'{self.hostname}-client.crt',
+            'client.key': host_certs_dir.parent / 'private' / f'{self.hostname}-client.key',
+        }
+        try:
+            for filename, host_cert_path in host_cert_paths.items():
+                runner_cert_path = runner_certs_dir / filename
+                self.get(str(host_cert_path), str(runner_cert_path))
+                runner_cert_path.chmod(0o600)
+            return _HostPulpContext(
+                api_root='/pulp/',
+                api_kwargs={
+                    'base_url': self.url,
+                    'refresh_cache': True,
+                    'auth_provider': GlueAuthProvider(
+                        cert=str(runner_certs_dir / 'client.crt'),
+                        key=str(runner_certs_dir / 'client.key'),
+                    ),
+                },
+                verify_ssl=str(runner_certs_dir / 'server-ca.crt'),
+                runner_cert_tempdir=runner_cert_tempdir,
             )
-        command.append(url)
-        result = self.execute(shlex.join(command))
-        if result.status:
-            raise ContentHostError(
-                f'Pulp API {method} {url} failed with curl status {result.status}: {result.stderr}'
-            )
-        return json.loads(result.stdout)
+        except Exception:
+            runner_cert_tempdir.cleanup()
+            raise
 
     @cached_property
     def url_katello_ca_rpm(self):

@@ -22,6 +22,7 @@ from urllib.parse import urljoin, urlparse, urlunparse
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun.entity_mixins import TaskFailedError, call_entity_method_with_timeout
+from pulp_glue.python.context import PulpPythonRemoteContext
 import pytest
 from requests.exceptions import HTTPError
 
@@ -2765,8 +2766,8 @@ class TestPythonRepository:
         remote_href = target_sat.execute(
             f'echo "::Katello::Repository.find({repo.id}).remote_href" | foreman-rake console'
         ).stdout.split('"')[1]
-        remote = target_sat.pulp_api(remote_href)
-        assert remote['policy'] == default_policy
+        remote = PulpPythonRemoteContext(target_sat.pulp_glue, pulp_href=remote_href)
+        assert remote.show()['policy'] == default_policy
 
         repo.download_policy = updated_policy
         repo = repo.update(['download_policy'])
@@ -2776,5 +2777,4 @@ class TestPythonRepository:
         repo = repo.read()
         assert repo.content_counts['python_package'] > 0
 
-        remote = target_sat.pulp_api(remote_href)
-        assert remote['policy'] == updated_policy
+        assert remote.show()['policy'] == updated_policy

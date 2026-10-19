@@ -20,10 +20,14 @@ from time import sleep
 from nailgun import client
 from nailgun.config import ServerConfig
 from nailgun.entity_mixins import call_entity_method_with_timeout
+from pulp_glue.rpm.context import (
+    PulpRpmDistributionContext,
+    PulpRpmPublicationContext,
+    PulpRpmRepositoryContext,
+)
 import pytest
 import requests
 from requests.exceptions import HTTPError
-from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -52,47 +56,20 @@ from robottelo.content_info import (
 from robottelo.utils.datafactory import gen_string
 
 
-def _wait_for_pulp_task(host, task_href):
-    """Wait for a Pulp task and return its completed response."""
-    task, _ = wait_for(
-        lambda: host.pulp_api(task_href),
-        fail_condition=lambda task: (
-            task['state'] not in ('completed', 'failed', 'canceled', 'skipped')
-        ),
-        timeout=300,
-        delay=2,
-    )
-    assert task['state'] == 'completed', (
-        f'Pulp task {task_href} ended in {task["state"]}: {task.get("error")}'
-    )
-    return task
-
-
 def _create_orphaned_rpm_distribution(host, repository_href):
     """Create a publication and distribution outside Katello's records."""
-    publication_task_href = host.pulp_api(
-        'publications/rpm/rpm/',
-        method='POST',
-        payload={'repository_version': f'{repository_href}versions/1/'},
-    )['task']
-    task = _wait_for_pulp_task(host, publication_task_href)
-    publication_href = next(
-        (href for href in task['created_resources'] if '/publications/rpm/rpm/' in href),
-        None,
+    publication = PulpRpmPublicationContext(host.pulp_glue).create(
+        {'repository_version': f'{repository_href}versions/1/'}
     )
-    assert publication_href, f'Pulp task {publication_task_href} created no RPM publication'
 
     distribution_name = gen_string('alpha', 12)
-    distribution_task_href = host.pulp_api(
-        'distributions/rpm/rpm/',
-        method='POST',
-        payload={
+    PulpRpmDistributionContext(host.pulp_glue).create(
+        {
             'name': distribution_name,
             'base_path': distribution_name,
-            'publication': publication_href,
-        },
-    )['task']
-    _wait_for_pulp_task(host, distribution_task_href)
+            'publication': publication['pulp_href'],
+        }
+    )
 
 
 @pytest.fixture
@@ -2172,13 +2149,15 @@ class TestCapsuleContentManagement:
 
         # Create orphaned publications and distributions on Satellite and Capsule.
         satellite_version_href = repo.read_json()['version_href']
-        satellite_repository_href = module_target_sat.pulp_api(satellite_version_href)['repository']
+        satellite_repository_href = module_target_sat.pulp_glue.read_href(satellite_version_href)[
+            'repository'
+        ]
         _create_orphaned_rpm_distribution(module_target_sat, satellite_repository_href)
 
         # Katello includes the library repository's backend identifier in the Capsule repo name.
-        capsule_repositories = module_capsule_configured.pulp_api(
-            f'repositories/rpm/rpm/?name__contains={repo.backend_identifier}&limit=1'
-        )['results']
+        capsule_repositories = PulpRpmRepositoryContext(module_capsule_configured.pulp_glue).list(
+            limit=1, offset=0, parameters={'name__contains': repo.backend_identifier}
+        )
         assert capsule_repositories, (
             f'No Capsule Pulp RPM repository found for {repo.backend_identifier}'
         )
