@@ -3240,14 +3240,9 @@ class Satellite(Capsule, SatelliteMixins):
         :return: New Satellite hostname if hostname changed, otherwise None
         """
         ad_data = ad_data()
-        version_dependent = (
-            'ipa-python-compat'
-            if int(self.satellite.version.split('.')[1]) < 13
-            else 'oddjob oddjob-mkhomedir'
-        )
         packages = (
             f'sssd adcli realmd krb5-workstation samba-common-tools '
-            f'gssproxy nfs-utils ipa-client {version_dependent}'
+            f'gssproxy nfs-utils ipa-client oddjob oddjob-mkhomedir'
         )
         realm = ad_data.realm
         workgroup = ad_data.workgroup
