@@ -17,7 +17,6 @@ import yaml
 from robottelo import constants
 from robottelo.config import (
     admin_nailgun_config,
-    robottelo_tmp_dir,
     settings,
     user_nailgun_config,
 )
@@ -31,7 +30,7 @@ class TestAnsibleCfgMgmt:
 
     @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
     def test_positive_create_delete_variable_with_overrides(
-        self, request, function_org, target_sat, auth_type
+        self, request, smart_proxy_function_org, target_sat, auth_type
     ):
         """Create an Ansible variable with all values populated.
 
@@ -50,6 +49,8 @@ class TestAnsibleCfgMgmt:
 
         :expectedresults: The variable is successfully created.
         """
+        function_org = smart_proxy_function_org
+        proxy = target_sat.nailgun_smart_proxy.read()
         user_cfg = admin_nailgun_config()
         password = settings.server.admin_password
         key = gen_string('alpha')
@@ -64,14 +65,14 @@ class TestAnsibleCfgMgmt:
                 login=gen_string('alphanumeric'),
                 password=password,
                 organization=[function_org],
+                location=proxy.location,
             ).create()
             request.addfinalizer(user.delete)
             user_cfg = user_nailgun_config(user.login, password)
 
         SELECTED_ROLE = 'redhat.satellite.activation_keys'
-        proxy_id = target_sat.nailgun_smart_proxy.id
         target_sat.api.AnsibleRoles(server_config=user_cfg).sync(
-            data={'proxy_id': proxy_id, 'role_names': [SELECTED_ROLE]}
+            data={'proxy_id': proxy.id, 'role_names': [SELECTED_ROLE]}
         )
         with target_sat.ui_session(user=user_cfg.auth[0], password=password) as session:
             session.organization.select(function_org.name)
@@ -118,6 +119,7 @@ class TestAnsibleCfgMgmt:
         :expectedresults: Roles assigned directly to the Host are visible on the subtab.
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
+        target_sat.install_ansible_roles([SELECTED_ROLE])
 
         location = function_host.location.read()
         organization = function_host.organization.read()
@@ -172,16 +174,9 @@ class TestAnsibleCfgMgmt:
             2. The overridden value in the variable was successfully deleted, and the default value remains unchanged.
         """
 
-        @request.addfinalizer
-        def _finalize():
-            result = target_sat.cli.Ansible.variables_delete({'name': key})
-            assert f'Ansible variable [{key}] was deleted.' in result[0]['message']
-            for role in SELECTED_ROLE:
-                result = target_sat.cli.Ansible.roles_delete({'name': role})
-                assert f'Ansible role [{role}] was deleted.' in result[0]['message']
-
         key = gen_string('alpha')
         SELECTED_ROLE = ['redhat.satellite.activation_keys', 'RedHatInsights.insights-client']
+        target_sat.install_ansible_roles([SELECTED_ROLE[1]])
         proxy_id = target_sat.nailgun_smart_proxy.id
         target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': SELECTED_ROLE})
         result = rhel_contenthost.api_register(
@@ -217,6 +212,7 @@ class TestAnsibleCfgMgmt:
                     ],
                 }
             )
+            request.addfinalizer(lambda: target_sat.cli.Ansible.variables_delete({'name': key}))
             result = target_sat.cli.Host.ansible_roles_assign(
                 {'id': target_host.id, 'ansible-roles': ','.join(SELECTED_ROLE)}
             )
@@ -234,15 +230,16 @@ class TestAnsibleCfgMgmt:
             ]
 
             new_key = gen_string('alpha')
-            session.ansiblevariables.create_with_overrides(
+            session.ansiblevariables.create(
                 {
                     'key': new_key,
                     'ansible_role': SELECTED_ROLE[0],
-                    'override': 'true',
+                    'override': True,
                     'parameter_type': parameter_type,
                     'default_value': default_value,
                 }
             )
+            request.addfinalizer(lambda: target_sat.cli.Ansible.variables_delete({'name': new_key}))
             new_value = '["test update"]'
             # Update the value in a variable.
             session.host_new.update_variable_value(rhel_contenthost.hostname, new_key, new_value)
@@ -336,6 +333,7 @@ class TestAnsibleCfgMgmt:
             up on the UI
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
+        target_sat.install_ansible_roles([SELECTED_ROLE])
 
         location = function_host.location.read()
         organization = function_host.organization.read()
@@ -386,6 +384,7 @@ class TestAnsibleCfgMgmt:
             'redhat.satellite.hostgroups',
             'redhat.satellite.compute_profiles',
         ]
+        target_sat.install_ansible_roles([SELECTED_ROLE[0]])
         proxy_id = target_sat.nailgun_smart_proxy.id
         target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': SELECTED_ROLE})
         name = gen_string('alpha').lower()
@@ -446,6 +445,7 @@ class TestAnsibleCfgMgmt:
         :customerscenario: true
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
+        target_sat.install_ansible_roles([SELECTED_ROLE])
         name = gen_string('alpha')
         password = gen_string('alpha')
         host = target_sat.api.Host(organization=module_org, location=module_location).create()
@@ -500,6 +500,7 @@ class TestAnsibleCfgMgmt:
         :Verifies: SAT-45645
         """
         SELECTED_ROLE = 'theforeman.foreman_scap_client'
+        module_target_sat.install_ansible_roles([SELECTED_ROLE])
         rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
         nc = module_target_sat.nailgun_smart_proxy
         nc.location = [module_location]
@@ -567,7 +568,13 @@ class TestAnsibleREX:
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_config_report_ansible(
-        self, target_sat, module_org, module_ak_with_cv, rhel_contenthost
+        self,
+        target_sat,
+        module_org,
+        smart_proxy_module_org,
+        smart_proxy_location,
+        module_ak_with_cv,
+        rhel_contenthost,
     ):
         """Test Config Report generation with Ansible Jobs.
 
@@ -587,10 +594,13 @@ class TestAnsibleREX:
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
         rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
+        target_sat.install_ansible_roles([SELECTED_ROLE])
         if rhel_contenthost.os_version.major <= 7:
             rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
             assert rhel_contenthost.execute('yum install -y insights-client').status == 0
-        result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+        result = rhel_contenthost.register(
+            module_org, smart_proxy_location, module_ak_with_cv.name, target_sat
+        )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         id = target_sat.nailgun_smart_proxy.id
         target_host = rhel_contenthost.nailgun_host
@@ -620,7 +630,7 @@ class TestAnsibleREX:
         assert result.succeeded == 1
         with target_sat.ui_session() as session:
             session.organization.select(module_org.name)
-            session.location.select(constants.DEFAULT_LOC)
+            session.location.select(smart_proxy_location.name)
             assert session.host.search(target_host.name)[0]['Name'] == rhel_contenthost.hostname
             chart_data = session.dashboard.read('RunDistributionChart')
             assert 'Ansible' in chart_data, f'RunDistributionChart returned: {chart_data}'
@@ -637,6 +647,8 @@ class TestAnsibleREX:
         auth_type,
         target_sat,
         module_org,
+        smart_proxy_module_org,
+        smart_proxy_location,
         module_ak_with_cv,
         rhel_contenthost,
         request,
@@ -664,45 +676,35 @@ class TestAnsibleREX:
         user_cfg = admin_nailgun_config()
         password = settings.server.admin_password
         if auth_type == 'non-admin':
-            ansible_manager_role = target_sat.api.Role().search(
-                query={'search': 'name="Ansible Roles Manager"'}
-            )
+            role = target_sat.api.Role().search(query={'search': 'name="Manager"'})
             username = gen_string('alphanumeric')
-            target_sat.api.User(
-                role=ansible_manager_role,
-                admin=True,
+            user = target_sat.api.User(
+                role=role,
+                admin=False,
                 login=username,
                 password=password,
                 organization=[module_org],
+                location=[smart_proxy_location],
             ).create()
+            request.addfinalizer(user.delete)
             user_cfg = user_nailgun_config(username, password)
 
-        @request.addfinalizer
-        def _finalize():
-            result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
-            assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
-            target_sat.execute(f'rm -rvf /etc/ansible/roles/{SELECTED_ROLE}')
-
         SELECTED_ROLE = gen_string('alphanumeric')
-        playbook = f'{robottelo_tmp_dir}/playbook.yml'
+        role_dir = f'{constants.ANSIBLE_ROLES_PATH}/{SELECTED_ROLE}'
         data = {
-            'name': 'Copy ssh keys',
+            'name': 'Create a test file',
             'copy': {
-                'src': '/var/lib/foreman-proxy/ssh/{{ item }}',
-                'dest': '/root/.ssh',
-                'owner': 'root',
-                "group": 'root',
-                'mode': '0400',
+                'content': 'Custom Ansible role ran',
+                'dest': f'/tmp/{SELECTED_ROLE}',
+                'mode': '0600',
             },
-            'with_items': ['id_rsa_foreman_proxy.pub', 'id_rsa_foreman_proxy'],
         }
+        target_sat.put(yaml.safe_dump([data]), f'{role_dir}/tasks/main.yml', temp_file=True)
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {role_dir}'))
 
-        with open(playbook, 'w') as f:
-            yaml.dump(data, f, sort_keys=False, default_flow_style=False)
-        target_sat.execute(f'mkdir /etc/ansible/roles/{SELECTED_ROLE}')
-        target_sat.put(playbook, f'/etc/ansible/roles/{SELECTED_ROLE}/playbook.yaml')
-
-        result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+        result = rhel_contenthost.register(
+            module_org, smart_proxy_location, module_ak_with_cv.name, target_sat
+        )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         proxy_id = target_sat.nailgun_smart_proxy.id
         target_host = rhel_contenthost.nailgun_host
@@ -712,7 +714,7 @@ class TestAnsibleREX:
         ROLE_ID = [
             target_sat.api.AnsibleRoles().search(query={'search': f'name={SELECTED_ROLE}'})[0].id
         ]
-        # Assign first 2 roles to HG and verify it
+        request.addfinalizer(lambda: target_sat.cli.Ansible.roles_delete({'id': ROLE_ID[0]}))
         target_sat.api.Host(server_config=user_cfg, id=target_host.id).assign_ansible_roles(
             data={'ansible_role_ids': ROLE_ID}
         )
@@ -742,7 +744,7 @@ class TestAnsibleREX:
 
         with target_sat.ui_session(user=user_cfg.auth[0], password=password) as session:
             session.organization.select(module_org.name)
-            session.location.select(constants.DEFAULT_LOC)
+            session.location.select(smart_proxy_location.name)
             assert session.host.search(target_host.name)[0]['Name'] == rhel_contenthost.hostname
             session.configreport.search(rhel_contenthost.hostname)
             session.configreport.delete(rhel_contenthost.hostname)
@@ -768,7 +770,13 @@ class TestAnsibleREX:
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_install_ansible_collection(
-        self, rhel_contenthost, target_sat, module_org, module_ak_with_cv
+        self,
+        rhel_contenthost,
+        target_sat,
+        module_org,
+        smart_proxy_module_org,
+        smart_proxy_location,
+        module_ak_with_cv,
     ):
         """Verify that Ansible collections can be installed on hosts via job invocations
 
@@ -791,18 +799,19 @@ class TestAnsibleREX:
         rhel_contenthost.enable_ipv6_system_proxy()
         client = rhel_contenthost
         # Enable Ansible repository and Install ansible or ansible-core package
-        client.register(module_org, None, module_ak_with_cv.name, target_sat)
+        client.register(module_org, smart_proxy_location, module_ak_with_cv.name, target_sat)
         rhel_repo_urls = getattr(settings.repos, f'rhel{client.os_version.major}_os', None)
         rhel_contenthost.create_custom_repos(**rhel_repo_urls)
         assert client.execute('dnf -y install ansible-core').status == 0
 
         with target_sat.ui_session() as session:
             session.organization.select(module_org.name)
+            session.location.select(smart_proxy_location.name)
             collections_names = 'oasis_roles.system'
             session.jobinvocation.run(
                 {
                     'category_and_template.job_category': 'Ansible Galaxy',
-                    'category_and_template.job_template_text_input': 'Ansible Collection - Install from Galaxy',
+                    'category_and_template.job_template': 'Ansible Collection - Install from Galaxy',
                     'target_hosts_and_inputs.targetting_type': 'Hosts',
                     'target_hosts_and_inputs.targets': client.hostname,
                     'target_hosts_and_inputs.ansible_collections_list': collections_names,
@@ -816,7 +825,7 @@ class TestAnsibleREX:
             status = session.jobinvocation.read(
                 entity_name=job_description, host_name=client.hostname
             )
-            assert status['overview']['hosts_table'][0]['Status'] == 'Succeeded'
+            assert status['hosts'][0]['Status'] == 'Succeeded'
 
             collection_path = client.execute('ls ~/ansible_collections').stdout
             assert 'oasis_roles' in collection_path

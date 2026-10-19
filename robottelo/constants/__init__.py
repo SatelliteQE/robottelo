@@ -2247,6 +2247,8 @@ RHSSO_RESET_PASSWORD = {"temporary": "false", "type": "password", "value": ""}
 
 LOGIN_DELEGATION_LOGOUT_URL = "https://theforeman.org/"
 
+ANSIBLE_ROLES_PATH = '/var/lib/foreman-proxy/ansible/roles'
+
 FOREMAN_ANSIBLE_MODULES = [
     "activation_key",
     "architecture",
