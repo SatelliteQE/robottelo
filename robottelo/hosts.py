@@ -28,7 +28,9 @@ from fauxfactory import gen_alpha, gen_string
 from nailgun import entities
 from packaging.version import Version
 from pulp_glue.common.authentication import GlueAuthProvider
-from pulp_glue.common.context import PulpContext
+from pulp_glue.common.context import PulpContext, _patch_api_hook
+from pulp_glue.common.exceptions import OpenAPIError, PulpException
+from pulp_glue.common.openapi import OpenAPI
 import pytest
 import requests
 from ssh2.exceptions import AuthenticationError
@@ -1735,17 +1737,47 @@ class ContentHost(Host, ContentHostMixins):
             logger.warning(f'Podman is not logged into container registry {registry}')
 
 
+class _HostPulpOpenAPI(OpenAPI):
+    """Keep the host CA selected for every Pulp API request."""
+
+    def _setup_session(self):
+        super()._setup_session()
+        # Requests otherwise replaces session.verify with REQUESTS_CA_BUNDLE
+        # when Pulp Glue sends a request without an explicit verify argument.
+        self._session.trust_env = False
+
+
 class _HostPulpContext(PulpContext):
-    """Keep copied TLS files available to Pulp Glue and support generic href reads.
+    """Keep copied TLS files available and use their CA for Pulp requests.
 
     Pulp Glue uses paths to the CA certificate, client certificate, and key
     copied to the pytest runner. Holding their ``TemporaryDirectory`` here
-    keeps those paths valid for the lifetime of this context.
+    keeps those paths valid for the lifetime of this context. The custom API
+    client keeps the runner's CA environment override out of its requests.
     """
 
     def __init__(self, *args, runner_cert_tempdir, **kwargs):
         self._runner_cert_tempdir = runner_cert_tempdir
         super().__init__(*args, **kwargs)
+
+    @property
+    def api(self) -> OpenAPI:
+        """Create Pulp Glue's API client with this host's CA pinned to its session."""
+        if self._api is None:
+            # Mirror PulpContext.api from pinned pulp-glue 0.41.1 so it can
+            # instantiate our OpenAPI subclass.
+            try:
+                self._api = _HostPulpOpenAPI(
+                    doc_path=f'{self._api_root}api/{self._api_version}/docs/api.json',
+                    verify_ssl=self.verify_ssl,
+                    patch_api_hook=_patch_api_hook,
+                    **self._api_kwargs,
+                )
+            except OpenAPIError as error:
+                raise PulpException(str(error)) from error
+            for requirement in self._needed_plugins:
+                self.needs_plugin(requirement)
+        return self._api
 
     def read_href(self, href):
         """Read any Pulp href, as ``pulp show --href`` does."""
