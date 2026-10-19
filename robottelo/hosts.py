@@ -3383,14 +3383,6 @@ class Satellite(Capsule, SatelliteMixins):
         result = self.execute(command.get_command(), timeout=0)
         assert result.status == 0, 'Failed to enable IPA authentication.'
 
-        # unset GssapiLocalName (BZ#1787630)
-        assert (
-            self.execute(
-                'sed -i -e "s/GssapiLocalName.*On/GssapiLocalName Off/g" '
-                '/etc/httpd/conf.d/05-foreman-ssl.d/auth_gssapi.conf'
-            ).status
-            == 0
-        )
         assert self.execute('systemctl restart gssproxy.service').status == 0
         assert self.execute('systemctl enable gssproxy.service').status == 0
 

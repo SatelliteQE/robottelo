@@ -704,7 +704,7 @@ def test_permissions_external_ldap_mapped_rhsso_group(
 @pytest.mark.parametrize('enable_api', [True], indirect=True)
 def test_negative_negotiate_login_without_ticket(
     parametrized_enrolled_sat,
-    configure_hammer_negotiate,
+    configure_hammer_no_creds,
 ):
     """Verify that login nor other hammer commands work without
     the Kerberos ticket and proper messages are displayed.
@@ -740,7 +740,7 @@ def test_negative_negotiate_login_without_ticket(
 def test_positive_negotiate_login_with_ticket(
     request,
     parametrized_enrolled_sat,
-    configure_hammer_negotiate,
+    configure_hammer_no_creds,
     sessions_tear_down,
 ):
     """Verify that we are able to log in, user is created but access restricted.
@@ -801,7 +801,7 @@ def test_positive_negotiate_login_with_ticket(
 def test_positive_negotiate_CRUD(
     request,
     parametrized_enrolled_sat,
-    configure_hammer_negotiate,
+    configure_hammer_no_creds,
     sessions_tear_down,
 ):
     """Verify that basic CRUD operations work with hammer.
@@ -890,7 +890,7 @@ def test_positive_negotiate_CRUD(
 def test_positive_negotiate_logout(
     request,
     parametrized_enrolled_sat,
-    configure_hammer_negotiate,
+    configure_hammer_no_creds,
     sessions_tear_down,
 ):
     """Verify the logout behaves properly.
@@ -956,7 +956,7 @@ def test_positive_negotiate_logout(
 def test_positive_autonegotiate(
     request,
     parametrized_enrolled_sat,
-    configure_hammer_negotiate,
+    configure_hammer_no_creds,
     sessions_tear_down,
     user_not_exists,
     hammer_logout,

@@ -438,7 +438,7 @@ def func_enroll_ad_and_configure_external_auth(ad_data, target_sat):
 
 @pytest.fixture
 def configure_hammer_no_creds(parametrized_enrolled_sat):
-    """Configures hammer to use sessions and negotiate auth."""
+    """Remove configured Hammer credentials."""
     parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
     parametrized_enrolled_sat.execute(f"sed -i '/:username.*/d' {HAMMER_CONFIG}")
     parametrized_enrolled_sat.execute(f"sed -i '/:password.*/d' {HAMMER_CONFIG}")
@@ -447,24 +447,13 @@ def configure_hammer_no_creds(parametrized_enrolled_sat):
 
 
 @pytest.fixture
-def configure_hammer_negotiate(parametrized_enrolled_sat, configure_hammer_no_creds):
-    """Configures hammer to use sessions and negotiate auth."""
-    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
-    parametrized_enrolled_sat.execute(f"sed -i '/:default_auth_type.*/d' {HAMMER_CONFIG}")
-    parametrized_enrolled_sat.execute(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
-    parametrized_enrolled_sat.execute(f"echo '  :use_sessions: true' >> {HAMMER_CONFIG}")
-    parametrized_enrolled_sat.execute(
-        f"echo '  :default_auth_type: Negotiate_Auth' >> {HAMMER_CONFIG}"
-    )
-    yield
-    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
-
-
-@pytest.fixture
 def configure_hammer_no_negotiate(parametrized_enrolled_sat):
     """Configures hammer not to use automatic negotiation."""
     parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
-    parametrized_enrolled_sat.execute(f"sed -i '/:default_auth_type.*/d' {HAMMER_CONFIG}")
+    parametrized_enrolled_sat.execute(
+        f"sed -i 's/^[[:space:]]*:default_auth_type:.*/  :default_auth_type: Basic_Auth/' "
+        f'{HAMMER_CONFIG}'
+    )
     yield
     parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
 
