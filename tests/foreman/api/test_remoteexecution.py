@@ -46,6 +46,8 @@ def test_positive_run_capsule_update_playbook(module_capsule_configured, target_
 
     :expectedresults: Capsule is upgraded successfully
 
+    :BlockedBy: SAT-52557
+
     :CaseImportance: Medium
     """
 
