@@ -121,7 +121,6 @@ def test_positive_CRUD_all_types(
         module_target_sat.api.AlternateContentSource(id=new_acs.id).read()
 
 
-@pytest.mark.foremanctl
 @pytest.mark.parametrize('proxy_field', ['smart_proxy_ids', 'smart_proxy_names'])
 def test_negative_reject_non_pulp_proxy_for_acs_create_update(
     request, module_target_sat, proxy_field
