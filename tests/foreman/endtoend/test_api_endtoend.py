@@ -48,7 +48,6 @@ API_PATHS = {
         '/api/advisor_engine/host_details',
         '/api/advisor_engine/upload_hits',
     ),
-    'advisor_engine_config': ('/api/rh_cloud/advisor_engine_config',),
     'alternate_content_sources': (
         '/katello/api/alternate_content_sources',
         '/katello/api/alternate_content_sources/:id',
