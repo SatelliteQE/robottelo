@@ -40,7 +40,6 @@ def test_positive_endtoend(
             auth_type_attr = LDAP_ATTR[f'login_{auth_source_type.lower()}']
         elif auth_source_type == 'IPA':
             auth_source_data = ipa_data
-            auth_source_data['ldap_user_name'] = auth_source_data['ldap_user_cn']
             auth_type_attr = LDAP_ATTR['login']
         authsource = module_target_sat.api.AuthSourceLDAP(
             onthefly_register=True,
