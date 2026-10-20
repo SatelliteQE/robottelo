@@ -106,15 +106,17 @@ def untrust_rhit_cas(module_target_sat):
 
 
 @pytest.fixture
-def configure_hammer_session(parametrized_enrolled_sat, enable=True):
-    """Take backup of the hammer config file and enable use_sessions"""
-    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
+def configure_hammer_session(request, parametrized_enrolled_sat):
+    """Back up the Hammer config and configure use_sessions."""
+    enable = getattr(request, 'param', True)
+    backup = f'{HAMMER_CONFIG}.session.backup'
+    assert parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {backup}').status == 0
     parametrized_enrolled_sat.execute(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
     parametrized_enrolled_sat.execute(
         f"echo '  :use_sessions: {'true' if enable else 'false'}' >> {HAMMER_CONFIG}"
     )
     yield
-    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+    assert parametrized_enrolled_sat.execute(f'mv -f {backup} {HAMMER_CONFIG}').status == 0
 
 
 def generate_otp(secret):

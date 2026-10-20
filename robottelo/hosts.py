@@ -3241,8 +3241,8 @@ class Satellite(Capsule, SatelliteMixins):
         """
         ad_data = ad_data()
         packages = (
-            f'sssd adcli realmd krb5-workstation samba-common-tools '
-            f'gssproxy nfs-utils ipa-client oddjob oddjob-mkhomedir'
+            'sssd adcli realmd krb5-workstation samba-common-tools '
+            'gssproxy nfs-utils ipa-client oddjob oddjob-mkhomedir'
         )
         realm = ad_data.realm
         workgroup = ad_data.workgroup
