@@ -12,7 +12,6 @@
 
 """
 
-from pulp_glue.common.exceptions import PulpException
 import pytest
 
 from robottelo.constants import PULP_HREF_PRN_MAP, PULP_PRN_TABLES
@@ -76,10 +75,5 @@ def test_pulp_repoversion_href_prn_mapping(target_sat, module_prn_content_setup)
     )
     assert len(records), 'No records found in table, probably insufficient content setup'
     for row in records:
-        try:
-            version = target_sat.pulp_glue.read_href(row['version_href'])
-        except PulpException as error:
-            if 'CERTIFICATE_VERIFY_FAILED' in str(error):
-                error.add_note(target_sat.pulp_glue_tls_diagnostics())
-            raise
+        version = target_sat.pulp_glue.read_href(row['version_href'])
         assert row['version_prn'] == version['prn']
