@@ -74,7 +74,7 @@ class TestAnsibleCfgMgmt:
             1. Install ansible collection with playbooks.
             2. Try to fetch the playbooks via api.
             3. Sync the playbooks.
-            4. Assert the count of playbooks fetched and synced are equal.
+            4. Assert every fetched playbook exists as a job template after syncing.
 
         :expectedresults:
             1. Playbooks should be fetched and synced successfully.
@@ -83,11 +83,13 @@ class TestAnsibleCfgMgmt:
 
         :customerscenario: true
         """
-        target_sat.install_ansible_collections(['xprazak2.forklift_collection'])
+        target_sat.install_ansible_collections(['infra.ee_utilities'])
         proxy_id = target_sat.nailgun_smart_proxy.id
         playbook_fetch = target_sat.api.AnsiblePlaybooks().fetch(data={'proxy_id': proxy_id})
-        playbooks_count = len(playbook_fetch['results']['playbooks_names'])
-        assert playbooks_count > 0, 'No Ansible playbooks were fetched from Capsule'
+        playbook_names = playbook_fetch['results']['playbooks_names']
+        assert 'infra.ee_utilities.create_execution_environment' in playbook_names, (
+            'Collection playbook was not fetched from Capsule'
+        )
         playbook_sync = target_sat.api.AnsiblePlaybooks().sync(data={'proxy_id': proxy_id})
         assert playbook_sync['action'] == "Sync playbooks"
 
@@ -99,7 +101,8 @@ class TestAnsibleCfgMgmt:
             query={'search': f'id = {playbook_sync["id"]}'}
         )
         assert task_details[0].result == 'success'
-        assert len(task_details[0].output['result']['created']) == playbooks_count
+        templates = target_sat.api.JobTemplate().search(query={'per_page': 'all'})
+        assert set(playbook_names) <= {template.name for template in templates}
 
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_read_facts_with_filter(
