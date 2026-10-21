@@ -1385,6 +1385,68 @@ class TestRepositorySync:
         assert prod_log_out.status == 0
         assert "(0 rows)" in prod_log_out.stdout
 
+    def test_positive_validate_async_operation_response(self, module_sca_manifest_org, target_sat):
+        """Verify that RefreshDistribution action properly tracks Pulp tasks via AsyncOperationResponse.
+
+        :id: 84dc1de1-2b9c-4545-8ced-4a6f0857b745
+
+        :steps:
+            1. Enable and sync a Red Hat repository
+            2. Query the sync task's RefreshDistribution action
+            3. Verify pulp_tasks array is populated with task information
+
+        :expectedresults: RefreshDistribution action output contains pulp_tasks with
+            proper AsyncOperationResponse data (task href, state, timestamps)
+
+        :customerscenario: true
+
+        :Verifies: SAT-44644
+        """
+        # Enable and sync a Red Hat repository
+        repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=module_sca_manifest_org.id,
+            product=constants.PRDS['rhel'],
+            repo=constants.REPOS['rhst7']['name'],
+            reposet=constants.REPOSET['rhst7'],
+            releasever=None,
+        )
+        target_sat.api.Repository(id=repo_id).sync()
+
+        # Wait for sync task to complete and get the task
+        task = target_sat.wait_for_tasks(
+            search_query=(
+                f'label = Actions::Katello::Repository::Sync and resource_id = {repo_id}'
+                f' and organization_id = {module_sca_manifest_org.id}'
+            ),
+            search_rate=20,
+            max_tries=15,
+        )
+        assert len(task) == 1, f'Expected 1 sync task to be found, got {task}'
+        task_id = task[0].id
+
+        # Query RefreshDistribution action output using foreman-rake console
+        rake_command = (
+            f"task = ForemanTasks::Task.find('{task_id}'); "
+            "refresh_dist_action = task.execution_plan.actions.find do |action| "
+            "action.class.name == 'Actions::Pulp3::Repository::RefreshDistribution' end; "
+            "refresh_dist_action.output;"
+        )
+        output = target_sat.execute(f'echo "{rake_command}" | foreman-rake console')
+
+        # Verify the output contains pulp_tasks with proper AsyncOperationResponse data
+        assert output.status == 0, 'Failed to query RefreshDistribution action'
+        assert '"pulp_tasks"=>[]' not in output.stdout, (
+            'Bug: pulp_tasks is empty - AsyncOperationResponse not captured'
+        )
+        assert '"state"=>"completed"' in output.stdout or '"state"=>"running"' in output.stdout, (
+            'Pulp task state not found in output'
+        )
+        assert '"pulp_href"=>' in output.stdout, 'Pulp task href not found in output'
+        assert '"name"=>"pulpcore.app.tasks.base.ageneral_update"' in output.stdout, (
+            'Expected pulpcore task name not found'
+        )
+
     @pytest.mark.parametrize(
         'distro',
         [
