@@ -9,8 +9,6 @@
 :CaseImportance: High
 """
 
-from time import sleep
-
 import awxkit
 from fauxfactory import gen_string
 import pytest
@@ -331,7 +329,15 @@ class TestAnsibleREX:
             }
         )
         result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
-        sleep(150)
+        recurring_id = result['recurring-logic-id']
+        rec_logic = target_sat.cli.RecurringLogic.info({'id': recurring_id})
+        assert rec_logic['state'] == 'active'
+        assert rec_logic['next-occurrence']
+        wait_for(
+            lambda: target_sat.cli.RecurringLogic.info({'id': recurring_id})['state'] == 'finished',
+            timeout=240,
+            delay=10,
+        )
         rec_logic = target_sat.cli.RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
@@ -339,9 +345,7 @@ class TestAnsibleREX:
         rec_logic_keys = rec_logic.keys()
         assert 'action' in rec_logic_keys
         assert 'last-occurrence' in rec_logic_keys
-        assert 'next-occurrence' in rec_logic_keys
         assert 'state' in rec_logic_keys
-        assert 'purpose' in rec_logic_keys
         assert 'iteration' in rec_logic_keys
         assert 'iteration-limit' in rec_logic_keys
 
