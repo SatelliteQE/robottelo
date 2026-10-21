@@ -487,6 +487,8 @@ class TestAnsibleCfgMgmt:
 
         :id: 286048f8-0f4f-4a3c-b5c7-fe9c7af8a780
 
+        :BlockedBy: SAT-52207
+
         :steps:
             1. Import Ansible Roles
             2. Assign and Run Ansible roles to a host
@@ -580,6 +582,8 @@ class TestAnsibleREX:
 
         :id: 118e25e5-409e-44ba-b908-217da9722576
 
+        :BlockedBy: SAT-52207
+
         :steps:
             1. Register a content host with satellite
             2. Import a role into satellite
@@ -657,6 +661,8 @@ class TestAnsibleREX:
         Test Config report generation with Custom Ansible Role
 
         :id: 3551068a-ccfc-481c-b7ec-8fe2b8a802bf
+
+        :BlockedBy: SAT-52207
 
         :steps:
             1. Register a content host with satellite
