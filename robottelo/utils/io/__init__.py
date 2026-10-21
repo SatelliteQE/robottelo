@@ -4,6 +4,9 @@ import json
 from pathlib import Path
 import tarfile
 
+# Temporary download directory for hammer CLI insights reports
+INSIGHTS_REPORTS_DOWNLOAD_DIR = '/tmp/insights_reports'
+
 
 def get_local_file_data(path):
     """Returns information about tar file.
@@ -63,13 +66,24 @@ def get_host_counts(tarobj):
     }
 
 
-def get_remote_report_checksum(satellite, org_id):
+def get_remote_report_checksum(satellite, org_id, remote_path=None):
     """Returns checksum of red_hat_inventory report present on satellite.
 
     Args:
         satellite: satellite host
         org_id: organization-id
+        remote_path: optional custom path to the report file. If not provided,
+                     will check default internal paths for backward compatibility.
     """
+    if remote_path:
+        # Use provided path (e.g., from hammer download-report)
+        result = satellite.execute(f'sha256sum {remote_path}')
+        if result.status == 0:
+            checksum, _ = result.stdout.split(maxsplit=1)
+            return checksum
+        return None
+
+    # Fallback to internal paths for backward compatibility
     remote_paths = [
         f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org_id}.tar.xz',
         f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/report_for_{org_id}.tar.xz',

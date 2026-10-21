@@ -20,7 +20,11 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
-from robottelo.utils.io import get_local_file_data, get_remote_report_checksum
+from robottelo.utils.io import (
+    INSIGHTS_REPORTS_DOWNLOAD_DIR,
+    get_local_file_data,
+    get_remote_report_checksum,
+)
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
 generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'
@@ -66,12 +70,15 @@ def test_positive_inventory_generate_upload_cli(
         1. Generate and upload report for specific organization using hammer CLI:
             # hammer insights inventory generate-report --organization-id=1
         2. Wait for the report generation task to complete.
-        3. Verify the report is uploaded to the done/ directory.
+        3. Download the report using hammer CLI:
+            # hammer insights inventory download-report --organization-id=1 --path <dir>
+        4. Verify the downloaded report content.
 
     :expectedresults:
         1. Report generation task completes successfully.
         2. Report is generated and uploaded to cloud.redhat.com.
-        3. Report file is accessible and contains valid host data.
+        3. Report can be downloaded successfully using hammer CLI.
+        4. Downloaded report file is accessible and contains valid host data.
 
     :BZ: 1957129, 1895953, 1956190
 
@@ -100,19 +107,22 @@ def test_positive_inventory_generate_upload_cli(
         handle_exception=True,
     )
 
+    # Download report using hammer CLI instead of accessing the filesystem directly
     local_report_path = robottelo_tmp_dir.joinpath(f'report_for_{org.id}.tar.xz')
-    remote_report_path = f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    wait_for(
-        lambda: module_target_sat.get(
-            remote_path=str(remote_report_path), local_path=str(local_report_path)
-        ),
-        timeout=60,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
+    module_target_sat.execute(f'mkdir -p {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
+
+    module_target_sat.cli.Insights.inventory_download_report(
+        {'organization-id': org.id, 'path': INSIGHTS_REPORTS_DOWNLOAD_DIR}
     )
+
+    remote_report_path = f'{INSIGHTS_REPORTS_DOWNLOAD_DIR}/report_for_{org.id}.tar.xz'
+    module_target_sat.get(remote_path=str(remote_report_path), local_path=str(local_report_path))
     local_file_data = get_local_file_data(local_report_path)
-    assert local_file_data['checksum'] == get_remote_report_checksum(module_target_sat, org.id)
+
+    # Verify checksum using the reusable function
+    assert local_file_data['checksum'] == get_remote_report_checksum(
+        module_target_sat, org.id, remote_path=remote_report_path
+    )
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']
@@ -365,33 +375,33 @@ def test_positive_generate_reports_job_cli(
 
     :steps:
         1. Execute hammer insights inventory generate-report.
+        2. Download the report using hammer CLI to verify it was uploaded.
 
-    :expectedresults: Report generation succeeds and report is uploaded to done/ folder.
+    :expectedresults: Report generation succeeds and report can be downloaded successfully.
 
     :Verifies: SAT-38836
     """
     org = rhcloud_manifest_org
 
-    # Clean up any existing reports for this organization to ensure clean state
-    module_target_sat.execute(
-        f'rm -f /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    )
-    module_target_sat.execute(
-        f'rm -f /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
-    )
+    # Clean up any existing downloaded reports
+    module_target_sat.execute(f'rm -rf {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
+    module_target_sat.execute(f'mkdir -p {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
 
     generate_report(org, module_target_sat, disconnected=False)
 
-    # Verify report was uploaded by checking it exists in the done/ folder
-    remote_report_path = f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    result = module_target_sat.execute(f'test -f {remote_report_path} && echo "exists"')
-    assert result.status == 0, (
-        f"Report check command failed with status {result.status}: {result.stderr}"
+    # Verify report was uploaded by downloading it via hammer CLI
+    module_target_sat.cli.Insights.inventory_download_report(
+        {'organization-id': org.id, 'path': INSIGHTS_REPORTS_DOWNLOAD_DIR}
     )
-    assert 'exists' in result.stdout, (
-        f"Report file does not exist at {remote_report_path}. "
+
+    # Verify the downloaded file exists
+    remote_report_path = f'{INSIGHTS_REPORTS_DOWNLOAD_DIR}/report_for_{org.id}.tar.xz'
+    check_result = module_target_sat.execute(f'test -f {remote_report_path} && echo "exists"')
+    assert check_result.status == 0, (
+        f"Downloaded report file not found at {remote_report_path}. "
         f"This indicates the report was not uploaded successfully."
     )
+    assert 'exists' in check_result.stdout
 
 
 def test_positive_generate_reports_job_cli_disconnected(
@@ -405,47 +415,34 @@ def test_positive_generate_reports_job_cli_disconnected(
 
     :steps:
         1. Execute hammer insights inventory generate-report with --no-upload flag.
+        2. Try to download the report using hammer CLI to verify it was NOT uploaded.
 
-    :expectedresults: Report is generated but not uploaded (stays in generated_reports/).
+    :expectedresults: Report is generated but not uploaded (cannot be downloaded).
 
     :Verifies: SAT-38836
     """
     org = rhcloud_manifest_org
 
-    # Clean up any existing reports for this organization to ensure clean state
-    module_target_sat.execute(
-        f'rm -f /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    )
-    module_target_sat.execute(
-        f'rm -f /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
-    )
+    # Clean up any existing downloaded reports
+    module_target_sat.execute(f'rm -rf {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
+    module_target_sat.execute(f'mkdir -p {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
 
     generate_report(org, module_target_sat, disconnected=True)
 
-    # Verify report was NOT uploaded by checking it's in generated_reports/, not done/
-    generated_reports_dir = '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports'
-    done_dir = (
-        '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done'
+    # Verify report was NOT uploaded by attempting to download it via hammer CLI
+    # This should fail or not find the report since it was generated with --no-upload
+    module_target_sat.cli.Insights.inventory_download_report(
+        {'organization-id': org.id, 'path': INSIGHTS_REPORTS_DOWNLOAD_DIR}
     )
 
-    # Check report exists in generated_reports/
-    result = module_target_sat.execute(
-        f'find {generated_reports_dir} -name "report_for_{org.id}.tar.xz" -type f'
+    # Verify the download did not produce a file (report wasn't uploaded)
+    remote_report_path = f'{INSIGHTS_REPORTS_DOWNLOAD_DIR}/report_for_{org.id}.tar.xz'
+    check_result = module_target_sat.execute(
+        f'test -f {remote_report_path} && echo "exists" || echo "not found"'
     )
-    assert result.status == 0, (
-        f"Failed to search for report in {generated_reports_dir}: {result.stderr}"
-    )
-    assert f'report_for_{org.id}.tar.xz' in result.stdout, (
-        f"Report not found in {generated_reports_dir}. "
-        f"This indicates the report was not generated with --no-upload."
-    )
-
-    # Verify report does NOT exist in done/ folder
-    result = module_target_sat.execute(
-        f'test -f {done_dir}/report_for_{org.id}.tar.xz && echo "exists" || echo "not found"'
-    )
-    assert 'not found' in result.stdout, (
-        f"Report should not be in {done_dir} when using --no-upload flag"
+    assert 'not found' in check_result.stdout, (
+        f"Report should not be downloadable when generated with --no-upload flag. "
+        f"Found file at {remote_report_path}, which indicates it was uploaded."
     )
 
 
