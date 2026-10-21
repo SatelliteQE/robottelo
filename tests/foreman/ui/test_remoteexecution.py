@@ -160,9 +160,7 @@ def test_positive_run_default_job_template(
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-def test_rex_through_host_details(
-    target_sat, rex_contenthost, smart_proxy_module_org
-):
+def test_rex_through_host_details(target_sat, rex_contenthost, smart_proxy_module_org):
     """Run remote execution using the new host details page
 
     :id: ee625595-4995-43b2-9e6d-633c9b33ff93
@@ -252,9 +250,7 @@ def test_positive_run_custom_job_template(
             lambda: session.all_hosts.search(f"name = {hostname}"),
             timeout=60,
             delay=2,
-            fail_condition=lambda rows: not any(
-                row.get('Name') == hostname for row in rows
-            ),
+            fail_condition=lambda rows: not any(row.get('Name') == hostname for row in rows),
         ).out
         assert any(row.get('Name') == hostname for row in result)
         session.jobtemplate.create(
