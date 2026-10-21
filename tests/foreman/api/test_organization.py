@@ -273,7 +273,7 @@ class TestOrganizationUpdate:
         """
         # Every Satellite has a built-in smart proxy, so let's find it
         smart_proxy = target_sat.api.SmartProxy().search(
-            query={'search': f'url = {target_sat.url}:9090'}
+            query={'search': f'url = {target_sat.url}:8443'}
         )
         # Check that proxy is found and unpack it from the list
         assert len(smart_proxy) > 0
