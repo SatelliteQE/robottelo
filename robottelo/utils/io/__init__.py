@@ -72,8 +72,7 @@ def get_remote_report_checksum(satellite, org_id, remote_path=None):
     Args:
         satellite: satellite host
         org_id: organization-id
-        remote_path: optional custom path to the report file. If not provided,
-                     will check default internal paths for backward compatibility.
+        remote_path: optional path to report file (defaults to internal paths for compatibility)
     """
     if remote_path:
         # Use provided path (e.g., from hammer download-report)
