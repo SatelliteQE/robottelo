@@ -66,7 +66,7 @@ def get_host_counts(tarobj):
     }
 
 
-def get_remote_report_checksum(satellite,remote_path):
+def get_remote_report_checksum(satellite, remote_path):
     """Returns checksum of red_hat_inventory report present on satellite.
 
     Args:
