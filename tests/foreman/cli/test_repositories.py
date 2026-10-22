@@ -12,8 +12,6 @@
 
 """
 
-import json
-
 import pytest
 from requests.exceptions import HTTPError
 
@@ -196,16 +194,15 @@ def test_purge_pulp_tasks(module_target_sat, module_org, module_repository, sett
     :customerscenario: true
 
     """
-    cmd = 'pulp task list --limit 99999'
-    original_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
+    original_ptc = module_target_sat.pulp_api('tasks/?limit=1')['count']
     module_target_sat.run_orphan_cleanup(smart_proxy_id=1)
-    new_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
+    new_ptc = module_target_sat.pulp_api('tasks/?limit=1')['count']
     assert new_ptc > original_ptc, 'Pulp tasks were unexpectedly purged'
 
     setting_update.value = 0
     setting_update.update({'value'})
 
-    original_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
+    original_ptc = module_target_sat.pulp_api('tasks/?limit=1')['count']
     module_target_sat.run_orphan_cleanup(smart_proxy_id=1)
-    new_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
+    new_ptc = module_target_sat.pulp_api('tasks/?limit=1')['count']
     assert new_ptc < original_ptc, 'Pulp tasks were not purged'
