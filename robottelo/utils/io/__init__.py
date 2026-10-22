@@ -7,11 +7,12 @@ import tarfile
 # Temporary download directory for hammer CLI insights reports
 INSIGHTS_REPORTS_DOWNLOAD_DIR = '/tmp/insights_reports'
 generated_reports_dir = (
-        '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports'
-    )
+    '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports'
+)
 done_dir = (
-        '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done'
-    )
+    '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done'
+)
+
 
 def get_local_file_data(path):
     """Returns information about tar file.

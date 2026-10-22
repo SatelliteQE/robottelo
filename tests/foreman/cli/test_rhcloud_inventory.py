@@ -22,10 +22,10 @@ from wait_for import wait_for
 from robottelo.config import robottelo_tmp_dir
 from robottelo.utils.io import (
     INSIGHTS_REPORTS_DOWNLOAD_DIR,
+    done_dir,
+    generated_reports_dir,
     get_local_file_data,
     get_remote_report_checksum,
-    generated_reports_dir,
-    done_dir,
 )
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
@@ -425,12 +425,8 @@ def test_positive_generate_reports_job_cli_disconnected(
     """
     org = rhcloud_manifest_org
     # Clean up any existing reports for this organization to ensure clean state
-    module_target_sat.execute(
-        f'rm -f {done_dir}/report_for_{org.id}.tar.xz'
-    )
-    module_target_sat.execute(
-        f'rm -f {generated_reports_dir}/report_for_{org.id}.tar.xz'
-    )
+    module_target_sat.execute(f'rm -f {done_dir}/report_for_{org.id}.tar.xz')
+    module_target_sat.execute(f'rm -f {generated_reports_dir}/report_for_{org.id}.tar.xz')
 
     generate_report(org, module_target_sat, disconnected=True)
 
