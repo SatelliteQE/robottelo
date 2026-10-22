@@ -953,7 +953,7 @@ def test_negative_usage_limit(
     result = vm2.register(module_org, None, name, target_sat)
     assert not vm2.subscribed
     assert result.status
-    assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stderr)
+    assert f'Max Hosts ({hosts_limit}) reached for activation key' in result.stdout
 
 
 @pytest.mark.no_containers
