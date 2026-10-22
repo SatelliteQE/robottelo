@@ -255,24 +255,38 @@ class TestAnsibleCfgMgmt:
             assert default_value in reset_variable_value
 
     @pytest.mark.parametrize('setting_update', ['ansible_roles_to_ignore'], indirect=True)
-    def test_positive_ansible_roles_ignore_list(self, target_sat, setting_update):
+    def test_positive_ansible_roles_ignore_list(self, request, target_sat, setting_update):
         """Verify that the ignore list setting prevents selected roles from being available for import
 
         :id: 6fa1d8f0-b583-4a07-88eb-c9ae7fcd0219
 
         :steps:
-            1. Add roles to the ignore list in Administer > Settings > Ansible
-            2. Navigate to Configure > Roles
+            1. Create fresh roles on Capsule and verify they are available for import.
+            2. Add selected roles to the ignore list.
+            3. Verify ignored roles are hidden and an unignored role remains available.
 
         :expectedresults: Verify that any roles on the ignore list are not available for import
         """
-        SELECTED_ROLE = ['RedHatInsights.insights-client', 'redhat.satellite.activation_keys']
-        setting_update.value = SELECTED_ROLE
-        setting_update.update({'value'})
-        assert setting_update.value == SELECTED_ROLE
+        ignored_roles = [gen_string('alpha').lower() for _ in range(2)]
+        control_role = gen_string('alpha').lower()
+        for role in [*ignored_roles, control_role]:
+            role_dir = f'{constants.ANSIBLE_ROLES_PATH}/{role}'
+            request.addfinalizer(lambda role_dir=role_dir: target_sat.execute(f'rm -rf {role_dir}'))
+            target_sat.put('---\n[]\n', f'{role_dir}/tasks/main.yml', temp_file=True)
+
+        proxy = target_sat.nailgun_smart_proxy.read()
         with target_sat.ui_session() as session:
+            session.organization.select(proxy.organization[0].read().name)
+            session.location.select(proxy.location[0].read().name)
             roles = session.ansibleroles.read_all()
-            assert all(item not in roles for item in SELECTED_ROLE), (
+            assert all(role in roles for role in [*ignored_roles, control_role])
+
+            setting_update.value = [*setting_update.value, *ignored_roles]
+            setting_update.update({'value'})
+            session.browser.refresh()
+            roles = session.ansibleroles.read_all()
+            assert control_role in roles
+            assert all(role not in roles for role in ignored_roles), (
                 'Roles from ignore list are available for import'
             )
 
@@ -363,6 +377,7 @@ class TestAnsibleCfgMgmt:
 
     def test_positive_assign_and_remove_ansible_role_to_hostgroup(
         self,
+        request,
         target_sat,
         module_org,
         module_location,
@@ -398,6 +413,8 @@ class TestAnsibleCfgMgmt:
                     'ansible_roles.resources': SELECTED_ROLE[:2],
                 }
             )
+            hostgroup = target_sat.api.HostGroup().search(query={'search': f'name="{name}"'})[0]
+            request.addfinalizer(hostgroup.delete)
             # verify ansible role(s) assigned properly while creating a host group.
             assert session.hostgroup.read_role(name, SELECTED_ROLE) == SELECTED_ROLE[:2]
 
@@ -413,10 +430,6 @@ class TestAnsibleCfgMgmt:
             # verify ansible role(s) removed properly from the host group.
             assert SELECTED_ROLE[0] not in session.hostgroup.read_role(name, SELECTED_ROLE)
             assert SELECTED_ROLE[1:] == session.hostgroup.read_role(name, SELECTED_ROLE)
-
-            # Delete host group
-            session.hostgroup.delete(name)
-            assert not target_sat.api.HostGroup().search(query={'search': f'name={name}'})
 
     def test_positive_non_admin_user_access_with_usergroup(
         self,
