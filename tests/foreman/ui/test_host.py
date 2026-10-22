@@ -20,12 +20,12 @@ import json
 import re
 import time
 
+from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 from box import Box
 import pytest
 from wait_for import wait_for
 import yaml
 
-from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
