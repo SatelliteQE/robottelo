@@ -425,7 +425,9 @@ def test_positive_generate_reports_job_cli_disconnected(
     org = rhcloud_manifest_org
 
     # Clean up any existing downloaded reports
-    module_target_sat.execute(f'rm -rf /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports/')
+    module_target_sat.execute(
+        'rm -rf /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports/'
+    )
     module_target_sat.execute(f'rm -rf {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
     module_target_sat.execute(f'mkdir -p {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
 
