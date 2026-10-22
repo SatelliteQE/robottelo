@@ -23,6 +23,7 @@ from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
 import requests
 from requests.exceptions import HTTPError
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -51,13 +52,47 @@ from robottelo.content_info import (
 from robottelo.utils.datafactory import gen_string
 
 
-@pytest.fixture(scope="module")
-def add_proxy_cli_config(module_target_sat, module_capsule_configured):
-    """Adds an entry in the pulp cli config for executing pulp commands on the capsule, then removes it."""
-    PROXY_CONFIG = f'\n[cli-proxy]\ncert = "/etc/foreman/client_cert.pem"\nkey = "/etc/foreman/client_key.pem"\nbase_url = "https://{module_capsule_configured.hostname}"'
-    module_target_sat.execute(f"echo -e '{PROXY_CONFIG}' >> .config/pulp/cli.toml")
-    yield
-    module_target_sat.execute("sed -i '/cli-proxy/, +3 d' .config/pulp/cli.toml")
+def _wait_for_pulp_task(host, task_href):
+    """Wait for a Pulp task and return its completed response."""
+    task, _ = wait_for(
+        lambda: host.pulp_api(task_href),
+        fail_condition=lambda task: (
+            task['state'] not in ('completed', 'failed', 'canceled', 'skipped')
+        ),
+        timeout=300,
+        delay=2,
+    )
+    assert task['state'] == 'completed', (
+        f'Pulp task {task_href} ended in {task["state"]}: {task.get("error")}'
+    )
+    return task
+
+
+def _create_orphaned_rpm_distribution(host, repository_href):
+    """Create a publication and distribution outside Katello's records."""
+    publication_task_href = host.pulp_api(
+        'publications/rpm/rpm/',
+        method='POST',
+        payload={'repository_version': f'{repository_href}versions/1/'},
+    )['task']
+    task = _wait_for_pulp_task(host, publication_task_href)
+    publication_href = next(
+        (href for href in task['created_resources'] if '/publications/rpm/rpm/' in href),
+        None,
+    )
+    assert publication_href, f'Pulp task {publication_task_href} created no RPM publication'
+
+    distribution_name = gen_string('alpha', 12)
+    distribution_task_href = host.pulp_api(
+        'distributions/rpm/rpm/',
+        method='POST',
+        payload={
+            'name': distribution_name,
+            'base_path': distribution_name,
+            'publication': publication_href,
+        },
+    )['task']
+    _wait_for_pulp_task(host, distribution_task_href)
 
 
 @pytest.fixture
@@ -2057,7 +2092,6 @@ class TestCapsuleContentManagement:
     @pytest.mark.skip_if_not_set('capsule')
     def test_cleanup_orphaned_content(
         self,
-        add_proxy_cli_config,
         module_target_sat,
         module_capsule_configured,
         function_org,
@@ -2072,18 +2106,15 @@ class TestCapsuleContentManagement:
             1. Create and sync a repository.
             2. Associate the LCE with a capsule, and sync.
             3. Add content to the repository, publish and promote to the LCE, and sync.
-            4. Add a [cli-proxy] entry to .config/pulp/cli.toml pointing to the capsule
-            5. Using pulp CLI and foreman-rake, create a publication and distribution using the first version of the repository.
-            6. Trigger orphan cleanup on both capsule and satellite.
+            4. Use the Pulp API to create a publication and distribution from the first repository
+               version on both Satellite and Capsule.
+            5. Trigger orphan cleanup on both Capsule and Satellite.
 
         :customerscenario: true
 
         :Verifies: SAT-31400
 
-        :BlockedBy: SAT-50686
-
         :expectedresults:
-
             1. Orphaned cleanup runs successfully when there are orphaned distributions and publications present.
         """
         repo_url = settings.repos.yum_1.url
@@ -2139,34 +2170,20 @@ class TestCapsuleContentManagement:
         # Assert that packages count in the repository is updated
         assert repo.content_counts['rpm'] == (FAKE_1_YUM_REPOS_COUNT + 1)
 
-        # Create orphaned publication and distribution on Satellite
-        version_href = (
-            module_target_sat.execute(
-                f'echo "::Katello::Repository.find({repo.id}).version_href" | foreman-rake console'
-            )
-            .stdout.split('"')[1]
-            .removesuffix("versions/2/")
-        )
-        publication_href = module_target_sat.execute(
-            f"pulp --force rpm publication create --repository {version_href} --version 1"
-        ).stdout.split('"')[3]
-        module_target_sat.execute(
-            f"pulp --force rpm distribution create --name test2 --base-path test2 --publication {publication_href}"
-        )
+        # Create orphaned publications and distributions on Satellite and Capsule.
+        satellite_version_href = repo.read_json()['version_href']
+        satellite_repository_href = module_target_sat.pulp_api(satellite_version_href)['repository']
+        _create_orphaned_rpm_distribution(module_target_sat, satellite_repository_href)
 
-        # Create orphaned publication and distribution on Capsule
-        version_href = (
-            module_target_sat.execute(
-                "pulp --force --profile proxy repository list --field latest_version_href"
-            )
-            .stdout.split('"')[3]
-            .removesuffix("versions/2/")
+        # Katello includes the library repository's backend identifier in the Capsule repo name.
+        capsule_repositories = module_capsule_configured.pulp_api(
+            f'repositories/rpm/rpm/?name__contains={repo.backend_identifier}&limit=1'
+        )['results']
+        assert capsule_repositories, (
+            f'No Capsule Pulp RPM repository found for {repo.backend_identifier}'
         )
-        publication_href = module_target_sat.execute(
-            f"pulp --force --profile proxy rpm publication create --repository {version_href} --version 1"
-        ).stdout.split('"')[3]
-        module_target_sat.execute(
-            f"pulp --force --profile proxy rpm distribution create --name test2 --base-path test2 --publication {publication_href}"
+        _create_orphaned_rpm_distribution(
+            module_capsule_configured, capsule_repositories[0]['pulp_href']
         )
 
         # Run orphan cleanup on satellite and capsule
