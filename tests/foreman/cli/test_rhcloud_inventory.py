@@ -121,7 +121,7 @@ def test_positive_inventory_generate_upload_cli(
 
     # Verify checksum using the reusable function
     assert local_file_data['checksum'] == get_remote_report_checksum(
-        module_target_sat, org.id, remote_path=remote_report_path
+        module_target_sat, remote_report_path
     )
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']

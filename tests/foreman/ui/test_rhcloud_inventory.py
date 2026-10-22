@@ -84,7 +84,7 @@ def common_assertion(
         remote_report_path = f'{INSIGHTS_REPORTS_DOWNLOAD_DIR}/report_for_{org.id}.tar.xz'
         # Verify uploaded report checksum matches
         assert local_file_data['checksum'] == get_remote_report_checksum(
-            satellite, org.id, remote_path=remote_report_path
+            satellite, remote_report_path
         )
     else:
         # When connection disabled, just verify report was generated

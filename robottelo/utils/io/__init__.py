@@ -71,8 +71,7 @@ def get_remote_report_checksum(satellite, remote_path):
 
     Args:
         satellite: satellite host
-        org_id: organization-id
-        remote_path: optional path to report file (defaults to internal paths for compatibility)
+        remote_path: path to report file on the satellite
     """
     # Use provided path (e.g., from hammer download-report)
     result = satellite.execute(f'sha256sum {remote_path}')
