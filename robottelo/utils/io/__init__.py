@@ -66,7 +66,7 @@ def get_host_counts(tarobj):
     }
 
 
-def get_remote_report_checksum(satellite, org_id, remote_path=None):
+def get_remote_report_checksum(satellite,remote_path):
     """Returns checksum of red_hat_inventory report present on satellite.
 
     Args:
@@ -74,13 +74,12 @@ def get_remote_report_checksum(satellite, org_id, remote_path=None):
         org_id: organization-id
         remote_path: optional path to report file (defaults to internal paths for compatibility)
     """
-    if remote_path:
-        # Use provided path (e.g., from hammer download-report)
-        result = satellite.execute(f'sha256sum {remote_path}')
-        if result.status == 0:
-            checksum, _ = result.stdout.split(maxsplit=1)
-            return checksum
-        return None
+    # Use provided path (e.g., from hammer download-report)
+    result = satellite.execute(f'sha256sum {remote_path}')
+    if result.status == 0:
+        checksum, _ = result.stdout.split(maxsplit=1)
+        return checksum
+    return None
 
 
 def get_report_data(report_path):
