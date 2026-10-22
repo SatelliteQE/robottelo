@@ -26,6 +26,7 @@ from robottelo.utils.io import (
     get_local_file_data,
     get_remote_report_checksum,
     get_report_data,
+    INSIGHTS_REPORTS_DOWNLOAD_DIR,
 )
 
 
@@ -74,8 +75,16 @@ def common_assertion(
         # Only check upload-related assertions when connection is enabled
         upload_success_msg = 'Completed'
         assert upload_success_msg in inventory_data['task_status']
+        # Create download directory on Satellite if it doesn't exist
+        satellite.execute(f'mkdir -p {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
+        satellite.cli.Insights.inventory_download_report(
+            {'organization-id': org.id, 'path': INSIGHTS_REPORTS_DOWNLOAD_DIR}
+        )
+
+        remote_report_path = f'{INSIGHTS_REPORTS_DOWNLOAD_DIR}/report_for_{org.id}.tar.xz'
         # Verify uploaded report checksum matches
-        assert local_file_data['checksum'] == get_remote_report_checksum(satellite, org.id)
+        assert local_file_data['checksum'] == get_remote_report_checksum(
+            satellite, org.id, remote_path=remote_report_path)
     else:
         # When connection disabled, just verify report was generated
         assert (

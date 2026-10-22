@@ -82,20 +82,6 @@ def get_remote_report_checksum(satellite, org_id, remote_path=None):
             return checksum
         return None
 
-    # Fallback to internal paths for backward compatibility
-    remote_paths = [
-        f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done/report_for_{org_id}.tar.xz',
-        f'/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/report_for_{org_id}.tar.xz',
-    ]
-
-    for path in remote_paths:
-        result = satellite.execute(f'sha256sum {path}')
-        if result.status != 0:
-            continue
-        checksum, _ = result.stdout.split(maxsplit=1)
-        return checksum
-    return None
-
 
 def get_report_data(report_path):
     """Returns report data from tar file.
