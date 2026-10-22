@@ -20,6 +20,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
+from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.io import (
     INSIGHTS_REPORTS_DOWNLOAD_DIR,
     get_local_file_data,
@@ -424,25 +425,24 @@ def test_positive_generate_reports_job_cli_disconnected(
     org = rhcloud_manifest_org
 
     # Clean up any existing downloaded reports
+    module_target_sat.execute(f'rm -rf /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports/')
     module_target_sat.execute(f'rm -rf {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
     module_target_sat.execute(f'mkdir -p {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
 
     generate_report(org, module_target_sat, disconnected=True)
 
     # Verify report was NOT uploaded by attempting to download it via hammer CLI
-    # This should fail or not find the report since it was generated with --no-upload
-    module_target_sat.cli.Insights.inventory_download_report(
-        {'organization-id': org.id, 'path': INSIGHTS_REPORTS_DOWNLOAD_DIR}
-    )
+    # This should fail since the report was generated with --no-upload
+    with pytest.raises(CLIReturnCodeError) as exc_info:
+        module_target_sat.cli.Insights.inventory_download_report(
+            {'organization-id': org.id, 'path': INSIGHTS_REPORTS_DOWNLOAD_DIR}
+        )
 
-    # Verify the download did not produce a file (report wasn't uploaded)
-    remote_report_path = f'{INSIGHTS_REPORTS_DOWNLOAD_DIR}/report_for_{org.id}.tar.xz'
-    check_result = module_target_sat.execute(
-        f'test -f {remote_report_path} && echo "exists" || echo "not found"'
-    )
-    assert 'not found' in check_result.stdout, (
-        f"Report should not be downloadable when generated with --no-upload flag. "
-        f"Found file at {remote_report_path}, which indicates it was uploaded."
+    # Verify the error indicates the report doesn't exist (wasn't uploaded)
+    error_msg = str(exc_info.value)
+    assert "doesn't exist" in error_msg or "ReportMissingError" in error_msg, (
+        f"Expected download to fail with 'doesn't exist' or 'ReportMissingError' "
+        f"when using --no-upload flag. Got: {error_msg}"
     )
 
 
