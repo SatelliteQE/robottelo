@@ -1,6 +1,7 @@
 # Content Component fixtures
 from manifester import Manifester
 import pytest
+from requests.exceptions import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
@@ -34,7 +35,23 @@ def current_sat_location(target_sat):
 
 @pytest.fixture
 def function_org(target_sat):
-    return target_sat.api.Organization().create()
+    org = target_sat.api.Organization()
+    try:
+        return org.create()
+    except HTTPError as err:
+        err.add_note(
+            f'function_org failed to create organization {getattr(org, "name", None)!r} '
+            f'on Satellite {target_sat.hostname}. '
+            'Check the Foreman server logs (journalctl --unit foreman for foremanctl, '
+            '/var/log/foreman/production.log for satellite-installer) and associated '
+            'Foreman tasks for the underlying error.'
+        )
+        if err.response is not None:
+            err.add_note(
+                f'X-Request-Id: {err.response.headers.get("X-Request-Id", "unavailable")}; '
+                f'response date: {err.response.headers.get("Date", "unavailable")}'
+            )
+        raise
 
 
 @pytest.fixture(scope='module')
