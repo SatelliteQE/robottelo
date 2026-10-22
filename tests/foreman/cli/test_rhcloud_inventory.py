@@ -20,11 +20,12 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
-from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.io import (
     INSIGHTS_REPORTS_DOWNLOAD_DIR,
     get_local_file_data,
     get_remote_report_checksum,
+    generated_reports_dir,
+    done_dir,
 )
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
@@ -376,33 +377,35 @@ def test_positive_generate_reports_job_cli(
 
     :steps:
         1. Execute hammer insights inventory generate-report.
-        2. Download the report using hammer CLI to verify it was uploaded.
 
-    :expectedresults: Report generation succeeds and report can be downloaded successfully.
+    :expectedresults: Report generation succeeds and report is uploaded to done/ folder.
 
     :Verifies: SAT-38836
     """
     org = rhcloud_manifest_org
 
-    # Clean up any existing downloaded reports
-    module_target_sat.execute(f'rm -rf {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
-    module_target_sat.execute(f'mkdir -p {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
+    # Clean up any existing reports for this organization to ensure clean state
+    module_target_sat.execute(
+        f'rm -f {done_dir}/report_for_{org.id}.tar.xz'
+    )
+    module_target_sat.execute(
+        f'rm -f {generated_reports_dir}/report_for_{org.id}.tar.xz'
+    )
 
     generate_report(org, module_target_sat, disconnected=False)
 
-    # Verify report was uploaded by downloading it via hammer CLI
-    module_target_sat.cli.Insights.inventory_download_report(
-        {'organization-id': org.id, 'path': INSIGHTS_REPORTS_DOWNLOAD_DIR}
+    # Verify report was uploaded by checking it exists in the done/ folder
+    remote_report_path = (
+        f'{done_dir}/report_for_{org.id}.tar.xz'
     )
-
-    # Verify the downloaded file exists
-    remote_report_path = f'{INSIGHTS_REPORTS_DOWNLOAD_DIR}/report_for_{org.id}.tar.xz'
-    check_result = module_target_sat.execute(f'test -f {remote_report_path} && echo "exists"')
-    assert check_result.status == 0, (
-        f"Downloaded report file not found at {remote_report_path}. "
+    result = module_target_sat.execute(f'test -f {remote_report_path} && echo "exists"')
+    assert result.status == 0, (
+        f"Report check command failed with status {result.status}: {result.stderr}"
+    )
+    assert 'exists' in result.stdout, (
+        f"Report file does not exist at {remote_report_path}. "
         f"This indicates the report was not uploaded successfully."
     )
-    assert 'exists' in check_result.stdout
 
 
 def test_positive_generate_reports_job_cli_disconnected(
@@ -416,33 +419,40 @@ def test_positive_generate_reports_job_cli_disconnected(
 
     :steps:
         1. Execute hammer insights inventory generate-report with --no-upload flag.
-        2. Try to download the report using hammer CLI to verify it was NOT uploaded.
 
-    :expectedresults: Report is generated but not uploaded (cannot be downloaded).
+    :expectedresults: Report is generated but not uploaded (stays in generated_reports/).
 
     :Verifies: SAT-38836
     """
     org = rhcloud_manifest_org
-
-    # Clean up any existing downloaded reports
-    module_target_sat.execute(f'rm -rf /var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports/')
-    module_target_sat.execute(f'rm -rf {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
-    module_target_sat.execute(f'mkdir -p {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
+    # Clean up any existing reports for this organization to ensure clean state
+    module_target_sat.execute(
+        f'rm -f {done_dir}/report_for_{org.id}.tar.xz'
+    )
+    module_target_sat.execute(
+        f'rm -f {generated_reports_dir}/report_for_{org.id}.tar.xz'
+    )
 
     generate_report(org, module_target_sat, disconnected=True)
 
-    # Verify report was NOT uploaded by attempting to download it via hammer CLI
-    # This should fail since the report was generated with --no-upload
-    with pytest.raises(CLIReturnCodeError) as exc_info:
-        module_target_sat.cli.Insights.inventory_download_report(
-            {'organization-id': org.id, 'path': INSIGHTS_REPORTS_DOWNLOAD_DIR}
-        )
+    # Check report exists in generated_reports/
+    result = module_target_sat.execute(
+        f'find {generated_reports_dir} -name "report_for_{org.id}.tar.xz" -type f'
+    )
+    assert result.status == 0, (
+        f"Failed to search for report in {generated_reports_dir}: {result.stderr}"
+    )
+    assert f'report_for_{org.id}.tar.xz' in result.stdout, (
+        f"Report not found in {generated_reports_dir}. "
+        f"This indicates the report was not generated with --no-upload."
+    )
 
-    # Verify the error indicates the report doesn't exist (wasn't uploaded)
-    error_msg = str(exc_info.value)
-    assert "doesn't exist" in error_msg or "ReportMissingError" in error_msg, (
-        f"Expected download to fail with 'doesn't exist' or 'ReportMissingError' "
-        f"when using --no-upload flag. Got: {error_msg}"
+    # Verify report does NOT exist in done/ folder
+    result = module_target_sat.execute(
+        f'test -f {done_dir}/report_for_{org.id}.tar.xz && echo "exists" || echo "not found"'
+    )
+    assert 'not found' in result.stdout, (
+        f"Report should not be in {done_dir} when using --no-upload flag"
     )
 
 
