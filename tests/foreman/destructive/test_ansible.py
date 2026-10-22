@@ -20,6 +20,7 @@ from robottelo.config import settings
 pytestmark = [pytest.mark.destructive, pytest.mark.upgrade]
 
 
+@pytest.mark.foreman_installer
 def test_positive_persistent_ansible_cfg_change(target_sat):
     """Check if changes in ansible.cfg are persistent after running satellite-installer
 
