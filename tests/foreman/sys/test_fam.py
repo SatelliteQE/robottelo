@@ -31,22 +31,36 @@ from robottelo.enums import InstallMethod
 from robottelo.hosts import IPAHost
 from robottelo.utils.installer import InstallerCommand
 
+FOREMAN_PROXY_ANSIBLE_DIR = '/var/lib/foreman-proxy/ansible'
+FOREMAN_PROXY_ANSIBLE_ROLES_DIR = f'{FOREMAN_PROXY_ANSIBLE_DIR}/roles'
+FOREMAN_PROXY_ANSIBLE_COLLECTIONS_DIR = (
+    f'{FOREMAN_PROXY_ANSIBLE_DIR}/collections/ansible_collections/redhat'
+)
+FOREMAN_PROXY_SATELLITE_COLLECTION_DIR = f'{FOREMAN_PROXY_ANSIBLE_COLLECTIONS_DIR}/satellite'
+
 
 @pytest.fixture
-def sync_roles(target_sat):
+def sync_roles(module_target_sat, setup_fam):
     """Sync all redhat.satellite roles and delete when finished
     Returns: A dict of the sync response and role names
     """
+    result = module_target_sat.execute(f"mkdir -p {FOREMAN_PROXY_ANSIBLE_COLLECTIONS_DIR}")
+    assert result.status == 0, f"{result.stdout}\n{result.stderr}"
+    result = module_target_sat.execute(
+        f"cp -a {FAM_ROOT_DIR} {FOREMAN_PROXY_SATELLITE_COLLECTION_DIR}"
+    )
+    assert result.status == 0, f"{result.stdout}\n{result.stderr}"
     roles = [f'redhat.satellite.{role}' for role in RH_SAT_ROLES]
-    proxy_list = target_sat.cli.Proxy.list({'search': f'name={target_sat.hostname}'})
+    proxy_list = module_target_sat.cli.Proxy.list({'search': f'name={module_target_sat.hostname}'})
     proxy_id = proxy_list[0].get('id')
-    sync = target_sat.cli.Ansible.roles_sync({'role-names': roles, 'proxy-id': proxy_id})
+    sync = module_target_sat.cli.Ansible.roles_sync({'role-names': roles, 'proxy-id': proxy_id})
     yield {'task': sync, 'roles': roles}
-    roles_list = target_sat.cli.Ansible.roles_list()
+    roles_list = module_target_sat.cli.Ansible.roles_list()
     for role in roles_list:
         if role.get('name') in roles:
             role_id = role.get('id')
-            target_sat.cli.Ansible.roles_delete({'id': role_id})
+            module_target_sat.cli.Ansible.roles_delete({'id': role_id})
+    module_target_sat.execute(f"rm -rf {FOREMAN_PROXY_SATELLITE_COLLECTION_DIR}")
 
 
 @pytest.fixture(scope='module')
@@ -54,8 +68,7 @@ def install_import_ansible_role(module_target_sat):
     """Installs and imports the thulium_drake.motd role used in the luna_hostgroup test playbook"""
 
     def create_fake_role(module_target_sat, role_name, role_metadata):
-        base_dir = '/usr/share/ansible/roles'
-        role_dir = f'{base_dir}/{role_name}'
+        role_dir = f'{FOREMAN_PROXY_ANSIBLE_ROLES_DIR}/{role_name}'
         meta_dir = f'{role_dir}/meta'
         tasks_dir = f'{role_dir}/tasks'
         module_target_sat.execute(f'mkdir -p {meta_dir} {tasks_dir}')
@@ -256,8 +269,7 @@ def test_positive_ansible_modules_installation(setup_fam, module_target_sat):
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-@pytest.mark.foreman_installer
-def test_positive_import_run_roles(sync_roles, target_sat):
+def test_positive_import_run_roles(sync_roles, module_target_sat, request):
     """Import a FAM role and run the role on the Satellite
 
     :id: d3379fd3-b847-43ce-a51f-c02170e7b267
@@ -265,8 +277,10 @@ def test_positive_import_run_roles(sync_roles, target_sat):
     :expectedresults: fam roles import and run successfully
     """
     roles = sync_roles.get('roles')
-    target_sat.cli.Host.ansible_roles_assign({'ansible-roles': roles, 'name': target_sat.hostname})
-    play = target_sat.cli.Host.ansible_roles_play({'name': target_sat.hostname})
+    host = module_target_sat.cli_factory.make_fake_host()
+    request.addfinalizer(module_target_sat.api.Host(id=host.id).delete)
+    module_target_sat.cli.Host.ansible_roles_assign({'ansible-roles': roles, 'id': host.id})
+    play = module_target_sat.cli.Host.ansible_roles_play({'id': host.id})
     assert 'Ansible roles are being played' in play[0]['message']
 
 
