@@ -458,7 +458,7 @@ class TestAnsibleREX:
         termination_msg = 'Timeout for execution passed, stopping the job'
         assert [i['output'] for i in result if i['output'] == termination_msg]
         assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
-        assert [i['output'] for i in result if i['output'] == 'Exit status: 120']
+        assert [i['output'] for i in result if i['output'] == 'Exit status: 2']
 
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
