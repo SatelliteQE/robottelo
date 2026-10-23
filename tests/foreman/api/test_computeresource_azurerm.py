@@ -24,6 +24,7 @@ from robottelo.constants import (
     AZURERM_VM_SIZE_DEFAULT,
     AZURERM_PREMIUM_OS_Disk,
 )
+from tests.foreman.azure_helpers import diagnose_azurerm_ssh_port
 
 
 class TestAzureRMComputeResourceTestCase:
@@ -211,21 +212,25 @@ class TestAzureRMHostProvisioningTestCase:
         """
 
         with sat_azure.skip_yum_update_during_provisioning(template='Kickstart default finish'):
-            host = sat_azure.api.Host(
-                architecture=sat_azure_default_architecture,
-                build=True,
-                compute_resource=module_azurerm_cr,
-                compute_attributes=self.compute_attrs,
-                interfaces_attributes=self.interfaces_attributes,
-                domain=sat_azure_domain,
-                organization=sat_azure_org,
-                operatingsystem=sat_azure_default_os,
-                location=sat_azure_loc,
-                name=self.hostname,
-                provision_method='image',
-                image=module_azurerm_custom_finishimg,
-                root_pass=gen_string('alphanumeric'),
-            ).create()
+            try:
+                host = sat_azure.api.Host(
+                    architecture=sat_azure_default_architecture,
+                    build=True,
+                    compute_resource=module_azurerm_cr,
+                    compute_attributes=self.compute_attrs,
+                    interfaces_attributes=self.interfaces_attributes,
+                    domain=sat_azure_domain,
+                    organization=sat_azure_org,
+                    operatingsystem=sat_azure_default_os,
+                    location=sat_azure_loc,
+                    name=self.hostname,
+                    provision_method='image',
+                    image=module_azurerm_custom_finishimg,
+                    root_pass=gen_string('alphanumeric'),
+                ).create()
+            except Exception:
+                diagnose_azurerm_ssh_port(sat_azure, azurermclient, self.hostname)
+                raise
             yield host
             with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                 host.delete()
@@ -485,6 +490,7 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
     def class_host_custom_ft(
         self,
         sat_azure,
+        azurermclient,
         module_azurerm_custom_finishimg,
         module_azurerm_cr,
         sat_azure_default_architecture,
@@ -499,21 +505,25 @@ class TestAzureRMCustomImageFinishTemplateProvisioning:
         """
 
         with sat_azure.skip_yum_update_during_provisioning(template='Kickstart default finish'):
-            host = sat_azure.api.Host(
-                architecture=sat_azure_default_architecture,
-                build=True,
-                compute_resource=module_azurerm_cr,
-                compute_attributes=self.compute_attrs,
-                interfaces_attributes=self.interfaces_attributes,
-                domain=sat_azure_domain,
-                organization=sat_azure_org,
-                operatingsystem=sat_azure_default_os,
-                location=sat_azure_loc,
-                name=self.hostname,
-                provision_method='image',
-                image=module_azurerm_custom_finishimg,
-                root_pass=gen_string('alphanumeric'),
-            ).create()
+            try:
+                host = sat_azure.api.Host(
+                    architecture=sat_azure_default_architecture,
+                    build=True,
+                    compute_resource=module_azurerm_cr,
+                    compute_attributes=self.compute_attrs,
+                    interfaces_attributes=self.interfaces_attributes,
+                    domain=sat_azure_domain,
+                    organization=sat_azure_org,
+                    operatingsystem=sat_azure_default_os,
+                    location=sat_azure_loc,
+                    name=self.hostname,
+                    provision_method='image',
+                    image=module_azurerm_custom_finishimg,
+                    root_pass=gen_string('alphanumeric'),
+                ).create()
+            except Exception:
+                diagnose_azurerm_ssh_port(sat_azure, azurermclient, self.hostname)
+                raise
             yield host
             with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                 host.delete()

@@ -24,6 +24,7 @@ from robottelo.constants import (
     AZURERM_VM_SIZE_DEFAULT,
     AZURERM_PREMIUM_OS_Disk,
 )
+from tests.foreman.azure_helpers import diagnose_azurerm_ssh_port
 
 
 @pytest.fixture(scope='class')
@@ -81,7 +82,7 @@ class TestAzureRMComputeResourceTestCase:
             }
         )
         assert compresource['name'] == cr_name
-        assert compresource['provider'] == 'Azure Resource Manager'
+        assert compresource['provider'] == 'Microsoft Azure'
         assert compresource['tenant'] == azurerm_settings['tenant']
         assert compresource['app_ident'] == azurerm_settings['app_ident']
         assert compresource['sub_id'] == azurerm_settings['sub_id']
@@ -337,23 +338,27 @@ class TestAzureRMFinishTemplateProvisioning:
             sat_azure.hammer_api_timeout(),
             sat_azure.skip_yum_update_during_provisioning(template='Kickstart default finish'),
         ):
-            host = sat_azure.cli.Host.create(
-                {
-                    'name': self.hostname,
-                    'compute-resource': module_azurerm_cr.name,
-                    'compute-attributes': self.compute_attrs,
-                    'interface': self.interfaces_attributes,
-                    'location-id': sat_azure_loc.id,
-                    'organization-id': sat_azure_org.id,
-                    'domain-id': sat_azure_domain.id,
-                    'domain': sat_azure_domain.name,
-                    'architecture-id': sat_azure_default_architecture.id,
-                    'operatingsystem-id': sat_azure_default_os.id,
-                    'root-password': gen_string('alpha'),
-                    'image': module_azurerm_custom_finishimg.name,
-                },
-                timeout=1800000,
-            )
+            try:
+                host = sat_azure.cli.Host.create(
+                    {
+                        'name': self.hostname,
+                        'compute-resource': module_azurerm_cr.name,
+                        'compute-attributes': self.compute_attrs,
+                        'interface': self.interfaces_attributes,
+                        'location-id': sat_azure_loc.id,
+                        'organization-id': sat_azure_org.id,
+                        'domain-id': sat_azure_domain.id,
+                        'domain': sat_azure_domain.name,
+                        'architecture-id': sat_azure_default_architecture.id,
+                        'operatingsystem-id': sat_azure_default_os.id,
+                        'root-password': gen_string('alpha'),
+                        'image': module_azurerm_custom_finishimg.name,
+                    },
+                    timeout=1800000,
+                )
+            except Exception:
+                diagnose_azurerm_ssh_port(sat_azure, azurermclient, self.hostname)
+                raise
             yield host
             with sat_azure.api_factory.satellite_setting('destroy_vm_on_host_delete=True'):
                 if sat_azure.cli.Host.exists(search=('name', host['name'])):
