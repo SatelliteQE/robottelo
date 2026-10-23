@@ -19,17 +19,23 @@ def module_repo_options(request, module_org, module_product):
 @pytest.fixture(scope='module')
 def module_repo(module_repo_options, module_target_sat):
     """Create a new repository."""
-    return module_target_sat.api.Repository(**module_repo_options).create()
+    repo = module_target_sat.api.Repository(**module_repo_options).create()
+    yield repo
+    repo.delete()
 
 
 @pytest.fixture
 def function_product(target_sat, function_org):
-    return target_sat.api.Product(organization=function_org).create()
+    product = target_sat.api.Product(organization=function_org).create()
+    yield product
+    product.delete()
 
 
 @pytest.fixture(scope='module')
 def module_product(module_org, module_target_sat):
-    return module_target_sat.api.Product(organization=module_org).create()
+    product = module_target_sat.api.Product(organization=module_org).create()
+    yield product
+    product.delete()
 
 
 @pytest.fixture(scope='module')
@@ -99,7 +105,8 @@ def setup_content(module_target_sat, module_org):
 def module_repository(os_path, module_product, module_target_sat):
     repo = module_target_sat.api.Repository(product=module_product, url=os_path).create()
     call_entity_method_with_timeout(module_target_sat.api.Repository(id=repo.id).sync, timeout=3600)
-    return repo
+    yield repo
+    repo.delete()
 
 
 @pytest.fixture
