@@ -124,6 +124,64 @@ def module_autosync_setting(request, module_target_sat, module_capsule_configure
     setting_entity.update({'value'})
 
 
+@pytest.fixture(scope='module')
+def module_capsule_podman_contenthost(
+    module_podman_contenthost,
+    module_capsule_configured,
+    smart_proxy_module_org,
+    module_target_sat,
+):
+    """Podman content host registered to a Capsule with registry certs configured.
+
+    The fixture assigns the test organization to both Capsule smart proxies, syncs the
+    org Library environment to the Capsule content source, creates an activation key
+    for that environment, and registers the content host to the Capsule using global
+    registration with container registry certificate setup enabled.
+    """
+
+    # Assign the newly deployed Capsule proxies to the org used for registration.
+    capsule_proxy_ids = {
+        module_capsule_configured.nailgun_smart_proxy.id,
+        module_capsule_configured.nailgun_content_smart_proxy.id,
+    }
+    for smart_proxy_id in capsule_proxy_ids:
+        smart_proxy = module_target_sat.api.SmartProxy(id=smart_proxy_id).read()
+        if smart_proxy_module_org.id not in [org.id for org in smart_proxy.organization]:
+            smart_proxy.organization.append(smart_proxy_module_org)
+            smart_proxy.update(['organization'])
+    # Add and sync the org Library lifecycle environment to the Capsule content source.
+    # Otherwise global registration fails because the selected content source has not
+    # synced the lifecycle environment assigned by the activation key.
+    if smart_proxy_module_org.library.id not in [
+        lce['id'] for lce in module_capsule_configured.nailgun_capsule.lifecycle_environments
+    ]:
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': smart_proxy_module_org.library.id}
+        )
+    sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout='60m')
+    assert sync_status['result'] == 'success', 'Capsule content sync failed'
+
+    # Create an activation key in the same org used for Capsule registration.
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+        smart_proxy_module_org.default_content_view,
+        smart_proxy_module_org.library,
+    )
+    ak = module_target_sat.api.ActivationKey(
+        content_view_environment_ids=[cvenv_id],
+        organization=smart_proxy_module_org,
+    ).create()
+
+    result = module_podman_contenthost.register(
+        smart_proxy_module_org,
+        None,
+        ak.name,
+        module_capsule_configured,
+        setup_container_certs=True,
+    )
+    assert result.status == 0, f'Failed to register host to Capsule: {result.stderr}'
+    return module_podman_contenthost
+
+
 @pytest.mark.run_in_one_thread
 class TestCapsuleContentManagement:
     """Content Management related tests, which exercise katello with pulp
@@ -2397,36 +2455,33 @@ class TestPodman:
 
     def test_negative_podman_capsule_push(
         self,
-        module_target_sat,
-        module_product,
-        module_org,
-        module_lce,
         module_capsule_configured,
+        module_capsule_podman_contenthost,
     ):
-        """Attempt to push a Podman image to a Capsule/Smart Proxy
+        """Attempt to push a Podman image from a content host to a Capsule/Smart Proxy
 
         :id: 310f629a-837a-4457-980e-d2f4345b495e
 
         :steps:
-            1. Using podman, pull an image from the fedoraproject registry.
-            2. Attempt to push this image to a Capsule/Smart Proxy
+            1. On a content host, use podman to pull an image from the fedoraproject registry.
+            2. Attempt to push this image from the content host to a Capsule/Smart Proxy.
 
         :expectedresults: Podman containers cannot be pushed to a Capsule/Smart Proxy and an appropriate
             error is returned when attempting to do so.
 
         :CaseImportance: High
         """
-        module_capsule_configured.ensure_podman_installed(enable_ipv6_proxy=True)
         IMAGE_NAME_TAG = 'fedora:latest'
-        image_pull = module_capsule_configured.execute(
+        image_pull = module_capsule_podman_contenthost.execute(
             f'podman pull registry.fedoraproject.org/{IMAGE_NAME_TAG}'
         )
         assert image_pull.status == 0
         large_image_id = image_pull.stdout.strip()
         assert large_image_id
-        result = module_capsule_configured.execute(
+        result = module_capsule_podman_contenthost.execute(
             f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password} {large_image_id} {module_capsule_configured.hostname}/{IMAGE_NAME_TAG}'
         )
+        assert result.status != 0
         assert 'Pushing content is unsupported' in result.stderr
 
     def test_negative_login_without_pass(

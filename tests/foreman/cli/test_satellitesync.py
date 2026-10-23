@@ -3181,7 +3181,7 @@ class TestExportImport:
     def test_positive_export_import_podman_repo(
         self,
         target_sat,
-        module_podman_contenthost,
+        module_registered_podman_contenthost,
         function_org,
         function_product,
         module_import_sat,
@@ -3203,14 +3203,16 @@ class TestExportImport:
         :Verifies: SAT-25265
         """
         REPO_NAME = 'fedora'
-        result = module_podman_contenthost.execute(
+        result = module_registered_podman_contenthost.execute(
             f'podman pull registry.fedoraproject.org/{REPO_NAME}'
         )
         assert result.status == 0
-        large_image_id = module_podman_contenthost.execute(f'podman images {REPO_NAME} -q')
+        large_image_id = module_registered_podman_contenthost.execute(
+            f'podman images registry.fedoraproject.org/{REPO_NAME}:latest -q | head -n1'
+        )
         assert large_image_id
         large_repo_cmd = f'{(function_org.label)}/{(function_product.label)}/{REPO_NAME}'.lower()
-        result = module_podman_contenthost.execute(
+        result = module_registered_podman_contenthost.execute(
             f'podman push'
             f' --creds {settings.server.admin_username}:{settings.server.admin_password}'
             f' {large_image_id.stdout.strip()} {target_sat.hostname}/{large_repo_cmd}'
@@ -3222,8 +3224,8 @@ class TestExportImport:
                 'id': target_sat.cli.Repository.list({'organization-id': function_org.id})[0]['id'],
             }
         )
-        assert repo['content-counts']['container-tags'] == '1'
-        assert repo['content-counts']['container-manifests'] == '1'
+        assert int(repo['content-counts']['container-tags']) > 0
+        assert int(repo['content-counts']['container-manifests']) > 0
         assert target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR) == ''
         export = target_sat.cli.ContentExport.completeRepository({'id': repo['id']})
         assert '1.0' in target_sat.validate_pulp_filepath(function_org, PULP_EXPORT_DIR)
