@@ -9,18 +9,14 @@
 :CaseImportance: High
 """
 
-from time import sleep
-
 import awxkit
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
 import yaml
 
-from robottelo.config import (
-    robottelo_tmp_dir,
-    settings,
-)
+from robottelo.config import settings
+from robottelo.constants import ANSIBLE_ROLES_PATH
 from robottelo.exceptions import CLIFactoryError
 
 
@@ -83,6 +79,7 @@ class TestAnsibleCfgMgmt:
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
         SELECTED_ROLE_1 = 'theforeman.foreman_scap_client'
+        target_sat.install_ansible_roles([SELECTED_ROLE, SELECTED_ROLE_1])
         SELECTED_VAR = gen_string('alpha')
         proxy_id = target_sat.nailgun_smart_proxy.id
         rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
@@ -170,6 +167,9 @@ class TestAnsibleCfgMgmt:
         :BZ: 2029402
         """
         ROLES = settings.ansible.role_names
+        target_sat.install_ansible_roles(
+            [role for role in ROLES if not role.startswith('redhat.satellite.')]
+        )
 
         proxy_id = target_sat.nailgun_smart_proxy.id
         hg_name = gen_string('alpha')
@@ -228,30 +228,17 @@ class TestAnsibleCfgMgmt:
         target_host = rhel_contenthost.nailgun_host
         proxy_id = target_sat.nailgun_smart_proxy.id
 
-        for path in ['/etc/ansible/collections', '/usr/share/ansible/collections']:
-            http_proxy = (
-                f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-                if not target_sat.network_type.has_ipv4
-                else ''
-            )
-            assert (
-                target_sat.execute(
-                    f'{http_proxy}ansible-galaxy collection install -p {path} {SELECTED_COLLECTION}'
-                ).status
-                == 0
-            )
-            target_sat.cli.Ansible.roles_sync({'role-names': SELECTED_ROLE, 'proxy-id': proxy_id})
-            result = target_sat.cli.Host.ansible_roles_assign(
-                {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE}'}
-            )
-            assert 'Ansible roles were assigned to the host' in result[0]['message']
+        target_sat.install_ansible_collections([SELECTED_COLLECTION])
+        target_sat.cli.Ansible.roles_sync({'role-names': SELECTED_ROLE, 'proxy-id': proxy_id})
+        result = target_sat.cli.Host.ansible_roles_assign(
+            {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE}'}
+        )
+        assert 'Ansible roles were assigned to the host' in result[0]['message']
 
-            result = target_sat.cli.Ansible.variables_list(
-                {'search': f'ansible_role="{SELECTED_ROLE}"'}
-            )
-            assert result[0]['variable'] == SELECTED_VAR
-            # Remove the ansible collection from collection_paths
-            target_sat.execute(f'rm -rf {path}/ansible_collections/')
+        result = target_sat.cli.Ansible.variables_list(
+            {'search': f'ansible_role="{SELECTED_ROLE}"'}
+        )
+        assert result[0]['variable'] == SELECTED_VAR
 
 
 @pytest.mark.upgrade
@@ -342,7 +329,15 @@ class TestAnsibleREX:
             }
         )
         result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
-        sleep(150)
+        recurring_id = result['recurring-logic-id']
+        rec_logic = target_sat.cli.RecurringLogic.info({'id': recurring_id})
+        assert rec_logic['state'] == 'active'
+        assert rec_logic['next-occurrence']
+        wait_for(
+            lambda: target_sat.cli.RecurringLogic.info({'id': recurring_id})['state'] == 'finished',
+            timeout=240,
+            delay=10,
+        )
         rec_logic = target_sat.cli.RecurringLogic.info({'id': result['recurring-logic-id']})
         assert rec_logic['state'] == 'finished'
         assert rec_logic['iteration'] == '2'
@@ -350,9 +345,7 @@ class TestAnsibleREX:
         rec_logic_keys = rec_logic.keys()
         assert 'action' in rec_logic_keys
         assert 'last-occurrence' in rec_logic_keys
-        assert 'next-occurrence' in rec_logic_keys
         assert 'state' in rec_logic_keys
-        assert 'purpose' in rec_logic_keys
         assert 'iteration' in rec_logic_keys
         assert 'iteration-limit' in rec_logic_keys
 
@@ -643,7 +636,8 @@ class TestAnsibleREX:
         auth_type,
         target_sat,
         module_org,
-        default_location,
+        smart_proxy_module_org,
+        smart_proxy_location,
         module_ak_with_cv,
         rhel_contenthost,
     ):
@@ -674,49 +668,48 @@ class TestAnsibleREX:
                     'login': username,
                     'password': password,
                     'organization-ids': module_org.id,
-                    'location-ids': default_location.id,
+                    'location-ids': smart_proxy_location.id,
                 }
             )
+
+            @request.addfinalizer
+            def cleanup_user():
+                hosts = target_sat.cli.Host.list({'search': f'name="{rhel_contenthost.hostname}"'})
+                if hosts:
+                    # Registration makes the test user the host's owner.
+                    target_sat.cli.Host.update(
+                        {
+                            'id': hosts[0]['id'],
+                            'owner': settings.server.admin_username,
+                            'owner-type': 'User',
+                        }
+                    )
+                target_sat.cli.User.delete({'id': user['id']})
+
             target_sat.cli.User.add_role(
                 {'id': user['id'], 'login': username, 'role': 'Ansible Roles Manager'}
             )
 
-        @request.addfinalizer
-        def _finalize():
-            result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
-            assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
-            target_sat.execute(f'rm -rvf /etc/ansible/roles/{SELECTED_ROLE}')
-
         SELECTED_ROLE = gen_string('alphanumeric')
-        playbook = f'{robottelo_tmp_dir}/playbook.yml'
-        vars = f'{robottelo_tmp_dir}/vars.yml'
-        target_sat.execute(f'ansible-galaxy init --init-path /etc/ansible/roles/ {SELECTED_ROLE}')
-        tasks_file = f'/etc/ansible/roles/{SELECTED_ROLE}/tasks/main.yml'
-        vars_file = f'/etc/ansible/roles/{SELECTED_ROLE}/defaults/main.yml'
+        role_dir = f'{ANSIBLE_ROLES_PATH}/{SELECTED_ROLE}'
         tasks_main = [
             {
-                'name': 'Copy SSH keys',
+                'name': 'Write imported variable',
                 'copy': {
-                    'src': '/var/lib/foreman-proxy/ssh/{{ item }}',
-                    'dest': '/root/.ssh',
-                    'owner': 'root',
-                    'group': 'root',
-                    'mode': '0400',
+                    'content': '{{ role_message }}',
+                    'dest': f'/tmp/{SELECTED_ROLE}',
+                    'mode': '0600',
                 },
-                'loop': '{{ ssh_keys }}',
             }
         ]
-        vars_main = {'ssh_keys': ['id_rsa_foreman_proxy.pub', 'id_rsa_foreman_proxy']}
-        with open(playbook, 'w') as f:
-            yaml.dump(tasks_main, f, sort_keys=False, default_flow_style=False)
-        with open(vars, 'w') as f:
-            yaml.dump(vars_main, f, sort_keys=False, default_flow_style=False)
-        target_sat.put(playbook, tasks_file)
-        target_sat.put(vars, vars_file)
+        vars_main = {'role_message': 'Custom role variable'}
+        target_sat.put(yaml.safe_dump(tasks_main), f'{role_dir}/tasks/main.yml', temp_file=True)
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {role_dir}'))
+        target_sat.put(yaml.safe_dump(vars_main), f'{role_dir}/defaults/main.yml', temp_file=True)
 
         result = rhel_contenthost.register(
             module_org,
-            None,
+            smart_proxy_location,
             module_ak_with_cv.name,
             target_sat,
             auth_username=username,
@@ -728,6 +721,7 @@ class TestAnsibleREX:
         target_sat.cli.Ansible.with_user(username, password).roles_sync(
             {'role-names': SELECTED_ROLE, 'proxy-id': proxy_id}
         )
+        request.addfinalizer(lambda: target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE}))
         result = target_sat.cli.Host.with_user(username, password).ansible_roles_assign(
             {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE}'}
         )
@@ -741,7 +735,7 @@ class TestAnsibleREX:
         result = target_sat.cli.Ansible.with_user(username, password).variables_list(
             {'search': f'ansible_role="{SELECTED_ROLE}"'}
         )
-        assert result[0]['variable'] == 'ssh_keys'
+        assert result[0]['variable'] == 'role_message'
 
         job_id = target_sat.cli.Host.ansible_roles_play({'name': rhel_contenthost.hostname})[0].get(
             'id'
@@ -751,6 +745,10 @@ class TestAnsibleREX:
         )
         result = target_sat.cli.JobInvocation.info({'id': job_id})['success']
         assert result == '1'
+        assert (
+            rhel_contenthost.execute(f'cat /tmp/{SELECTED_ROLE}').stdout
+            == vars_main['role_message']
+        )
 
 
 @pytest.mark.upgrade

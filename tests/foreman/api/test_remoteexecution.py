@@ -35,6 +35,7 @@ def test_positive_find_capsule_upgrade_playbook(target_sat):
 
 
 @pytest.mark.network_sensitive
+@pytest.mark.foreman_installer
 def test_positive_run_capsule_update_playbook(module_capsule_configured, target_sat):
     """Run Capsule Upgrade playbook against an External Capsule
 
@@ -82,6 +83,7 @@ def test_positive_run_capsule_update_playbook(module_capsule_configured, target_
 
 
 @pytest.mark.no_containers
+@pytest.mark.foreman_installer
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
     'setting_update',

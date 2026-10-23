@@ -12,14 +12,18 @@
 
 """
 
+from datetime import UTC, datetime
+
 from fauxfactory import gen_string
 import pytest
 
 from robottelo.config import settings
+from robottelo.constants import TIMESTAMP_FMT
 
 pytestmark = [pytest.mark.destructive, pytest.mark.upgrade]
 
 
+@pytest.mark.foreman_installer
 def test_positive_persistent_ansible_cfg_change(target_sat):
     """Check if changes in ansible.cfg are persistent after running satellite-installer
 
@@ -49,7 +53,7 @@ def test_positive_persistent_ansible_cfg_change(target_sat):
 
 @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
 def test_positive_import_all_roles(request, target_sat, function_org, auth_type):
-    """Import all Ansible roles available by default.
+    """Import all available Ansible roles.
 
     :id: 53fe3857-a08f-493d-93c7-3fed331ed391
 
@@ -66,6 +70,10 @@ def test_positive_import_all_roles(request, target_sat, function_org, auth_type)
 
     :expectedresults: All roles are imported successfully. One role is deleted successfully.
     """
+    target_sat.install_ansible_roles(['theforeman.foreman_scap_client'])
+    proxy = target_sat.nailgun_smart_proxy.read()
+    proxy.organization.append(function_org)
+    proxy.update(['organization'])
     username = settings.server.admin_username
     password = settings.server.admin_password
     if auth_type == 'non-admin':
@@ -74,68 +82,69 @@ def test_positive_import_all_roles(request, target_sat, function_org, auth_type)
         )
         user = target_sat.api.User(
             role=ansible_manager_role,
-            admin=True,
+            admin=False,
             login=gen_string('alphanumeric'),
             password=password,
             organization=[function_org],
+            location=proxy.location,
         ).create()
         request.addfinalizer(user.delete)
         username = user.login
     with target_sat.ui_session(user=username, password=password) as session:
         session.organization.select(function_org.name)
-        assert session.ansibleroles.import_all_roles() == session.ansibleroles.imported_roles_count
+        import_started_at = datetime.now(UTC).strftime(TIMESTAMP_FMT)
+        available_roles_count = session.ansibleroles.import_all_roles()
+        target_sat.wait_for_tasks(
+            f'label = SyncRolesAndVariables and started_at >= "{import_started_at}"',
+            poll_timeout=600,
+        )
+        session.browser.refresh()
+        assert available_roles_count == session.ansibleroles.imported_roles_count
         assert int(session.ansiblevariables.read_total_variables()) > 0
-        # The choice of role to be deleted is arbitrary; any of the roles present on Satellite
-        # by default should work here.
+        # Delete the standalone role installed for this scenario.
         session.ansibleroles.delete('theforeman.foreman_scap_client')
         assert not session.ansibleroles.search('theforeman.foreman_scap_client')
 
 
 @pytest.mark.parametrize('setting_update', ['entries_per_page=12'], indirect=True)
-def test_positive_hostgroup_ansible_roles_tab_pagination(target_sat, setting_update, function_org):
-    """Import all Ansible roles available by default.
+def test_positive_hostgroup_ansible_roles_not_limited_by_page_size(
+    target_sat, setting_update, function_org
+):
+    """All imported roles are available in hostgroup forms despite the default page size.
 
     :id: 53fe3857-a08f-493d-93c7-3fed331ed392
 
     :steps:
-        1. Navigate to the Configure > Roles page, and click the `Import from [hostname]` button
-        2. Get total number of importable roles from pagination.
-        3. Fill the `Select All` checkbox and click the `Submit` button
-        4. Verify that number of imported roles == number of importable roles from step 2
-        5. Navigate to Administer > Settings > General tab and update the entries_per_page setting
-        6. Navigate to `Ansible Roles` tab in Hostgroup create and edit page
-        7. Verify the new per page entry is updated in pagination list
+        1. Set entries_per_page to 12 and import more than 12 Ansible roles.
+        2. Read the available roles on the hostgroup create form.
+        3. Create a hostgroup and read the available roles on its edit form.
 
-    :expectedresults: All imported roles should be available on the webUI and properly paginated
-        as per entries_per_page setting on create and edit hostgroup page.
+    :expectedresults: Both forms offer every imported role rather than only the first page.
 
     :BZ: 2166466, 2242915
 
     :customerscenario: true
     """
-    setting_value = str(
-        target_sat.api.Setting().search(query={'search': 'name=entries_per_page'})[0].value
-    )
+    proxy = target_sat.nailgun_smart_proxy.read()
+    proxy.organization.append(function_org)
+    proxy.update(['organization'])
     with target_sat.ui_session() as session:
         session.organization.select(function_org.name)
-        imported_roles = session.ansibleroles.import_all_roles()
-        total_role_count = str(session.ansibleroles.imported_roles_count)
-        assert imported_roles == int(total_role_count)
-        assert total_role_count > setting_value
-
-        create_page = session.hostgroup.helper.read_filled_view(
-            'New', read_widget_names=['ansible_roles.pagination']
+        import_started_at = datetime.now(UTC).strftime(TIMESTAMP_FMT)
+        session.ansibleroles.import_all_roles()
+        target_sat.wait_for_tasks(
+            f'label = SyncRolesAndVariables and started_at >= "{import_started_at}"',
+            poll_timeout=600,
         )
-        assert create_page['ansible_roles']['pagination']['_items'].split()[2] == setting_value
-        assert create_page['ansible_roles']['pagination']['_items'].split()[-2] == total_role_count
+        roles = target_sat.api.AnsibleRoles().search_json(query={'per_page': 'all'})['results']
+        expected_roles = {role['name'] for role in roles}
+        assert len(expected_roles) > int(setting_update.value)
+
+        assert set(session.hostgroup.read_ansible_roles('New')) == expected_roles
 
         hg = target_sat.api.HostGroup(
             name=gen_string('alpha'), organization=[function_org]
         ).create()
-        edit_page = session.hostgroup.helper.read_filled_view(
-            'Edit',
-            navigation_kwargs={'entity_name': hg.name},
-            read_widget_names=['ansible_roles.pagination'],
+        assert (
+            set(session.hostgroup.read_ansible_roles('Edit', entity_name=hg.name)) == expected_roles
         )
-        assert edit_page['ansible_roles']['pagination']['_items'].split()[2] == setting_value
-        assert edit_page['ansible_roles']['pagination']['_items'].split()[-2] == total_role_count

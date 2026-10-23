@@ -1911,7 +1911,7 @@ class Capsule(ContentHost, CapsuleMixins):
         - installer: /etc/pki/katello/certs/katello-default-ca.crt
         """
 
-        if settings.server.install_method == InstallMethod.FOREMANCTL:
+        if self.install_method == InstallMethod.FOREMANCTL:
             return FOREMANCTL_CA_CERT_PATH
         return INSTALLER_CA_CERT_PATH
 
