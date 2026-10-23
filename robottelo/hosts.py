@@ -78,6 +78,7 @@ from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
+from robottelo.utils.issue_handlers import is_open
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -2511,6 +2512,10 @@ class Capsule(ContentHost, CapsuleMixins):
         )
         assert deploy.status == 0, f'satellitectl deploy failed:\n{deploy.stdout}\n{deploy.stderr}'
 
+        # IPv6-only: set content HTTP proxy so Satellite can reach the CDN for content sync
+        if not self.network_type.has_ipv4:
+            self.enable_satellite_http_proxy()
+
         return deploy
 
     def list_foremanctl_features(self, enabled=False, internal=False):
@@ -3014,6 +3019,13 @@ class Satellite(Capsule, SatelliteMixins):
                 'value': http_proxy_url,
             }
         )
+        if is_open('SAT-52548'):
+            self.cli.Settings.set(
+                {
+                    'name': 'http_proxy_except_list',
+                    'value': '["candlepin"]',
+                }
+            )
         return http_proxy
 
     def disable_satellite_http_proxy(self, http_proxy):
