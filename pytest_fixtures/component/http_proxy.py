@@ -3,7 +3,21 @@ from urllib.parse import urlparse
 import pytest
 
 from robottelo.config import settings
+from robottelo.enums import InstallMethod
 from robottelo.hosts import ProxyHost
+
+
+def _exclude_candlepin_from_http_proxy(request, target_sat):
+    """Keep foremanctl's internal Candlepin traffic out of the global HTTP proxy."""
+    if request.param is None or target_sat.install_method != InstallMethod.FOREMANCTL:
+        return
+    setting_name = 'http_proxy_except_list'
+    exclusions = target_sat.api.Setting().search(query={'search': f'name={setting_name}'})[0].value
+    if 'candlepin' in exclusions:
+        return
+    # Register cleanup before updating so it also runs if fixture setup fails.
+    request.addfinalizer(lambda: target_sat.update_setting(setting_name, exclusions))
+    target_sat.update_setting(setting_name, [*exclusions, 'candlepin'])
 
 
 @pytest.fixture(scope='session')
@@ -15,6 +29,7 @@ def session_auth_proxy(session_target_sat):
 @pytest.fixture
 def setup_http_proxy(request, use_ip, module_org, target_sat):
     """Create a new HTTP proxy and set related settings based on proxy"""
+    _exclude_candlepin_from_http_proxy(request, target_sat)
     proxy_settings = ['content_default_http_proxy', 'http_proxy']
     saved_proxies = list(
         map(
@@ -61,6 +76,7 @@ def setup_http_proxy_without_global_settings(request, module_sca_manifest_org, t
 @pytest.fixture
 def setup_http_proxy_global(request, target_sat):
     """Create a new HTTP proxy and set related settings based on proxy"""
+    _exclude_candlepin_from_http_proxy(request, target_sat)
     if request.param:
         parsed_url = urlparse(settings.http_proxy.un_auth_proxy_url)
         protocol = parsed_url.scheme
