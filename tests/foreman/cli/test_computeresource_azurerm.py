@@ -20,6 +20,8 @@ from robottelo.constants import (
     AZURERM_FILE_URI,
     AZURERM_PLATFORM_DEFAULT,
     AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
+    AZURERM_RHEL7_FT_GALLERY_IMG_URN,
+    AZURERM_RHEL7_FT_IMG_URN,
     AZURERM_RHEL9_UD_IMG_URN,
     AZURERM_VM_SIZE_DEFAULT,
     AZURERM_PREMIUM_OS_Disk,
@@ -113,6 +115,8 @@ class TestAzureRMComputeResourceTestCase:
         [
             AZURERM_RHEL9_UD_IMG_URN,
             AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
+            AZURERM_RHEL7_FT_IMG_URN,
+            AZURERM_RHEL7_FT_GALLERY_IMG_URN,
         ],
     )
     def test_positive_image_crud(
@@ -125,7 +129,7 @@ class TestAzureRMComputeResourceTestCase:
         sat_azure_loc,
         sat_azure_org,
     ):
-        """Finish template/Cloud_init image along with username is being Create, Read, Update and
+        """Marketplace/Gallery/Custom/Cloud_init image along with username is being Create, Read, Update and
         Delete in AzureRm compute resources
 
         :id: e4f40640-46dd-4ef8-8be5-99c625056aff
@@ -134,15 +138,18 @@ class TestAzureRMComputeResourceTestCase:
 
         :steps:
             1. Create an AzureRm Compute Resource.
-            2. Create a finish template/Cloud_init based image in it.
+            2. Create a marketplace/gallery/custom/cloud_init based image in it with organization and location.
             3. List/info the created image
-            4. Update image name and username
-            5. Delete created image
+            4. Verify image properties including taxonomy
+            5. Update image name and username
+            6. Delete created image
 
-        :expectedresults: Finish template/Cloud_init image should be created, list, updated and
-                          deleted in AzureRm CR along with username
+        :expectedresults: Marketplace/Gallery/Custom/Cloud_init image should be created, list, updated and
+                          deleted in AzureRm CR along with username and taxonomy parameters
 
         :CaseImportance: Critical
+
+        :Verifies: SAT-48157
 
         """
 
