@@ -2717,7 +2717,7 @@ class Satellite(Capsule, SatelliteMixins):
             return self.execute(f'journalctl --no-pager --unit foreman | grep -- {pattern}')
         return self.execute(f'grep -- {pattern} /var/log/foreman/production.log')
 
-    def read_foreman_log(self, since='1 hour ago', lines=100):
+    def read_foreman_log(self, since='1 min ago', lines=100):
         """Read Foreman and orchestrator logs from journald.
 
         Containerized Satellite logs Foreman and Dynflow orchestration work under
@@ -2736,7 +2736,7 @@ class Satellite(Capsule, SatelliteMixins):
             f'--lines {int(lines)}'
         )
 
-    def read_httpd_access_log(self, since='1 hour ago', lines=100):
+    def read_httpd_access_log(self, since='1 min ago', lines=100):
         """Read the Foreman SSL access log, install-method-aware.
 
         - satellite-installer: tails ``/var/log/httpd/foreman-ssl_access_ssl.log``.

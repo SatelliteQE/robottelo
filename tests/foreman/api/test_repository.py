@@ -14,7 +14,6 @@
 
 import random
 import re
-from shlex import quote
 from string import punctuation
 import tempfile
 import time
@@ -22,9 +21,10 @@ from urllib.parse import urljoin, urlparse, urlunparse
 
 from fauxfactory import gen_string
 from nailgun import client
-from nailgun.entity_mixins import TaskFailedError, call_entity_method_with_timeout
+from nailgun.entity_mixins import TaskFailedError
 import pytest
 from requests.exceptions import HTTPError
+from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
@@ -36,7 +36,6 @@ from robottelo.constants import (
     repos as repo_constants,
 )
 from robottelo.content_info import get_repo_files_by_url
-from robottelo.enums import InstallMethod
 from robottelo.logging import logger
 from robottelo.utils import datafactory
 from robottelo.utils.datafactory import parametrized
@@ -1070,35 +1069,27 @@ class TestRepository:
             reposet=constants.REPOSET['rhst7'],
             releasever=None,
         )
-        call_entity_method_with_timeout(target_sat.api.Repository(id=repo_id).sync, timeout=1500)
-        # Emit a unique marker instead of scraping the console prompt format.
-        script = f'puts "REPO_HREF=#{{::Katello::Repository.find({repo_id}).version_href}}"'
-        results = target_sat.execute(f"printf '%s\\n' {quote(script)} | foreman-rake console")
-        assert results.status == 0, results.stderr
-        matches = re.findall(r'^REPO_HREF=(/pulp/\S+)', results.stdout, re.MULTILINE)
-        assert len(matches) == 1, results.stdout
-        identifier = matches[0].split('versions/')[0].lstrip('/')
-        cert = '/etc/foreman/client_cert.pem'
-        key = '/etc/foreman/client_key.pem'
-        if target_sat.install_method == InstallMethod.FOREMANCTL:
-            # foremanctl stores the host client certificate/key under its certs
-            # directory instead of the installer paths used by RPM deployments.
-            cert = f'/var/lib/foremanctl/certs/certs/{target_sat.hostname}-client.crt'
-            key = f'/var/lib/foremanctl/certs/private/{target_sat.hostname}-client.key'
+        repo = target_sat.api.Repository(id=repo_id)
+        repo.sync(timeout=1500)
+        version_href = repo.read_json()['version_href']
+        repository_href = target_sat.pulp_api(version_href)['repository']
         # Deliberately corrupt the backend state so correct_repositories has work to do.
-        # --insecure: the call is authenticated by client cert and targets the
-        # Satellite's own API, so TLS verification adds nothing to what is under test.
-        deletion = target_sat.execute(
-            f'curl --fail --show-error --insecure -X DELETE {target_sat.url}/{identifier}'
-            f' --cert {cert} --key {key}'
+        deletion_task_href = target_sat.pulp_api(repository_href, method='DELETE')['task']
+        deletion_task, _ = wait_for(
+            lambda: target_sat.pulp_api(deletion_task_href),
+            fail_condition=lambda task: (
+                task['state'] not in ('completed', 'failed', 'canceled', 'skipped')
+            ),
+            timeout=300,
+            delay=2,
         )
-        assert deletion.status == 0, deletion.stderr
-        command = 'foreman-rake katello:correct_repositories COMMIT=true'
-        if target_sat.install_method == InstallMethod.FOREMANCTL:
-            # The foremanctl host wrapper only allows selected rake actions;
-            # run this Katello maintenance task in the Foreman container.
-            command = f'podman exec foreman {command}'
-        command_output = target_sat.execute(command)
+        assert deletion_task['state'] == 'completed', (
+            f'Pulp task {deletion_task_href} ended in {deletion_task["state"]}: '
+            f'{deletion_task.get("error")}'
+        )
+        command_output = target_sat.execute(
+            'podman exec foreman foreman-rake katello:correct_repositories COMMIT=true'
+        )
         assert command_output.status == 0, command_output.stderr
         assert 'Recreating' in command_output.stdout
         assert 'TaskError' not in command_output.stdout

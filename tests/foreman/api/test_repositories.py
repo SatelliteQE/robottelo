@@ -373,6 +373,7 @@ def test_positive_available_repositories_endpoint(module_sca_manifest_org, targe
     assert result.status == 0, result.stderr
     assert 'Actions::Katello::RepositorySet::ScanCdn' in result.stdout
     assert 'result: success' in result.stdout
+    assert 'undefined method `resolve_substitutions\' for nil:NilClass' not in result.stdout
     assert 'Failed at scanning for repository' not in result.stdout
 
 
