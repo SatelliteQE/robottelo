@@ -17,7 +17,7 @@ from robottelo.constants import (
     GCE_TARGET_RHEL_IMAGE_NAME,
 )
 from robottelo.enums import InstallMethod
-from robottelo.exceptions import GCECertNotFoundError, SatelliteHostError
+from robottelo.exceptions import SatelliteHostError
 from robottelo.hosts import Capsule, Satellite
 from robottelo.logging import logger
 from robottelo.utils.shared_resource import SharedResource
@@ -489,14 +489,21 @@ def evr_upgrade_shared_satellite():
 
 @pytest.fixture
 def shared_gce_cert(puppet_upgrade_shared_satellite):
+    """Return GCE service account credentials.
+
+    Returns the credential dict directly instead of uploading as a file,
+    allowing tests to work on containerized Satellites where the Foreman
+    container cannot access host filesystem paths.
+
+    For API/CLI tests: Use json.dumps(shared_gce_cert) for the key_content parameter.
+    For googleclient: Uses the dict directly to access project_id and file_path.
+    """
     _, gce_cert_file = mkstemp(suffix='.json')
     cert = json.loads(settings.gce.cert)
+    # Keep local_path for googleclient compatibility
     cert['local_path'] = gce_cert_file
+    # Write to local file for googleclient (uses local file path)
     with open(gce_cert_file, 'w') as f:
         json.dump(cert, f)
-    puppet_upgrade_shared_satellite.put(gce_cert_file, settings.gce.cert_path)
-    if puppet_upgrade_shared_satellite.execute(f'[ -f {settings.gce.cert_path} ]').status != 0:
-        raise GCECertNotFoundError(
-            f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
-        )
+    # No longer upload to Satellite - credentials passed via API parameter
     return cert

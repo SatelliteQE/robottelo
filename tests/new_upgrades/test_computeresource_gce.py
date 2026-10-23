@@ -12,6 +12,7 @@
 
 """
 
+import json
 import random
 
 from box import Box
@@ -90,7 +91,7 @@ def setup_gce_cr_and_host(
         compute_resource = target_sat.api.GCEComputeResource(
             name=f'{test_name}_gce_cr',
             provider='GCE',
-            key_path=settings.gce.cert_path,
+            key_content=json.dumps(shared_gce_cert),
             zone=settings.gce.zone,
             organization=[org],
             location=[location],
