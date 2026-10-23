@@ -34,6 +34,25 @@ class APIFactory:
         self._satellite = satellite
         self.__dict__.update(initiate_repo_helpers(self._satellite))
 
+    def get_cvenv_id(self, content_view, lifecycle_environment):
+        """Look up a ContentViewEnvironment ID from a CV + LCE pair."""
+        cv_id = content_view.id if hasattr(content_view, 'id') else content_view
+        lce_id = (
+            lifecycle_environment.id
+            if hasattr(lifecycle_environment, 'id')
+            else lifecycle_environment
+        )
+        result = self._satellite.api.ContentViewEnvironment().list_content_view_environments(
+            params={'content_view_id': cv_id, 'lifecycle_environment_id': lce_id}
+        )
+        if not result['results']:
+            raise ValueError(
+                f'No ContentViewEnvironment found for content_view_id={cv_id}, '
+                f'lifecycle_environment_id={lce_id}. '
+                f'Has the content view been published and promoted to this environment?'
+            )
+        return result['results'][0]['id']
+
     def make_http_proxy(self, org, http_proxy_type, use_ip=False):
         """
         Creates HTTP proxy.
