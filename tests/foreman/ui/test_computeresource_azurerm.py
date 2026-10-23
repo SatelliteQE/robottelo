@@ -23,6 +23,7 @@ from robottelo.constants import (
     AZURERM_VM_SIZE_DEFAULT,
     COMPUTE_PROFILE_SMALL,
 )
+from tests.foreman.azure_helpers import diagnose_azurerm_ssh_port
 
 pytestmark = [pytest.mark.skip_if_not_set('azurerm')]
 
@@ -118,6 +119,8 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                     }
                 )
                 host_info = session.host_new.get_host_statuses(fqdn)
+                if 'Installed' not in host_info['Build']['Status']:
+                    diagnose_azurerm_ssh_port(sat_azure, azurermclient, hostname.lower())
                 assert 'Installed' in host_info['Build']['Status']
                 host_page = session.host_new.get_details(fqdn, widget_names='overview')
                 assert (
