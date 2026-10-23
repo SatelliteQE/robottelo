@@ -29,7 +29,6 @@ from robottelo.constants import (
 )
 from robottelo.enums import InstallMethod
 from robottelo.hosts import IPAHost
-from robottelo.utils.installer import InstallerCommand
 
 FOREMAN_PROXY_ANSIBLE_DIR = '/var/lib/foreman-proxy/ansible'
 FOREMAN_PROXY_ANSIBLE_ROLES_DIR = f'{FOREMAN_PROXY_ANSIBLE_DIR}/roles'
@@ -198,15 +197,7 @@ def idm_sat(satellite_factory, ad_data):
     new_sat.enable_satellite_ipv6_http_proxy()
     new_sat.register_to_cdn()
     ipa_host = IPAHost(new_sat)
-    ipa_host.enroll_idm_and_configure_external_auth()
-    if new_sat.install_method == InstallMethod.FOREMANCTL:
-        result = new_sat.execute('foremanctl deploy --external-authentication ipa_with_api')
-        assert result.status == 0, (
-            f'Failed to enable IPA with API authentication: {result.stdout}\n{result.stderr}'
-        )
-    else:
-        result = new_sat.install(InstallerCommand('foreman-ipa-authentication-api true'))
-        assert result.status == 0, 'Installer failed to enable IPA with API authentication'
+    ipa_host.enroll_idm_and_configure_external_auth(enable_api=True)
     # Installs requests-gssapi package to be able to use GSSAPI authentication
     result = new_sat.execute(
         'dnf -y --disableplugin=foreman-protector install python3-requests-gssapi'

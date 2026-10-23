@@ -106,15 +106,17 @@ def untrust_rhit_cas(module_target_sat):
 
 
 @pytest.fixture
-def configure_hammer_session(parametrized_enrolled_sat, enable=True):
-    """Take backup of the hammer config file and enable use_sessions"""
-    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
+def configure_hammer_session(request, parametrized_enrolled_sat):
+    """Back up the Hammer config and configure use_sessions."""
+    enable = getattr(request, 'param', True)
+    backup = f'{HAMMER_CONFIG}.session.backup'
+    assert parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {backup}').status == 0
     parametrized_enrolled_sat.execute(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
     parametrized_enrolled_sat.execute(
         f"echo '  :use_sessions: {'true' if enable else 'false'}' >> {HAMMER_CONFIG}"
     )
     yield
-    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+    assert parametrized_enrolled_sat.execute(f'mv -f {backup} {HAMMER_CONFIG}').status == 0
 
 
 def generate_otp(secret):
@@ -715,10 +717,10 @@ def test_permissions_external_ldap_mapped_rhsso_group(
         assert rhsso_session.user.search(ad_data['ldap_user_name']) is not None
 
 
+@pytest.mark.parametrize('enable_api', [True], indirect=True)
 def test_negative_negotiate_login_without_ticket(
     parametrized_enrolled_sat,
-    configure_ipa_api,
-    configure_hammer_negotiate,
+    configure_hammer_no_creds,
 ):
     """Verify that login nor other hammer commands work without
     the Kerberos ticket and proper messages are displayed.
@@ -750,11 +752,11 @@ def test_negative_negotiate_login_without_ticket(
     assert AUTH_FAILED_MSG in context.value.message
 
 
+@pytest.mark.parametrize('enable_api', [True], indirect=True)
 def test_positive_negotiate_login_with_ticket(
     request,
     parametrized_enrolled_sat,
-    configure_ipa_api,
-    configure_hammer_negotiate,
+    configure_hammer_no_creds,
     sessions_tear_down,
 ):
     """Verify that we are able to log in, user is created but access restricted.
@@ -811,11 +813,11 @@ def test_positive_negotiate_login_with_ticket(
     assert ACCESS_DENIED in context.value.message
 
 
+@pytest.mark.parametrize('enable_api', [True], indirect=True)
 def test_positive_negotiate_CRUD(
     request,
     parametrized_enrolled_sat,
-    configure_ipa_api,
-    configure_hammer_negotiate,
+    configure_hammer_no_creds,
     sessions_tear_down,
 ):
     """Verify that basic CRUD operations work with hammer.
@@ -900,11 +902,11 @@ def test_positive_negotiate_CRUD(
         user.update(['role'])
 
 
+@pytest.mark.parametrize('enable_api', [True], indirect=True)
 def test_positive_negotiate_logout(
     request,
     parametrized_enrolled_sat,
-    configure_ipa_api,
-    configure_hammer_negotiate,
+    configure_hammer_no_creds,
     sessions_tear_down,
 ):
     """Verify the logout behaves properly.
@@ -959,16 +961,18 @@ def test_positive_negotiate_logout(
 
 
 @pytest.mark.parametrize(
-    ('parametrized_enrolled_sat', 'user_not_exists'),
-    [('IDM', settings.ipa.user), ('AD', f'{settings.ldap.username}@{settings.ldap.realm.lower()}')],
+    ('parametrized_enrolled_sat', 'user_not_exists', 'enable_api'),
+    [
+        ('IDM', settings.ipa.user, True),
+        ('AD', f'{settings.ldap.username}@{settings.ldap.realm.lower()}', True),
+    ],
     indirect=True,
     ids=['IDM', 'AD'],
 )
 def test_positive_autonegotiate(
     request,
     parametrized_enrolled_sat,
-    configure_ipa_api,
-    configure_hammer_negotiate,
+    configure_hammer_no_creds,
     sessions_tear_down,
     user_not_exists,
     hammer_logout,
@@ -1014,15 +1018,17 @@ def test_positive_autonegotiate(
 
 
 @pytest.mark.parametrize(
-    ('parametrized_enrolled_sat', 'user_not_exists'),
-    [('IDM', settings.ipa.user), ('AD', f'{settings.ldap.username}@{settings.ldap.realm.lower()}')],
+    ('parametrized_enrolled_sat', 'user_not_exists', 'enable_api'),
+    [
+        ('IDM', settings.ipa.user, True),
+        ('AD', f'{settings.ldap.username}@{settings.ldap.realm.lower()}', True),
+    ],
     indirect=True,
     ids=['IDM', 'AD'],
 )
 def test_positive_negotiate_manual_with_autonegotiation_disabled(
     request,
     parametrized_enrolled_sat,
-    configure_ipa_api,
     configure_hammer_no_negotiate,
     configure_hammer_no_creds,
     configure_hammer_session,
@@ -1095,15 +1101,17 @@ def test_positive_negotiate_manual_with_autonegotiation_disabled(
     ids=['sessions_enabled', 'sessions_disabled'],
 )
 @pytest.mark.parametrize(
-    ('parametrized_enrolled_sat', 'user_not_exists'),
-    [('IDM', settings.ipa.user), ('AD', f'{settings.ldap.username}@{settings.ldap.realm.lower()}')],
+    ('parametrized_enrolled_sat', 'user_not_exists', 'enable_api'),
+    [
+        ('IDM', settings.ipa.user, True),
+        ('AD', f'{settings.ldap.username}@{settings.ldap.realm.lower()}', True),
+    ],
     indirect=True,
     ids=['IDM', 'AD'],
 )
 def test_negative_autonegotiate_with_autonegotiation_disabled(
     request,
     parametrized_enrolled_sat,
-    configure_ipa_api,
     configure_hammer_no_negotiate,
     configure_hammer_no_creds,
     configure_hammer_session,
