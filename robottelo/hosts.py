@@ -2509,7 +2509,7 @@ class Capsule(ContentHost, CapsuleMixins):
             f'satellitectl deploy {" ".join(default_parameters)}',
             timeout='30m',
         )
-        assert deploy.status == 0, f'satellitectl deploy failed:\n{deploy.stderr}'
+        assert deploy.status == 0, f'satellitectl deploy failed:\n{deploy.stdout}\n{deploy.stderr}'
 
         return deploy
 
