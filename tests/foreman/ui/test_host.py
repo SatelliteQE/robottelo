@@ -2024,7 +2024,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_match('[7,8,9]')
-def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
+def test_positive_tracer_enable_reload(tracer_install_host, target_sat, smart_proxy_module_org):
     """Using the new Host UI,enable tracer and verify that the page reloads
 
     :id: c9ebd4a8-6db3-4d0e-92a2-14951c26769b
@@ -2042,11 +2042,8 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     :expectedresults: The Tracer tab message updates accordingly during the process, and displays
         the state the correct Title
     """
-    host = (
-        target_sat.api.Host().search(query={'search': tracer_install_host.hostname})[0].read_json()
-    )
     with target_sat.ui_session() as session:
-        session.organization.select(host['organization_name'])
+        session.organization.select(smart_proxy_module_org.name)
         tracer_title = session.host_new.get_tracer_tab_title(tracer_install_host.hostname)
         assert tracer_title == "Traces are not enabled"
         session.host_new.enable_tracer(tracer_install_host.hostname)
