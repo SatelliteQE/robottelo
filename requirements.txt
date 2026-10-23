@@ -12,6 +12,7 @@ jinja2==3.1.6
 manifester==0.2.14
 navmazing==1.3.0
 productmd==1.50
+pulp-glue==0.41.1
 PyGithub==2.10.0
 pyotp==2.10.0
 python-box==7.4.1
