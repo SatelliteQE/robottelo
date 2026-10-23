@@ -382,8 +382,6 @@ def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_pro
 
     :verifies: SAT-26741, SAT-52508
 
-    :BlockedBy: SAT-52508
-
     :customerscenario: true
     """
     sat = module_target_sat
