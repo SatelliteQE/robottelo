@@ -12,8 +12,6 @@
 
 """
 
-import json
-
 import pytest
 
 from robottelo.constants import PULP_HREF_PRN_MAP, PULP_PRN_TABLES
@@ -66,16 +64,16 @@ def test_pulp_repoversion_href_prn_mapping(target_sat, module_prn_content_setup)
 
     :steps:
         1. Query katello_repositories table for records with version_href and version_prn.
-        2. Get version details for each version_href via pulp cli.
-        3. Verify the version_prn from the table matches the prn from pulp cli.
+        2. Get version details for each version_href via the Pulp API.
+        3. Verify the version_prn from the table matches the prn from Pulp API.
 
     :expectedresults:
-        All version_prn values match the expected PRN from pulp cli.
+        All version_prn values match the expected PRN from Pulp.
     """
     records = target_sat.query_db(
         'SELECT version_href,version_prn FROM katello_repositories WHERE version_href IS NOT NULL'
     )
     assert len(records), 'No records found in table, probably insufficient content setup'
     for row in records:
-        version = json.loads(target_sat.execute(f'pulp show --href {row["version_href"]}').stdout)
+        version = target_sat.pulp_api(row['version_href'])
         assert row['version_prn'] == version['prn']

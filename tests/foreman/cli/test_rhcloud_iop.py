@@ -337,6 +337,162 @@ def test_insights_client_registration_with_http_proxy(
     assert rhel_contenthost.execute('insights-client --unregister').status == 0
 
 
+IOP_CLA_RESPONSE = 'OK'
+CLA_QUERY = 'How do I list files in a directory?'
+
+
+def setup_cla(host, satellite):
+    """Install command-line-assistant and configure it to use the Satellite.
+
+    :param host: The registered content host to set up CLA on.
+    :param satellite: The Satellite instance whose ``/api/lightspeed`` endpoint is used.
+    """
+    assert host.execute('dnf install -y command-line-assistant').status == 0, (
+        'Failed to install command-line-assistant'
+    )
+    endpoint = f'https://{satellite.hostname}/api/lightspeed/v1'
+    host.execute(
+        f"sed -i 's|^endpoint = .*|endpoint = \"{endpoint}\"|' "
+        '/etc/xdg/command-line-assistant/config.toml'
+    )
+    host.execute('systemctl restart clad.service')
+
+
+def trigger_cla_query(host):
+    """Issue a CLA query and return the AI response body.
+
+    The ``c`` command wraps the response in decorative borders (``────…``).
+    This function extracts the actual response content between the first
+    and last separator lines.
+
+    :param host: The content host with CLA installed.
+    :return: The AI response text stripped of decorative framing.
+    """
+    result = host.execute(f'c "{CLA_QUERY}"', timeout='2m')
+    assert result.status == 0, f'CLA query failed: {result.stderr}'
+    lines = result.stdout.splitlines()
+    separator_indices = [i for i, line in enumerate(lines) if '────' in line]
+    if len(separator_indices) >= 2:
+        content = '\n'.join(lines[separator_indices[0] + 1 : separator_indices[-1]])
+        return content.strip()
+    return result.stdout.strip()
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-1')
+@pytest.mark.parametrize(
+    'module_target_sat_insights',
+    [False],
+    ids=['local'],
+    indirect=True,
+)
+def test_positive_force_cla_connection_to_cloud_in_iop_mode(
+    module_target_sat_insights,
+    rhel_insights_vm,
+):
+    """Verify that Command Line Assistant (CLA/Lightspeed) requests are forwarded to
+    the Red Hat cloud even when IoP is enabled, once ``force_cla_connection`` is set.
+
+    Lightspeed is cloud-only: the local IoP gateway does not implement it, so without
+    this setting CLA requests would be routed to IoP and fail. When
+    ``force_cla_connection`` is enabled, ``/api/lightspeed`` traffic must be forwarded
+    to ``https://cert.cloud.redhat.com`` instead.
+
+    :id: cd093169-638b-4327-9a98-50e0a9d973dd
+
+    :setup:
+        1. A Satellite with IoP (local Red Hat Lightspeed) enabled.
+        2. A RHEL content host registered to the Satellite and Insights.
+
+    :steps:
+        1. Enable the ``force_cla_connection`` setting on the Satellite.
+        2. Install command-line-assistant on the content host and issue a CLA query
+           (proxied through the Satellite's ``/api/lightspeed`` endpoint).
+        3. Verify the response is a substantive cloud AI answer (not the IoP fallback).
+
+    :expectedresults:
+        The CLA response comes from the cloud (not the IoP fallback).
+
+    :Verifies: SAT-49361
+
+    :parametrized: yes
+
+    """
+    satellite = module_target_sat_insights
+    host = rhel_insights_vm
+
+    assert satellite.iop_enabled, 'Satellite is not running in IoP mode'
+
+    setup_cla(host, satellite)
+
+    default_value = satellite.update_setting('force_cla_connection', True)
+    try:
+        response = trigger_cla_query(host)
+        assert response != IOP_CLA_RESPONSE, (
+            f'CLA response was "{IOP_CLA_RESPONSE}" (IoP fallback); '
+            'expected a cloud AI response with force_cla_connection enabled'
+        )
+    finally:
+        satellite.update_setting('force_cla_connection', default_value)
+
+
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-1')
+@pytest.mark.parametrize(
+    'module_target_sat_insights',
+    [False],
+    ids=['local'],
+    indirect=True,
+)
+def test_negative_cla_not_forwarded_to_cloud_in_iop_mode(
+    module_target_sat_insights,
+    rhel_insights_vm,
+):
+    """Verify that Command Line Assistant (CLA/Lightspeed) requests are NOT forwarded
+    to the Red Hat cloud when IoP is enabled and ``force_cla_connection`` is disabled.
+
+    This is the default IoP behaviour: ``/api/lightspeed`` traffic follows
+    ``cert_base_url`` (the local IoP gateway) and must not be routed to the cloud
+    unless the admin opts in via ``force_cla_connection``.
+
+    :id: c5efe786-d5f5-4433-b1b0-7b780bbe95a5
+
+    :setup:
+        1. A Satellite with IoP (local Red Hat Lightspeed) enabled.
+        2. A RHEL content host registered to the Satellite and Insights.
+
+    :steps:
+        1. Ensure the ``force_cla_connection`` setting is disabled on the Satellite.
+        2. Install command-line-assistant on the content host and issue a CLA query
+           (proxied through the Satellite's ``/api/lightspeed`` endpoint).
+        3. Verify the response is the IoP fallback (not a cloud AI answer).
+
+    :expectedresults:
+        The CLA response is the IoP fallback, not a cloud AI answer.
+
+    :Verifies: SAT-49361
+
+    :parametrized: yes
+
+    """
+    satellite = module_target_sat_insights
+    host = rhel_insights_vm
+
+    assert satellite.iop_enabled, 'Satellite is not running in IoP mode'
+
+    setup_cla(host, satellite)
+
+    default_value = satellite.update_setting('force_cla_connection', False)
+    try:
+        response = trigger_cla_query(host)
+        assert response == IOP_CLA_RESPONSE, (
+            f'CLA response was "{response}"; expected IoP fallback "{IOP_CLA_RESPONSE}" '
+            'with force_cla_connection disabled'
+        )
+    finally:
+        satellite.update_setting('force_cla_connection', default_value)
+
+
 def process_iop_log_options(installer_output):
     """Takes satellite-installer help output as input and returns a dictionary
     with the options as keys and the descriptions of the options as values.

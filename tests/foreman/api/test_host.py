@@ -302,6 +302,7 @@ def test_positive_create_with_inherited_params(module_org, module_location, modu
     assert expected_params == {(param['name'], param['value']) for param in host.all_parameters}
 
 
+@pytest.mark.foreman_installer
 def test_positive_create_and_update_with_puppet_proxy(
     session_puppet_enabled_sat, session_puppet_enabled_proxy
 ):
@@ -325,6 +326,7 @@ def test_positive_create_and_update_with_puppet_proxy(
     assert new_host.puppet_proxy.read().name == session_puppet_enabled_proxy.name
 
 
+@pytest.mark.foreman_installer
 def test_positive_create_with_puppet_ca_proxy(
     session_puppet_enabled_sat, session_puppet_enabled_proxy
 ):
@@ -349,6 +351,7 @@ def test_positive_create_with_puppet_ca_proxy(
     assert new_host.puppet_ca_proxy.read().name == session_puppet_enabled_proxy.name
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.e2e
 def test_positive_end_to_end_with_puppet_class(
     module_puppet_org,
@@ -904,6 +907,7 @@ def test_positive_create_and_update_domain(
     assert host.domain.read().name == new_domain.name
 
 
+@pytest.mark.foreman_installer
 def test_positive_create_and_update_env(
     module_puppet_org, module_puppet_loc, module_puppet_environment, session_puppet_enabled_sat
 ):
@@ -1131,6 +1135,7 @@ def test_positive_update_content_source_id(
     assert content_source_id == proxy.id
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.upgrade
 def test_positive_read_enc_information(
     module_puppet_org,
@@ -1361,6 +1366,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
     """
 
 
+@pytest.mark.foreman_installer
 def test_positive_read_puppet_proxy_name(session_puppet_enabled_sat, session_puppet_enabled_proxy):
     """Read a hostgroup created with puppet proxy and inspect server's
     response
@@ -1384,6 +1390,7 @@ def test_positive_read_puppet_proxy_name(session_puppet_enabled_sat, session_pup
     assert session_puppet_enabled_proxy.name == host['puppet_proxy_name']
 
 
+@pytest.mark.foreman_installer
 def test_positive_read_puppet_ca_proxy_name(
     session_puppet_enabled_sat, session_puppet_enabled_proxy
 ):

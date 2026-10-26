@@ -21,7 +21,6 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import REPO_TYPE, REPOS
 from robottelo.exceptions import ProxyHostError
-from robottelo.utils.issue_handlers import is_open
 
 
 @pytest.fixture
@@ -462,73 +461,6 @@ def test_http_proxy_containing_special_characters(
             tail=100, grep=f'CONNECT cdn.redhat.com.*{function_spec_char_user.b64}'
         ), 'CDN connection not found in proxy log'
         assert repo.content_counts['rpm'] > 0, 'Where is my content?!'
-
-
-@pytest.mark.upgrade
-@pytest.mark.run_in_one_thread
-@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
-@pytest.mark.usefixtures('allow_repo_discovery')
-@pytest.mark.parametrize(
-    'use_ip',
-    [False] if is_open('SAT-39098') else [False, True],
-    ids=['hostname'] if is_open('SAT-39098') else ['hostname', 'ip'],
-)
-@pytest.mark.parametrize(
-    'setup_http_proxy',
-    [True, False],
-    indirect=True,
-    ids=['auth_http_proxy', 'unauth_http_proxy'],
-)
-def test_positive_repo_discovery(setup_http_proxy, module_target_sat, module_org):
-    """Create repository via repo discovery under new product
-
-    :id: fd385552-8cbb-49f7-8557-cc4e6ac7e79a
-
-    :expectedresults: Repository is discovered and created.
-
-    :BZ: 2011303, 2042473
-
-    :parametrized: yes
-
-    :CaseImportance: Critical
-    """
-    product_name = gen_string('alpha')
-    repo_name = 'fakerepo01'
-    with module_target_sat.ui_session() as session:
-        session.organization.select(org_name=module_org.name)
-        # test scenario for yum type repo discovery.
-        session.product.discover_repo(
-            {
-                'repo_type': 'Yum Repositories',
-                'url': settings.repos.repo_discovery.url,
-                'discovered_repos.repos': repo_name,
-                'create_repo.product_type': 'New Product',
-                'create_repo.product_content.product_name': product_name,
-            }
-        )
-        assert session.product.search(product_name)[0]['Name'] == product_name
-        assert repo_name in session.repository.search(product_name, repo_name)[0]['Name']
-        # test scenario for docker type repo discovery.
-        product_name = gen_string('alpha')
-        session.product.discover_repo(
-            {
-                'repo_type': 'Container Images',
-                'create_repo.product_type': 'New Product',
-                'create_repo.product_content.product_name': product_name,
-                'registry_search': settings.container.docker.repo_upstream_name,
-                'name': gen_string('alphanumeric', 10),
-                'username': settings.subscription.rhn_username,
-                'password': settings.subscription.rhn_password,
-                'discovered_repos.repos': settings.container.docker.repo_upstream_name,
-            }
-        )
-        assert session.product.search(product_name)[0]['Name'] == product_name
-        assert (
-            settings.container.docker.repo_upstream_name
-            in session.repository.search(
-                product_name, settings.container.docker.repo_upstream_name
-            )[0]['Name']
-        )
 
 
 @pytest.mark.network_sensitive

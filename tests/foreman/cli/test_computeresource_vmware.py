@@ -132,7 +132,7 @@ def test_positive_provision_end_to_end(
             'mac': None,
             'compute-attributes': f'cluster={settings.vmware.cluster},'
             f'path=/Datacenters/{settings.vmware.datacenter}/vm/,'
-            'scsi_controller_type=VirtualLsiLogicController,'
+            'scsi_controller_type=ParaVirtualSCSIController,'
             f'guest_id=rhel7_64Guest,firmware={pxe_loader.vm_firmware},'
             'cpus=1,memory_mb=6000, start=1',
             'interface': f'compute_type=VirtualVmxnet3,'
@@ -220,8 +220,8 @@ def test_positive_image_provision_end_to_end(
             'typed-parameters': r'name=package_upgrade\,value=false\,parameter_type=boolean',
             'compute-attributes': f'cluster={settings.vmware.cluster},'
             f'path=/Datacenters/{settings.vmware.datacenter}/vm/,'
-            'scsi_controller_type=VirtualLsiLogicController,'
-            'guest_id=rhel8_64Guest,firmware=automatic,virtual_tpm=true'
+            'scsi_controller_type=ParaVirtualSCSIController,'
+            'guest_id=rhel8_64Guest,firmware=automatic,virtual_tpm=true,'
             'cpus=1,memory_mb=6000, start=1',
             'interface': 'compute_type=VirtualVmxnet3,'
             f'compute_network=VLAN {settings.provisioning.vlan_id}',

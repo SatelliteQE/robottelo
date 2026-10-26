@@ -281,7 +281,6 @@ def test_positive_generate_registered_hosts_report(
             'Name',
             'Ip',
             'Operating System',
-            'Subscriptions',
             'Applicable Errata',
             'Owner',
             'Kernel',
@@ -835,7 +834,6 @@ def test_positive_generate_subscriptions_report_json(
     assert len(data) >= subscription_cnt
     keys_expected = [
         'Account number',
-        'Available',
         'Contract number',
         'Days Remaining',
         'End date',

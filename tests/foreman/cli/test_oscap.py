@@ -10,6 +10,7 @@
 
 :CaseAutomation: Automated
 
+:BlockedBy: SAT-40441
 """
 
 import random
@@ -25,6 +26,8 @@ from robottelo.utils.datafactory import (
     parametrized,
     valid_data_list,
 )
+
+pytestmark = pytest.mark.foreman_installer
 
 
 class TestOpenScap:

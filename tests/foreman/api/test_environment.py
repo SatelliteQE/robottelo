@@ -28,6 +28,8 @@ from robottelo.utils.datafactory import (
     valid_environments_list,
 )
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.e2e
 @pytest.mark.upgrade

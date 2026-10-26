@@ -536,12 +536,59 @@ def test_positive_install_errata(
         assert _is_package_installed(vm_content_hosts, constants.FAKE_2_CUSTOM_PACKAGE)
 
 
+@pytest.fixture
+def vm_content_hosts_for_assigned_content_change(
+    vm_content_hosts, module_org_with_parameter, smart_proxy_location, module_target_sat
+):
+    """Expose the Pulpcore proxy in this test's taxonomy only while it runs."""
+    content_proxy = module_target_sat.get_default_smart_proxy().read()
+    organizations = content_proxy.organization or []
+    add_organization = module_org_with_parameter.id not in [entity.id for entity in organizations]
+    if add_organization:
+        organizations.append(module_target_sat.api.Organization(id=module_org_with_parameter.id))
+        content_proxy.organization = organizations
+    locations = content_proxy.location or []
+    add_location = smart_proxy_location.id not in [entity.id for entity in locations]
+    if add_location:
+        locations.append(module_target_sat.api.Location(id=smart_proxy_location.id))
+        content_proxy.location = locations
+    taxonomy_to_update = []
+    if add_organization:
+        taxonomy_to_update.append('organization')
+    if add_location:
+        taxonomy_to_update.append('location')
+    if taxonomy_to_update:
+        content_proxy.update(taxonomy_to_update)
+
+    content_proxy_id = content_proxy.id
+    yield vm_content_hosts
+
+    content_proxy = module_target_sat.api.SmartProxy(id=content_proxy_id).read()
+    taxonomy_to_restore = []
+    if add_organization:
+        content_proxy.organization = [
+            organization
+            for organization in content_proxy.organization or []
+            if organization.id != module_org_with_parameter.id
+        ]
+        taxonomy_to_restore.append('organization')
+    if add_location:
+        content_proxy.location = [
+            location
+            for location in content_proxy.location or []
+            if location.id != smart_proxy_location.id
+        ]
+        taxonomy_to_restore.append('location')
+    if taxonomy_to_restore:
+        content_proxy.update(taxonomy_to_restore)
+
+
 def test_positive_change_assigned_content(
     session,
     module_org_with_parameter,
     smart_proxy_location,
     module_lce,
-    vm_content_hosts,
+    vm_content_hosts_for_assigned_content_change,
     vm_host_collection,
     module_repos_collection,
     module_target_sat,
@@ -610,7 +657,7 @@ def test_positive_change_assigned_content(
     expected_repo_urls = _get_content_repository_urls(
         module_repos_collection, module_lce, content_view, module_target_sat
     )
-    for client in vm_content_hosts:
+    for client in vm_content_hosts_for_assigned_content_change:
         result = client.run("subscription-manager repos")
         assert result.status == 0
         client_repo_urls = [
@@ -630,7 +677,7 @@ def test_positive_change_assigned_content(
         expected_repo_urls = _get_content_repository_urls(
             module_repos_collection, new_lce, new_content_view, module_target_sat
         )
-        for client in vm_content_hosts:
+        for client in vm_content_hosts_for_assigned_content_change:
             result = client.run("subscription-manager refresh")
             assert result.status == 0
             assert 'All local data refreshed' in result.stdout

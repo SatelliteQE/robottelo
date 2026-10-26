@@ -16,6 +16,8 @@ import pytest
 
 from robottelo.config import settings
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason="Missing repos_hosting_url")

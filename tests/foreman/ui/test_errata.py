@@ -26,6 +26,7 @@ from wait_for import wait_for
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.constants import (
+    DEFAULT_CV,
     DEFAULT_LOC,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
@@ -155,7 +156,7 @@ def _publish_and_wait(sat, org, cv, timeout=60):
 
 @pytest.fixture
 def registered_contenthost(
-    module_sca_manifest_org,
+    smart_proxy_module_sca_manifest_org,
     module_target_sat,
     rhel_contenthost,
     module_product,
@@ -219,7 +220,7 @@ def registered_contenthost(
     # Publish/promote CV if needed, associate entities, register client:
     # skip enabling repos, we will do after, with subscription-manager
     setup = module_target_sat.api_factory.register_host_and_needed_setup(
-        organization=module_sca_manifest_org,
+        organization=smart_proxy_module_sca_manifest_org,
         client=rhel_contenthost,
         activation_key=module_ak,
         environment=environment,
@@ -831,7 +832,7 @@ def test_positive_list_permission(
 @pytest.mark.upgrade
 @pytest.mark.no_containers
 def test_positive_apply_for_all_hosts(
-    module_sca_manifest_org,
+    smart_proxy_module_sca_manifest_org,
     module_product,
     target_sat,
     module_lce,
@@ -884,7 +885,7 @@ def test_positive_apply_for_all_hosts(
         for client in hosts:
             # setup/register all hosts to same ak, content-view, and the one custom repo
             setup = target_sat.api_factory.register_host_and_needed_setup(
-                organization=module_sca_manifest_org,
+                organization=smart_proxy_module_sca_manifest_org,
                 client=client,
                 activation_key=module_ak,
                 environment=module_lce,
@@ -915,7 +916,9 @@ def test_positive_apply_for_all_hosts(
                 entity_name=errata_id,
                 host_names='All',
             )
-            assert result['overall_status']['is_success']
+            assert result['overall_status']['is_success'], (
+                f'Job to install errata {errata_id} on all hosts did not succeed: {result}'
+            )
             # find single hosts job
             # remote action tasks have lowercase errata_ids, ie: 'rhba-' not 'RHBA-'
             hosts_job = target_sat.wait_for_tasks(
@@ -1755,19 +1758,23 @@ def test_positive_repo_sync_status_on_errata_repository(
         session.organization.select(org_name=module_sca_manifest_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
 
-        # Read errata details with default content view filter
-        errata = session.errata.read(CUSTOM_REPO_ERRATA_ID, applicable=False)
-        repos_table = errata['repositories']['table']
+        # Search errata repositories with the Default Organization View,
+        # selecting it explicitly rather than relying on whatever the
+        # lce/cv dropdowns happen to default to.
+        repos_table = session.errata.search_repositories(
+            CUSTOM_REPO_ERRATA_ID, custom_repo.name, lce='Library', cv=DEFAULT_CV
+        )
         assert repos_table, (
             f'No repositories found for errata {CUSTOM_REPO_ERRATA_ID}'
             f' in org {module_sca_manifest_org.name}.'
         )
         available_repo = next(
-            (r for r in repos_table if r['Name'] == custom_repo.name),
+            (r for r in repos_table if r.get('Name') == custom_repo.name),
             None,
         )
         assert available_repo, (
             f'Repository {custom_repo.name} not found in errata repositories table.'
+            f' Found instead: {repos_table}'
         )
         repo_sync_status = available_repo.get('Last Sync')
         assert repo_sync_status, (
@@ -1778,21 +1785,23 @@ def test_positive_repo_sync_status_on_errata_repository(
             f'with default content view filter, but got: {repo_sync_status}'
         )
 
-        # Search errata repositories filtered by Content View
+        # Search errata repositories filtered by Content View. The CV was
+        # published but not promoted, so its newest version is only in Library.
         cv_repos_table = session.errata.search_repositories(
-            CUSTOM_REPO_ERRATA_ID, custom_repo.name, cv=module_cv.name
+            CUSTOM_REPO_ERRATA_ID, custom_repo.name, lce='Library', cv=module_cv.name
         )
         assert cv_repos_table, (
             f'No repositories found for errata {CUSTOM_REPO_ERRATA_ID}'
             f' when filtered by Content View {module_cv.name}.'
         )
         cv_repo = next(
-            (r for r in cv_repos_table if r['Name'] == custom_repo.name),
+            (r for r in cv_repos_table if r.get('Name') == custom_repo.name),
             None,
         )
         assert cv_repo, (
             f'Repository {custom_repo.name} not found in errata repositories table'
             f' when filtered by Content View {module_cv.name}.'
+            f' Found instead: {cv_repos_table}'
         )
         cv_sync_status = cv_repo.get('Last Sync')
         assert cv_sync_status, (

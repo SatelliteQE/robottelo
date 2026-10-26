@@ -63,6 +63,8 @@ def test_rhsso_login_using_hammer(
 
     :expectedresults: hammer auth login should be successful for a rhsso user
 
+    :BlockedBy: SAT-33225
+
     :CaseImportance: High
     """
     if type(default_sso_host) is RHBKHost:
@@ -103,6 +105,8 @@ def test_rhsso_timeout_using_hammer(
 
     :expectedresults: hammer auth login timeout should be successful for a rhsso user
 
+    :BlockedBy: SAT-33225
+
     :CaseImportance: Medium
     """
     result = module_target_sat.cli.AuthLogin.oauth(
@@ -134,6 +138,8 @@ def test_rhsso_two_factor_login_using_hammer(
     :id: 4018c646-cb64-4eae-a422-7d5257ed2756
 
     :expectedresults: hammer auth login should be successful for a rhsso user
+
+    :BlockedBy: SAT-33225
 
     :CaseImportance: Medium
     """

@@ -46,6 +46,8 @@ def test_positive_run_capsule_update_playbook(module_capsule_configured, target_
 
     :expectedresults: Capsule is upgraded successfully
 
+    :BlockedBy: SAT-52557
+
     :CaseImportance: Medium
     """
 
@@ -108,6 +110,8 @@ def test_negative_time_to_pickup(
     :bz: 2158738
 
     :parametrized: yes
+
+    :BlockedBy: SAT-40479
     """
     client = rhel_contenthost_with_repos
     client_repo = ohsnap.dogfood_repository(
@@ -243,6 +247,8 @@ def test_positive_check_longrunning_job(
     :bz: 2118651, 2158738
 
     :parametrized: yes
+
+    :BlockedBy: SAT-40479
     """
     client = rhel_contenthost_with_repos
     client_repo = ohsnap.dogfood_repository(

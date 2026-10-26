@@ -31,11 +31,6 @@ def ui_entity(module_org, module_location, request):
     """
     entity = request.param
     entity_name, entity_setup = entity['name'], entity.get('setup')
-    # Skip the entities, which can't be tested ATM (not implemented in
-    # airgun)
-    skip = entity.get('skip_for_ui')
-    if skip:
-        pytest.skip(f'{entity_name} not implemented in airgun')
     # Some pages require at least 1 existing entity for search bar to
     # appear. Creating 1 entity for such pages
     if entity_setup:

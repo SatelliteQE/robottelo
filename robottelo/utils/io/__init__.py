@@ -4,6 +4,15 @@ import json
 from pathlib import Path
 import tarfile
 
+# Temporary download directory for hammer CLI insights reports
+INSIGHTS_REPORTS_DOWNLOAD_DIR = '/tmp/insights_reports'
+generated_reports_dir = (
+    '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/generated_reports'
+)
+done_dir = (
+    '/var/lib/containers/storage/volumes/foreman-data-run/_data/red_hat_inventory/uploads/done'
+)
+
 
 def get_local_file_data(path):
     """Returns information about tar file.
@@ -63,22 +72,16 @@ def get_host_counts(tarobj):
     }
 
 
-def get_remote_report_checksum(satellite, org_id):
+def get_remote_report_checksum(satellite, remote_path):
     """Returns checksum of red_hat_inventory report present on satellite.
 
     Args:
         satellite: satellite host
-        org_id: organization-id
+        remote_path: path to report file on the satellite
     """
-    remote_paths = [
-        f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org_id}.tar.xz',
-        f'/var/lib/foreman/red_hat_inventory/uploads/report_for_{org_id}.tar.xz',
-    ]
-
-    for path in remote_paths:
-        result = satellite.execute(f'sha256sum {path}')
-        if result.status != 0:
-            continue
+    # Use provided path (e.g., from hammer download-report)
+    result = satellite.execute(f'sha256sum {remote_path}')
+    if result.status == 0:
         checksum, _ = result.stdout.split(maxsplit=1)
         return checksum
     return None

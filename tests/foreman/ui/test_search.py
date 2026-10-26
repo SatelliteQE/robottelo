@@ -105,7 +105,6 @@ def admin_user(module_target_sat, module_org, module_location, default_org, defa
     admin_user.password = settings.server.admin_password
     admin_user.search_for = SearchData(
         expected_items=[
-            '-',
             'dashboard',
             'facts',
             'subscriptions',

@@ -96,6 +96,7 @@ def test_negative_create_with_name(module_target_sat):
         module_target_sat.cli.HostGroup.create({'name': name})
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.e2e
 @pytest.mark.upgrade
 def test_positive_create_with_multiple_entities_and_delete(
@@ -218,6 +219,7 @@ def test_negative_create_with_content_source(module_org, module_target_sat):
         )
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.run_in_one_thread
 def test_positive_update_hostgroup_with_puppet(
     request,

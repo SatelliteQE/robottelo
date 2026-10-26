@@ -17,6 +17,7 @@ import pytest
 pytestmark = [pytest.mark.run_in_one_thread]
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.skip_if_not_set('fake_capsules')
 def test_positive_import_puppet_classes(session_puppet_enabled_sat, puppet_proxy_port_range):
     """Import puppet classes from proxy

@@ -23,6 +23,8 @@ from robottelo.constants import (
     FOREMAN_TEMPLATE_TEST_TEMPLATE,
 )
 
+pytestmark = pytest.mark.foreman_installer
+
 git = settings.git
 
 

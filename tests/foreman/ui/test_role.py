@@ -338,6 +338,7 @@ def test_positive_create_with_21_filters(session):
         assert assigned_filters == used_filters
 
 
+@pytest.mark.foreman_installer
 def test_positive_create_with_sc_parameter_permission(session_puppet_enabled_sat):
     """Create role filter with few permissions for smart class parameters.
 
