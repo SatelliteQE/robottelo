@@ -498,7 +498,7 @@ def test_insights_registration_with_capsule(
 
         # Clean insights status
         result = module_target_sat_insights.run(
-            f'foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel_contenthost.hostname}"'
+            f'ALLOW_UNSUPPORTED=true foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel_contenthost.hostname}"'
         )
         assert 'Deleted 1 insights statuses' in result.stdout
         assert result.status == 0
