@@ -13,8 +13,8 @@
 """
 
 from fauxfactory import gen_string
+from pulp_glue.rpm.context import PulpRpmRemoteContext
 import pytest
-from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
@@ -407,27 +407,14 @@ def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_pro
     ).stdout.split('"')[1]
 
     # Ensure proxy_url matches the one from setup.
-    remote = sat.pulp_api(href)
-    assert remote['proxy_url'] == http_proxy.url
+    remote = PulpRpmRemoteContext(sat.pulp_glue, pulp_href=href)
+    assert remote.show()['proxy_url'] == http_proxy.url
 
     # Set fake value to proxy_url, ensure it's written.
     fake_proxy_url = 'http://my.proxy.com:3128'
-    task_href = sat.pulp_api(href, method='PATCH', payload={'proxy_url': fake_proxy_url})['task']
-    task, _ = wait_for(
-        lambda: sat.pulp_api(task_href),
-        fail_condition=lambda task: (
-            task['state'] not in ('completed', 'failed', 'canceled', 'skipped')
-        ),
-        timeout=120,
-        delay=2,
-    )
-    assert task['state'] == 'completed', (
-        f'Pulp task {task_href} ended in {task["state"]}: {task.get("error")}'
-    )
-    remote = sat.pulp_api(href)
-    assert remote['proxy_url'] == fake_proxy_url
+    remote.update({'proxy_url': fake_proxy_url})
+    assert remote.show()['proxy_url'] == fake_proxy_url
 
     # Refresh repos via rake and ensure the original proxy_url has been restored.
     sat.run_repos_refresh()
-    remote = sat.pulp_api(href)
-    assert remote['proxy_url'] == http_proxy.url
+    assert remote.show()['proxy_url'] == http_proxy.url

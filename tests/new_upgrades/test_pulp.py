@@ -99,5 +99,5 @@ def test_pulp_repoversion_href_prn_migration_scenario(pulp_upgrade_setup):
     )
     assert len(records), 'No records found in table, probably insufficient content setup'
     for row in records:
-        version = target_sat.pulp_api(row['version_href'])
+        version = target_sat.pulp_glue.read_href(row['version_href'])
         assert row['version_prn'] == version['prn']

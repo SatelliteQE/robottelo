@@ -133,7 +133,7 @@ def test_pulp_status(target_sat):
         1. The Pulp API is reachable and returns status data.
         2. The pulp components are alive according to provided status.
     """
-    status = target_sat.pulp_api('status/')
+    status = target_sat.pulp_glue.call('status_read')
     now = datetime.now(UTC)
     assert status['database_connection']['connected']
     assert status['redis_connection']['connected']
