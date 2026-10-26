@@ -301,6 +301,8 @@ def test_single_sign_on_using_rhsso(
 
     :verifies: SAT-40322
 
+    :BlockedBy: SAT-33225
+
     :steps:
         1. Create Mappers on RHSSO Instance and Update the Settings in Satellite
         2. Login into Satellite using RHSSO login page redirected by Satellite
@@ -350,7 +352,7 @@ def test_external_logout_rhsso(rhsso_setting_setup, enable_external_auth_rhsso, 
 
     :expectedresults: After logout from Satellite navigate should be external_loout page
 
-    :BlockedBy: SAT-41562
+    :BlockedBy: SAT-33225
     """
     with module_target_sat.ui_session(login=False) as session:
         login_details = {
@@ -381,6 +383,8 @@ def test_session_expire_rhsso_idle_timeout(
         2. Login into Satellite using RHSSO login and wait for the idle timeout
 
     :CaseImportance: Medium
+
+    :BlockedBy: SAT-33225
 
     :expectedresults: After completion of the idle timeout user session
         should get expired
@@ -417,6 +421,8 @@ def test_external_new_user_login_and_check_count_rhsso(
         2. Verify the login for that user
 
     :CaseImportance: Medium
+
+    :BlockedBy: SAT-33225
 
     :expectedresults: New User created in RHSSO server should able to get log-in
         and correct count shown for external users
@@ -467,6 +473,8 @@ def test_login_failure_rhsso_user_if_internal_user_exist(
 
     :CaseImportance: High
 
+    :BlockedBy: SAT-33225
+
     :steps:
         1. create an internal user
         2. create a rhsso user with same username mentioned in internal user
@@ -509,6 +517,8 @@ def test_user_permissions_rhsso_user_after_group_delete(
     :id: 782926c0-d109-41a0-af7a-bffd658f59d7
 
     :CaseImportance: Medium
+
+    :BlockedBy: SAT-33225
 
     :steps:
         1. create usergroup with admin permissions respectively
@@ -578,7 +588,7 @@ def test_user_permissions_rhsso_user_multiple_group(
 
     :CaseImportance: Medium
 
-    :BlockedBy: SAT-42705
+    :BlockedBy: SAT-33225
 
     :steps:
         1. create sat_users and sat_admins usergroups with non-admin and admin
@@ -647,6 +657,8 @@ def test_totp_user_login(
 
     :CaseImportance: Medium
 
+    :BlockedBy: SAT-33225
+
     :expectedresults: After entering the login details in RHSSO page user should
         logged into Satellite
     """
@@ -676,6 +688,8 @@ def test_permissions_external_ldap_mapped_rhsso_group(
         2. Create the user group and mapped with the external ldap rhsso user group
 
     :CaseImportance: Medium
+
+    :BlockedBy: SAT-33225
 
     :expectedresults: The external ldap mapped rhsso user should contain the permissions
         based on the user group level
