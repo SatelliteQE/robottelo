@@ -439,7 +439,7 @@ def test_insights_registration_with_capsule(
         3. rake command deletes insights reporting status of host.
 
     :BZ: 2110222, 2112386, 1962930
-    
+
     :BlockedBy: SAT-53201
 
     :parametrized: yes
