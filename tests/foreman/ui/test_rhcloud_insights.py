@@ -439,6 +439,8 @@ def test_insights_registration_with_capsule(
         3. rake command deletes insights reporting status of host.
 
     :BZ: 2110222, 2112386, 1962930
+    
+    :BlockedBy: SAT-53201
 
     :parametrized: yes
     """
@@ -498,7 +500,7 @@ def test_insights_registration_with_capsule(
 
         # Clean insights status
         result = module_target_sat_insights.run(
-            f'ALLOW_UNSUPPORTED=true foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel_contenthost.hostname}"'
+            f'foreman-rake rh_cloud_insights:clean_statuses SEARCH="{rhel_contenthost.hostname}"'
         )
         assert 'Deleted 1 insights statuses' in result.stdout
         assert result.status == 0
