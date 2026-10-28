@@ -47,9 +47,10 @@ def fixture_enable_rhc_repos(module_target_sat):
 def module_rhc_org(module_target_sat):
     """Module level fixture for creating organization"""
     if getattr(settings.rh_cloud, 'crc_env', 'prod') == 'prod':
-        org = module_target_sat.api.Organization(
-            name=getattr(settings.rh_cloud, 'organization', '') or 'satqe-rhc-org-' + gen_string('alpha')
-        ).create()
+        org_name = getattr(settings.rh_cloud, 'organization', '') or (
+            'satqe-rhc-org-' + gen_string('alpha')
+        )
+        org = module_target_sat.api.Organization(name=org_name).create()
     else:
         org = (
             module_target_sat.api.Organization()
