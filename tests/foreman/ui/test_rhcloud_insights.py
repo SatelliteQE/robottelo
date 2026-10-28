@@ -440,6 +440,8 @@ def test_insights_registration_with_capsule(
 
     :BZ: 2110222, 2112386, 1962930
 
+    :BlockedBy: SAT-53201
+
     :parametrized: yes
     """
     org = rhcloud_manifest_org
