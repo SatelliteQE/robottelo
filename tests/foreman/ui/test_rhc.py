@@ -48,12 +48,12 @@ def module_rhc_org(module_target_sat):
     """Module level fixture for creating organization"""
     if getattr(settings.rh_cloud, 'crc_env', 'prod') == 'prod':
         org = module_target_sat.api.Organization(
-            name=settings.rh_cloud.organization or 'satqe-rhc-org-' + gen_string('alpha')
+            name=getattr(settings.rh_cloud, 'organization', '') or 'satqe-rhc-org-' + gen_string('alpha')
         ).create()
     else:
         org = (
             module_target_sat.api.Organization()
-            .search(query={'search': f'name="{settings.rh_cloud.organization}"'})[0]
+            .search(query={'search': f'name="{getattr(settings.rh_cloud, "organization", "")}"'})[0]
             .read()
         )
 
@@ -107,7 +107,7 @@ def fixture_setup_rhc_satellite(
         content_view.publish()
         # Create Activation key
         ak = module_target_sat.api.ActivationKey(
-            name=settings.rh_cloud.activation_key or gen_string('alpha'),
+            name=getattr(settings.rh_cloud, 'activation_key', '') or gen_string('alpha'),
             content_view=content_view,
             organization=module_rhc_org,
             environment=module_target_sat.api.LifecycleEnvironment(id=module_rhc_org.library.id),
