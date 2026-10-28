@@ -37,6 +37,32 @@ def module_custom_product(module_org, module_target_sat):
     return module_target_sat.api.Product(organization=module_org).create()
 
 
+def test_positive_sync_status_product_name_without_organization(
+    session, module_org, module_custom_product, module_target_sat
+):
+    """Display the product name without an organization suffix on Sync Status.
+
+    :id: f0ecdca9-2ea6-4429-b247-7afd4d6d2246
+
+    :steps:
+        1. Create a custom product with a repository.
+        2. Select the product's organization and navigate to Content > Sync Status.
+        3. Read the full Name cell for the product row.
+
+    :expectedresults: The Name cell contains only the product name, without an
+        appended organization name.
+    """
+    module_target_sat.api.Repository(product=module_custom_product).create()
+
+    with session:
+        session.organization.select(org_name=module_org.name)
+        view = session.sync_status.navigate_to(session.sync_status, 'All')
+        product_row = view.table.get_row_by_name(module_custom_product.name)
+        # The name span alone excludes the organization suffix even before the fix.
+        name_cell = view.browser.element('./th[1]', parent=product_row)
+        assert view.browser.text(name_cell).strip() == module_custom_product.name
+
+
 @pytest.mark.run_in_one_thread
 @pytest.mark.upgrade
 def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
