@@ -83,7 +83,7 @@ class TestAzureRMComputeResourceTestCase:
             }
         )
         assert compresource['name'] == cr_name
-        assert compresource['provider'] == 'Azure Resource Manager'
+        assert compresource['provider'] == 'Microsoft Azure'
         assert compresource['tenant'] == azurerm_settings['tenant']
         assert compresource['app_ident'] == azurerm_settings['app_ident']
         assert compresource['sub_id'] == azurerm_settings['sub_id']
