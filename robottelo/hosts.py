@@ -78,7 +78,6 @@ from robottelo.logging import logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
-from robottelo.utils.issue_handlers import is_open
 
 POWER_OPERATIONS = {
     VmState.RUNNING: 'running',
@@ -3054,13 +3053,6 @@ class Satellite(Capsule, SatelliteMixins):
                 'value': http_proxy_url,
             }
         )
-        if is_open('SAT-52548'):
-            self.cli.Settings.set(
-                {
-                    'name': 'http_proxy_except_list',
-                    'value': '["candlepin"]',
-                }
-            )
         return http_proxy
 
     def disable_satellite_http_proxy(self, http_proxy):
