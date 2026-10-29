@@ -36,7 +36,7 @@ from robottelo.utils.installer import InstallerCommand
 # repository - ensures basic repository actions work
 # scap_content - ensures we use FIPS-compatible hashlib functions only
 FAM_TEST_PLAYBOOKS_MINIMAL = ['bookmark', 'redhat_manifest', 'repository', 'scap_content']
-FAM_TEST_PLAYBOOKS_OTHER = list(set(FAM_TEST_PLAYBOOKS) - set(FAM_TEST_PLAYBOOKS_MINIMAL))
+FAM_TEST_PLAYBOOKS_OTHER = sorted(set(FAM_TEST_PLAYBOOKS) - set(FAM_TEST_PLAYBOOKS_MINIMAL))
 
 FOREMAN_PROXY_ANSIBLE_DIR = '/var/lib/foreman-proxy/ansible'
 FOREMAN_PROXY_ANSIBLE_ROLES_DIR = f'{FOREMAN_PROXY_ANSIBLE_DIR}/roles'
