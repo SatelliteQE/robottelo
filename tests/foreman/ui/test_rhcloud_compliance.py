@@ -22,6 +22,8 @@ import pytest
 
 from robottelo.config import settings
 
+GENERIC_POLICY_DESCRIPTION = "I am a policy used purely for automation testing. If I am very fresh, then deleting me can cause a test to fail. If I am a little older, feel free to delete me."
+
 
 @pytest.fixture
 def compliance_session(module_target_sat):
@@ -53,8 +55,8 @@ def compliance_policy(module_target_sat):
     )
     policy = module_target_sat.api.CloudCompliancePolicy(
         server_config=sat_config,
-        title=f"automation_policy_id-{gen_string('alpha')}",
-        description="I am a policy used purely for automation testing. If I am very fresh, then deleting me can cause a test to fail. If I am a little older, feel free to delete me.",
+        title=f"Automation policy {gen_string('alpha')}",
+        description=GENERIC_POLICY_DESCRIPTION,
         compliance_threshold=80.0,
         profile_id=profile.id,
     ).create()
@@ -117,8 +119,115 @@ def test_iop_compliance_navigation(compliance_session, compliance_policy, compli
     wizard.cancel_button.click()
 
 
+def test_iop_compliance_policy_scan_report_e2e():
+    """Test the full E2E workflow for compliance."""
+    pass
+
+
+def test_iop_compliance_policy_update_affects_scan():
+    """Test that changing a threshold value affects future scans."""
+    pass
+
+
+# TODO: generate id
+def test_iop_compliance_create_and_view_policy(compliance_session):
+    """Test that creating a policy via UI works.
+
+    :id: d532c0aa-2ed5-4953-9ff7-99521569c453
+
+    :steps:
+        1. Create a customized policy via the Create SCAP policy wizard
+        2. Navigate to details of the new policy
+        3. Verify policy is displayed correctly
+
+    :expectedresults:
+        Filtering narrows the reports table to matching entries only.
+    """
+    # 1. Create a customized policy via the Create SCAP policy wizard
+    wizard = compliance_session.cloudcompliancepolicies.create_policy()
+    wizard.create_scap_policy.select_os(os_name='RHEL 10')
+    wizard.create_scap_policy.select_policy_type(policy_name='ANSSI-BP-028 (high)')
+    wizard.next()
+    random_id = gen_string('alpha')
+    wizard.details.change_policy_name(f" - Automation policy {random_id}")
+    policy_title = wizard.details.policy_name.read()
+    new_description = f"{GENERIC_POLICY_DESCRIPTION} My random code is {random_id}"
+    wizard.details.change_description(new_description)
+    wizard.details.change_threshold(50)
+    wizard.next()
+    wizard.next()
+    wizard.next()
+    wizard.finish()
+    wizard.return_to_application()
+
+    # 2. Navigate to details of the new policy
+    policy_details = compliance_session.cloudcompliancepolicies.get_policy_details(policy_title)
+
+    # 3. Verify policy is displayed correctly
+    assert policy_details.details.threshold_value == '50.0%'
+    assert random_id in policy_details.details.policy_description.read()
+
+
+# pytest tests/foreman/ui/test_rhcloud_compliance.py::test_positive_create_policy
+
+
+def test_iop_compliance_update_policy(compliance_session, compliance_policy):
+    """Test that updating a policy via UI works.
+
+    :id: 1a837102-86e6-4489-9555-f3cc8c990ad7
+
+    :steps:
+        1. Navigate to Policy details
+        2. change policy description
+        3. change compliance threshold
+        4. verify the values have changed
+
+    :expectedresults:
+        Filtering narrows the reports table to matching entries only.
+    """
+    # 1. Navigate to a created policy
+    random_id = gen_string('alpha')
+
+    policy_details = compliance_session.cloudcompliancepolicies.get_policy_details(
+        compliance_policy.title
+    )
+
+    # 2. change policy description
+    policy_details.details.change_description(
+        new_description=f"{GENERIC_POLICY_DESCRIPTION} My random code is {random_id}"
+    )
+
+    # 3. change compliance threshold
+    policy_details.details.change_threshold(new_threshold=50)
+
+    # 4. verify the values have changed
+    compliance_session.cloudcompliancepolicies.read()
+    policy_details = compliance_session.cloudcompliancepolicies.get_policy_details(
+        compliance_policy.title
+    )
+    assert '50' in policy_details.details.threshold_value
+    assert random_id in policy_details.details.policy_description.read()
+
+    # policies.change_policy_name(old_name=compliance_policy.title, new_name=f"automation_policy_id-{random_id}")
+
+
+def test_iop_compliance_delete_policy():
+    """Test that we can delete a policy."""
+    pass
+
+
+def test_iop_compliance_assign_remove_host():
+    """Test that it's possible to assign and remove hosts to/from policies."""
+    pass
+
+
+def test_iop_compliance_assign_host_group_to_policy():
+    """Test that it's possible to assign a host group to policy."""
+    pass
+
+
 @pytest.mark.e2e
-def test_iop_compliance_view_and_filter_reports(compliance_session, compliance_report_with_system):
+def test_iop_compliance_view_and_filter_reports(compliance_session, compliance_report):
     """View reports list, filter by policy name, verify filtering works.
 
     :id: 07b167c4-d81c-4817-8b9d-d5a58400d5e9
@@ -134,7 +243,7 @@ def test_iop_compliance_view_and_filter_reports(compliance_session, compliance_r
     :expectedresults:
         Filtering narrows the reports table to matching entries only.
     """
-    report = compliance_report_with_system.report
+    # report = compliance_report_with_system.report
 
     # 1. Navigate to the Insights Compliance Reports page
     # 2. Read all reports
@@ -142,13 +251,13 @@ def test_iop_compliance_view_and_filter_reports(compliance_session, compliance_r
     assert len(all_reports) > 0, 'No compliance reports found'
 
     # 3. Filter reports by an existing policy name
-    filtered = compliance_session.cloudcompliancereports.search(report.title)
+    filtered = compliance_session.cloudcompliancereports.search(compliance_report.title)
 
     # 4. Verify filtered results contain only matching policies
-    assert len(filtered) > 0, f'No reports found when filtering for "{report.title}"'
+    assert len(filtered) > 0, f'No reports found when filtering for "{compliance_report.title}"'
     for filtered_report in filtered:
-        assert report.title in filtered_report['Policy'], (
-            f'Report "{filtered_report["Policy"]}" does not match filter "{report.title}"'
+        assert compliance_report.title in filtered_report['Policy'], (
+            f'Report "{filtered_report["Policy"]}" does not match filter "{compliance_report.title}"'
         )
 
     # 5. Filter by a nonexistent policy name
@@ -156,3 +265,23 @@ def test_iop_compliance_view_and_filter_reports(compliance_session, compliance_r
 
     # 6. Verify the empty state is displayed
     assert "No matching reports found" in empty[0]['Policy']
+
+
+def test_iop_compliance_view_report_details():
+    """Test that we can see Compliance report details correctly."""
+    pass
+
+
+def test_iop_compliance_rbac_view_only():
+    """Test that a user with a read-only role can only view policies and reports."""
+    pass
+
+
+def test_iop_compliance_rbac_edit():
+    """Test that a user with ForemanRHCloud role can CRUD policies and reports."""
+    pass
+
+
+def test_iop_compliance_rbac_no_access():
+    """Test that a user without any permissions can not access any Compliance content."""
+    pass
