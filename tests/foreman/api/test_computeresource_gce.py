@@ -267,8 +267,8 @@ class TestGCEHostProvisioningTestCase:
             2. The provisioned host should be powered on and on requesting so
         """
         class_host.power(data={'power_action': 'stop'})
-        google_host.wait_for_state('VmState.STOPPED', '5m')
+        google_host.wait_for_state('VmState.STOPPED', 300)
         assert google_host.is_stopped
         class_host.power(data={'power_action': 'start'})
-        google_host.wait_for_state('VmState.RUNNING', '2m')
+        google_host.wait_for_state('VmState.RUNNING', 120)
         assert google_host.is_running
