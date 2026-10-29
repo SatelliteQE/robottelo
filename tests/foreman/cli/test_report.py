@@ -19,6 +19,8 @@ from wait_for import wait_for
 
 from robottelo.exceptions import CLIReturnCodeError
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture(scope='module')
 def run_puppet_agent(session_puppet_enabled_sat):

@@ -10,6 +10,7 @@ import json
 from pathlib import Path, PurePath
 import random
 import re
+import shlex
 import subprocess
 import sys
 from tempfile import NamedTemporaryFile
@@ -1848,6 +1849,53 @@ class Capsule(ContentHost, CapsuleMixins):
     def url(self):
         return f'https://{self.hostname}'
 
+    def pulp_api(self, path, method='GET', payload=None):
+        """Request a Pulp API v3 path or full Pulp href and return its JSON.
+
+        Send ``payload`` as JSON when provided.
+        """
+        api_path = f'/{path.lstrip("/")}'
+        if api_path == '/pulp/api/v3':
+            api_path += '/'
+        elif not api_path.startswith('/pulp/api/v3/'):
+            api_path = f'/pulp/api/v3{api_path}'
+        url = f'{self.url}{api_path}'
+
+        # Pulp status is public; protected requests run on the host with its client key.
+        if method == 'GET' and api_path.rstrip('/') == '/pulp/api/v3/status':
+            response = requests.get(url, verify=settings.server.verify_ca, timeout=30)
+            response.raise_for_status()
+            return response.json()
+
+        certs_dir = Path(FOREMANCTL_CA_CERT_PATH).parent
+        command = [
+            'curl',
+            '--fail',
+            '--silent',
+            '--show-error',
+            '--max-time',
+            '30',
+            '--cacert',
+            str(certs_dir / 'server-ca.crt'),
+            '--cert',
+            str(certs_dir / f'{self.hostname}-client.crt'),
+            '--key',
+            str(certs_dir.parent / 'private' / f'{self.hostname}-client.key'),
+        ]
+        if method != 'GET':
+            command.extend(['--request', method])
+        if payload is not None:
+            command.extend(
+                ['--header', 'Content-Type: application/json', '--data', json.dumps(payload)]
+            )
+        command.append(url)
+        result = self.execute(shlex.join(command))
+        if result.status:
+            raise ContentHostError(
+                f'Pulp API {method} {url} failed with curl status {result.status}: {result.stderr}'
+            )
+        return json.loads(result.stdout)
+
     @cached_property
     def url_katello_ca_rpm(self):
         """Return the Katello cert RPM URL"""
@@ -1869,10 +1917,13 @@ class Capsule(ContentHost, CapsuleMixins):
 
     @property
     def rex_pub_key(self):
-        if settings.server.install_method == InstallMethod.FOREMANCTL:
+        if self.install_method == InstallMethod.FOREMANCTL:
             if 'remote-execution' in self.list_foremanctl_features(enabled=True):
                 result = self.execute(
-                    f"podman exec foreman-proxy bash -c 'cat {self.rex_key_path}'"
+                    'podman exec foreman-proxy '
+                    'bash -c \'cat '
+                    '$(getent passwd foreman-proxy | cut -d: -f6)'
+                    '/.ssh/id_rsa_foreman_proxy.pub\''
                 )
             else:
                 raise SatelliteHostError('remote-execution feature is not enabled')
@@ -2104,7 +2155,12 @@ class Capsule(ContentHost, CapsuleMixins):
         return requests.get(f'https://{self.hostname}:9090/features', verify=False).text
 
     def capsule_setup(
-        self, sat_host=None, capsule_cert_opts=None, release=None, **installer_kwargs
+        self,
+        sat_host=None,
+        capsule_cert_opts=None,
+        release=None,
+        container_images_source='cdn',
+        **installer_kwargs,
     ):
         """Set up the Capsule host according to the installation method.
 
@@ -2115,6 +2171,7 @@ class Capsule(ContentHost, CapsuleMixins):
             sat_host: Satellite host object
             capsule_cert_opts: Certificate options for capsule
             release: Override capsule version release for upgrade testing (Default: settings.capsule.version.release)
+            container_images_source: Source for Capsule to pull its container images from (Default: cdn)
         Kwargs:
             installer_kwargs: Additional installer arguments
         """
@@ -2122,19 +2179,31 @@ class Capsule(ContentHost, CapsuleMixins):
         self._satellite = satellite
         method = satellite.install_method
 
-        self.register_to_cdn()
-        # register_to_cdn() -> reset_rhsm() clears _satellite; rebind sat_host.
-        self._satellite = satellite
-        self.setup_rhel_repos()
+        registered_to_sat = (
+            self.subscribed and self.identity.get('registered_to') == satellite.hostname
+        )
+        if not registered_to_sat:
+            self.register_to_cdn()
+            # register_to_cdn() -> reset_rhsm() clears _satellite; rebind sat_host.
+            self._satellite = satellite
+            self.setup_rhel_repos()
+            self.setup_capsule_repos(release=release)
         product_rpm_name = (
             self.container_rpm_name if method == InstallMethod.FOREMANCTL else self.product_rpm_name
         )
-        self.setup_capsule_repos(release=release)
         if method == InstallMethod.FOREMANCTL:
             # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
             self.ensure_podman_installed(enable_ipv6_proxy=True)
-            # Capsule needs registry auth to pull deploy-proxy images
-            self.setup_foremanctl_container_registry()
+            if container_images_source == 'satellite':
+                # Serve the Capsule container images from the Satellite and pull them from there.
+                org = satellite.api.Organization().search(
+                    query={'search': f'name="{constants.DEFAULT_ORG}"'}
+                )[0]
+                product_path = satellite.api_factory.serve_capsule_container_images(org)
+                self.pull_container_images_from_satellite(satellite, product_path)
+            else:
+                # Capsule needs registry auth to pull deploy-proxy images
+                self.setup_foremanctl_container_registry()
 
             # Enable Packit repos
             pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
@@ -2337,21 +2406,50 @@ class Capsule(ContentHost, CapsuleMixins):
                 'Set CONTAINER_REGISTRY.USERNAME and CONTAINER_REGISTRY.PASSWORD in conf/server.yaml'
             )
 
+    def pull_container_images_from_satellite(self, satellite, product_path):
+        """Redirect this Capsule's container image pulls to the Satellite registry.
+
+        Authenticates to the Satellite registry and writes a Podman mirror configuration so
+        registry.redhat.io/satellite and registry.redhat.io/rhelN image references are pulled
+        from the Satellite instead of registry.redhat.io.
+
+        :param satellite: Satellite host serving the Capsule container images
+        :param product_path: registry path the images publish under on the Satellite,
+            e.g. my_organization/capsule_container_images
+        """
+        # Pulls are redirected to the Satellite, so authenticate with Satellite credentials.
+        self.podman_login(
+            username=settings.server.admin_username,
+            password=settings.server.admin_password,
+            registry=satellite.hostname,
+        )
+        # Mirror the satellite/* and rhelN/* prefixes to the Satellite product path.
+        location = f'{satellite.hostname}/{product_path}'
+        mirror_conf = '\n'.join(
+            f'[[registry]]\nprefix = "registry.redhat.io/{prefix}"\nlocation = "{location}"\n'
+            for prefix in ('satellite', f'rhel{self.os_version.major}')
+        )
+        result = self.execute(
+            f'cat > /etc/containers/registries.conf.d/50-foremanctl-mirror.conf <<EOF\n'
+            f'{mirror_conf}EOF'
+        )
+        assert result.status == 0, f'Failed to write Podman mirror config: {result.stderr}'
+
     def install_satellite_foremanctl(
         self, enable_fapolicyd=False, enable_fips=False, parameters=None
     ):
-        """Install Satellite using foremanctl deploy method.
+        """Install Satellite using satellitectl deploy method.
 
         Handles full installation path including:
         - Container runtime (podman) installation
         - Container registry authentication
-        - foremanctl package installation
-        - Satellite deployment via foremanctl
+        - satellitectl package installation
+        - Satellite deployment via satellitectl
 
         :param enable_fapolicyd: Enable fapolicyd
         :param enable_fips: Enable FIPS mode
-        :param parameters: Additional parameters for foremanctl deploy
-        :return: Result of final foremanctl deploy command
+        :param parameters: Additional parameters for satellitectl deploy
+        :return: Result of final satellitectl deploy command
         """
         # Add IPv6 proxy for IPv6 communication
         self.enable_ipv6_dnf_and_rhsm_proxy()
@@ -2413,19 +2511,16 @@ class Capsule(ContentHost, CapsuleMixins):
             default_parameters.extend(parameters)
 
         deploy = self.execute(
-            f'foremanctl deploy {" ".join(default_parameters)}',
+            f'satellitectl deploy {" ".join(default_parameters)}',
             timeout='30m',
         )
-        assert deploy.status == 0, f'foremanctl deploy failed:\n{deploy.stderr}'
+        assert deploy.status == 0, f'satellitectl deploy failed:\n{deploy.stdout}\n{deploy.stderr}'
 
-        deploy_features = self.execute(
-            'foremanctl deploy --add-feature foreman-proxy --add-feature hammer'
-        )
-        assert deploy_features.status == 0, (
-            f'foremanctl deploy --add-feature failed:\n{deploy_features.stderr}'
-        )
+        # IPv6-only: set content HTTP proxy so Satellite can reach the CDN for content sync
+        if not self.network_type.has_ipv4:
+            self.enable_satellite_http_proxy()
 
-        return deploy_features
+        return deploy
 
     def list_foremanctl_features(self, enabled=False, internal=False):
         """Get the list of features as a set of feature names
@@ -2621,9 +2716,44 @@ class Satellite(Capsule, SatelliteMixins):
         :param str pattern: The pattern to grep for.
         :return: The command result.
         """
+        pattern = shlex.quote(pattern)
         if self.install_method == InstallMethod.FOREMANCTL:
-            return self.execute(f'journalctl --no-pager --unit foreman | grep "{pattern}"')
-        return self.execute(f'grep "{pattern}" /var/log/foreman/production.log')
+            return self.execute(f'journalctl --no-pager --unit foreman | grep -- {pattern}')
+        return self.execute(f'grep -- {pattern} /var/log/foreman/production.log')
+
+    def read_foreman_log(self, since='1 min ago', lines=100):
+        """Read Foreman and orchestrator logs from journald.
+
+        Containerized Satellite logs Foreman and Dynflow orchestration work under
+        separate systemd units. Read both so failures that happen after Foreman hands
+        work to Dynflow are included in the returned log output.
+
+        :param str since: journald time window.
+        :param int lines: number of journal lines to return.
+        :return: The command result.
+        """
+        return self.execute(
+            'journalctl --no-pager '
+            '--unit foreman '
+            '--unit dynflow-sidekiq@orchestrator '
+            f'--since {shlex.quote(since)} '
+            f'--lines {int(lines)}'
+        )
+
+    def read_httpd_access_log(self, since='1 min ago', lines=100):
+        """Read the Foreman SSL access log, install-method-aware.
+
+        - satellite-installer: tails ``/var/log/httpd/foreman-ssl_access_ssl.log``.
+        - foremanctl: httpd runs as a quadlet container that writes its vhost access
+          log to journald under the ``httpd-ssl-access`` tag.
+
+        :param str since: journald time window, only used on foremanctl.
+        :param int lines: number of lines to tail, only used on satellite-installer.
+        :return: The command result.
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return self.execute(f"journalctl -t httpd-ssl-access --since '{since}' --no-pager")
+        return self.execute(f'tail -n {lines} /var/log/httpd/foreman-ssl_access_ssl.log')
 
     def grep_dynflow_log(self, pattern):
         """Search Dynflow worker logs for a pattern.
@@ -2635,11 +2765,46 @@ class Satellite(Capsule, SatelliteMixins):
         """
         return self.execute(f'podman logs dynflow-sidekiq-worker 2>&1 | grep "{pattern}"')
 
+    @property
+    def dynflow_hosts_queue_service(self):
+        """Name of the Dynflow worker systemd unit dedicated to the hosts queue.
+
+        The unit name differs between install methods:
+
+        - satellite-installer: ``dynflow-sidekiq@worker-hosts-queue-1``
+        - foremanctl: the worker runs as a quadlet container whose systemd unit is
+          ``dynflow-sidekiq@worker-hosts-queue`` (no numeric suffix).
+
+        :return: The systemd unit name (without the ``.service`` suffix).
+        """
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return 'dynflow-sidekiq@worker-hosts-queue'
+        return 'dynflow-sidekiq@worker-hosts-queue-1'
+
+    def grep_dynflow_hosts_queue_log(self):
+        """Fetch the Dynflow hosts-queue worker log, install-method-aware.
+
+        - satellite-installer: the worker logs to ``/var/log/messages``, so we grep that
+          file for the worker unit.
+        - foremanctl: the worker runs as a quadlet container that logs to journald, so we
+          read the journal for that unit instead (``/var/log/messages`` does not exist in
+          the container-based deployment).
+
+        :return: The command result.
+        """
+        service = self.dynflow_hosts_queue_service
+        if self.install_method == InstallMethod.FOREMANCTL:
+            return self.execute(f'journalctl --no-pager --unit {service}')
+        return self.execute(f'grep "{service}" /var/log/messages')
+
     def _swap_nailgun(self, new_version):
         """Install a different version of nailgun from GitHub and invalidate the module cache."""
 
         logger.debug(f'Installing nailgun for new_version: {new_version}')
-        nailgun_ref = 'master' if new_version == 'stream' else f'{new_version}.z'
+        xy_version = (
+            '.'.join(new_version.split('.')[:2]) if new_version != 'stream' else new_version
+        )
+        nailgun_ref = 'master' if new_version == 'stream' else f'{xy_version}.z'
 
         # Use file locking to prevent race conditions when multiple xdist workers
         # try to install/uninstall nailgun simultaneously
@@ -3372,7 +3537,8 @@ class Satellite(Capsule, SatelliteMixins):
         rake_command = 'foreman-rake katello:delete_orphaned_content RAILS_ENV=production'
         if smart_proxy_id:
             rake_command = f'{rake_command} SMART_PROXY_ID={smart_proxy_id}'
-        self.execute(rake_command)
+        result = self.execute(rake_command)
+        assert result.status == 0, result.stderr
         self.wait_for_tasks(
             search_query=(
                 'label = Actions::Katello::OrphanCleanup::RemoveOrphans'
@@ -3385,7 +3551,12 @@ class Satellite(Capsule, SatelliteMixins):
     def run_repos_refresh(self):
         """Run repo refresh rake task"""
         timestamp = datetime.now(UTC).replace(microsecond=0)
-        self.execute('foreman-rake katello:refresh_repos')
+        # foremanctl requires an explicit override for this Katello Rake task.
+        result = self.execute('ALLOW_UNSUPPORTED=true foreman-rake katello:refresh_repos')
+        if result.status:
+            raise SatelliteHostError(
+                f'Failed to refresh repositories:\n{result.stdout}\n{result.stderr}'
+            )
         self.wait_for_tasks(
             search_query=(
                 'label = Actions::Pulp3::Orchestration::Repository::RefreshRepos'
@@ -3394,10 +3565,6 @@ class Satellite(Capsule, SatelliteMixins):
             search_rate=5,
             max_tries=10,
         )
-
-    def set_pulp_cli_safemode(self, safe):
-        """Set safemode for pulp cli"""
-        self.execute(f'sed -i "s/dry_run.*/dry_run = {str(safe).lower()}/g" /etc/pulp/cli.toml')
 
     @property
     def iop_enabled(self):
@@ -3670,9 +3837,15 @@ class IPAHost(Host):
             # restart sssd
             assert self.execute('systemctl restart sssd.service').status == 0
 
-        result = self.satellite.install(InstallerCommand('foreman-ipa-authentication true'))
-        assert result.status == 0, 'Installer failed to enable IPA authentication.'
-        self.satellite.cli.Service.restart()
+        if self.satellite.install_method == InstallMethod.FOREMANCTL:
+            result = self.satellite.execute('foremanctl deploy --external-authentication ipa')
+            assert result.status == 0, (
+                f'Failed to enable IPA authentication: {result.stdout}\n{result.stderr}'
+            )
+        else:
+            result = self.satellite.install(InstallerCommand('foreman-ipa-authentication true'))
+            assert result.status == 0, 'Installer failed to enable IPA authentication.'
+            self.satellite.cli.Service.restart()
 
     def _kinit_admin(self):
         result = self.execute(f'echo {self.ldap_user_passwd} | kinit admin')

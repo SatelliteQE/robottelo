@@ -18,6 +18,8 @@ from robottelo.config import settings
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.datafactory import gen_string
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture(scope='module')
 def module_puppet(session_puppet_enabled_sat, module_puppet_org, module_puppet_loc):

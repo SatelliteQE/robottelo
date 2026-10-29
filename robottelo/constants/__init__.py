@@ -162,7 +162,7 @@ AZURERM_VALID_REGIONS = [
     'Norway West',
     'Norway East',
 ]
-AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW:latest'
+AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:rhel-raw:7-raw:7.9.2026031104'
 AZURERM_RHEL9_UD_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm97:9.7.2026012716'
 AZURERM_RHEL7_FT_BYOS_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm78:7.8.20200410'
 AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://imageVM1-RHEL7-image-20220617150105'
@@ -979,7 +979,7 @@ REAL_RHEL9_OUTDATED_PACKAGE_FILENAME = 'python3-gofer-2.12.5-7.1.el9sat.noarch'
 REAL_RHEL9_PACKAGE = 'python3-gofer'
 REAL_RHEL10_OUTDATED_PACKAGE_FILENAME = 'katello-host-tools-4.4.0-1.el10sat.noarch'
 REAL_RHEL10_PACKAGE = 'katello-host-tools'
-REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # for rhst7 (update every GA day)
+REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # immutable; from EOL/frozen rhst7 (Sat Tools 6.9, RHEL7)
 REAL_1_ERRATA_ID = 'RHBA-2012:1076'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHBA-2012:0707'  # for REAL_0_RH_PACKAGE
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
@@ -2124,19 +2124,13 @@ BOOKMARK_ENTITIES_SELECTION = [
         'controller': 'provisioning_templates',
         'session_name': 'provisioningtemplate',
     },
-    {
-        'name': 'ArfReport',
-        'controller': 'arf_reports',
-        'session_name': 'arfreport',
-        'skip_for_ui': True,  # search bar is only available when reports exist; otherwise the welcome page renders
-    },
 ]
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
 
 VMWARE_CONSTANTS = {
     'folder': 'vm',
-    'scsicontroller': 'LSI Logic Parallel',
+    'scsicontroller': 'VMware Paravirtual',
     'virtualhw_version': 'Default',
     'pool': 'Resources',
     'network_interface_name': 'VMXNET 3',
@@ -2463,9 +2457,6 @@ FAM_TEST_PLAYBOOKS = [
     "webhook",
 ]
 
-# randomly selected subset of FAM_TEST_PLAYBOOKS to be run in IDM tests
-FAM_IDM_TEST_PLAYBOOKS = ['activation_key', 'content_view', 'job_invocation']
-
 FAM_TEST_LIBVIRT_PLAYBOOKS = [
     "compute_attribute",
     "compute_profile",
@@ -2705,3 +2696,14 @@ class DataFile(Box):
     EXPIRED_MANIFEST_FILE = DATA_DIR.joinpath(EXPIRED_MANIFEST)
     USAGE_REPORT_ITEMS = DATA_DIR.joinpath('usage_report.yml')
     USAGE_REPORT_ITEMS_CONDENSED = DATA_DIR.joinpath('usage_report_condensed.yml')
+
+
+class CertificateAlgorithmOIDs:
+    """OID strings for certificate algorithms (SAT-48622)."""
+
+    # Signature algorithms
+    SHA256_WITH_RSA = "1.2.840.113549.1.1.11"
+
+    # Key algorithms
+    RSA = "1.2.840.113549.1.1.1"
+    ML_DSA_65 = "2.16.840.1.101.3.4.3.18"  # Post-quantum (not yet supported by Candlepin)

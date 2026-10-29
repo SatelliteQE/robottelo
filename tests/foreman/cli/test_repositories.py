@@ -12,7 +12,7 @@
 
 """
 
-import json
+from shlex import quote
 
 import pytest
 from requests.exceptions import HTTPError
@@ -72,12 +72,19 @@ def test_negative_invalid_repo_fails_publish(
     :BZ: 2032040
     """
     repo = module_repository
-    target_sat.execute(
-        'echo "root = ::Katello::RootRepository.last; ::Katello::Resources::Candlepin::Product.'
+    console = 'foreman-rake console'
+    # Scope to this test's repository (RootRepository.last can pick up another
+    # worker's repo) and emit a marker so we can prove the script actually ran.
+    script = (
+        f'root = ::Katello::Repository.find({repo.id}).root; '
+        '::Katello::Resources::Candlepin::Product.'
         'remove_content(root.product.organization.label, root.product.cp_id, root.content_id); '
         '::Katello::Resources::Candlepin::Content.destroy(root.product.organization.label, '
-        'root.content_id)" | foreman-rake console'
+        f'root.content_id); puts "INVALIDATED_REPOSITORY={repo.id}"'
     )
+    invalidation = target_sat.execute(f"printf '%s\\n' {quote(script)} | {console}")
+    assert invalidation.status == 0, invalidation.stderr
+    assert f'INVALIDATED_REPOSITORY={repo.id}' in invalidation.stdout, invalidation.stdout
     cv = target_sat.api.ContentView(
         organization=module_org.name,
         repository=[repo.id],
@@ -196,16 +203,15 @@ def test_purge_pulp_tasks(module_target_sat, module_org, module_repository, sett
     :customerscenario: true
 
     """
-    cmd = 'pulp task list --limit 99999'
-    original_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
+    original_ptc = module_target_sat.pulp_api('tasks/?limit=1')['count']
     module_target_sat.run_orphan_cleanup(smart_proxy_id=1)
-    new_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
+    new_ptc = module_target_sat.pulp_api('tasks/?limit=1')['count']
     assert new_ptc > original_ptc, 'Pulp tasks were unexpectedly purged'
 
     setting_update.value = 0
     setting_update.update({'value'})
 
-    original_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
+    original_ptc = module_target_sat.pulp_api('tasks/?limit=1')['count']
     module_target_sat.run_orphan_cleanup(smart_proxy_id=1)
-    new_ptc = len(json.loads(module_target_sat.execute(cmd).stdout))
+    new_ptc = module_target_sat.pulp_api('tasks/?limit=1')['count']
     assert new_ptc < original_ptc, 'Pulp tasks were not purged'

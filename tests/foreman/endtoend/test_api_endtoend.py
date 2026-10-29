@@ -29,6 +29,7 @@ from robottelo.config import (
     user_nailgun_config,
 )
 from robottelo.constants.repos import CUSTOM_RPM_REPO
+from robottelo.utils.issue_handlers import is_open
 
 API_PATHS = {
     'activation_keys': (
@@ -47,7 +48,6 @@ API_PATHS = {
         '/api/advisor_engine/host_details',
         '/api/advisor_engine/upload_hits',
     ),
-    'advisor_engine_config': ('/api/rh_cloud/advisor_engine_config',),
     'alternate_content_sources': (
         '/katello/api/alternate_content_sources',
         '/katello/api/alternate_content_sources/:id',
@@ -542,7 +542,7 @@ API_PATHS = {
         '/api/organizations/:organization_id/rh_cloud/report',
         '/api/organizations/:organization_id/rh_cloud/inventory_sync',
         '/api/organizations/:organization_id/rh_cloud/missing_hosts',
-        '/api/rh_cloud/enable_connector',
+        '/api/rh_cloud/announce_to_sources',
     ),
     'interfaces': (
         '/api/hosts/:host_id/interfaces',
@@ -941,11 +941,31 @@ API_PATHS = {
 def filtered_api_paths():
     """Filter the API_PATHS dict based on BZs that impact various endpoints"""
     missing = defaultdict(list)
+    scap_not_supported = is_open('SAT-40441')
+    if scap_not_supported:
+        # SCAP (OpenSCAP) is not yet supported on containerized (foremanctl) installs
+        missing['hosts'].append('/api/hosts/:id/policies_enc')
     filtered_paths = API_PATHS.copy()
     for endpoint, missing_paths in missing.items():
         filtered_paths[endpoint] = tuple(
             path for path in filtered_paths[endpoint] if path not in missing_paths
         )
+    if is_open('SAT-40240'):
+        # Discovery is not yet supported on containerized (foremanctl) installs
+        filtered_paths.pop('discovered_hosts', None)
+        filtered_paths.pop('discovery_rules', None)
+    if scap_not_supported:
+        filtered_paths.pop('arf_reports', None)
+        filtered_paths.pop('policies', None)
+        filtered_paths.pop('scap_content_profiles', None)
+        filtered_paths.pop('scap_contents', None)
+        filtered_paths.pop('tailoring_files', None)
+    if is_open('SAT-44794'):
+        # virt-who configure plugin is not yet supported on containerized (foremanctl) installs
+        filtered_paths.pop('configs', None)
+    if is_open('SAT-47660'):
+        # Leapp is not yet supported on containerized (foremanctl) installs
+        filtered_paths.pop('preupgrade_reports', None)
     return filtered_paths
 
 

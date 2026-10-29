@@ -13,7 +13,7 @@
 """
 
 from datetime import UTC, datetime
-import json
+import re
 
 from fauxfactory import gen_string
 import pytest
@@ -22,7 +22,6 @@ from robottelo.config import settings
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE
 
 
-@pytest.mark.upgrade
 def test_selinux_status(target_sat):
     """Test SELinux status.
 
@@ -63,30 +62,40 @@ def test_pulp_directory_exists(target_sat, directory):
 
 
 @pytest.mark.upgrade
-def test_pulp_service_definitions(target_sat):
-    """Test systemd settings for Pulp3 file system layout.
+@pytest.mark.parametrize(
+    ('unit', 'definition'),
+    [
+        ('pulp-api.service', '/etc/containers/systemd/pulp-api.container'),
+        ('pulp-content.service', '/etc/containers/systemd/pulp-content.container'),
+        ('pulp-worker@1.service', '/etc/containers/systemd/pulp-worker@.container'),
+        ('pulp-worker.target', '/etc/systemd/system/pulp-worker.target'),
+    ],
+    ids=['pulp-api', 'pulp-content', 'pulp-worker-1', 'pulp-worker-target'],
+)
+def test_pulp_service_definitions(target_sat, unit, definition):
+    """Check Pulp units are defined and included in foreman.target.
 
     :id: e584faea-dede-4895-8d7f-411cb074f6c0
 
-    :expectedresults: systemd files are present
+    :parametrized: yes
+
+    :steps:
+        1. Read each Pulp unit and its source definition.
+        2. Check that foreman.target depends on the unit.
+
+    :expectedresults: Each Pulp unit is defined and is a dependency of foreman.target.
     """
-    # check pulpcore settings
-    result = target_sat.execute('systemctl cat pulpcore-content.socket')
-    assert result.status == 0
-    assert 'ListenStream=/run/pulpcore-content.sock' in result.stdout
-    result = target_sat.execute('systemctl cat pulpcore-content.service')
-    assert result.status == 0
-    assert 'Requires=pulpcore-content.socket' in result.stdout
-    result = target_sat.execute('systemctl cat pulpcore-api.service')
-    assert result.status == 0
-    assert 'Requires=pulpcore-api.socket' in result.stdout
-    # check pulp3 configuration file present
-    result = target_sat.execute('test -f /etc/pulp/settings.py')
-    assert result.status == 0
+    result = target_sat.execute(f'systemctl cat {unit}')
+    assert result.status == 0, f'{unit}: {result.stderr}'
+    assert target_sat.execute(f'test -f {definition}').status == 0, f'{definition} is missing'
+
+    result = target_sat.execute('systemctl list-dependencies --plain --no-pager foreman.target')
+    assert result.status == 0, result.stderr
+    assert unit in result.stdout, f'{unit} is not a dependency of foreman.target'
 
 
 def test_pulp_workers_status(target_sat):
-    """Ensure pulpcore-workers are in active (running) state
+    """Ensure Pulp worker services are active.
 
     :BZ: 1848111
 
@@ -94,29 +103,38 @@ def test_pulp_workers_status(target_sat):
 
     :customerscenario: true
 
-    :expectedresults: Pulpcore-workers are in active (running) state
+    :steps:
+        1. List Pulp worker services.
+        2. Check each worker is active.
+
+    :expectedresults: Pulp worker services are active.
     """
-    output = target_sat.execute('systemctl status pulpcore-worker* | grep Active')
-    result = output.stdout.rstrip().splitlines()
-    assert all('Active: active (running)' in r for r in result)
+    result = target_sat.execute(
+        "systemctl list-units --all --type=service --no-legend --no-pager 'pulp-worker@*.service'"
+    )
+    assert result.status == 0, result.stderr
+    workers = re.findall(r'pulp-worker@\d+\.service', result.stdout)
+    assert workers, 'No Pulp worker services found'
+    inactive = [
+        unit for unit in workers if target_sat.execute(f'systemctl is-active {unit}').status
+    ]
+    assert not inactive, f'Inactive Pulp worker services: {inactive}'
 
 
 def test_pulp_status(target_sat):
-    """Test pulp status via pulp-cli.
+    """Test Pulp status via its API.
 
     :id: aa7fda5a-cfa1-4fa1-8714-8d5a2e2f89d9
 
     :steps:
-        1. Run pulp status command and parse the output.
+        1. Query the Pulp status endpoint.
 
     :expectedresults:
-        1. Pulp-cli is installed and configured to work properly.
+        1. The Pulp API is reachable and returns status data.
         2. The pulp components are alive according to provided status.
     """
-    result = target_sat.execute('pulp status')
+    status = target_sat.pulp_api('status/')
     now = datetime.now(UTC)
-    assert not result.status
-    status = json.loads(result.stdout)
     assert status['database_connection']['connected']
     assert status['redis_connection']['connected']
 

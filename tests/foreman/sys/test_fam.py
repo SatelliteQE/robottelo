@@ -18,7 +18,6 @@ import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
-    FAM_IDM_TEST_PLAYBOOKS,
     FAM_MODULE_PATH,
     FAM_ROOT_DIR,
     FAM_TEST_LIBVIRT_PLAYBOOKS,
@@ -27,28 +26,48 @@ from robottelo.constants import (
     HAMMER_CONFIG,
     RH_SAT_ROLES,
 )
-from robottelo.hosts import (
-    IPAHost,
-)
+from robottelo.enums import InstallMethod
+from robottelo.hosts import IPAHost
 from robottelo.utils.installer import InstallerCommand
 
-pytestmark = pytest.mark.foreman_installer
+# the minimal set is selected as:
+# bookmark - should never fail, ensures API interaction works
+# redhat_manifest - the only module talking to RHSM
+# repository - ensures basic repository actions work
+# scap_content - ensures we use FIPS-compatible hashlib functions only
+FAM_TEST_PLAYBOOKS_MINIMAL = ['bookmark', 'redhat_manifest', 'repository', 'scap_content']
+FAM_TEST_PLAYBOOKS_OTHER = sorted(set(FAM_TEST_PLAYBOOKS) - set(FAM_TEST_PLAYBOOKS_MINIMAL))
+
+FOREMAN_PROXY_ANSIBLE_DIR = '/var/lib/foreman-proxy/ansible'
+FOREMAN_PROXY_ANSIBLE_ROLES_DIR = f'{FOREMAN_PROXY_ANSIBLE_DIR}/roles'
+FOREMAN_PROXY_ANSIBLE_COLLECTIONS_DIR = (
+    f'{FOREMAN_PROXY_ANSIBLE_DIR}/collections/ansible_collections/redhat'
+)
+FOREMAN_PROXY_SATELLITE_COLLECTION_DIR = f'{FOREMAN_PROXY_ANSIBLE_COLLECTIONS_DIR}/satellite'
 
 
 @pytest.fixture
-def sync_roles(target_sat):
+def sync_roles(module_target_sat, setup_fam):
     """Sync all redhat.satellite roles and delete when finished
     Returns: A dict of the sync response and role names
     """
+    result = module_target_sat.execute(f"mkdir -p {FOREMAN_PROXY_ANSIBLE_COLLECTIONS_DIR}")
+    assert result.status == 0, f"{result.stdout}\n{result.stderr}"
+    result = module_target_sat.execute(
+        f"cp -a {FAM_ROOT_DIR} {FOREMAN_PROXY_SATELLITE_COLLECTION_DIR}"
+    )
+    assert result.status == 0, f"{result.stdout}\n{result.stderr}"
     roles = [f'redhat.satellite.{role}' for role in RH_SAT_ROLES]
-    proxy_list = target_sat.cli.Proxy.list({'search': f'name={target_sat.hostname}'})
+    proxy_list = module_target_sat.cli.Proxy.list({'search': f'name={module_target_sat.hostname}'})
     proxy_id = proxy_list[0].get('id')
-    sync = target_sat.cli.Ansible.roles_sync({'role-names': roles, 'proxy-id': proxy_id})
+    sync = module_target_sat.cli.Ansible.roles_sync({'role-names': roles, 'proxy-id': proxy_id})
     yield {'task': sync, 'roles': roles}
-    roles_list = target_sat.cli.Ansible.roles_list()
+    roles_list = module_target_sat.cli.Ansible.roles_list()
     for role in roles_list:
-        role_id = role.get('id')
-        target_sat.cli.Ansible.roles_delete({'id': role_id})
+        if role.get('name') in roles:
+            role_id = role.get('id')
+            module_target_sat.cli.Ansible.roles_delete({'id': role_id})
+    module_target_sat.execute(f"rm -rf {FOREMAN_PROXY_SATELLITE_COLLECTION_DIR}")
 
 
 @pytest.fixture(scope='module')
@@ -56,8 +75,7 @@ def install_import_ansible_role(module_target_sat):
     """Installs and imports the thulium_drake.motd role used in the luna_hostgroup test playbook"""
 
     def create_fake_role(module_target_sat, role_name, role_metadata):
-        base_dir = '/usr/share/ansible/roles'
-        role_dir = f'{base_dir}/{role_name}'
+        role_dir = f'{FOREMAN_PROXY_ANSIBLE_ROLES_DIR}/{role_name}'
         meta_dir = f'{role_dir}/meta'
         tasks_dir = f'{role_dir}/tasks'
         module_target_sat.execute(f'mkdir -p {meta_dir} {tasks_dir}')
@@ -84,75 +102,19 @@ def install_import_ansible_role(module_target_sat):
     )
 
 
-def common_fam_setup(satellite):
-    satellite.put(
-        settings.fam.compute_profile.to_yaml(),
-        f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/compute_profile.yml',
-        temp_file=True,
-    )
-
-    # Create fake galaxy.yml to make Makefile happy.
-    # The data in the file is unused, but not being able to load it produces errors in the
-    # logs and is confusing when searching for an actual problem during testing.
-    satellite.put(
-        yaml.safe_dump({'name': 'satellite', 'namespace': 'redhat', 'version': '1.0.0'}),
-        f'{FAM_ROOT_DIR}/galaxy.yml',
-        temp_file=True,
-    )
-
-    # Edit Makefile to not try to rebuild the collection when tests run
-    satellite.execute(f"sed -i '/^live/ s/$(MANIFEST)//' {FAM_ROOT_DIR}/Makefile")
-
-    # Edit Makefile to use passed-in pytest
-    # Can be removed once https://github.com/theforeman/foreman-ansible-modules/pull/1788
-    # is present in all relevant branches
-    satellite.execute(f"sed -i '/test_crud/ s/pytest/$(PYTEST_COMMAND)/' {FAM_ROOT_DIR}/Makefile")
-
-    # Edit inventory configurations
-    satellite.execute(
-        f"sed -i '/url/ s#http.*#https://localhost#' {FAM_ROOT_DIR}/tests/inventory/*.foreman.yml {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
-    )
-    satellite.execute(
-        f"sed -i '/inventory_use_container/ s#true#false#' {FAM_ROOT_DIR}/tests/test_playbooks/vars/inventory.yml"
-    )
-
-    # Edit content_import tests
-    # They need to extract data on the Foreman/Satellite machine and use "hosts: foreman" for that
-    # As we're running locally, we can use "hosts: localhost" instead
-    satellite.execute(
-        f"sed -i '/hosts:/ s/foreman/localhost/' {FAM_ROOT_DIR}/tests/test_playbooks/content_import_*.yml"
-    )
-
-    # Edit katello_smart_proxy tests to not delete the Capsule
-    # https://github.com/theforeman/foreman-ansible-modules/pull/1969
-    satellite.execute(
-        f"sed -i '94,112d' {FAM_ROOT_DIR}/tests/test_playbooks/katello_smart_proxy.yml"
-    )
-
-
 @pytest.fixture(scope='module')
 def setup_fam(
-    module_target_sat, module_sca_manifest, install_import_ansible_role, module_capsule_configured
+    module_target_sat,
+    module_sca_manifest,
+    install_import_ansible_role,
 ):
-    # Execute AAP WF for FAM setup
-    Broker().execute(workflow='fam-test-setup', source_vm=module_target_sat.name)
-
-    # Update the settings to point to our Capsule
-    settings.set('fam.server.foreman_proxy', module_capsule_configured.hostname)
+    module_target_sat.configure_fam()
 
     # Copy config files to the Satellite
     module_target_sat.put(
         settings.fam.server.to_yaml(),
         f'{FAM_ROOT_DIR}/tests/test_playbooks/vars/server.yml',
         temp_file=True,
-    )
-
-    common_fam_setup(module_target_sat)
-
-    # Edit repos used in tests
-    # Until https://github.com/theforeman/foreman-ansible-modules/pull/1899 is in
-    module_target_sat.execute(
-        f"sed -i 's#https://repos.fedorapeople.org/pulp/pulp/demo_repos/zoo/#https://fixtures.pulpproject.org/rpm-signed/#' {FAM_ROOT_DIR}/tests/test_playbooks/*.yml"
     )
 
     # Upload manifest to test playbooks directory
@@ -182,28 +144,28 @@ def setup_fam(
                 temp_file=True,
             )
 
-    create_fake_module(
-        module_target_sat,
-        'ntp',
-        [('init', '($logfile, $config_dir, $servers, $burst, $stepout){}'), 'config'],
-    )
+    if module_target_sat.install_method == InstallMethod.INSTALLER:
+        create_fake_module(
+            module_target_sat,
+            'ntp',
+            [('init', '($logfile, $config_dir, $servers, $burst, $stepout){}'), 'config'],
+        )
 
-    create_fake_module(
-        module_target_sat,
-        'prometheus',
-        ['init', 'haproxy_exporter', 'redis_exporter', 'statsd_exporter'],
-    )
+        create_fake_module(
+            module_target_sat,
+            'prometheus',
+            ['init', 'haproxy_exporter', 'redis_exporter', 'statsd_exporter'],
+        )
 
-    smart_proxy = module_target_sat.nailgun_smart_proxy.read()
-    smart_proxy.import_puppetclasses()
+        smart_proxy = module_target_sat.nailgun_smart_proxy.read()
+        smart_proxy.import_puppetclasses()
 
-    create_fake_module(module_target_sat, 'fakemodule', ['init'])
+        create_fake_module(module_target_sat, 'fakemodule', ['init'])
 
 
 @pytest.fixture(scope='module')
 def setup_fam_with_idm(idm_sat, module_sca_manifest):
-    # Execute AAP WF for FAM setup
-    Broker().execute(workflow='fam-test-setup', source_vm=idm_sat.name)
+    idm_sat.configure_fam()
 
     # Modify and copy config files to the Satellite
     idm_fam_settings = settings.fam.server.copy()
@@ -223,8 +185,6 @@ def setup_fam_with_idm(idm_sat, module_sca_manifest):
         temp_file=True,
     )
 
-    common_fam_setup(idm_sat)
-
     # Upload manifest to test playbooks directory
     idm_sat.put(str(module_sca_manifest.path), str(module_sca_manifest.name))
     idm_sat.execute(f'mv {module_sca_manifest.name} {FAM_ROOT_DIR}/tests/test_playbooks/data')
@@ -242,9 +202,21 @@ def idm_sat(satellite_factory, ad_data):
     new_sat.register_to_cdn()
     ipa_host = IPAHost(new_sat)
     ipa_host.enroll_idm_and_configure_external_auth()
-    new_sat.install(InstallerCommand('foreman-ipa-authentication-api true'))
+    if new_sat.install_method == InstallMethod.FOREMANCTL:
+        result = new_sat.execute('foremanctl deploy --external-authentication ipa_with_api')
+        assert result.status == 0, (
+            f'Failed to enable IPA with API authentication: {result.stdout}\n{result.stderr}'
+        )
+    else:
+        result = new_sat.install(InstallerCommand('foreman-ipa-authentication-api true'))
+        assert result.status == 0, 'Installer failed to enable IPA with API authentication'
     # Installs requests-gssapi package to be able to use GSSAPI authentication
-    new_sat.execute('yum -y --disableplugin=foreman-protector install python3-requests-gssapi')
+    result = new_sat.execute(
+        'dnf -y --disableplugin=foreman-protector install python3-requests-gssapi'
+    )
+    assert result.status == 0, (
+        f'Failed to install python3-requests-gssapi:\n{result.stdout}\n{result.stderr}'
+    )
     # Configures hammer to use sessions and negotiate auth
     new_sat.execute(f"sed -i '/:username.*/d' {HAMMER_CONFIG}")
     new_sat.execute(f"sed -i '/:password.*/d' {HAMMER_CONFIG}")
@@ -269,7 +241,7 @@ def idm_sat(satellite_factory, ad_data):
 
 @pytest.mark.pit_server
 @pytest.mark.run_in_one_thread
-def test_positive_ansible_modules_installation(target_sat):
+def test_positive_ansible_modules_installation(setup_fam, module_target_sat):
     """Foreman ansible modules installation test
 
     :id: 553a927e-2665-4227-8542-0258d7b1ccc4
@@ -278,13 +250,13 @@ def test_positive_ansible_modules_installation(target_sat):
         available and supported modules are contained
     """
     # list installed modules
-    result = target_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
+    result = module_target_sat.execute(f'ls {FAM_MODULE_PATH} | grep .py$ | sed "s/.[^.]*$//"')
     assert result.status == 0
     installed_modules = result.stdout.split('\n')
     installed_modules.remove('')
     # see help for installed modules
     for module_name in installed_modules:
-        result = target_sat.execute(f'ansible-doc redhat.satellite.{module_name} -s')
+        result = module_target_sat.execute(f'ansible-doc redhat.satellite.{module_name} -s')
         assert result.status == 0
         doc_name = result.stdout.split('\n')[1].lstrip()[:-1]
         assert doc_name == module_name
@@ -300,7 +272,7 @@ def test_positive_ansible_modules_installation(target_sat):
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-def test_positive_import_run_roles(sync_roles, target_sat):
+def test_positive_import_run_roles(sync_roles, module_target_sat, request):
     """Import a FAM role and run the role on the Satellite
 
     :id: d3379fd3-b847-43ce-a51f-c02170e7b267
@@ -308,25 +280,43 @@ def test_positive_import_run_roles(sync_roles, target_sat):
     :expectedresults: fam roles import and run successfully
     """
     roles = sync_roles.get('roles')
-    target_sat.cli.Host.ansible_roles_assign({'ansible-roles': roles, 'name': target_sat.hostname})
-    play = target_sat.cli.Host.ansible_roles_play({'name': target_sat.hostname})
+    host = module_target_sat.cli_factory.make_fake_host()
+    request.addfinalizer(module_target_sat.api.Host(id=host.id).delete)
+    module_target_sat.cli.Host.ansible_roles_assign({'ansible-roles': roles, 'id': host.id})
+    play = module_target_sat.cli.Host.ansible_roles_play({'id': host.id})
     assert 'Ansible roles are being played' in play[0]['message']
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize('ansible_module', FAM_TEST_PLAYBOOKS)
-def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_module):
-    """Run all FAM modules and roles on the Satellite
+@pytest.mark.parametrize('ansible_module', FAM_TEST_PLAYBOOKS_MINIMAL)
+def test_positive_run_modules_and_roles_e2e(module_target_sat, setup_fam, ansible_module):
+    """Run selected FAM modules and roles on the Satellite
 
-    :id: b595756f-627c-44ea-b738-aa17ff5b1d39
+    :id: ce6a36a3-f2cc-4bdb-8aad-a2427d084969
 
     :expectedresults: All modules and roles run successfully
     """
     common_test_positive_run_modules_and_roles(module_target_sat, ansible_module)
 
 
+@pytest.mark.parametrize('ansible_module', FAM_TEST_PLAYBOOKS_OTHER)
+def test_positive_run_modules_and_roles(
+    module_target_sat, setup_fam, ansible_module, module_capsule_configured
+):
+    """Run remaining FAM modules and roles on the Satellite
+
+    :id: b595756f-627c-44ea-b738-aa17ff5b1d39
+
+    :expectedresults: All modules and roles run successfully
+    """
+    # Update the settings to point to our Capsule
+    settings.set('fam.server.foreman_proxy', module_capsule_configured.hostname)
+
+    common_test_positive_run_modules_and_roles(module_target_sat, ansible_module)
+
+
 @pytest.mark.destructive
-@pytest.mark.parametrize('ansible_module', FAM_IDM_TEST_PLAYBOOKS)
+@pytest.mark.parametrize('ansible_module', FAM_TEST_PLAYBOOKS_MINIMAL)
 def test_positive_run_modules_and_roles_kerberos_auth(idm_sat, setup_fam_with_idm, ansible_module):
     """Run limited set of modules and roles on a Satellite with Kerberos authentication
 
@@ -351,8 +341,44 @@ def common_test_positive_run_modules_and_roles(satellite, ansible_module, extra_
     ):
         pytest.skip(f"{ansible_module} module test lacks proper setup")
 
+    # Skip FAM tests that don't work yet on containerized setups
+    if (
+        satellite.install_method == InstallMethod.FOREMANCTL
+        and ansible_module
+        in [
+            'compute_attribute',  # 500 error creating compute attributes, libvirt not configured
+            'compute_profile',  # 500 error creating compute attributes, libvirt not configured
+            'compute_profiles_role',  # 500 error creating compute attributes, libvirt not configured
+            'compute_resource',  # compute resource creation failed, libvirt not configured
+            'compute_resources_role',  # compute resource failure (no_log hides details), libvirt not configured
+            'config_group',  # missing plugin: puppet
+            'discovery_rule',  # missing plugin: discovery
+            'domain',  # DNS not supported yet
+            'host',  # missing plugin: puppet
+            'hostgroup',  # needs DNS
+            'image',  # 500 error creating image, libvirt compute resource not configured
+            'katello_hostgroup',  # smart proxy not found by hostname
+            'katello_smart_proxy',  # unable to communicate with smart proxy
+            'luna_hostgroup',  # missing plugin: openscap
+            'puppetclasses_import',  # missing plugin: puppet
+            'puppet_environment',  # missing plugin: puppet
+            'resource_info',  # expected >=1 instance_hosts resource, found 0
+            'scap_content',  # missing plugin: openscap
+            'scap_tailoring_file',  # missing plugin: openscap
+            'smart_class_parameter',  # missing plugin: puppet
+            'smart_class_parameter_override_value',  # missing plugin: puppet
+            'smart_proxy_refresh',  # unable to communicate with smart proxy
+            'subnet',  # needs DNS
+            'templates_import',  # missing plugin: templates
+        ]
+    ):
+        pytest.skip(f"{ansible_module} module tests don't work in containerized setups")
+
     # Setup provisioning resources
-    if ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS:
+    if (
+        ansible_module in FAM_TEST_LIBVIRT_PLAYBOOKS
+        and satellite.install_method == InstallMethod.INSTALLER
+    ):
         satellite.configure_libvirt_cr()
 
     env = [

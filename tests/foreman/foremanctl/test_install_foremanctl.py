@@ -16,13 +16,13 @@ from broker import Broker
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.config import settings
+from robottelo.config import configure_airgun, configure_nailgun, settings
 from robottelo.constants import (
     FOREMANCTL_PARAMETERS_FILE,
     FOREMANCTL_POSTGRESQL_TUNING_PROFILES,
     InstallationServices,
 )
-from robottelo.hosts import Capsule, Satellite
+from robottelo.hosts import Capsule, Satellite, lru_sat_ready_rhel
 
 pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
 
@@ -46,6 +46,15 @@ def module_sat_ready_rhel(request):
     """Deploy bare RHEL system ready for Satellite installation."""
     param = getattr(request, 'param', 'default')
     deploy_args = param.get('deploy_args', '') if isinstance(param, dict) else ''
+    # In sanity, install onto the shared lru host that target_sat also resolves to.
+    if 'sanity' in request.config.option.markexpr:
+        sat = lru_sat_ready_rhel(settings.server.version.rhel_version)
+        sat.install_satellite_foremanctl(parameters=deploy_args)
+        settings.server.hostname = sat.hostname
+        configure_nailgun()
+        configure_airgun()
+        yield sat
+        return
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
@@ -141,9 +150,16 @@ def module_sat_foremanctl_tuning(request):
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-@pytest.mark.first_sanity
 @pytest.mark.network_sensitive
-@pytest.mark.parametrize('module_sat_ready_rhel', ['default', 'fips', 'fapolicyd'], indirect=True)
+@pytest.mark.parametrize(
+    'module_sat_ready_rhel',
+    [
+        pytest.param('default', marks=[pytest.mark.build_sanity, pytest.mark.first_sanity]),
+        'fips',
+        'fapolicyd',
+    ],
+    indirect=True,
+)
 def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
     """Run a basic Satellite installation
 
@@ -164,11 +180,14 @@ def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-@pytest.mark.build_sanity
 @pytest.mark.network_sensitive
 @pytest.mark.parametrize(
     ('module_sat_ready_rhel', 'module_cap_ready_rhel'),
-    [('default', 'default'), ('fips', 'fips'), ('fapolicyd', 'fapolicyd')],
+    [
+        pytest.param('default', 'default', marks=pytest.mark.build_sanity),
+        ('fips', 'fips'),
+        ('fapolicyd', 'fapolicyd'),
+    ],
     ids=['default', 'fips', 'fapolicyd'],
     indirect=True,
 )
@@ -183,10 +202,12 @@ def test_capsule_installation_with_foremanctl(
         1. Use Satellite deployed with foremanctl.
         2. Configure RHEL and Capsule repos on Satellite
         3. Register Capsule machine to consume Satellite content
-        4. Install and setup Capsule server using foremanctl
+        4. Serve the Capsule container images from the Satellite and configure the
+           Capsule to pull them from the Satellite instead of registry.redhat.io
+        5. Install and setup Capsule server using foremanctl
 
     :expectedresults:
-        1. Capsule is installed and setup correctly
+        1. Capsule is installed and setup correctly using images served by the Satellite
         2. no unexpected errors in logs
         3. health check runs successfully
     """
@@ -211,6 +232,11 @@ def test_capsule_installation_with_foremanctl(
     module_sat_ready_rhel.api_factory.sync_capsule_repos(module_cap_ready_rhel, org, ak)
 
     module_cap_ready_rhel.register(org, None, ak.name, module_sat_ready_rhel)
+
+    # Serve the Capsule container images from the Satellite and redirect the Capsule's
+    # image pulls to it, so deploy-proxy installs from the Satellite-served images.
+    product_path = module_sat_ready_rhel.api_factory.serve_capsule_container_images(org)
+    module_cap_ready_rhel.pull_container_images_from_satellite(module_sat_ready_rhel, product_path)
 
     # Setup Capsule
     result = module_cap_ready_rhel.execute(cmd_args)

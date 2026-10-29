@@ -12,7 +12,6 @@
 
 """
 
-import json
 import random
 import re
 from string import punctuation
@@ -22,9 +21,10 @@ from urllib.parse import urljoin, urlparse, urlunparse
 
 from fauxfactory import gen_string
 from nailgun import client
-from nailgun.entity_mixins import TaskFailedError, call_entity_method_with_timeout
+from nailgun.entity_mixins import TaskFailedError
 import pytest
 from requests.exceptions import HTTPError
+from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
@@ -1069,20 +1069,28 @@ class TestRepository:
             reposet=constants.REPOSET['rhst7'],
             releasever=None,
         )
-        call_entity_method_with_timeout(target_sat.api.Repository(id=repo_id).sync, timeout=1500)
-        with target_sat.session.shell() as sh:
-            sh.send('foreman-rake console')
-            time.sleep(30)  # sleep to allow time for console to open
-            sh.send(f'::Katello::Repository.find({repo_id}).version_href')
-            time.sleep(3)  # give enough time for the command to complete
-        results = sh.result
-        identifier = results.stdout.split('version_href\n"', 1)[1].split('version')[0]
-        target_sat.execute(
-            f'curl -X DELETE {target_sat.url}/{identifier}'
-            f' --cert /etc/foreman/client_cert.pem'
-            f' --key /etc/foreman/client_key.pem'
+        repo = target_sat.api.Repository(id=repo_id)
+        repo.sync(timeout=1500)
+        version_href = repo.read_json()['version_href']
+        repository_href = target_sat.pulp_api(version_href)['repository']
+        # Deliberately corrupt the backend state so correct_repositories has work to do.
+        deletion_task_href = target_sat.pulp_api(repository_href, method='DELETE')['task']
+        deletion_task, _ = wait_for(
+            lambda: target_sat.pulp_api(deletion_task_href),
+            fail_condition=lambda task: (
+                task['state'] not in ('completed', 'failed', 'canceled', 'skipped')
+            ),
+            timeout=300,
+            delay=2,
         )
-        command_output = target_sat.execute('foreman-rake katello:correct_repositories COMMIT=true')
+        assert deletion_task['state'] == 'completed', (
+            f'Pulp task {deletion_task_href} ended in {deletion_task["state"]}: '
+            f'{deletion_task.get("error")}'
+        )
+        command_output = target_sat.execute(
+            'podman exec foreman foreman-rake katello:correct_repositories COMMIT=true'
+        )
+        assert command_output.status == 0, command_output.stderr
         assert 'Recreating' in command_output.stdout
         assert 'TaskError' not in command_output.stdout
 
@@ -2484,6 +2492,41 @@ class TestFileRepository:
             f'Expected HTTP 200 for {iso_path}, got {result.stdout.strip()}'
         )
 
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content_type': 'file', 'url': repo_constants.CUSTOM_FILE_REPO}]),
+        indirect=True,
+    )
+    def test_positive_sync_file_repo_with_skip_metadata_check(self, repo, target_sat):
+        """Verify skip_metadata_check parameter is accepted for file repositories
+
+        :id: 55feff08-7705-4f47-885a-1e1ba7b13c38
+
+        :steps:
+            1. Create a file repository
+            2. Sync the repository normally
+            3. Sync again with skip_metadata_check=True
+
+        :expectedresults:
+            1. Initial sync succeeds
+            2. Sync with skip_metadata_check succeeds without error
+            3. Previously would error with "Cannot skip metadata check on non-yum/deb repositories"
+
+        :Verifies: SAT-49549
+        """
+        # Initial sync
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['file'] > 0, 'Repository should contain files after sync'
+
+        # Sync with skip_metadata_check - should not raise an error
+        result = repo.sync(data={'skip_metadata_check': True})
+        assert result, 'Sync with skip_metadata_check should succeed'
+
+        # Verify repository still has content
+        repo = repo.read()
+        assert repo.content_counts['file'] > 0, 'Repository should still contain files'
+
 
 @pytest.mark.skip_if_not_set('container_repo')
 class TestTokenAuthContainerRepository:
@@ -2731,11 +2774,7 @@ class TestPythonRepository:
         remote_href = target_sat.execute(
             f'echo "::Katello::Repository.find({repo.id}).remote_href" | foreman-rake console'
         ).stdout.split('"')[1]
-        remote_result = target_sat.execute(
-            f'pulp --no-verify-ssl --refresh-api python remote show --href "{remote_href}"'
-        )
-        assert remote_result.status == 0, remote_result.stderr
-        remote = json.loads(remote_result.stdout)
+        remote = target_sat.pulp_api(remote_href)
         assert remote['policy'] == default_policy
 
         repo.download_policy = updated_policy
@@ -2746,9 +2785,5 @@ class TestPythonRepository:
         repo = repo.read()
         assert repo.content_counts['python_package'] > 0
 
-        remote_result = target_sat.execute(
-            f'pulp --no-verify-ssl --refresh-api python remote show --href "{remote_href}"'
-        )
-        assert remote_result.status == 0, remote_result.stderr
-        remote = json.loads(remote_result.stdout)
+        remote = target_sat.pulp_api(remote_href)
         assert remote['policy'] == updated_policy

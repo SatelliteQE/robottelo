@@ -240,7 +240,7 @@ def test_positive_service_enable_disable(sat_maintain):
             handle_exception=True,
         )
         assert ping_ok, (
-            'satellite-maintain ping did not succeed after reboot (timed out after 300s). '
+            'hammer ping did not succeed after reboot (timed out after 300s). '
             f'Last ping output: {sat_maintain.cli.Base.ping()}'
         )
     else:
