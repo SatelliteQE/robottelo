@@ -13,12 +13,9 @@
 """
 
 import pytest
-import yaml
 
 from robottelo.config import settings
 from robottelo.constants import InstallationServices
-from robottelo.enums import InstallMethod
-from robottelo.utils.installer import InstallerCommand
 
 
 @pytest.mark.no_containers
@@ -37,7 +34,7 @@ def test_positive_install_iop_custom_certs(
 
         1. Generate the custom certs on RHEL machine
         2. Install Satellite and IoP with custom certs
-        3. Assert success return code from satellite-installer
+        3. Assert IoP is enabled after the deployment
         4. Assert all services are running
         5. Register client to Satellite and upload insights-client data
         6. Assert success return code from insights-client
@@ -52,88 +49,26 @@ def test_positive_install_iop_custom_certs(
     # Set IPv6 proxy for shell commands
     satellite.enable_ipv6_system_proxy()
 
-    # Satellite + IoP installation with custom certs, based on install method
-    if satellite.install_method == InstallMethod.FOREMANCTL:
-        # Containerized: deploy Satellite with custom certs via satellitectl, then add the
-        # IoP feature with the method-aware helper (foremanctl deploy --add-feature iop).
-        satellite.install_satellite_foremanctl(
-            parameters=[
-                '--certificate-source custom_server',
-                f'--certificate-server-certificate /root/{certs_data["cert_file_name"]}',
-                f'--certificate-server-key /root/{certs_data["key_file_name"]}',
-                f'--certificate-server-ca-certificate /root/{certs_data["ca_bundle_file_name"]}',
-            ],
-        )
-        satellite.configure_iop()
-    else:
-        # Installer: install the Satellite package and run satellite-installer with custom
-        # certs and IoP enabled in a single run.
-        iop_settings = settings.rh_cloud.iop
-
-        satellite.download_repofile(
-            product='satellite',
-            release=settings.server.version.release,
-            snap=settings.server.version.snap,
-        )
-        satellite.register_to_cdn()
-        satellite.execute('dnf -y update')
-        satellite.install_satellite_or_capsule_package()
-
-        # Set up firewall
-        satellite.configure_firewall(
-            ports=[
-                '53/udp',
-                '53/tcp',
-                '67/udp',
-                '69/udp',
-                '80/tcp',
-                '443/tcp',
-                '5647/tcp',
-                '8000/tcp',
-                '9090/tcp',
-                '8140/tcp',
-            ],
-        )
-
-        # Set IPv6 proxy for podman to pull images, then log in to the IoP container registry
-        satellite.enable_ipv6_podman_proxy()
-        satellite.podman_login(
-            iop_settings.stage_username, iop_settings.stage_token, iop_settings.stage_registry
-        )
-
-        # Set up container image path overrides
-        custom_hiera_yaml = yaml.dump(satellite.get_iop_image_paths())
-        satellite.execute(f'echo "{custom_hiera_yaml}" > /etc/foreman-installer/custom-hiera.yaml')
-
-        command = InstallerCommand(
-            'enable-iop',
-            'certs-update-server',
-            'certs-update-server-ca',
-            scenario='satellite',
-            certs_server_cert=f'/root/{certs_data["cert_file_name"]}',
-            certs_server_key=f'/root/{certs_data["key_file_name"]}',
-            certs_server_ca_cert=f'/root/{certs_data["ca_bundle_file_name"]}',
-            foreman_initial_admin_password=settings.server.admin_password,
-        ).get_command()
-
-        result = satellite.execute(command, timeout='30m')
-        assert result.status == 0
+    # Deploy Satellite with custom certs via satellitectl, then add the IoP feature
+    satellite.install_satellite_foremanctl(
+        parameters=[
+            '--certificate-source custom_server',
+            f'--certificate-server-certificate /root/{certs_data["cert_file_name"]}',
+            f'--certificate-server-key /root/{certs_data["key_file_name"]}',
+            f'--certificate-server-ca-certificate /root/{certs_data["ca_bundle_file_name"]}',
+        ],
+    )
+    satellite.configure_iop()
 
     # Assert IoP is enabled
     assert satellite.iop_enabled, 'IoP is not enabled after installation'
 
-    # Assert all services (including IoP) are running (method-aware)
-    if satellite.install_method == InstallMethod.INSTALLER:
-        result = satellite.execute('hammer ping')
-        assert result.stdout.count('Status:') == result.stdout.count(' ok')
-        result = satellite.execute('satellite-maintain health check --label services-up -y')
-        assert result.status == 0, 'Not all services are running'
-    else:
-        service_status = satellite.verify_services_running(
-            satellite.get_service_names(include_iop=True)
-        )
-        failed_services = [svc for svc, running in service_status.items() if not running]
-        assert not failed_services, f'Services not running: {failed_services}'
+    # Assert all services (including IoP) are running
+    service_status = satellite.verify_services_running(
+        satellite.get_service_names(include_iop=True)
+    )
+    failed_services = [svc for svc, running in service_status.items() if not running]
+    assert not failed_services, f'Services not running: {failed_services}'
 
     org = satellite.api.Organization().create()
     satellite.upload_manifest(org.id, module_sca_manifest.content)
@@ -178,12 +113,12 @@ def test_disable_enable_iop(request, module_satellite_iop, function_sca_manifest
 
         1. Install Satellite and IoP
         2. Assert all IoP services are running
-        3. Disable IoP by running satellite-installer with `--iop-ensure absent`
+        3. Disable IoP by running `foremanctl deploy --remove-feature iop`
         4. Assert all IoP services are stopped, and podman containers, networks, secrets, and volumes are removed
-        5. Re-enable IoP with `--iop-ensure present`
+        5. Re-enable IoP with `foremanctl deploy --add-feature iop`
         6. Assert all IoP services are running
 
-    :expectedresults: IoP services should be running or absent as configured by the `iop-ensure` installer option
+    :expectedresults: IoP services should be running or absent as configured by the `iop` feature
 
     :CaseAutomation: Automated
 
@@ -226,103 +161,49 @@ def test_disable_enable_iop(request, module_satellite_iop, function_sca_manifest
     result = host.execute('insights-client')
     assert result.status == 0, 'Initial insights-client upload failed'
 
-    # Disable IoP, verify it is stopped, then re-enable it and verify it is running.
-    # The service-state verification differs by install method: on a containerized
-    # (foremanctl) Satellite the whole product runs as podman containers, so IoP state
-    # is checked against podman; on an RPM Satellite it is checked via satellite-maintain.
-    if satellite.install_method == InstallMethod.FOREMANCTL:
-        # ---------------- Containerized (foremanctl) ----------------
-        # Disable IoP
-        result = satellite.execute('foremanctl deploy --remove-feature iop', timeout='10m')
-        assert result.status == 0, 'Failed to disable IoP'
-        assert satellite.restart_services() is True, 'Failed to restart Satellite services'
+    # Disable IoP
+    result = satellite.execute('foremanctl deploy --remove-feature iop', timeout='10m')
+    assert result.status == 0, 'Failed to disable IoP'
+    assert satellite.restart_services() is True, 'Failed to restart Satellite services'
 
-        # IoP feature is gone and no IoP containers/volumes/secrets/network remain.
-        # Core Satellite containers stay up, so each check is scoped to iop-named resources.
-        assert not satellite.iop_enabled, 'IoP feature still enabled'
+    # IoP feature is gone and no IoP containers/volumes/secrets/network remain.
+    # Core Satellite containers stay up, so each check is scoped to iop-named resources.
+    assert not satellite.iop_enabled, 'IoP feature still enabled'
 
-        running = satellite.execute("podman ps --format '{{.Names}}'").stdout
-        assert not any(service in running for service in InstallationServices.IOP_SERVICES), (
-            'IoP containers still running'
-        )
+    running = satellite.execute("podman ps --format '{{.Names}}'").stdout
+    assert not any(service in running for service in InstallationServices.IOP_SERVICES), (
+        'IoP containers still running'
+    )
 
-        result = satellite.execute("podman volume ls --filter name=iop --format '{{.Name}}'")
-        assert result.stdout.strip() == '', 'IoP podman volumes not removed'
+    result = satellite.execute("podman volume ls --filter name=iop --format '{{.Name}}'")
+    assert result.stdout.strip() == '', 'IoP podman volumes not removed'
 
-        result = satellite.execute("podman secret ls --filter name=iop --format '{{.Name}}'")
-        assert result.stdout.strip() == '', 'IoP podman secrets not removed'
+    result = satellite.execute("podman secret ls --filter name=iop --format '{{.Name}}'")
+    assert result.stdout.strip() == '', 'IoP podman secrets not removed'
 
-        result = satellite.execute("podman network ls --filter name=iop --format '{{.Name}}'")
-        assert result.stdout.strip() == '', 'IoP podman network not removed'
+    result = satellite.execute("podman network ls --filter name=iop --format '{{.Name}}'")
+    assert result.stdout.strip() == '', 'IoP podman network not removed'
 
-        # Verify the client sees IoP as unavailable, then clean up its registration.
-        result = host.execute('insights-client --status')
-        assert 'Insights API says this machine is NOT registered.' in result.stdout, (
-            'insights-client status check failed'
-        )
-        result = host.execute('rm -f /etc/insights-client/machine-id; insights-client --register')
-        assert result.status == 0, 'Failed to register to Red Hat Lightspeed'
-        result = host.execute('insights-client --unregister')
-        assert result.status == 0, 'Failed to unregister from Red Hat Lightspeed'
+    # Verify the client sees IoP as unavailable, then clean up its registration.
+    result = host.execute('insights-client --status')
+    assert 'Insights API says this machine is NOT registered.' in result.stdout, (
+        'insights-client status check failed'
+    )
+    result = host.execute('rm -f /etc/insights-client/machine-id; insights-client --register')
+    assert result.status == 0, 'Failed to register to Red Hat Lightspeed'
+    result = host.execute('insights-client --unregister')
+    assert result.status == 0, 'Failed to unregister from Red Hat Lightspeed'
 
-        # Re-enable IoP
-        result = satellite.execute('foremanctl deploy --add-feature iop', timeout='10m')
-        assert result.status == 0, 'Failed to re-enable IoP'
-        assert satellite.restart_services() is True, 'Failed to restart Satellite services'
+    # Re-enable IoP
+    result = satellite.execute('foremanctl deploy --add-feature iop', timeout='10m')
+    assert result.status == 0, 'Failed to re-enable IoP'
+    assert satellite.restart_services() is True, 'Failed to restart Satellite services'
 
-        # IoP feature is back and all IoP containers are running.
-        assert satellite.iop_enabled, 'IoP feature not enabled'
-        running = satellite.execute("podman ps --format '{{.Names}}'").stdout
-        missing = [svc for svc in InstallationServices.IOP_SERVICES if svc not in running]
-        assert not missing, f'IoP containers not running: {missing}'
-    else:
-        # ---------------- RPM installer ----------------
-        # Disable IoP
-        command = InstallerCommand(iop_ensure='absent').get_command()
-        result = satellite.execute(command, timeout='10m')
-        assert result.status == 0, 'Failed to disable IoP'
-        assert satellite.restart_services() is True, 'Failed to restart Satellite services'
-
-        # On RPM, podman is used only by IoP, so every podman resource should be gone.
-        result = satellite.execute('podman ps -a --noheading')
-        assert result.stdout == '', 'Podman containers not removed'
-
-        result = satellite.execute('podman volume ls -n')
-        assert result.stdout == '', 'Podman volumes not removed'
-
-        result = satellite.execute('podman secret ls -n')
-        assert result.stdout == '', 'Podman secrets not removed'
-
-        result = satellite.execute('podman network ls -n -f "name=iop"')
-        assert result.stdout == '', 'Podman network not removed'
-
-        result = satellite.execute('satellite-maintain service status -b')
-        assert 'FAIL' not in result.stdout, 'Services not running'
-        assert not any(service in result.stdout for service in InstallationServices.IOP_SERVICES), (
-            'IoP services not disabled'
-        )
-
-        # Verify the client sees IoP as unavailable, then clean up its registration.
-        result = host.execute('insights-client --status')
-        assert 'Insights API says this machine is NOT registered.' in result.stdout, (
-            'insights-client status check failed'
-        )
-        result = host.execute('rm -f /etc/insights-client/machine-id; insights-client --register')
-        assert result.status == 0, 'Failed to register to Red Hat Lightspeed'
-        result = host.execute('insights-client --unregister')
-        assert result.status == 0, 'Failed to unregister from Red Hat Lightspeed'
-
-        # Re-enable IoP
-        command = InstallerCommand(iop_ensure='present').get_command()
-        result = satellite.execute(command, timeout='10m')
-        assert result.status == 0, 'Failed to re-enable IoP'
-        assert satellite.restart_services() is True, 'Failed to restart Satellite services'
-
-        result = satellite.execute('satellite-maintain service status -b')
-        assert 'FAIL' not in result.stdout, 'Services not running'
-        assert all(service in result.stdout for service in InstallationServices.IOP_SERVICES), (
-            'IoP services not enabled'
-        )
+    # IoP feature is back and all IoP containers are running.
+    assert satellite.iop_enabled, 'IoP feature not enabled'
+    running = satellite.execute("podman ps --format '{{.Names}}'").stdout
+    missing = [svc for svc in InstallationServices.IOP_SERVICES if svc not in running]
+    assert not missing, f'IoP containers not running: {missing}'
 
     # Verify insights-client re-registration and upload against re-enabled IoP.
     result = host.execute('rm -f /etc/insights-client/machine-id; insights-client --register')
