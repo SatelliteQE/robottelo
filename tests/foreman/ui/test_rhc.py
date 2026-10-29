@@ -27,7 +27,7 @@ from robottelo.logging import logger
 def fixture_enable_rhc_repos(module_target_sat):
     """Enable repos required for configuring RHC."""
     # subscribe rhc satellite to cdn.
-    if settings.rh_cloud.crc_env == 'prod':
+    if getattr(settings.rh_cloud, 'crc_env', 'prod') == 'prod':
         module_target_sat.register_to_cdn()
         major = module_target_sat.os_version.major
         if major > 7:
@@ -46,14 +46,15 @@ def fixture_enable_rhc_repos(module_target_sat):
 @pytest.fixture(scope='module')
 def module_rhc_org(module_target_sat):
     """Module level fixture for creating organization"""
-    if settings.rh_cloud.crc_env == 'prod':
-        org = module_target_sat.api.Organization(
-            name=settings.rh_cloud.organization or 'satqe-rhc-org-' + gen_string('alpha')
-        ).create()
+    if getattr(settings.rh_cloud, 'crc_env', 'prod') == 'prod':
+        org_name = getattr(settings.rh_cloud, 'organization', '') or (
+            'satqe-rhc-org-' + gen_string('alpha')
+        )
+        org = module_target_sat.api.Organization(name=org_name).create()
     else:
         org = (
             module_target_sat.api.Organization()
-            .search(query={'search': f'name="{settings.rh_cloud.organization}"'})[0]
+            .search(query={'search': f'name="{getattr(settings.rh_cloud, "organization", "")}"'})[0]
             .read()
         )
 
@@ -74,7 +75,7 @@ def fixture_setup_rhc_satellite(
     module_rhc_org,
 ):
     """Create Organization and activation key after successful test execution"""
-    if settings.rh_cloud.crc_env == 'prod':
+    if getattr(settings.rh_cloud, 'crc_env', 'prod') == 'prod':
         manifester = Manifester(
             allocation_name=module_rhc_org.name,
             manifest_category=settings.manifest.golden_ticket,
@@ -107,7 +108,7 @@ def fixture_setup_rhc_satellite(
         content_view.publish()
         # Create Activation key
         ak = module_target_sat.api.ActivationKey(
-            name=settings.rh_cloud.activation_key or gen_string('alpha'),
+            name=getattr(settings.rh_cloud, 'activation_key', '') or gen_string('alpha'),
             content_view=content_view,
             organization=module_rhc_org,
             environment=module_target_sat.api.LifecycleEnvironment(id=module_rhc_org.library.id),
