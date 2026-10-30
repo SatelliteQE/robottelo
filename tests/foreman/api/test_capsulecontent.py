@@ -2470,6 +2470,8 @@ class TestPodman:
             error is returned when attempting to do so.
 
         :CaseImportance: High
+
+        :BlockedBy: SAT-53513
         """
         IMAGE_NAME_TAG = 'fedora:latest'
         image_pull = module_capsule_podman_contenthost.execute(
