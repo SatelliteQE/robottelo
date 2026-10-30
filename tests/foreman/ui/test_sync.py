@@ -56,11 +56,10 @@ def test_positive_sync_status_product_name_without_organization(
 
     with session:
         session.organization.select(org_name=module_org.name)
-        view = session.sync_status.navigate_to(session.sync_status, 'All')
-        product_row = view.table.get_row_by_name(module_custom_product.name)
-        # The name span alone excludes the organization suffix even before the fix.
-        name_cell = view.browser.element('./th[1]', parent=product_row)
-        assert view.browser.text(name_cell).strip() == module_custom_product.name
+        assert (
+            session.sync_status.read_product_name(module_custom_product.name)
+            == module_custom_product.name
+        )
 
 
 @pytest.mark.run_in_one_thread
