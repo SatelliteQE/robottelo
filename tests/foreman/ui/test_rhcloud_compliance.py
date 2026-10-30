@@ -130,7 +130,7 @@ def test_iop_compliance_policy_update_affects_scan():
 
 
 # TODO: generate id
-def test_iop_compliance_create_and_view_policy(compliance_session):
+def test_iop_compliance_crud_policy(compliance_session):
     """Test that creating a policy via UI works.
 
     :id: d532c0aa-2ed5-4953-9ff7-99521569c453
@@ -139,10 +139,19 @@ def test_iop_compliance_create_and_view_policy(compliance_session):
         1. Create a customized policy via the Create SCAP policy wizard
         2. Navigate to details of the new policy
         3. Verify policy is displayed correctly
+        4. change policy description
+        5. change compliance threshold
+        6. verify the values have changed
+        7. Navigate to all policies
+        8. delete the policy using row kebab
+        9. verify the policy is deleted
 
     :expectedresults:
-        Filtering narrows the reports table to matching entries only.
+        The created policy exists.
     """
+    random_id = gen_string('alpha')
+    random_updated_id = gen_string('alpha')
+
     # 1. Create a customized policy via the Create SCAP policy wizard
     wizard = compliance_session.cloudcompliancepolicies.create_policy()
     wizard.create_scap_policy.select_os(os_name='RHEL 10')
@@ -167,53 +176,29 @@ def test_iop_compliance_create_and_view_policy(compliance_session):
     assert policy_details.details.threshold_value == '50.0%'
     assert random_id in policy_details.details.policy_description.read()
 
-
-# pytest tests/foreman/ui/test_rhcloud_compliance.py::test_positive_create_policy
-
-
-def test_iop_compliance_update_policy(compliance_session, compliance_policy):
-    """Test that updating a policy via UI works.
-
-    :id: 1a837102-86e6-4489-9555-f3cc8c990ad7
-
-    :steps:
-        1. Navigate to Policy details
-        2. change policy description
-        3. change compliance threshold
-        4. verify the values have changed
-
-    :expectedresults:
-        Filtering narrows the reports table to matching entries only.
-    """
-    # 1. Navigate to a created policy
-    random_id = gen_string('alpha')
-
-    policy_details = compliance_session.cloudcompliancepolicies.get_policy_details(
-        compliance_policy.title
-    )
-
-    # 2. change policy description
+    # 4. change policy description
     policy_details.details.change_description(
-        new_description=f"{GENERIC_POLICY_DESCRIPTION} My random code is {random_id}"
+        new_description=f"{GENERIC_POLICY_DESCRIPTION} My random code is {random_updated_id}"
     )
 
-    # 3. change compliance threshold
-    policy_details.details.change_threshold(new_threshold=50)
+    # 5. change compliance threshold
+    policy_details.details.change_threshold(new_threshold=20)
 
-    # 4. verify the values have changed
+    # 6. verify the values have changed
     compliance_session.cloudcompliancepolicies.read()
-    policy_details = compliance_session.cloudcompliancepolicies.get_policy_details(
-        compliance_policy.title
-    )
-    assert '50' in policy_details.details.threshold_value
-    assert random_id in policy_details.details.policy_description.read()
+    policy_details = compliance_session.cloudcompliancepolicies.get_policy_details(policy_title)
+    assert '20' in policy_details.details.threshold_value
+    assert random_updated_id in policy_details.details.policy_description.read()
 
-    # policies.change_policy_name(old_name=compliance_policy.title, new_name=f"automation_policy_id-{random_id}")
+    # 7. Navigate to all policies
+    compliance_session.cloudcompliancepolicies.read()
 
+    # 8. delete the policy using row kebab
+    compliance_session.cloudcompliancepolicies.delete_policy(policy_name=policy_title)
 
-def test_iop_compliance_delete_policy():
-    """Test that we can delete a policy."""
-    pass
+    # 9. verify the policy is deleted
+    policies = compliance_session.cloudcompliancepolicies.read()
+    assert len([p for p in policies if random_id in p['Name']]) == 0
 
 
 def test_iop_compliance_assign_remove_host():
