@@ -362,7 +362,7 @@ def test_positive_orphan_cleanup_skips_content_counts(
         2. No ``UpdateContentCounts`` task is created for any capsule.
     """
     with target_sat.api_factory.satellite_setting('automatic_content_count_updates=false'):
-        timestamp = datetime.now(UTC).replace(microsecond=0)
+        timestamp = datetime.now(UTC)
         target_sat.run_orphan_cleanup(module_capsule_configured.nailgun_smart_proxy.id)
         with pytest.raises(AssertionError, match='No task was found'):
             target_sat.wait_for_tasks(
