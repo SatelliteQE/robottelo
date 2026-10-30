@@ -165,9 +165,7 @@ def test_positive_create_with_https(
         account_name = f"cn={auth_data['ldap_user_cn']},{auth_data['base_dn']}"
         server_type = 'AD'
     cacert_pem = get_ldap_cacert_pem(module_target_sat, server_type, auth_data['ldap_hostname'])
-    wrong_cacert_result = module_target_sat.execute(
-        'cat /etc/pki/ca-trust/source/anchors/katello_server-host-cert.crt'
-    )
+    wrong_cacert_result = module_target_sat.execute('cat /etc/pki/httpd/certs/katello-apache.crt')
     assert wrong_cacert_result.status == 0, (
         f'Failed to read Satellite host cert: {wrong_cacert_result.stderr}'
     )
