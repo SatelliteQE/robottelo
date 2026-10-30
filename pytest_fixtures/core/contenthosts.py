@@ -367,11 +367,12 @@ def module_container_contenthost(request, module_target_sat, module_org, module_
 
 
 @pytest.fixture(scope='module')
-def module_podman_contenthost(request, module_target_sat, module_org, module_activation_key):
-    """A registered RHEL content host with podman that trusts the Satellite's container registry.
+def module_podman_contenthost(request, module_target_sat):
+    """A RHEL content host with podman installed.
 
-    Provides the real user path for podman push/pull against the Satellite registry, instead of
-    running the podman client on the Satellite itself.
+    Provides the real user path for podman registry operations instead of running the podman client
+    on the Satellite or Capsule itself. Tests should register this host to the target registry in a
+    test-module-specific fixture.
     """
     ipv6 = module_target_sat.network_type == NetworkType.IPV6
     request.param = {
@@ -382,15 +383,23 @@ def module_podman_contenthost(request, module_target_sat, module_org, module_act
     }
     with contenthost_factory(request=request) as host:
         host.ensure_podman_installed(enable_ipv6_proxy=ipv6)
-        result = host.register(
-            module_org,
-            None,
-            module_activation_key.name,
-            module_target_sat,
-            setup_container_certs=True,
-        )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
         yield host
+
+
+@pytest.fixture(scope='module')
+def module_registered_podman_contenthost(
+    module_podman_contenthost, module_target_sat, module_org, module_activation_key
+):
+    """A registered RHEL content host that trusts the Satellite's container registry."""
+    result = module_podman_contenthost.register(
+        module_org,
+        None,
+        module_activation_key.name,
+        module_target_sat,
+        setup_container_certs=True,
+    )
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    return module_podman_contenthost
 
 
 @pytest.fixture(scope='module')
