@@ -7606,8 +7606,8 @@
               "value": "VALUE"
             },
             {
-              "help": "Certificate path, for GCE only",
-              "name": "key-path",
+              "help": "Certificate JSON content, for GCE only",
+              "name": "key-content",
               "shortname": null,
               "value": "VALUE"
             },
@@ -9258,8 +9258,8 @@
               "value": "VALUE"
             },
             {
-              "help": "Certificate path, for GCE only",
-              "name": "key-path",
+              "help": "Certificate JSON content, for GCE only",
+              "name": "key-content",
               "shortname": null,
               "value": "VALUE"
             },

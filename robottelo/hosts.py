@@ -3058,13 +3058,6 @@ class Satellite(Capsule, SatelliteMixins):
                 'value': http_proxy_url,
             }
         )
-        if is_open('SAT-52548'):
-            self.cli.Settings.set(
-                {
-                    'name': 'http_proxy_except_list',
-                    'value': '["candlepin"]',
-                }
-            )
         return http_proxy
 
     def disable_satellite_http_proxy(self, http_proxy):
