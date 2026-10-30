@@ -12,11 +12,17 @@
 
 """
 
+import json
+from shlex import quote
+
 import pytest
+import requests
+from wait_for import wait_for
 import yaml
 
 from robottelo.config import settings
 from robottelo.utils.installer import InstallerCommand
+from robottelo.utils.io import get_report_data
 
 IOP_SERVICES = [
     'iop-core-engine',
@@ -568,3 +574,193 @@ def test_set_iop_log_level_via_installer(module_satellite_iop):
     ).stdout
     settings_dict = process_iop_log_options(log_level_settings)
     assert NEW_LOG_LEVEL not in settings_dict.values()
+
+
+def _iop_get(satellite, org, path, **params):
+    """Read the UI's IoP endpoints as an administrator in the test organization."""
+    # Put the taxonomy in the GET body so it is not forwarded to strict upstream APIs.
+    response = requests.get(
+        f'{satellite.url}/insights_cloud/api/{path}',
+        json={'organization_id': org.id},
+        params=params,
+        headers={'Accept': 'application/json'},
+        timeout=60,
+        **satellite.nailgun_cfg.get_client_kwargs(),
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def _iop_system_ids(host, satellite, org):
+    """Return matching system IDs and totals, including any duplicate records."""
+    inventory = _iop_get(satellite, org, 'inventory/v1/hosts', fqdn=host.hostname)
+    advisor = _iop_get(satellite, org, 'insights/v1/system/', hostname_or_id=host.hostname)
+    vulnerability = _iop_get(satellite, org, 'vulnerability/v1/systems', filter=host.hostname)
+    return {
+        'inventory': (inventory['total'], [system['id'] for system in inventory['results']]),
+        'advisor': (
+            advisor['meta']['count'],
+            [system['system_uuid'] for system in advisor['data']],
+        ),
+        'vulnerability': (
+            vulnerability['meta']['total_items'],
+            [system['id'] for system in vulnerability['data']],
+        ),
+    }
+
+
+def _assert_iop_registered(host, satellite, org, timeout=600):
+    """Wait for all services to process this registration and verify Advisor and Vulnerability."""
+    result = host.execute('insights-client')
+    assert result.status == 0, f'Insights upload failed: {result.stderr}'
+    consumer_uuid = host.identity['system_identity']
+    expected = {
+        service: (1, [consumer_uuid]) for service in ('inventory', 'advisor', 'vulnerability')
+    }
+    wait_for(
+        lambda: _iop_system_ids(host, satellite, org),
+        fail_condition=lambda systems: systems != expected,
+        timeout=timeout,
+        delay=15,
+        message=f'Exactly one current IoP record per service for {host.hostname}',
+    )
+
+    details = json.loads(host.execute('cat /var/lib/insights/host-details.json').stdout)['results']
+    assert len(details) == 1
+    identity_keys = ('subscription_manager_id', 'insights_id', 'satellite_id')
+    assert {key: details[0][key] for key in identity_keys} == dict.fromkeys(
+        identity_keys, consumer_uuid
+    )
+    assert details[0]['org_id'] == org.label
+    wait_for(
+        lambda: (
+            'OPENSSH_HARDENING_CONFIG_PERMS' in host.execute('insights-client --diagnosis').stdout
+        ),
+        timeout=600,
+        delay=15,
+        message='Advisor detects the OpenSSH configuration ownership issue',
+    )
+    vulnerability = _iop_get(satellite, org, f'vulnerability/v1/systems/{consumer_uuid}')
+    assert vulnerability['data']['last_evaluation']
+    cves = _iop_get(satellite, org, f'vulnerability/v1/systems/{consumer_uuid}/cves')
+    assert isinstance(cves['data'], list)
+    return consumer_uuid
+
+
+@pytest.mark.e2e
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
+def test_insights_client_unregister_and_force_reregister_iop(
+    module_target_sat_insights,
+    rhel_insights_vm,
+    rhcloud_manifest_org,
+    rhcloud_activation_key,
+    tmp_path,
+):
+    """Remove only Insights registration, then restore IoP through global registration.
+
+    :id: ae7238bb-a81b-4026-85fc-6e9f6bc386f7
+
+    :steps:
+        1. Register a host to Satellite and IoP through global registration.
+        2. Set a non-root group on sshd_config without changing its permissions to trigger
+           an OpenSSH Advisor recommendation. Verify Inventory, Advisor, and Vulnerability
+           have exactly one record for the current consumer UUID.
+        3. Force global registration with setup_insights=true while IoP is registered,
+           then recheck all three services and the local host details.
+        4. Unregister using insights-client only and wait for all three service records
+           and the Satellite Insights facet to disappear.
+        5. Verify the Satellite host and subscription identity remain unchanged.
+        6. Generate and download a disconnected Satellite inventory report.
+        7. Force global registration with setup_insights=true again and recheck all
+           three services, the host details, and Advisor and Vulnerability results.
+
+    :expectedresults:
+        1. Each registration cycle leaves exactly one current record per IoP service.
+        2. Insights unregister removes IoP records and the Insights facet while preserving
+           the Satellite host and subscription identity.
+        3. Inventory report generation still succeeds and includes the Satellite host.
+        4. Advisor detects the recommendation and Vulnerability evaluates the host after
+           both force re-registration cycles.
+
+    :Verifies: SAT-44008, SAT-44010
+
+    :parametrized: yes
+    """
+    satellite = module_target_sat_insights
+    host = rhel_insights_vm
+    org = rhcloud_manifest_org
+    result = host.execute('stat -c %g /etc/ssh/sshd_config')
+    assert result.status == 0
+    original_group = result.stdout.strip()
+    try:
+        # A non-root group triggers the rule without granting write access to other users.
+        result = host.execute('chgrp 65534 /etc/ssh/sshd_config')
+        assert result.status == 0
+        # A freshly enabled IoP may still be importing its first vulnerability database.
+        _assert_iop_registered(host, satellite, org, timeout=90 * 60)
+
+        # Cover force registration of an already registered Insights client as well.
+        result = host.register(
+            org, None, rhcloud_activation_key.name, satellite, force=True, setup_insights=True
+        )
+        assert result.status == 0, f'Force registration failed: {result.stderr}'
+        consumer_uuid = _assert_iop_registered(host, satellite, org)
+        satellite_host_id = host.nailgun_host.id
+        facet = satellite.api.Host().search_json(query={'search': f'id = {satellite_host_id}'})
+        assert facet['results'][0]['insights_attributes']['uuid'] == consumer_uuid
+
+        result = host.execute('insights-client --unregister')
+        assert result.status == 0, f'Insights unregister failed: {result.stderr}'
+        assert 'Successfully unregistered' in result.stdout
+        wait_for(
+            lambda: _iop_system_ids(host, satellite, org),
+            fail_condition=lambda systems: (
+                systems != {'inventory': (0, []), 'advisor': (0, []), 'vulnerability': (0, [])}
+            ),
+            timeout=600,
+            delay=15,
+            message=f'IoP removes all service records for {host.hostname}',
+        )
+        result = host.execute('insights-client --status')
+        assert 'System is NOT registered' in result.stdout
+        assert host.execute('test -e /etc/insights-client/.registered').status == 1
+        assert host.identity['system_identity'] == consumer_uuid
+        assert host.nailgun_host.id == satellite_host_id
+
+        def facet_has_data(attributes):
+            return any(
+                (attributes or {}).get(key)
+                for key in ('uuid', 'insights_hit_details', 'insights_hits_count')
+            )
+
+        attributes, _ = wait_for(
+            lambda: satellite.api.Host().search_json(query={'search': f'id = {satellite_host_id}'})[
+                'results'
+            ][0]['insights_attributes'],
+            fail_condition=facet_has_data,
+            timeout=120,
+            delay=5,
+            silent_failure=True,
+            message=f'Satellite clears the Insights facet for {host.hostname}',
+        )
+        assert not facet_has_data(attributes), (
+            f'Satellite retained Insights data after unregistering {host.hostname}: {attributes}'
+        )
+
+        satellite.generate_inventory_report(org, disconnected='true')
+        report_path = tmp_path / f'report_for_{org.id}.tar.xz'
+        satellite.api.Organization(id=org.id).rh_cloud_download_report(destination=report_path)
+        report_hosts = get_report_data(report_path)['hosts']
+        assert host.hostname in {record['fqdn'] for record in report_hosts}
+
+        result = host.register(
+            org, None, rhcloud_activation_key.name, satellite, force=True, setup_insights=True
+        )
+        assert result.status == 0, (
+            f'Force registration after Insights unregister failed: {result.stderr}'
+        )
+        _assert_iop_registered(host, satellite, org)
+    finally:
+        host.execute(f'chgrp {quote(original_group)} /etc/ssh/sshd_config')
