@@ -24,7 +24,7 @@ from robottelo.config import settings
 from robottelo.constants import GCE_RHEL_CLOUD_PROJECTS, VALID_GCE_ZONES
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = pytest.mark.skipif("is_open('SAT-51000')")
+pytestmark = pytest.mark.skip(reason="Not applicable to 6.20: SAT-51000 will not be fixed there")
 
 
 @pytest.mark.skip_if_not_set('gce')
