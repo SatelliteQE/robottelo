@@ -42,7 +42,13 @@ from robottelo.constants import (
     RPM_TO_UPLOAD,
     DataFile,
 )
-from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO, RHEL10_BASEOS_MLDSA
+from robottelo.constants.repos import (
+    ANSIBLE_GALAXY,
+    CUSTOM_FILE_REPO,
+    PULP_FIXTURE_ROOT,
+    PULP_SUBPATHS_COMBINED,
+    RHEL10_BASEOS_MLDSA,
+)
 from robottelo.content_info import (
     get_repo_files_by_url,
     get_repomd,
@@ -2443,6 +2449,78 @@ class TestPodman:
         assert res.status == 0  # expect cmd succeeded
         assert 'login succeeded' not in res.stdout.lower()
         assert 'invalid username/password' in res.stdout.lower()
+
+
+@pytest.mark.network_sensitive
+@pytest.mark.skip_if_not_set('capsule')
+@pytest.mark.parametrize('content_type', ['file', 'yum'])
+def test_positive_capsule_acs_crud(
+    request, module_target_sat, module_capsule_configured, content_type
+):
+    """Create, read, update, refresh and delete a custom ACS on an external Capsule.
+
+    :id: cbd7c23d-6694-4e4a-9120-1879eff15aea
+
+    :parametrized: yes
+
+    :setup:
+        1. An external Capsule registered to Satellite, including an existing n-minus Capsule.
+
+    :steps:
+        1. Create a custom file or yum ACS assigned to the external Capsule's content proxy.
+        2. Read the ACS and verify its name, content type and Capsule assignment.
+        3. Update its name and description and verify the changes.
+        4. Refresh the ACS and verify the task and recorded refresh succeed.
+        5. Delete the ACS and verify it can no longer be read.
+
+    :expectedresults:
+        1. The ACS is created and associated only with the external Capsule.
+        2. Updated values are persisted.
+        3. Refresh succeeds on the Capsule.
+        4. The deleted ACS returns HTTP 404.
+    """
+    content_proxy = module_capsule_configured.nailgun_content_smart_proxy
+    params = {
+        'name': gen_string('alpha'),
+        'alternate_content_source_type': 'custom',
+        'content_type': content_type,
+        'smart_proxy_ids': [content_proxy.id],
+        'base_url': PULP_FIXTURE_ROOT,
+        'subpaths': PULP_SUBPATHS_COMBINED[content_type],
+        'verify_ssl': False,
+    }
+    if not module_capsule_configured.network_type.has_ipv4:
+        original_http_proxy = content_proxy.http_proxy
+        request.addfinalizer(
+            lambda: module_target_sat.api.SmartProxy(
+                id=content_proxy.id, http_proxy=original_http_proxy
+            ).update(['http_proxy'])
+        )
+        content_proxy.http_proxy = module_target_sat.enable_satellite_http_proxy()
+        content_proxy.update(['http_proxy'])
+        params['use_http_proxies'] = True
+
+    acs = module_target_sat.api.AlternateContentSource(**params).create()
+    try:
+        created = acs.read()
+        assert created.name == acs.name
+        assert created.content_type == content_type
+        assert [proxy.id for proxy in created.smart_proxies] == [content_proxy.id]
+
+        acs.name = gen_string('alpha')
+        acs.description = gen_string('alpha')
+        acs.update(['name', 'description'])
+        updated = acs.read()
+        assert (updated.name, updated.description) == (acs.name, acs.description)
+
+        assert acs.refresh()['result'] == 'success', 'Capsule ACS refresh failed.'
+        assert acs.read().last_refresh['result'] == 'success'
+    finally:
+        acs.delete()
+
+    with pytest.raises(HTTPError) as exc:
+        acs.read()
+    assert exc.value.response.status_code == 404
 
 
 @pytest.mark.pqc
