@@ -140,10 +140,12 @@ def test_positive_sync_docker_via_sync_status(session, module_org, module_target
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['docker'],
-                'repo_content.upstream_url': settings.container.rh.registry_hub,
-                'repo_content.upstream_repo_name': settings.container.docker.repo_upstream_name,
-                'repo_content.upstream_username': settings.subscription.rhn_username,
-                'repo_content.upstream_password': settings.subscription.rhn_password,
+                'repo_content.upstream_url': settings.container_repo.registries.redhat.url,
+                'repo_content.upstream_repo_name': settings.container_repo.registries.redhat.repos_to_sync[
+                    0
+                ],
+                'repo_content.upstream_username': settings.container_repo.registries.redhat.username,
+                'repo_content.upstream_password': settings.container_repo.registries.redhat.password,
             },
         )
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name
