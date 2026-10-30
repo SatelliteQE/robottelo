@@ -1613,11 +1613,13 @@ class TestDockerRepository:
             {
                 'large_repo': {
                     'content_type': 'docker',
-                    'docker_upstream_name': settings.container.docker.repo_upstream_name,
+                    'docker_upstream_name': settings.container_repo.registries.redhat.repos_to_sync[
+                        0
+                    ],
                     'name': gen_string('alphanumeric', 10),
-                    'url': settings.container.rh.registry_hub,
-                    'upstream_username': settings.subscription.rhn_username,
-                    'upstream_password': settings.subscription.rhn_password,
+                    'url': settings.container_repo.registries.redhat.url,
+                    'upstream_username': settings.container_repo.registries.redhat.username,
+                    'upstream_password': settings.container_repo.registries.redhat.password,
                 }
             }
         ),
@@ -1632,7 +1634,7 @@ class TestDockerRepository:
             1. Create new product
             2. Create docker repo with:
                 a. URL - https://registry.redhat.io
-                b. Repo - openshift3/logging-elasticsearch
+                b. Repo - from container_repo.registries.redhat.repos_to_sync
             3. Sync repo
             4. Cancel sync
             5. Assert sync has stopped
