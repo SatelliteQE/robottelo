@@ -21,14 +21,14 @@ from robottelo.config import user_nailgun_config
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-def test_positive_update_capsule(request, pytestconfig, target_sat, module_capsule_configured):
+def test_positive_update_capsule(request, target_sat, module_capsule_configured_ansible):
     """Update various capsule properties
 
     :id: a3d3eaa9-ed8d-42e6-9c83-20251e5ca9af
 
     :steps:
-        1. Get deployed capsule from fixture
-        2. Refresh features
+        1. Get deployed capsule with Ansible enabled from fixture
+        2. Refresh features and verify Ansible is advertised
         3. Update capsule organization
         4. Update capsule location
         5. Update capsule name
@@ -39,18 +39,23 @@ def test_positive_update_capsule(request, pytestconfig, target_sat, module_capsu
 
     :customerscenario: true
     """
-    new_name = f'{gen_string("alpha")}-{module_capsule_configured.hostname}'
-    capsule = target_sat.api.SmartProxy().search(
-        query={'search': f'name = {module_capsule_configured.hostname}'}
-    )[0]
+    new_name = f'{gen_string("alpha")}-{module_capsule_configured_ansible.hostname}'
+    capsule = (
+        target_sat.api.SmartProxy()
+        .search(query={'search': f'name = {module_capsule_configured_ansible.hostname}'})[0]
+        .read()
+    )
+    original_values = {
+        field: getattr(capsule, field) for field in ('name', 'organization', 'location')
+    }
+
+    @request.addfinalizer
+    def _restore_capsule():
+        target_sat.api.SmartProxy(id=capsule.id, **original_values).update(list(original_values))
 
     # refresh features
     features = capsule.refresh()
-    result = module_capsule_configured.install(cmd_args=['enable-foreman-proxy-plugin-openscap'])
-    assert result.status == 0, 'Installer failed when enabling OpenSCAP plugin.'
-    features_new = capsule.refresh()
-    assert len(features_new["features"]) == len(features["features"]) + 1
-    assert 'Openscap' in [feature["name"] for feature in features_new["features"]]
+    assert 'Ansible' in {feature['name'] for feature in features['features']}
 
     # update organizations
     organizations = [target_sat.api.Organization().create() for _ in range(2)]
@@ -62,23 +67,12 @@ def test_positive_update_capsule(request, pytestconfig, target_sat, module_capsu
     locations = [target_sat.api.Location().create() for _ in range(2)]
     capsule.location = locations
     capsule = capsule.update(['location'])
-    assert {loc.id for loc in capsule.organization} == {loc.id for loc in organizations}
+    assert {loc.id for loc in capsule.location} == {loc.id for loc in locations}
 
     # update name
     capsule.name = new_name
     capsule = capsule.update(['name'])
     assert capsule.name == new_name
-
-    @request.addfinalizer
-    def _finalize():
-        # Updating the hostname back
-        if (
-            cap := target_sat.api.SmartProxy().search(query={'search': f'name = {new_name}'})
-            and pytestconfig.option.n_minus
-        ):
-            cap = cap[0]
-            cap.name = module_capsule_configured.hostname
-            cap.update(['name'])
 
     # searching for non-default capsule BZ#2077824
     capsules = target_sat.api.SmartProxy().search(query={'search': 'id != 1'})

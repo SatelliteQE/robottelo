@@ -1327,6 +1327,7 @@ class TestRexUsers:
         assert result['success'] == '1'
 
 
+@pytest.mark.foreman_installer
 class TestPullProviderRex:
     """Tests related to remote execution via pull provider (mqtt)"""
 
