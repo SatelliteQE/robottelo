@@ -88,15 +88,33 @@ POWER_OPERATIONS = {
 }
 
 
-@lru_cache
 def lru_sat_ready_rhel(rhel_ver):
-    """Deploy bare RHEL system ready for Satellite installation."""
-    rhel_version = rhel_ver or settings.server.version.rhel_version
+    """Share a fresh OS host only within the same RHEL and candidate identity."""
+    rhel_version = str(rhel_ver or settings.server.version.rhel_version)
+    candidate_path = settings.server.get('candidate_manifest', '')
+    candidate_sha256 = settings.server.get('candidate_sha256', '')
+    if candidate_path or candidate_sha256:
+        from robottelo.utils.container_candidate import load_candidate
+
+        # Validate before provisioning, not only before installation.
+        load_candidate(candidate_path, candidate_sha256)
+        if rhel_version.split('.')[0] != '10':
+            raise ValueError('Container candidates require RHEL 10')
+    return _lru_sat_ready_rhel(rhel_version, candidate_sha256)
+
+
+@lru_cache
+def _lru_sat_ready_rhel(rhel_version, candidate_sha256):
+    """Cache includes the manifest checksum so a different candidate cannot reuse a host."""
     deploy_args = settings.server.deploy_arguments | {
         'deploy_rhel_version': rhel_version,
         'deploy_flavor': settings.flavors.default,
         'workflow': settings.server.deploy_workflows.os,
     }
+    if candidate_sha256:
+        if deploy_args.get('deploy_template_name'):
+            raise ValueError('Candidate sanity must not use an explicit Satellite template')
+        deploy_args['skip_vm_pooling'] = True
     return Broker(**deploy_args, host_class=Satellite).checkout()
 
 
@@ -2451,13 +2469,31 @@ class Capsule(ContentHost, CapsuleMixins):
         :param parameters: Additional parameters for satellitectl deploy
         :return: Result of final satellitectl deploy command
         """
+        candidate = None
+        candidate_path = settings.server.get('candidate_manifest', '')
+        candidate_sha256 = settings.server.get('candidate_sha256', '')
+        if candidate_path or candidate_sha256:
+            from robottelo.utils.container_candidate import load_candidate
+
+            candidate = load_candidate(candidate_path, candidate_sha256)
+            if self.os_version.major != 10 or settings.server.version.source != 'nightly':
+                raise ValueError(
+                    'Candidate installation requires RHEL 10 and nightly repository mode'
+                )
+            if settings.server.get('deploy_arguments', {}).get('pull_requests'):
+                raise ValueError('Candidate installation cannot overlay untested PR packages')
+
         # Add IPv6 proxy for IPv6 communication
         self.enable_ipv6_dnf_and_rhsm_proxy()
         self.enable_ipv6_system_proxy()
         # Enable RHEL and Satellite repos
         self.register_to_cdn()
         self.setup_rhel_repos()
-        self.setup_satellite_repos()
+        if candidate:
+            self.disable_repo('satellite-*')
+            self.create_custom_repos(satellite_repo=candidate['compose']['host_repo_url'])
+        else:
+            self.setup_satellite_repos()
         # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
         self.ensure_podman_installed(enable_ipv6_proxy=True)
         # Authenticate to the container registry to pull deploy images
@@ -2498,6 +2534,11 @@ class Capsule(ContentHost, CapsuleMixins):
             'Failed to install satellitectl'
         )
 
+        if candidate:
+            from robottelo.utils.container_candidate import prepare_candidate
+
+            prepare_candidate(self, candidate)
+
         # Install Satellite and return result
 
         default_parameters = [
@@ -2519,6 +2560,16 @@ class Capsule(ContentHost, CapsuleMixins):
         # IPv6-only: set content HTTP proxy so Satellite can reach the CDN for content sync
         if not self.network_type.has_ipv4:
             self.enable_satellite_http_proxy()
+
+        if candidate:
+            from robottelo.utils.container_candidate import verify_candidate
+
+            verify_candidate(
+                self,
+                candidate,
+                settings.server.get('candidate_evidence', 'candidate-evidence.json'),
+                candidate_sha256,
+            )
 
         return deploy
 
