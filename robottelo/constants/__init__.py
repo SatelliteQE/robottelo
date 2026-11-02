@@ -162,7 +162,7 @@ AZURERM_VALID_REGIONS = [
     'Norway West',
     'Norway East',
 ]
-AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW:latest'
+AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:rhel-raw:7-raw:7.9.2026031104'
 AZURERM_RHEL9_UD_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm97:9.7.2026012716'
 AZURERM_RHEL7_FT_BYOS_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm78:7.8.20200410'
 AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://imageVM1-RHEL7-image-20220617150105'

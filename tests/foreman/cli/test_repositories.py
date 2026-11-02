@@ -12,6 +12,8 @@
 
 """
 
+from shlex import quote
+
 import pytest
 from requests.exceptions import HTTPError
 
@@ -70,12 +72,19 @@ def test_negative_invalid_repo_fails_publish(
     :BZ: 2032040
     """
     repo = module_repository
-    target_sat.execute(
-        'echo "root = ::Katello::RootRepository.last; ::Katello::Resources::Candlepin::Product.'
+    console = 'foreman-rake console'
+    # Scope to this test's repository (RootRepository.last can pick up another
+    # worker's repo) and emit a marker so we can prove the script actually ran.
+    script = (
+        f'root = ::Katello::Repository.find({repo.id}).root; '
+        '::Katello::Resources::Candlepin::Product.'
         'remove_content(root.product.organization.label, root.product.cp_id, root.content_id); '
         '::Katello::Resources::Candlepin::Content.destroy(root.product.organization.label, '
-        'root.content_id)" | foreman-rake console'
+        f'root.content_id); puts "INVALIDATED_REPOSITORY={repo.id}"'
     )
+    invalidation = target_sat.execute(f"printf '%s\\n' {quote(script)} | {console}")
+    assert invalidation.status == 0, invalidation.stderr
+    assert f'INVALIDATED_REPOSITORY={repo.id}' in invalidation.stdout, invalidation.stdout
     cv = target_sat.api.ContentView(
         organization=module_org.name,
         repository=[repo.id],

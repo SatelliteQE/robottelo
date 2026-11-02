@@ -678,11 +678,13 @@ def test_positive_no_errors_on_repo_scan(target_sat, function_sca_manifest_org):
     with target_sat.ui_session() as session:
         session.organization.select(function_sca_manifest_org.name)
         session.redhatrepository.read(sat_rpm_extras.data['repository-set'])
-        result = target_sat.execute(
-            'grep "Failed at scanning for repository: undefined method '
-            '\\`resolve_substitutions\' for nil:NilClass" /var/log/foreman/production.log'
+        error = (
+            'Failed at scanning for repository: undefined method '
+            r"\`resolve_substitutions' for nil:NilClass"
         )
-        assert result.status == 1
+        result = target_sat.read_foreman_log()
+        assert result.status == 0, result.stderr
+        assert error not in result.stdout, f'Unexpected scan error found in log: {result.stdout}'
 
 
 def test_positive_reposet_disable(session, target_sat, function_sca_manifest_org):

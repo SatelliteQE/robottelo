@@ -1970,9 +1970,8 @@ class TestRepository:
         assert result.status == 0, f'Registration failed: {result.stderr}'
         assert rhel_contenthost.subscribed
         rhel_contenthost.run('yum repolist')
-        access_log = target_sat.execute(
-            'tail -n 10 /var/log/httpd/foreman-ssl_access_ssl.log | grep "/rhsm"'
-        )
+        access_log = target_sat.read_httpd_access_log()
+        assert access_log.status == 0, access_log.stderr
         assert 'accessible_content HTTP/1.1" 304' in access_log.stdout
 
     @pytest.mark.parametrize(

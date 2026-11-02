@@ -15,6 +15,7 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 """
 
+import json
 import random
 
 from fauxfactory import gen_string
@@ -23,8 +24,6 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import GCE_RHEL_CLOUD_PROJECTS, VALID_GCE_ZONES
 from robottelo.utils.issue_handlers import is_open
-
-pytestmark = pytest.mark.skipif("is_open('SAT-51000')")
 
 
 @pytest.mark.skip_if_not_set('gce')
@@ -46,7 +45,7 @@ class TestGCEComputeResourceTestCases:
         compresource = sat_gce.api.GCEComputeResource(
             name=cr_name,
             provider='GCE',
-            key_path=settings.gce.cert_path,
+            key_content=json.dumps(gce_cert),
             zone=settings.gce.zone,
             organization=[sat_gce_org],
             location=[sat_gce_loc],

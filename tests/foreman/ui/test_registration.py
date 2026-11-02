@@ -159,8 +159,6 @@ def test_positive_global_registration_end_to_end(
          client work out of the box
 
     :parametrized: yes
-
-    :BlockedBy: SAT-47528
     """
     # Adding IPv6 proxy for IPv6 communication
     rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()

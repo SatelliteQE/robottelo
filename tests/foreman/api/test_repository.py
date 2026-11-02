@@ -21,9 +21,10 @@ from urllib.parse import urljoin, urlparse, urlunparse
 
 from fauxfactory import gen_string
 from nailgun import client
-from nailgun.entity_mixins import TaskFailedError, call_entity_method_with_timeout
+from nailgun.entity_mixins import TaskFailedError
 import pytest
 from requests.exceptions import HTTPError
+from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
@@ -1068,20 +1069,28 @@ class TestRepository:
             reposet=constants.REPOSET['rhst7'],
             releasever=None,
         )
-        call_entity_method_with_timeout(target_sat.api.Repository(id=repo_id).sync, timeout=1500)
-        with target_sat.session.shell() as sh:
-            sh.send('foreman-rake console')
-            time.sleep(30)  # sleep to allow time for console to open
-            sh.send(f'::Katello::Repository.find({repo_id}).version_href')
-            time.sleep(3)  # give enough time for the command to complete
-        results = sh.result
-        identifier = results.stdout.split('version_href\n"', 1)[1].split('version')[0]
-        target_sat.execute(
-            f'curl -X DELETE {target_sat.url}/{identifier}'
-            f' --cert /etc/foreman/client_cert.pem'
-            f' --key /etc/foreman/client_key.pem'
+        repo = target_sat.api.Repository(id=repo_id)
+        repo.sync(timeout=1500)
+        version_href = repo.read_json()['version_href']
+        repository_href = target_sat.pulp_api(version_href)['repository']
+        # Deliberately corrupt the backend state so correct_repositories has work to do.
+        deletion_task_href = target_sat.pulp_api(repository_href, method='DELETE')['task']
+        deletion_task, _ = wait_for(
+            lambda: target_sat.pulp_api(deletion_task_href),
+            fail_condition=lambda task: (
+                task['state'] not in ('completed', 'failed', 'canceled', 'skipped')
+            ),
+            timeout=300,
+            delay=2,
         )
-        command_output = target_sat.execute('foreman-rake katello:correct_repositories COMMIT=true')
+        assert deletion_task['state'] == 'completed', (
+            f'Pulp task {deletion_task_href} ended in {deletion_task["state"]}: '
+            f'{deletion_task.get("error")}'
+        )
+        command_output = target_sat.execute(
+            'podman exec foreman foreman-rake katello:correct_repositories COMMIT=true'
+        )
+        assert command_output.status == 0, command_output.stderr
         assert 'Recreating' in command_output.stdout
         assert 'TaskError' not in command_output.stdout
 
