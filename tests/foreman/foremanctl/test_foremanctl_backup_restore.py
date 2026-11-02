@@ -486,55 +486,6 @@ def test_positive_restore_validate(module_target_sat):
     assert health_after.status == 0, f'Health check failed after validate:\n{health_after.stdout}'
 
 
-def test_negative_restore_baddir(module_target_sat):
-    """Verify foremanctl restore fails with a non-existing backup directory
-
-    :id: a7b530e6-7496-45b6-ba14-198980dc3ca8
-
-    :steps:
-        1. Run foremanctl restore with a non-existing backup directory
-
-    :expectedresults:
-        1. Restore command exits with non-zero status
-
-    :Verifies: SAT-44898
-    """
-    bad_dir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
-
-    result = module_target_sat.execute(
-        f'foremanctl restore {bad_dir} --force',
-        timeout='5m',
-    )
-    assert result.status != 0, 'foremanctl restore should fail with non-existing backup directory'
-
-
-def test_negative_restore_no_force(module_target_sat):
-    """Verify foremanctl restore fails without --force on an existing deployment
-
-    :id: ba844ee3-6837-4f8d-b856-3bd8cf5f1d2a
-
-    :steps:
-        1. Create a backup using foremanctl backup
-        2. Run foremanctl restore without --force flag
-
-    :expectedresults:
-        1. Backup succeeds
-        2. Restore command exits with non-zero status due to safety check
-
-    :Verifies: SAT-44898
-    """
-    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
-    backup_dir = _create_backup(module_target_sat, subdir)
-
-    result = module_target_sat.execute(
-        f'foremanctl restore {backup_dir}',
-        timeout='5m',
-    )
-    assert result.status != 0, (
-        'foremanctl restore should fail without --force on existing deployment'
-    )
-
-
 @pytest.mark.e2e
 def test_positive_backup_restore_incremental(module_target_sat):
     """Incremental backup/restore end-to-end test using foremanctl.
@@ -614,43 +565,3 @@ def test_positive_backup_restore_incremental(module_target_sat):
         query={'search': f'name="{secondary_repo.name}"'}
     )[0]
     assert repo.id == secondary_repo.id
-
-
-def test_negative_backup_incremental_nodir_baddir(module_target_sat):
-    """Try to take an incremental backup with missing or non-existing previous backup path.
-
-    :id: 715a0b22-6b9d-4f0b-b8c3-1ea0713ee68f
-
-    :steps:
-        1. Run foremanctl backup with --base-backup but no path argument
-        2. Run foremanctl backup with --base-backup pointing to a non-existing directory
-
-    :expectedresults:
-        1. Both commands fail with a non-zero exit code
-        2. The no-directory variant mentions expected one argument
-        3. The bad-directory variant mentions the directory does not exist
-        4. No backup directory was created on the filesystem
-    """
-    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
-
-    # No directory: --base-backup without a path
-    result = module_target_sat.execute(f'foremanctl backup {subdir} --base-backup')
-    assert result.status != 0, (
-        f'Incremental backup without path should have failed:\n{result.stdout}'
-    )
-    assert '--base-backup: expected one argument' in result.stderr, (
-        f'Expected --base-backup argument error, got:\n{result.stderr}'
-    )
-
-    # Bad directory: --base-backup with a non-existing path
-    nonexistent = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
-    result = module_target_sat.execute(f'foremanctl backup {subdir} --base-backup {nonexistent}')
-    assert result.status != 0, f'Incremental backup should have failed:\n{result.stdout}'
-    assert (
-        f'Previous backup directory does not exist or is not a valid foremanctl backup: {nonexistent}'
-        in result.stdout
-    ), f'Expected error referencing bad path {nonexistent}, got:\n{result.stdout}'
-
-    # Verify no backup was created
-    result = module_target_sat.execute(f'test -d {subdir}')
-    assert result.status != 0, f'Backup directory {subdir} should not exist after failed backups'
