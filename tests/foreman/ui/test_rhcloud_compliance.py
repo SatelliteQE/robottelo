@@ -15,6 +15,7 @@
 import random
 from types import SimpleNamespace
 
+from airgun.views.host_new import HostComplianceView
 from fauxfactory import gen_string
 from nailgun import client
 from nailgun.config import ServerConfig
@@ -83,9 +84,10 @@ def test_iop_compliance_navigation(compliance_session, compliance_policy, compli
     :steps:
         1. Navigate to Compliance Reports
         2. Navigate to a Report details page
-        3. Navigate to SCAP Policies listing
-        4. Navigate to a Policy details page
-        5. Navigate to the Create Policy wizard
+        3. Navigate to Host details page
+        4. Navigate to SCAP Policies listing
+        5. Navigate to a Policy details page
+        6. Navigate to the Create Policy wizard
 
     :expectedresults:
         Every destination loads and its view is displayed.
@@ -102,34 +104,71 @@ def test_iop_compliance_navigation(compliance_session, compliance_policy, compli
     assert report_details.is_displayed
     assert 'Report:' in report_details.title.text
 
-    # 3. Navigate to SCAP Policies listing
+    # 3. Navigate to Host details page
+    report_details.reporting.systems_table[0].name.widget.click()
+    host_view = HostComplianceView(compliance_session.browser)
+    assert host_view.is_displayed
+
+    # 4. Navigate to SCAP Policies listing
     policies = compliance_session.cloudcompliancepolicies.read()
     assert len(policies) > 0
 
-    # 4. Navigate to a Policy details page
+    # 5. Navigate to a Policy details page
     policy_details = compliance_session.cloudcompliancepolicies.get_policy_details(
         compliance_policy.title
     )
     assert policy_details.is_displayed
     assert policy_details.details.is_displayed
 
-    # 5. Navigate to the Create Policy wizard
+    # 6. Navigate to the Create Policy wizard
     wizard = compliance_session.cloudcompliancepolicies.create_policy()
     assert wizard.is_displayed
     wizard.cancel_button.click()
 
 
+# TODO: creating a system is depended on more dev work still
 def test_iop_compliance_policy_scan_report_e2e():
-    """Test the full E2E workflow for compliance."""
+    """Test the full E2E workflow for compliance.
+
+    :id: 7a363a78-0979-43df-b676-9fb563e0c2d3
+
+    :setup:
+        We need a system that can be used by the policy.
+
+    :steps:
+        1. Create a policy via the Create SCAP policy wizard
+        2. assign the system to the policy
+        3. trigger a scan on the system
+        4. view the created report
+
+    :expectedresults:
+        For the system, we created a policy and a report.
+    """
     pass
 
 
+# TODO: creating a system is depended on more dev work still
 def test_iop_compliance_policy_update_affects_scan():
-    """Test that changing a threshold value affects future scans."""
+    """Test that changing a threshold value affects future scans.
+
+    :id: 518baedf-6ceb-457b-ad58-5ea612dad6b0
+
+    :setup:
+        1. Create a system System
+        2. Create a policy Policy
+        3. Create a report Report
+
+    :steps:
+        1. update the Policy's compliance threshold
+        2. run another scan on the system
+        3. check that the new report has the new threshold value
+
+    :expectedresults:
+        The new report has the new threshold value
+    """
     pass
 
 
-# TODO: generate id
 def test_iop_compliance_crud_policy(compliance_session):
     """Test that creating a policy via UI works.
 
@@ -201,13 +240,48 @@ def test_iop_compliance_crud_policy(compliance_session):
     assert len([p for p in policies if random_id in p['Name']]) == 0
 
 
+# TODO: creating a system is depended on more dev work still
 def test_iop_compliance_assign_remove_host():
-    """Test that it's possible to assign and remove hosts to/from policies."""
+    """Test that it's possible to assign and remove hosts to/from policies.
+
+    :id: 52081e03-61eb-4710-be4b-98be388ded11
+
+    :setup:
+        1. Create an empty policy Policy
+        2. Create a system System assignable to Policy
+
+    :steps:
+        1. verify Policy has no hosts
+        2. assign Host to Policy
+        3. verify Policy has one host
+        4. unassign Host from Policy
+        5. verify Policy has no host
+
+    :expectedresults:
+        assigning/unassigning works
+    """
     pass
 
 
+# TODO: creating a system is depended on more dev work still
+# TODO: check whether we work with this concept at all
 def test_iop_compliance_assign_host_group_to_policy():
-    """Test that it's possible to assign a host group to policy."""
+    """Test that it's possible to assign a host group to policy.
+
+    :id: da005d31-4ed5-4f48-9f01-fda12ca46e90
+
+    :setup:
+        1. Create an empty policy Policy
+        2. Create a host group Group assignable to Policy
+
+    :steps:
+        1. verify Policy has no hosts
+        2. assign Group to Policy
+        3. verify Policy has hosts
+
+    :expectedresults:
+        assigning/unassigning host groups works
+    """
     pass
 
 
@@ -252,21 +326,57 @@ def test_iop_compliance_view_and_filter_reports(compliance_session, compliance_r
     assert "No matching reports found" in empty[0]['Policy']
 
 
-def test_iop_compliance_view_report_details():
-    """Test that we can see Compliance report details correctly."""
-    pass
-
-
+# TODO: RBAC not ready yet
 def test_iop_compliance_rbac_view_only():
-    """Test that a user with a read-only role can only view policies and reports."""
+    """Test that a user with a read-only role can only view policies and reports.
+
+    :id: ffbeaf3d-3ad8-4651-b862-acaf412e9f28
+
+    :steps:
+        1. switch to a read-only user
+        2. navigate to Compliance Reports
+        3. verify that Edit and Delete actions are disabled
+        4. navigate to a Report details page
+        5. verify that Edit and Delete actions are disabled
+        6. navigate to SCAP Policies listing
+        7. verify that Create, Edit and Delete actions are disabled
+        8. navigate to a Policy details page
+        9. verify that Edit, and Delete actions are disabled
+    """
     pass
 
 
+# TODO: RBAC not ready yet
 def test_iop_compliance_rbac_edit():
-    """Test that a user with ForemanRHCloud role can CRUD policies and reports."""
+    """Test that a user with ForemanRHCloud role can CRUD policies and reports.
+
+    :id: 7a95e69b-1838-4400-84c3-48d954243c3d
+
+    :steps:
+        1. switch to a ForemanRHCloud user
+        2. navigate to Compliance Reports
+        3. verify that Edit and Delete actions are enabled
+        4. navigate to a Report details page
+        5. verify that Edit and Delete actions are enabled
+        6. navigate to SCAP Policies listing
+        7. verify that Create, Edit and Delete actions are enabled
+        8. navigate to a Policy details page
+        9. verify that Edit, and Delete actions are enabled
+    """
     pass
 
 
+# TODO: RBAC not ready yet
 def test_iop_compliance_rbac_no_access():
-    """Test that a user without any permissions can not access any Compliance content."""
+    """Test that a user without any permissions can not access any Compliance content.
+
+    :id: 9a32fc81-9225-4d95-b2b2-847f137069d6
+
+    :steps:
+        1. switch to a user with no compliance access
+        2. navigate to Compliance Reports
+        3. verify that we can't see the view
+        6. navigate to SCAP Policies listing
+        7. verify that we can't see the view
+    """
     pass
