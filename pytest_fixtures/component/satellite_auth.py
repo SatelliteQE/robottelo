@@ -16,7 +16,6 @@ from robottelo.constants import (
 from robottelo.hosts import IPAHost, RHBKHost, RHSSOHost
 from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.installer import InstallerCommand
 
 LOGGEDOUT = 'Logged out.'
 
@@ -439,35 +438,26 @@ def func_enroll_ad_and_configure_external_auth(ad_data, target_sat):
 
 @pytest.fixture
 def configure_hammer_no_creds(parametrized_enrolled_sat):
-    """Configures hammer to use sessions and negotiate auth."""
-    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
+    """Remove configured Hammer credentials."""
+    backup = f'{HAMMER_CONFIG}.no_creds.backup'
+    assert parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {backup}').status == 0
     parametrized_enrolled_sat.execute(f"sed -i '/:username.*/d' {HAMMER_CONFIG}")
     parametrized_enrolled_sat.execute(f"sed -i '/:password.*/d' {HAMMER_CONFIG}")
     yield
-    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
-
-
-@pytest.fixture
-def configure_hammer_negotiate(parametrized_enrolled_sat, configure_hammer_no_creds):
-    """Configures hammer to use sessions and negotiate auth."""
-    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
-    parametrized_enrolled_sat.execute(f"sed -i '/:default_auth_type.*/d' {HAMMER_CONFIG}")
-    parametrized_enrolled_sat.execute(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
-    parametrized_enrolled_sat.execute(f"echo '  :use_sessions: true' >> {HAMMER_CONFIG}")
-    parametrized_enrolled_sat.execute(
-        f"echo '  :default_auth_type: Negotiate_Auth' >> {HAMMER_CONFIG}"
-    )
-    yield
-    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+    assert parametrized_enrolled_sat.execute(f'mv -f {backup} {HAMMER_CONFIG}').status == 0
 
 
 @pytest.fixture
 def configure_hammer_no_negotiate(parametrized_enrolled_sat):
     """Configures hammer not to use automatic negotiation."""
-    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
-    parametrized_enrolled_sat.execute(f"sed -i '/:default_auth_type.*/d' {HAMMER_CONFIG}")
+    backup = f'{HAMMER_CONFIG}.no_negotiate.backup'
+    assert parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {backup}').status == 0
+    parametrized_enrolled_sat.execute(
+        f"sed -i 's/^[[:space:]]*:default_auth_type:.*/  :default_auth_type: Basic_Auth/' "
+        f'{HAMMER_CONFIG}'
+    )
     yield
-    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+    assert parametrized_enrolled_sat.execute(f'mv -f {backup} {HAMMER_CONFIG}').status == 0
 
 
 @pytest.fixture
@@ -492,35 +482,3 @@ def sessions_tear_down(parametrized_enrolled_sat):
         parametrized_enrolled_sat.execute(
             f'rm -f {HAMMER_SESSIONS}/https_{parametrized_enrolled_sat.shortened_hostname}'
         )
-
-
-@pytest.fixture
-def configure_ipa_api(
-    request,
-    parametrized_enrolled_sat,
-    enabled=True,
-):
-    """Enable Kerberos authentication in Hammer."""
-    if enabled:
-        # Normal ipa authentication needs to be enabled already
-        assert (
-            parametrized_enrolled_sat.execute(
-                'satellite-installer --help | grep foreman-ipa-authentication[^-] | grep true'
-            ).status
-            == 0
-        )
-    original_value = (
-        parametrized_enrolled_sat.execute(
-            'satellite-installer --help | grep foreman-ipa-authentication-api | grep true'
-        ).status
-        == 0
-    )
-    result = parametrized_enrolled_sat.install(
-        InstallerCommand(f'foreman-ipa-authentication-api {"true" if enabled else "false"}')
-    )
-    assert result.status == 0, 'Installer failed to enable IPA API authentication.'
-    yield
-    result = parametrized_enrolled_sat.install(
-        InstallerCommand(f'foreman-ipa-authentication-api {"true" if original_value else "false"}')
-    )
-    assert result.status == 0, 'Installer failed to reset IPA API authentication.'
