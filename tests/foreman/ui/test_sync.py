@@ -38,7 +38,7 @@ def module_custom_product(module_org, module_target_sat):
 
 
 def test_positive_sync_status_product_name_without_organization(
-    session, module_org, module_custom_product, module_target_sat
+    module_org, module_custom_product, module_target_sat
 ):
     """Display the product name without an organization suffix on Sync Status.
 
@@ -54,7 +54,7 @@ def test_positive_sync_status_product_name_without_organization(
     """
     module_target_sat.api.Repository(product=module_custom_product).create()
 
-    with session:
+    with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         assert (
             session.sync_status.read_product_name(module_custom_product.name)
