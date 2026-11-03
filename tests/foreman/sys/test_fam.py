@@ -18,7 +18,6 @@ import yaml
 
 from robottelo.config import settings
 from robottelo.constants import (
-    FAM_IDM_TEST_PLAYBOOKS,
     FAM_MODULE_PATH,
     FAM_ROOT_DIR,
     FAM_TEST_LIBVIRT_PLAYBOOKS,
@@ -31,6 +30,14 @@ from robottelo.hosts import (
     IPAHost,
 )
 from robottelo.utils.installer import InstallerCommand
+
+# the minimal set is selected as:
+# bookmark - should never fail, ensures API interaction works
+# redhat_manifest - the only module talking to RHSM
+# repository - ensures basic repository actions work
+# scap_content - ensures we use FIPS-compatible hashlib functions only
+FAM_TEST_PLAYBOOKS_MINIMAL = ['bookmark', 'redhat_manifest', 'repository', 'scap_content']
+FAM_TEST_PLAYBOOKS_OTHER = list(set(FAM_TEST_PLAYBOOKS) - set(FAM_TEST_PLAYBOOKS_MINIMAL))
 
 
 @pytest.fixture
@@ -88,12 +95,8 @@ def setup_fam(
     module_target_sat,
     module_sca_manifest,
     install_import_ansible_role,
-    module_capsule_configured,
 ):
     module_target_sat.configure_fam()
-
-    # Update the settings to point to our Capsule
-    settings.set('fam.server.foreman_proxy', module_capsule_configured.hostname)
 
     # Copy config files to the Satellite
     module_target_sat.put(
@@ -258,19 +261,35 @@ def test_positive_import_run_roles(sync_roles, target_sat):
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize('ansible_module', FAM_TEST_PLAYBOOKS)
-def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_module):
-    """Run all FAM modules and roles on the Satellite
+@pytest.mark.parametrize('ansible_module', FAM_TEST_PLAYBOOKS_MINIMAL)
+def test_positive_run_modules_and_roles_e2e(module_target_sat, setup_fam, ansible_module):
+    """Run selected FAM modules and roles on the Satellite
 
-    :id: b595756f-627c-44ea-b738-aa17ff5b1d39
+    :id: ce6a36a3-f2cc-4bdb-8aad-a2427d084969
 
     :expectedresults: All modules and roles run successfully
     """
     common_test_positive_run_modules_and_roles(module_target_sat, ansible_module)
 
 
+@pytest.mark.parametrize('ansible_module', FAM_TEST_PLAYBOOKS_OTHER)
+def test_positive_run_modules_and_roles(
+    module_target_sat, setup_fam, ansible_module, module_capsule_configured
+):
+    """Run remaining FAM modules and roles on the Satellite
+
+    :id: b595756f-627c-44ea-b738-aa17ff5b1d39
+
+    :expectedresults: All modules and roles run successfully
+    """
+    # Update the settings to point to our Capsule
+    settings.set('fam.server.foreman_proxy', module_capsule_configured.hostname)
+
+    common_test_positive_run_modules_and_roles(module_target_sat, ansible_module)
+
+
 @pytest.mark.destructive
-@pytest.mark.parametrize('ansible_module', FAM_IDM_TEST_PLAYBOOKS)
+@pytest.mark.parametrize('ansible_module', FAM_TEST_PLAYBOOKS_MINIMAL)
 def test_positive_run_modules_and_roles_kerberos_auth(idm_sat, setup_fam_with_idm, ansible_module):
     """Run limited set of modules and roles on a Satellite with Kerberos authentication
 
