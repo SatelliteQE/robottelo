@@ -132,6 +132,7 @@ def test_positive_CRUDL(target_sat):
         rt = target_sat.api.ReportTemplate(id=rt.id).read()
 
 
+@pytest.mark.skip(reason='Usage reports are unavailable for the containerized satellite')
 def test_positive_generate_report_nofilter(target_sat):
     """Generate Host - Statuses report
 
@@ -158,6 +159,7 @@ def test_positive_generate_report_nofilter(target_sat):
     assert host_name in res
 
 
+@pytest.mark.skip(reason='Usage reports are unavailable for the containerized satellite')
 def test_positive_generate_report_filter(target_sat):
     """Generate Host - Statuses report
 
