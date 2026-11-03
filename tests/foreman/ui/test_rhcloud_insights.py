@@ -19,6 +19,7 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import DNF_RECOMMENDATION, OPENSSH_RECOMMENDATION
+from robottelo.utils.insights_diagnostics import capture_insights_failure
 
 
 def create_insights_vulnerability(host):
@@ -508,6 +509,8 @@ def test_insights_registration_with_capsule(
         values = session.host_new.get_host_statuses(rhel_contenthost.hostname)
         assert values['Red Hat Lightspeed']['Status'] == 'N/A'
         result = rhel_contenthost.run('insights-client')
+        if result.status != 0:
+            capture_insights_failure(rhel_contenthost, arguments='')
         assert result.status == 0
         # Workaround for not reading old data.
         session.browser.refresh()

@@ -3,6 +3,7 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import CAPSULE_REGISTRATION_OPTS
+from robottelo.utils.insights_diagnostics import capture_insights_failure
 
 
 def enable_insights(host, satellite, org, activation_key):
@@ -15,6 +16,8 @@ def enable_insights(host, satellite, org, activation_key):
         rhel_distro=f"rhel{host.os_version.major}",
     )
     result = host.execute('insights-client --status')
+    if result.status != 0 or 'Insights API confirms registration' not in result.stdout:
+        capture_insights_failure(host, arguments='--status')
     assert result.status == 0, f'insights-client not registered on {host.hostname}: {result.stdout}'
     assert "Insights API confirms registration" in result.stdout
     # Sync inventory if using hosted Insights
