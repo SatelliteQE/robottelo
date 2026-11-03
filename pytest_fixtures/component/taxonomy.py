@@ -34,12 +34,16 @@ def current_sat_location(target_sat):
 
 @pytest.fixture
 def function_org(target_sat):
-    return target_sat.api.Organization().create()
+    org = target_sat.api.Organization().create()
+    yield org
+    org.delete()
 
 
 @pytest.fixture(scope='module')
 def module_org(module_target_sat):
-    return module_target_sat.api.Organization().create()
+    org = module_target_sat.api.Organization().create()
+    yield org
+    org.delete()
 
 
 @pytest.fixture(scope='class')
@@ -51,7 +55,9 @@ def class_org(class_target_sat):
 
 @pytest.fixture(scope='module')
 def module_location(module_target_sat, module_org):
-    return module_target_sat.api.Location(organization=[module_org]).create()
+    loc = module_target_sat.api.Location(organization=[module_org]).create()
+    yield loc
+    loc.delete()
 
 
 @pytest.fixture(scope='class')
@@ -63,7 +69,9 @@ def class_location(class_target_sat, class_org):
 
 @pytest.fixture
 def function_location(target_sat):
-    return target_sat.api.Location().create()
+    loc = target_sat.api.Location().create()
+    yield loc
+    loc.delete()
 
 
 @pytest.fixture
