@@ -972,6 +972,8 @@ def test_login_logout_using_cac_card():
 
     :CaseAutomation: ManualOnly
 
+    :BlockedBy: SAT-33225
+
     :steps:
         1. configure the Satellite with RH-SSO instance
         2. configure the firefox to use the CAC card cert, insert the CAC card
@@ -990,6 +992,8 @@ def test_timeout_and_cac_card_ejection():
     :CaseImportance: High
 
     :CaseAutomation: ManualOnly
+
+    :BlockedBy: SAT-33225
 
     :steps:
         1. configure the Satellite with RH-SSO instance
