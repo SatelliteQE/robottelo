@@ -3042,6 +3042,65 @@ class TestOstreeContentView:
         assert len(content_view.read().version[0].read().environment) == 2
 
 
+class TestPythonContentView:
+    """Tests for Python contents in content views."""
+
+    @pytest.fixture(scope='class', autouse=True)
+    @classmethod
+    def initiate_testclass(cls, module_product, class_target_sat):
+        """Set up a Python repository limited to a single upstream project."""
+        cls.python_repo = class_target_sat.api.Repository(
+            content_type='python',
+            includes=['shelf-reader'],
+            product=module_product,
+            url=settings.repos.python.pypi.url,
+        ).create()
+        cls.python_repo.sync()
+        yield
+        # The repo ends up in a published version, so it cannot be deleted on its own.
+        cls.python_repo.delete_with_args(data={'remove_from_content_view_versions': True})
+
+    def test_positive_publish_promote_custom_python(self, content_view, module_lce):
+        """Assign custom Python content to a content view, then publish and promote it.
+
+        :id: 5f498d0a-abcf-4d39-b0da-ce479c0b4587
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Add a synced Python repository to a content view.
+            2. Publish the content view.
+            3. Promote the resulting version to a lifecycle environment.
+
+        :expectedresults: The Python repository is assigned, the published version carries
+            the synced packages under the python content type, and promotion succeeds.
+
+        :CaseImportance: High
+        """
+        content_view.repository = [self.python_repo]
+        content_view = content_view.update(['repository'])
+        assert len(content_view.repository) == 1
+        assert content_view.repository[0].read().content_type == 'python'
+
+        content_view.publish()
+        content_view = content_view.read()
+        assert len(content_view.version) == 1
+
+        cvv = content_view.version[0].read()
+        cvv_repo = cvv.repository[0].read()
+        assert cvv_repo.content_type == 'python', (
+            f'Expected the published repo to keep the python content type, '
+            f'got: {cvv_repo.content_type}'
+        )
+        assert cvv_repo.content_counts['python_package'] == 2, (
+            f'Expected the synced packages to carry into the version, '
+            f'got: {cvv_repo.content_counts}'
+        )
+
+        cvv.promote(data={'environment_ids': module_lce.id, 'force': False})
+        assert len(cvv.read().environment) == 2
+
+
 @pytest.mark.stubbed
 class TestContentViewRedHatOstreeContent:
     """Tests for publishing and promoting cv with RH ostree contents."""

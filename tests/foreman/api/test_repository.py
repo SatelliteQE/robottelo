@@ -2791,3 +2791,192 @@ class TestPythonRepository:
 
         remote = target_sat.pulp_api(remote_href)
         assert remote['policy'] == updated_policy
+
+    @staticmethod
+    def _synced_packages(repo, target_sat):
+        """Return a set of (name, packagetype) pairs synced into the repo's latest version.
+
+        Katello only reports an aggregate python_package count, so the individual units are
+        read from Pulp to tell apart which projects and distribution types were synced.
+        """
+        version_href = repo.read_json()['version_href']
+        content = target_sat.pulp_api(
+            f'/content/python/packages/?repository_version={version_href}&limit=1000'
+        )
+        return {(pkg['name'], pkg['packagetype']) for pkg in content['results']}
+
+    def test_positive_sync_with_includes(self, module_org, module_product, target_sat):
+        """Sync a Python repository restricted to a subset of the upstream projects.
+
+        :id: 3871fbf9-0264-4c5b-8c40-571aa8bc77a3
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo that includes a single upstream project.
+            2. Sync the repository.
+            3. Read the synced units from Pulp.
+
+        :expectedresults: Only the included project is synced, although the upstream URL
+            offers more of them.
+
+        :CaseImportance: Critical
+        """
+        repo = target_sat.api.Repository(
+            content_type=constants.REPO_TYPE['python'],
+            includes=['shelf-reader'],
+            organization=module_org,
+            product=module_product,
+            url=settings.repos.python.pypi.url,
+        ).create()
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['python_package'] > 0
+
+        synced_names = {name for name, _ in self._synced_packages(repo, target_sat)}
+        assert synced_names == {'shelf-reader'}, (
+            f'Expected only the included project to be synced, got: {synced_names}'
+        )
+
+    def test_positive_sync_with_excludes(self, module_org, module_product, target_sat):
+        """Sync a Python repository that excludes one of the included projects.
+
+        :id: 7ac276de-ed04-4ac2-a606-e5c7aae33d38
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo including two upstream projects and excluding one of them.
+            2. Sync the repository.
+            3. Read the synced units from Pulp.
+
+        :expectedresults: The excluded project is not synced, the remaining one is.
+
+        :CaseImportance: Critical
+        """
+        repo = target_sat.api.Repository(
+            content_type=constants.REPO_TYPE['python'],
+            includes=['shelf-reader', 'celery'],
+            excludes=['celery'],
+            organization=module_org,
+            product=module_product,
+            url=settings.repos.python.pypi.url,
+        ).create()
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['python_package'] > 0
+
+        synced_names = {name for name, _ in self._synced_packages(repo, target_sat)}
+        assert synced_names == {'shelf-reader'}, (
+            f'Expected the excluded project to be filtered out, got: {synced_names}'
+        )
+
+    def test_positive_sync_with_package_types(self, module_org, module_product, target_sat):
+        """Sync a Python repository restricted to a single distribution package type.
+
+        :id: fda8be23-fc48-42f1-b1a5-bfba06732e82
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo for a project that upstream offers as both an sdist and a
+               bdist_wheel, restricted to sdist only.
+            2. Sync the repository.
+            3. Read the synced units from Pulp.
+
+        :expectedresults: Only the sdist distribution is synced, the wheel is filtered out.
+
+        :CaseImportance: High
+        """
+        repo = target_sat.api.Repository(
+            content_type=constants.REPO_TYPE['python'],
+            includes=['shelf-reader'],
+            package_types=['sdist'],
+            organization=module_org,
+            product=module_product,
+            url=settings.repos.python.pypi.url,
+        ).create()
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['python_package'] > 0
+
+        synced_types = {pkg_type for _, pkg_type in self._synced_packages(repo, target_sat)}
+        assert synced_types == {'sdist'}, (
+            f'Expected only sdist distributions to be synced, got: {synced_types}'
+        )
+
+    @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+    def test_positive_install_package_on_host(
+        self, module_org, module_product, rhel_contenthost, target_sat
+    ):
+        """Install a Python package on a host from a synced Python repository.
+
+        :id: f6cf284e-2e3f-4dbf-a237-1ea7ded9438b
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create and sync a Python repo providing the pytz project.
+            2. Install pip on a host and add the Satellite CA to its trust store.
+            3. Point pip at the repository's PyPI index, install the package and import it.
+
+        :expectedresults: The package is installed on the host from the Satellite-hosted
+            index over a verified TLS connection, and is importable.
+
+        :CaseImportance: High
+        """
+        repo = target_sat.api.Repository(
+            content_type=constants.REPO_TYPE['python'],
+            includes=['pytz'],
+            organization=module_org,
+            product=module_product,
+            url=settings.repos.python.pypi.url,
+        ).create()
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['python_package'] > 0
+
+        # The PEP 503 index lives under /pypi/, not under the /pulp/content/ path that
+        # serves the artifacts themselves.
+        index_url = (
+            f'{target_sat.url}/pypi/{module_org.label}/Library/custom/'
+            f'{module_product.read().label}/{repo.label}/simple/'
+        )
+
+        # A freshly deployed host carries no enabled repositories, so pip has to come from
+        # the base OS repos before it can be pointed at Satellite.
+        rhel_contenthost.create_custom_repos(
+            **getattr(settings.repos, f'rhel{rhel_contenthost.os_version.major}_os')
+        )
+        assert rhel_contenthost.execute('dnf install -y python3-pip').status == 0
+
+        # Trust the Satellite CA so the index is fetched over a verified TLS connection.
+        # pip ships its own certifi bundle, so point it at the system store explicitly.
+        ca_trust = rhel_contenthost.execute(
+            'curl -o /etc/pki/ca-trust/source/anchors/katello-server-ca.crt '
+            f'http://{target_sat.hostname}/pub/katello-server-ca.crt && update-ca-trust extract'
+        )
+        assert ca_trust.status == 0, f'Failed to trust the Satellite CA: {ca_trust.stderr}'
+
+        # Install into an empty directory so pip has to fetch from the index rather than
+        # report an already-satisfied requirement from the host's site-packages.
+        install_dir = '/tmp/python_repo_install'
+        assert rhel_contenthost.execute(f'rm -rf {install_dir}').status == 0
+
+        result = rhel_contenthost.execute(
+            f'pip3 install --target {install_dir} --no-cache-dir --index-url {index_url} '
+            '--cert /etc/pki/tls/certs/ca-bundle.crt pytz'
+        )
+        assert result.status == 0, f'pip install failed: {result.stderr}'
+        assert 'Downloading' in result.stdout, (
+            f'Expected the package to be downloaded from the index, got: {result.stdout}'
+        )
+
+        assert (
+            rhel_contenthost.execute(f'PYTHONPATH={install_dir} python3 -c "import pytz"').status
+            == 0
+        )
