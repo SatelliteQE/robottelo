@@ -1804,6 +1804,9 @@ class TestCapsuleContentManagement:
             'file': {'file'},
             'docker': {'docker_tag', 'docker_manifest', 'docker_manifest_list'},
             'ansible_collection': {'ansible_collection'},
+            # Inactive until a PythonRepository is added to the parametrization above, which
+            # is not possible while Satellite does not enable the python content type.
+            'python': {'python_package'},
         }
 
         repos_collection.setup_content(function_org.id, function_lce.id)
@@ -1881,6 +1884,30 @@ class TestCapsuleContentManagement:
             assert all(
                 [repo.content_counts.get(key) == cnt['counts'].get(key) for key in common_keys]
             )
+
+    @pytest.mark.stubbed
+    def test_positive_sync_python_content_to_capsule(
+        self, target_sat, module_capsule_configured, module_org, module_lce
+    ):
+        """Publish Python content to a Capsule and verify sync.
+
+        :id: f29c8f4d-b1a5-4c2e-9e3f-7b2d1a9c5e6f
+
+        :steps:
+            1. Create and sync a Python repository on the Satellite.
+            2. Add it to a content view, publish and promote to a Capsule lifecycle
+               environment.
+            3. Sync the Capsule and verify the python_package content type and counts.
+
+        :expectedresults: Python packages are published to the Capsule and counts match
+            the Satellite after sync.
+
+        :BlockedBy: SAT-36514
+
+        :CaseImportance: High
+        """
+        # TODO: cannot be implemented while Satellite does not enable the python content
+        # type, so no Capsule can carry Python content to test against.
 
     @pytest.mark.order(1)
     def test_positive_content_counts_blank_update(
