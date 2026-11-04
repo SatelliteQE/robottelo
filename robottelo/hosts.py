@@ -1224,7 +1224,11 @@ class ContentHost(Host, ContentHostMixins):
             )
 
     def check_insights_registration(self, satellite):
-        """Wait for hosted registration, then run the client's status command once."""
+        """Wait for hosted registration, then run the client's status command once.
+
+        Status makes a separate request, so it can still see a different response
+        if registration visibility changes after the readiness check.
+        """
         self.wait_for_insights_registration(satellite)
         return self.execute('insights-client --status')
 
