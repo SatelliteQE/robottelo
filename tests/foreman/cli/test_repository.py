@@ -2632,6 +2632,161 @@ class TestFileRepository:
         assert 'Second File' in textfile.text
 
 
+class TestPythonRepository:
+    """Specific tests for Python Repositories.
+
+    The upstream fixture mirror offers 11 projects, of which shelf-reader ships one sdist
+    and one bdist_wheel, and celery ships nine distributions. The package counts asserted
+    below therefore prove that a filter actually narrowed the sync rather than that the
+    option was merely accepted.
+    """
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content-type': 'python', 'url': settings.repos.python.pypi.url}]),
+        indirect=True,
+    )
+    def test_positive_create_and_sync(self, repo, target_sat):
+        """Create and sync an unfiltered Python repository by using the CLI.
+
+        :id: 990de6b9-2b7f-45cb-bd0d-e73391ba82f7
+
+        :parametrized: yes
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo without any filters.
+            2. Synchronize it.
+
+        :expectedresults: The repo syncs and reports the python content type along with a
+            non-zero Python package count.
+
+        :CaseImportance: Critical
+        """
+        assert repo['content-type'] == 'python'
+        assert repo['sync']['status'] == 'Not Synced'
+
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
+        assert repo['sync']['status'] == 'Success'
+        assert int(repo['content-counts']['python-packages']) > 0
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'python',
+                    'url': settings.repos.python.pypi.url,
+                    'includes': ['shelf-reader'],
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_sync_with_includes(self, repo, target_sat):
+        """Sync a Python repository restricted to a single upstream project by using the CLI.
+
+        :id: b21340f2-f9ed-45c5-a4a2-d57a1e9a4eaf
+
+        :parametrized: yes
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo that includes only shelf-reader.
+            2. Synchronize it.
+
+        :expectedresults: Only the two shelf-reader distributions are synced, although the
+            upstream URL offers more projects.
+
+        :CaseImportance: Critical
+        """
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
+        assert repo['sync']['status'] == 'Success'
+        assert int(repo['content-counts']['python-packages']) == 2
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'python',
+                    'url': settings.repos.python.pypi.url,
+                    'includes': ['shelf-reader', 'celery'],
+                    'excludes': ['celery'],
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_sync_with_excludes(self, repo, target_sat):
+        """Sync a Python repository that excludes one of the included projects by using the CLI.
+
+        :id: b2c8370d-bbfc-43ca-b804-41a8b0cf3b4b
+
+        :parametrized: yes
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo including shelf-reader and celery, excluding celery.
+            2. Synchronize it.
+
+        :expectedresults: Only the two shelf-reader distributions are synced, the nine celery
+            ones are filtered out.
+
+        :CaseImportance: Critical
+        """
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
+        assert repo['sync']['status'] == 'Success'
+        assert int(repo['content-counts']['python-packages']) == 2
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized(
+            [
+                {
+                    'content-type': 'python',
+                    'url': settings.repos.python.pypi.url,
+                    'includes': ['shelf-reader'],
+                    'package-types': ['sdist'],
+                }
+            ]
+        ),
+        indirect=True,
+    )
+    def test_positive_sync_with_package_types(self, repo, target_sat):
+        """Sync a Python repository restricted to a single package type by using the CLI.
+
+        :id: 26c7acc0-ca56-459e-b711-94d7b6cbae7c
+
+        :parametrized: yes
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo for shelf-reader restricted to sdist.
+            2. Synchronize it.
+
+        :expectedresults: Only the sdist distribution is synced, the bdist_wheel one is
+            filtered out.
+
+        :CaseImportance: High
+        """
+        target_sat.cli.Repository.synchronize({'id': repo['id']})
+
+        repo = target_sat.cli.Repository.info({'id': repo['id']})
+        assert repo['sync']['status'] == 'Success'
+        assert int(repo['content-counts']['python-packages']) == 1
+
+
 def test_positive_syncable_yum_format_repo_import(target_sat, module_org):
     """Verify that you can import syncable yum format repositories
 

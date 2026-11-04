@@ -130,6 +130,64 @@ class FileRepository(BaseRepository):
     _type = constants.REPO_TYPE['file']
 
 
+class PythonRepository(BaseRepository):
+    """Custom Python repository"""
+
+    _type = constants.REPO_TYPE['python']
+
+    def __init__(
+        self,
+        url=None,
+        distro=None,
+        content_type=None,
+        includes=None,
+        excludes=None,
+        package_types=None,
+    ):
+        super().__init__(url=url, distro=distro, content_type=content_type)
+        self._includes = includes
+        self._excludes = excludes
+        self._package_types = package_types
+
+    @property
+    def includes(self):
+        return self._includes
+
+    @property
+    def excludes(self):
+        return self._excludes
+
+    @property
+    def package_types(self):
+        return self._package_types
+
+    def create(self, organization_id, product_id, download_policy=None, synchronize=True):
+        """Create the repository for the supplied product id
+
+        Includes, excludes and package types are all passed as comma-separated lists.
+        Note the hammer help text describes includes/excludes as newline-separated, but
+        newlines are rejected on create; comma-separated matches their declared LIST type.
+        """
+        create_options = {
+            'product-id': product_id,
+            'content-type': self.content_type,
+            'url': self.url,
+        }
+        if self._includes is not None:
+            create_options['includes'] = self._includes
+        if self._excludes is not None:
+            create_options['excludes'] = self._excludes
+        if self._package_types is not None:
+            create_options['package-types'] = self._package_types
+        if download_policy:
+            create_options['download-policy'] = download_policy
+        repo_info = self.satellite.cli_factory.make_repository(create_options)
+        self._repo_info = repo_info
+        if synchronize:
+            self.synchronize()
+        return repo_info
+
+
 class DebianRepository(BaseRepository):
     """Custom Debian repository."""
 
