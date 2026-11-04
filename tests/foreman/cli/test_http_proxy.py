@@ -132,9 +132,11 @@ def test_insights_client_registration_with_http_proxy(
         rhcloud_manifest_org,
         f"rhel{rhel_contenthost.os_version.major}",
     )
+    # The explicit re-registration also checks the existing client registration.
+    rhel_contenthost.wait_for_insights_registration(module_target_sat_insights)
     assert rhel_contenthost.execute('insights-client --register').status == 0
     assert rhel_contenthost.execute('insights-client --test-connection').status == 0
-    assert rhel_contenthost.execute('insights-client --status').status == 0
+    assert rhel_contenthost.check_insights_registration(module_target_sat_insights).status == 0
     assert rhel_contenthost.execute('insights-client --unregister').status == 0
 
 

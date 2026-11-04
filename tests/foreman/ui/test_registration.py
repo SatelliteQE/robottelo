@@ -245,7 +245,8 @@ def test_positive_global_registration_end_to_end(
         parameter_type='boolean',
         value='True',
     ).create()
-    # run insights-client via REX
+    # Wait without changing client state, then verify the status command through REX.
+    rhel_contenthost.wait_for_insights_registration(module_target_sat)
     command = "insights-client --status"
     invocation_command = module_target_sat.cli_factory.job_invocation(
         {

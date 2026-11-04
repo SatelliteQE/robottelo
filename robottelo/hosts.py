@@ -75,7 +75,7 @@ from robottelo.host_helpers import (
     SatelliteMixins,
 )
 from robottelo.logging import logger
-from robottelo.utils import validate_ssh_pub_key
+from robottelo.utils import insights_readiness, validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
@@ -1200,6 +1200,33 @@ class ContentHost(Host, ContentHostMixins):
             self.register(
                 org, None, activation_key.name, satellite, setup_insights=register_insights
             )
+
+    def wait_for_insights_registration(self, satellite):
+        """Wait for hosted Insights without changing the client's registration state.
+
+        A new host can briefly return 404 before its upload is processed. Running
+        ``insights-client --status`` during that window can unregister it locally.
+        IoP uses a different endpoint and is intentionally not polled here.
+        """
+        if satellite.iop_enabled:
+            return
+        source = Path(insights_readiness.__file__).read_text()
+        command = (
+            'python_bin=$(command -v /usr/libexec/platform-python || command -v python3 '
+            '|| command -v python) || { echo "Insights readiness check needs Python"; exit 1; }; '
+            f'timeout -k 1s 11s "$python_bin" -c {shlex.quote(source)}'
+        )
+        result = self.execute(command, timeout=13)
+        if result.status != 0:
+            raise ContentHostError(
+                f'Insights registration readiness check failed on {self.hostname} '
+                f'(exit {result.status}): {result.stdout.strip()}'
+            )
+
+    def check_insights_registration(self, satellite):
+        """Wait for hosted registration, then run the client's status command once."""
+        self.wait_for_insights_registration(satellite)
+        return self.execute('insights-client --status')
 
     def unregister_insights(self):
         """Unregister insights client.
