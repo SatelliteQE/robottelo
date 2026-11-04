@@ -15,6 +15,7 @@
 from datetime import UTC, datetime, timedelta
 import random
 from time import sleep
+from zoneinfo import ZoneInfo
 
 from fauxfactory import gen_string
 import pytest
@@ -288,19 +289,24 @@ def test_positive_create_sync_date_custom_timezone(module_org, request, target_s
 
     :CaseImportance: High
     """
-    future_date = datetime.now() + timedelta(days=5)
-    format = '%Y-%m-%d %H:%M:%S CEST'
+    # Use DST-aware timezone (CEST in summer, CET in winter)
+    cet_tz = ZoneInfo("Europe/Paris")
+    future_date = datetime.now(cet_tz) + timedelta(days=5)
+    # Use numeric UTC offset format (+0100 or +0200) instead of abbreviation (CET/CEST)
+    format = '%Y-%m-%d %H:%M:%S %z'  # %z gives numeric offset like +0100 or +0200
     sync_plan_name = gen_string('alphanumeric')
+    sync_date_str = future_date.strftime(format)
     new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'name': sync_plan_name,
-            'sync-date': future_date.strftime(format),
+            'sync-date': sync_date_str,
             'organization-id': module_org.id,
         }
     )
     sync_plan = target_sat.api.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    expected_date = future_date + timedelta(hours=4)
+    # Convert to UTC for comparison
+    expected_date = future_date.astimezone(UTC)
     # Assert that sync date was converted to UTC correctly
     assert new_sync_plan['start-date'] == expected_date.strftime("%Y/%m/%d %H:%M:%S")
 
