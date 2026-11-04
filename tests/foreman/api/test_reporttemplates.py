@@ -623,10 +623,11 @@ def test_positive_applied_errata_migration_populates_from_tasks(
     assert not rt.generate(data=report_data), 'katello_errata_applications record was not deleted'
 
     # Run the migration rake task to backfill records from task history
-    assert (
-        target_sat.execute('foreman-rake katello:upgrades:4.21:populate_errata_applications').status
-        == 0
+    # foremanctl requires an explicit override for tasks outside its allowlist.
+    result = target_sat.execute(
+        'ALLOW_UNSUPPORTED=true foreman-rake katello:upgrades:4.21:populate_errata_applications'
     )
+    assert result.status == 0, f'{result.stdout}\n{result.stderr}'
     res_after = rt.generate(data=report_data)
     assert res_after, 'Report returned no errata after migration rake task'
     assert res_after == res_before
