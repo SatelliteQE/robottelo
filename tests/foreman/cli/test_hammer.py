@@ -22,7 +22,6 @@ import pytest
 from robottelo.cli import hammer
 from robottelo.constants import DataFile
 from robottelo.logging import logger
-from robottelo.utils.issue_handlers import is_open
 
 HAMMER_COMMANDS = json.loads(DataFile.HAMMER_COMMANDS_JSON.read_text())
 
@@ -240,9 +239,7 @@ def test_hammer_host_info_csv(target_sat, function_org, function_activation_key,
     )
     assert all(not is_json(i) for i in res[0].values())
     assert all(not is_ruby(i) for i in res[0].values())
-
     # Check all fields
-    if not is_open('SAT-34782'):
-        res = target_sat.cli.Host.info({'name': rhel_contenthost.hostname}, output_format='csv')
-        assert all(not is_json(i) for i in res[0].values())
-        assert all(not is_ruby(i) for i in res[0].values())
+    res = target_sat.cli.Host.info({'name': rhel_contenthost.hostname}, output_format='csv')
+    assert all(not is_json(i) for i in res[0].values())
+    assert all(not is_ruby(i) for i in res[0].values())
