@@ -20,7 +20,7 @@ def expected_permissions(session_target_sat):
         permissions[None].remove('download_bootdisk')
     if 'gem-foreman_virt_who_configure' not in rpm_packages:
         permissions.pop('ForemanVirtWhoConfigure::Config')
-    # The virt-who permission API is not exposed by foremanctl in Satellite 6.20.
+    # SAT-44794: foremanctl does not expose the virt-who permission API in Satellite 6.20.
     if session_target_sat.install_method == InstallMethod.FOREMANCTL:
         permissions.pop('ForemanVirtWhoConfigure::Config', None)
     if 'gem-foreman_openscap' not in rpm_packages:
