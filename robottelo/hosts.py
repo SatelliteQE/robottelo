@@ -1216,7 +1216,9 @@ class ContentHost(Host, ContentHostMixins):
             '|| command -v python) || { echo "Insights readiness check needs Python"; exit 1; }; '
             f'timeout -k 1s 11s "$python_bin" -c {shlex.quote(source)}'
         )
-        result = self.execute(command, timeout=13)
+        # Broker's Paramiko backend uses seconds; its hussh/ssh2 backends use milliseconds.
+        transport_timeout = 13 if self._settings.SSH.BACKEND == 'paramiko' else '13s'
+        result = self.execute(command, timeout=transport_timeout)
         if result.status != 0:
             raise ContentHostError(
                 f'Insights registration readiness check failed on {self.hostname} '

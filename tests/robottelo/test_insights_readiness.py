@@ -9,6 +9,9 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 from uuid import uuid4
 
+from broker.binds.hussh import Session as HusshSession
+from broker.binds.paramiko import Session as ParamikoSession
+from broker.binds.ssh2 import Session as SSH2Session
 import pytest
 
 from pytest_fixtures.component.rh_cloud import enable_insights
@@ -111,6 +114,7 @@ class StubHost:
 
     def __init__(self, results):
         self.execute = Mock(side_effect=results)
+        self._settings = SimpleNamespace(SSH=SimpleNamespace(BACKEND='hussh'))
 
 
 def host_with_fake_insights_client(tmp_path, statuses):
@@ -256,6 +260,45 @@ def test_negative_failed_readiness_never_runs_status(tmp_path):
         f'500 https://insights.example.test/v1/systems/{machine_id}'
     ]
     assert host.execute.call_count == 1
+
+
+@pytest.mark.parametrize('backend', ['hussh', 'ssh2-python', 'paramiko'])
+def test_positive_readiness_uses_correct_ssh_timeout(backend):
+    """Give each Broker SSH backend enough time for the bounded probe.
+
+    :id: 22f31b01-8ddb-4e68-aec1-a11bafe71a1c
+    :steps: Run readiness through each backend with a simulated SSH connection.
+    :expectedresults: Each connection receives a 13-second transport timeout.
+    """
+    host = StubHost([])
+    host._settings.SSH.BACKEND = backend
+    if backend == 'hussh':
+        session = object.__new__(HusshSession)
+        session.session = Mock()
+        session.session.execute.return_value = SimpleNamespace(status=0, stdout='ready', stderr='')
+    elif backend == 'ssh2-python':
+        session = object.__new__(SSH2Session)
+        session.session = Mock()
+        session._read = Mock(return_value=SimpleNamespace(status=0, stdout='ready', stderr=''))
+    else:
+        session = object.__new__(ParamikoSession)
+        session.client = Mock()
+        stdout = Mock()
+        stdout.channel.exit_status = 0
+        stdout.read.return_value = b'ready'
+        stderr = Mock()
+        stderr.read.return_value = b''
+        session.client.exec_command.return_value = (None, stdout, stderr)
+
+    host.execute.side_effect = lambda command, timeout=None: session.run(command, timeout=timeout)
+    host.wait_for_insights_registration(SimpleNamespace(iop_enabled=False))
+
+    if backend == 'hussh':
+        assert session.session.execute.call_args.kwargs['timeout'] == 13000
+    elif backend == 'ssh2-python':
+        session.session.set_timeout.assert_called_once_with(13000)
+    else:
+        assert session.client.exec_command.call_args.kwargs['timeout'] == 13
 
 
 def test_positive_iop_does_not_poll_hosted_endpoint():
