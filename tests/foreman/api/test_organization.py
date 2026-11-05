@@ -501,11 +501,12 @@ class TestOrganizationDebugCertificate:
             1. Request a debug certificate with a malformed OID string
             2. Verify the API returns an error
 
-        :expectedresults: The API returns an HTTP error 409
+        :expectedresults: The API returns an HTTP error 422
         """
         with pytest.raises(HTTPError) as error:
             debug_cert_org.download_debug_certificate(params={'key_algorithms[]': ['not-an-oid']})
-        assert error.value.response.status_code == 409
+        response = error.value.response
+        assert response.status_code == 422
 
     def test_negative_download_debug_cert_unsupported_oid(self, debug_cert_org):
         """A valid OID format that Candlepin doesn't support is rejected.
@@ -524,7 +525,8 @@ class TestOrganizationDebugCertificate:
             debug_cert_org.download_debug_certificate(
                 params={'key_algorithms[]': ['1.2.345.678901.2.3.45']}
             )
-        assert error.value.response.status_code == 409
+        response = error.value.response
+        assert response.status_code == 422
 
     # Candlepin currently only supports RSA algorithms. This test requires ML-DSA support
     # which is not available yet in the backend, so it's disabled until that's implemented.
