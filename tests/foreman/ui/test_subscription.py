@@ -124,11 +124,14 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name, target_
         {
             'Katello::Subscription': [
                 'view_subscriptions',
-                'manage_subscription_allocations',
                 'import_manifest',
                 'delete_manifest',
             ],
-            'Organization': ['view_organizations', 'edit_organizations'],
+            'Organization': [
+                'view_organizations',
+                'edit_organizations',
+                'manage_subscription_allocations',
+            ],
         },
     )
     user_password = gen_string('alphanumeric')
