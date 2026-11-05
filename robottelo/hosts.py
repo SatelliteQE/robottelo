@@ -1211,18 +1211,50 @@ class ContentHost(Host, ContentHostMixins):
         if satellite.iop_enabled:
             return
         source = Path(insights_readiness.__file__).read_text()
+        probe_timeout = insights_readiness.TIMEOUT + insights_readiness.DIAGNOSTIC_TIMEOUT
         command = (
             'python_bin=$(command -v /usr/libexec/platform-python || command -v python3 '
             '|| command -v python) || { echo "Insights readiness check needs Python"; exit 1; }; '
-            f'timeout -k 1s {insights_readiness.TIMEOUT + 1}s "$python_bin" -c '
+            f'timeout -k 1s {probe_timeout + 1}s "$python_bin" -c '
             f'{shlex.quote(source)}'
         )
         # Broker's Paramiko backend uses seconds; its hussh/ssh2 backends use milliseconds.
-        transport_timeout = insights_readiness.TIMEOUT + 3
+        transport_timeout = probe_timeout + 3
         if self._settings.SSH.BACKEND != 'paramiko':
             transport_timeout = f'{transport_timeout}s'
         result = self.execute(command, timeout=transport_timeout)
         if result.status != 0:
+            try:
+                version = self.execute('rpm -q insights-client')
+                logger.info(
+                    'Insights client package on %s: %s', self.hostname, version.stdout.strip()
+                )
+            except Exception as exc:
+                logger.warning(
+                    'Could not obtain Insights client version on %s (%s)',
+                    self.hostname,
+                    type(exc).__name__,
+                )
+            # PRT archives screenshots/, including these temporary diagnostic events.
+            try:
+                client_log = self.session.sftp_read(
+                    source='/var/log/insights-client/insights-client.log', return_data=True
+                )
+                summary = insights_readiness.summarize_client_log(client_log)
+                artifact_dir = Path(settings.ui.screenshots_path) / 'insights-diagnostics'
+                artifact_dir.mkdir(parents=True, exist_ok=True)
+                hostname = re.sub(r'[^A-Za-z0-9_.-]', '_', self.hostname)
+                with NamedTemporaryFile(
+                    mode='w', dir=artifact_dir, prefix=f'{hostname}-', suffix='.log', delete=False
+                ) as artifact:
+                    artifact.write(summary)
+                    logger.info('Saved selected Insights client log events to %s', artifact.name)
+            except Exception as exc:
+                logger.warning(
+                    'Could not collect Insights diagnostics on %s (%s)',
+                    self.hostname,
+                    type(exc).__name__,
+                )
             raise ContentHostError(
                 f'Insights registration readiness check failed on {self.hostname} '
                 f'(exit {result.status}): {result.stdout.strip()}'
