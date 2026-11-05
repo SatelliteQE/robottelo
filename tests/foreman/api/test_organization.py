@@ -490,6 +490,7 @@ class TestOrganizationDebugCertificate:
         # Verify public key algorithm (addresses Sourcery's concern)
         assert isinstance(cert.public_key(), rsa.RSAPublicKey)
 
+    @pytest.mark.foremanctl
     def test_negative_download_debug_cert_invalid_oid(self, debug_cert_org):
         """A garbage OID string is rejected.
 
@@ -508,6 +509,7 @@ class TestOrganizationDebugCertificate:
         response = error.value.response
         assert response.status_code == 422
 
+    @pytest.mark.foremanctl
     def test_negative_download_debug_cert_unsupported_oid(self, debug_cert_org):
         """A valid OID format that Candlepin doesn't support is rejected.
 
