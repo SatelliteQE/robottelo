@@ -134,7 +134,4 @@ def expected_permissions(session_target_sat):
             {'create_arf_reports', 'destroy_arf_reports', 'view_arf_reports'},
         )
         _remove_permissions(permissions, 'SmartProxy', {'view_openscap_proxies'})
-    if is_open('SAT-44794'):
-        permissions.pop('ForemanVirtWhoConfigure::Config', None)
-
     return permissions
