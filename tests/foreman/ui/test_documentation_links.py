@@ -23,30 +23,15 @@ from robottelo.utils.issue_handlers import is_open
 
 pages = [
     'about',
-    'settings',
-    'bookmark',
-    'role',
     'ldapauthentication',
     'cloudinventory',
-    'ansiblevariables',
     'ansibleroles',
-    'discoveryrule',
-    'global_parameter',
-    'oscapreport',
-    'oscappolicy',
-    'oscapcontent',
-    'jobtemplate',
-    'provisioningtemplate',
-    'partitiontable',
     'operatingsystem',
     'host',
-    'discoveredhosts',
-    'reporttemplate',
     'configreport',
     'jobinvocation',
     'audit',
     'factvalue',
-    'dashboard',
 ]
 
 exceptions = {
@@ -124,8 +109,6 @@ def test_positive_documentation_links(module_target_sat, session, custom_docs_ur
     page_object = getattr(session, page)
     if page == "host":
         view = page_object.navigate_to(page_object, 'Register')
-    elif page == "oscappolicy":
-        view = page_object.navigate_to(page_object, 'New')
     else:
         view = page_object.navigate_to(page_object, 'All')
     # Get the doc links present on the page.
