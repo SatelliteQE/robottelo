@@ -1214,10 +1214,13 @@ class ContentHost(Host, ContentHostMixins):
         command = (
             'python_bin=$(command -v /usr/libexec/platform-python || command -v python3 '
             '|| command -v python) || { echo "Insights readiness check needs Python"; exit 1; }; '
-            f'timeout -k 1s 11s "$python_bin" -c {shlex.quote(source)}'
+            f'timeout -k 1s {insights_readiness.TIMEOUT + 1}s "$python_bin" -c '
+            f'{shlex.quote(source)}'
         )
         # Broker's Paramiko backend uses seconds; its hussh/ssh2 backends use milliseconds.
-        transport_timeout = 13 if self._settings.SSH.BACKEND == 'paramiko' else '13s'
+        transport_timeout = insights_readiness.TIMEOUT + 3
+        if self._settings.SSH.BACKEND != 'paramiko':
+            transport_timeout = f'{transport_timeout}s'
         result = self.execute(command, timeout=transport_timeout)
         if result.status != 0:
             raise ContentHostError(

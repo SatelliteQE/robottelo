@@ -17,7 +17,7 @@ import pytest
 from pytest_fixtures.component.rh_cloud import enable_insights
 from robottelo.exceptions import ContentHostError
 from robottelo.hosts import ContentHost
-from robottelo.utils.insights_readiness import poll_registration, select_client_core
+from robottelo.utils.insights_readiness import TIMEOUT, poll_registration, select_client_core
 
 
 def response(status, body=None):
@@ -25,29 +25,35 @@ def response(status, body=None):
 
 
 @pytest.mark.parametrize('transient_status', [403, 404])
-def test_positive_poll_waits_for_registration(transient_status):
+@pytest.mark.parametrize('transient_count', [1, 14])
+def test_positive_poll_waits_for_registration(transient_status, transient_count):
     """Wait for a transient response to become a confirmed registration.
 
     :id: cab90283-9270-44c3-baff-ca81c3f33baf
-    :steps: Poll after a temporary error followed by a successful response.
+    :steps: Poll after temporary errors followed by a successful response.
     :expectedresults: Registration is confirmed without changing client state.
     """
     session = SimpleNamespace(
-        get=Mock(side_effect=[response(transient_status), response(200, {'unregistered_at': None})])
+        get=Mock(
+            side_effect=[response(transient_status)] * transient_count
+            + [response(200, {'unregistered_at': None})]
+        )
     )
     now = [0]
 
     def wait(seconds):
         now[0] += seconds
 
-    ready, message = poll_registration(session, 'https://example.test', 10, lambda: now[0], wait)
+    ready, message = poll_registration(
+        session, 'https://example.test', TIMEOUT, lambda: now[0], wait
+    )
 
     assert ready
     assert message == 'Insights API confirms registration'
-    assert session.get.call_count == 2
+    assert session.get.call_count == transient_count + 1
 
 
-def test_negative_poll_stops_at_ten_seconds():
+def test_negative_poll_stops_at_fifteen_seconds():
     """Bound polling when registration never appears.
 
     :id: a218f137-50ba-4383-87d3-88c7367a4cff
@@ -60,29 +66,32 @@ def test_negative_poll_stops_at_ten_seconds():
     def wait(seconds):
         now[0] += seconds
 
-    ready, message = poll_registration(session, 'https://example.test', 10, lambda: now[0], wait)
+    ready, message = poll_registration(
+        session, 'https://example.test', TIMEOUT, lambda: now[0], wait
+    )
 
     assert not ready
     assert 'last HTTP 404' in message
-    assert now[0] == 10
-    assert session.get.call_count == 10
+    assert TIMEOUT == 15
+    assert now[0] == 15
+    assert session.get.call_count == 15
 
 
 def test_negative_poll_rejects_response_after_deadline():
     """Do not accept registration after the polling deadline.
 
     :id: 833dc081-9d20-4393-8260-e1760cefc287
-    :steps: Return a successful response after the ten-second deadline.
+    :steps: Return a successful response at the fifteen-second deadline.
     :expectedresults: The readiness check reports a timeout.
     """
     now = [0]
 
     def get(*args, **kwargs):
-        now[0] = 10
+        now[0] = TIMEOUT
         return response(200, {'unregistered_at': None})
 
     ready, message = poll_registration(
-        SimpleNamespace(get=get), 'https://example.test', 10, lambda: now[0]
+        SimpleNamespace(get=get), 'https://example.test', TIMEOUT, lambda: now[0]
     )
 
     assert not ready
@@ -212,7 +221,7 @@ def host_with_fake_insights_client(tmp_path, statuses):
         if command == 'insights-client --status':
             return status_result
         result = subprocess.run(
-            command, shell=True, env=env, capture_output=True, text=True, timeout=15
+            command, shell=True, env=env, capture_output=True, text=True, timeout=20
         )
         return SimpleNamespace(status=result.returncode, stdout=result.stdout)
 
@@ -268,7 +277,7 @@ def test_positive_readiness_uses_correct_ssh_timeout(backend):
 
     :id: 22f31b01-8ddb-4e68-aec1-a11bafe71a1c
     :steps: Run readiness through each backend with a simulated SSH connection.
-    :expectedresults: Each connection receives a 13-second transport timeout.
+    :expectedresults: Each connection receives an 18-second transport timeout.
     """
     host = StubHost([])
     host._settings.SSH.BACKEND = backend
@@ -293,12 +302,13 @@ def test_positive_readiness_uses_correct_ssh_timeout(backend):
     host.execute.side_effect = lambda command, timeout=None: session.run(command, timeout=timeout)
     host.wait_for_insights_registration(SimpleNamespace(iop_enabled=False))
 
+    assert 'timeout -k 1s 16s ' in host.execute.call_args.args[0]
     if backend == 'hussh':
-        assert session.session.execute.call_args.kwargs['timeout'] == 13000
+        assert session.session.execute.call_args.kwargs['timeout'] == 18000
     elif backend == 'ssh2-python':
-        session.session.set_timeout.assert_called_once_with(13000)
+        session.session.set_timeout.assert_called_once_with(18000)
     else:
-        assert session.client.exec_command.call_args.kwargs['timeout'] == 13
+        assert session.client.exec_command.call_args.kwargs['timeout'] == 18
 
 
 def test_positive_iop_does_not_poll_hosted_endpoint():
