@@ -13,16 +13,12 @@ from broker.binds.hussh import Session as HusshSession
 from broker.binds.paramiko import Session as ParamikoSession
 from broker.binds.ssh2 import Session as SSH2Session
 import pytest
+from requests.exceptions import ReadTimeout, SSLError
 
 from pytest_fixtures.component.rh_cloud import enable_insights
 from robottelo.exceptions import ContentHostError
 from robottelo.hosts import ContentHost
-from robottelo.utils.insights_readiness import (
-    TIMEOUT,
-    diagnose_registration,
-    poll_registration,
-    select_client_core,
-)
+from robottelo.utils.insights_readiness import TIMEOUT, poll_registration, select_client_core
 
 
 def response(status, body=None):
@@ -30,7 +26,7 @@ def response(status, body=None):
 
 
 @pytest.mark.parametrize('transient_status', [403, 404])
-@pytest.mark.parametrize('transient_count', [1, 14])
+@pytest.mark.parametrize('transient_count', [1, 59])
 def test_positive_poll_waits_for_registration(transient_status, transient_count):
     """Wait for a transient response to become a confirmed registration.
 
@@ -58,7 +54,7 @@ def test_positive_poll_waits_for_registration(transient_status, transient_count)
     assert session.get.call_count == transient_count + 1
 
 
-def test_negative_poll_stops_at_fifteen_seconds():
+def test_negative_poll_stops_at_sixty_seconds():
     """Bound polling when registration never appears.
 
     :id: a218f137-50ba-4383-87d3-88c7367a4cff
@@ -77,16 +73,16 @@ def test_negative_poll_stops_at_fifteen_seconds():
 
     assert not ready
     assert 'last HTTP 404' in message
-    assert TIMEOUT == 15
-    assert now[0] == 15
-    assert session.get.call_count == 15
+    assert TIMEOUT == 60
+    assert now[0] == 60
+    assert session.get.call_count == 60
 
 
 def test_negative_poll_rejects_response_after_deadline():
     """Do not accept registration after the polling deadline.
 
     :id: 833dc081-9d20-4393-8260-e1760cefc287
-    :steps: Return a successful response at the fifteen-second deadline.
+    :steps: Return a successful response at the sixty-second deadline.
     :expectedresults: The readiness check reports a timeout.
     """
     now = [0]
@@ -121,57 +117,84 @@ def test_negative_poll_rejects_nontransient_or_unregistered_response(result):
     assert session.get.call_count == 1
 
 
-def test_positive_diagnostic_retries_until_registration(capsys):
-    """Record when registration becomes visible after the initial failure.
+def test_positive_poll_retries_read_timeout(capsys):
+    """Retry a transient read timeout before confirming registration.
 
-    :id: 7e83e781-6c39-4b37-9854-72920f2e2daf
-    :steps: Diagnose a timeout, a 404, and then confirmed registration.
-    :expectedresults: Polling continues and reports elapsed time without the exception details.
+    :id: 3cc487b2-d9c4-4283-a0ed-aa7e030bde25
+    :steps: Return a read timeout, a 404, and then a registered response.
+    :expectedresults: Polling succeeds within the deadline without exposing exception details.
     """
-    now = [15]
     session = SimpleNamespace(
         get=Mock(
             side_effect=[
-                TimeoutError('sensitive connection details'),
+                ReadTimeout('sensitive connection details'),
                 response(404),
                 response(200, {'unregistered_at': None}),
             ]
         )
     )
+    now = [0]
 
     def wait(seconds):
         now[0] += seconds
 
-    ready, message = diagnose_registration(session, 'https://example.test', 0, lambda: now[0], wait)
+    ready, message = poll_registration(
+        session, 'https://example.test', TIMEOUT, lambda: now[0], wait
+    )
     output = capsys.readouterr().out
 
     assert ready
-    assert 'confirmed registration after the initial failure' in message
-    assert 'Diagnostic +15.00s: request failed (TimeoutError)' in output
-    assert 'Diagnostic +17.00s: HTTP 404' in output
-    assert 'Diagnostic +19.00s: HTTP 200' in output
+    assert message == 'Insights API confirms registration'
+    assert session.get.call_count == 3
+    assert 'ReadTimeout (+0.00s)' in output
+    assert 'HTTP 404 (+1.00s)' in output
+    assert 'HTTP 200 (+2.00s)' in output
     assert 'sensitive connection details' not in output
 
 
-def test_negative_diagnostic_stops_after_sixty_seconds():
-    """Bound the additional diagnostics when the endpoint stays unavailable.
+@pytest.mark.parametrize('first_status', [None, 404])
+def test_negative_poll_bounds_repeated_read_timeouts(first_status):
+    """Stop retrying read timeouts at the overall deadline.
 
-    :id: 3861a300-a828-49b3-945c-b2a09fed212d
-    :steps: Diagnose a registration lookup that keeps returning 404.
-    :expectedresults: The diagnostic ends after 60 additional seconds.
+    :id: 52e37caa-3ba1-499e-9833-8d4ed9ba2fa8
+    :steps: Return read timeouts for the entire readiness window.
+    :expectedresults: The check fails at the deadline and reports the last timeout.
     """
-    now = [15]
-    session = SimpleNamespace(get=Mock(return_value=response(404)))
+    responses = [ReadTimeout('private details')] * 60
+    if first_status is not None:
+        responses[0] = response(first_status)
+    session = SimpleNamespace(get=Mock(side_effect=responses))
+    now = [0]
 
     def wait(seconds):
         now[0] += seconds
 
-    ready, message = diagnose_registration(session, 'https://example.test', 0, lambda: now[0], wait)
+    ready, message = poll_registration(
+        session, 'https://example.test', TIMEOUT, lambda: now[0], wait
+    )
 
     assert not ready
-    assert 'without confirmed registration' in message
-    assert now[0] == 75
-    assert session.get.call_count == 30
+    assert f'last HTTP {first_status or "none"}; last request ReadTimeout' in message
+    assert now[0] == 60
+    assert session.get.call_count == 60
+
+
+def test_negative_poll_does_not_retry_certificate_error():
+    """Fail immediately on a non-transient certificate error.
+
+    :id: 647383d5-b0b7-491e-a4bd-d8beb0bb8056
+    :steps: Return an SSL error from the registration lookup.
+    :expectedresults: The error is reported without retrying or exposing its details.
+    """
+    session = SimpleNamespace(get=Mock(side_effect=SSLError('private details')))
+    wait = Mock()
+
+    ready, message = poll_registration(session, 'https://example.test', TIMEOUT, lambda: 0, wait)
+
+    assert not ready
+    assert message == 'Insights registration request failed (SSLError)'
+    assert session.get.call_count == 1
+    wait.assert_not_called()
 
 
 class StubHost:
@@ -256,10 +279,13 @@ def host_with_fake_insights_client(tmp_path, statuses, fast_clock=False):
                     self.statuses = iter(os.environ['INSIGHTS_TEST_STATUSES'].split(','))
 
                 def get(self, url, timeout):
-                    status = int(next(self.statuses))
+                    status = next(self.statuses)
                     with real_open(os.environ['INSIGHTS_TEST_REQUESTS'], 'a') as stream:
                         stream.write('{} {}\\n'.format(status, url))
-                    return Response(status)
+                    if status == 'timeout':
+                        from requests.exceptions import ReadTimeout
+                        raise ReadTimeout('simulated timeout')
+                    return Response(int(status))
 
             class InsightsConnection(object):
                 def __init__(self, config):
@@ -290,10 +316,8 @@ def host_with_fake_insights_client(tmp_path, statuses, fast_clock=False):
     def execute(command, timeout=None):
         if command == 'insights-client --status':
             return status_result
-        if command == 'rpm -q insights-client':
-            return SimpleNamespace(status=0, stdout='insights-client-test')
         result = subprocess.run(
-            command, shell=True, env=env, capture_output=True, text=True, timeout=80
+            command, shell=True, env=env, capture_output=True, text=True, timeout=65
         )
         return SimpleNamespace(status=result.returncode, stdout=result.stdout)
 
@@ -301,7 +325,7 @@ def host_with_fake_insights_client(tmp_path, statuses, fast_clock=False):
     return host, requests, machine_id, status_result
 
 
-@pytest.mark.parametrize('transient_status', [403, 404])
+@pytest.mark.parametrize('transient_status', [403, 404, 'timeout'])
 def test_positive_status_is_checked_only_after_readiness(tmp_path, transient_status):
     """Execute the generated readiness command before the client status command.
 
@@ -310,7 +334,7 @@ def test_positive_status_is_checked_only_after_readiness(tmp_path, transient_sta
     :expectedresults: The probe retries before the client status command runs.
     """
     host, requests, machine_id, status = host_with_fake_insights_client(
-        tmp_path, [transient_status, 200]
+        tmp_path, [transient_status, 200], fast_clock=True
     )
 
     result = host.check_insights_registration(SimpleNamespace(iop_enabled=False))
@@ -325,56 +349,27 @@ def test_positive_status_is_checked_only_after_readiness(tmp_path, transient_sta
     assert host.execute.call_args_list[1].args[0] == 'insights-client --status'
 
 
-@pytest.mark.parametrize('log_available', [True, False])
-def test_negative_failed_readiness_never_runs_status(tmp_path, monkeypatch, log_available):
+@pytest.mark.parametrize(
+    ('statuses', 'expected'), [([500], 'HTTP 500'), ([404] * 60, 'last HTTP 404')]
+)
+def test_negative_failed_readiness_never_runs_status(tmp_path, statuses, expected):
     """Preserve local registration if the readiness check fails.
 
     :id: d8f9d511-16c0-49d2-b8bb-c5df24d28f08
-    :steps: Diagnose a readiness timeout followed by a successful lookup.
-    :expectedresults: The test still fails, and selected client log events are captured safely.
+    :steps: Check hosted registration when the readiness probe fails.
+    :expectedresults: The error is reported and status is not executed.
     """
     host, requests, machine_id, _ = host_with_fake_insights_client(
-        tmp_path, [404] * 16 + [200], fast_clock=True
-    )
-    artifact_dir = tmp_path / 'screenshots'
-    monkeypatch.setattr(
-        'robottelo.hosts.settings',
-        SimpleNamespace(ui=SimpleNamespace(screenshots_path=str(artifact_dir))),
+        tmp_path, statuses, fast_clock=True
     )
 
-    def get_log(source, return_data):
-        assert source == '/var/log/insights-client/insights-client.log'
-        assert return_data
-        if not log_available:
-            raise OSError('log unavailable')
-        return (
-            b'2026-11-05 17:00:00 DEBUG RHSM Proxy: http://user:proxy-password@example.test\n'
-            b'2026-11-05 17:00:01 INFO Successfully registered host test-host\n'
-            b'2026-11-05 17:00:02 INFO Successfully uploaded report for test-host\n'
-            b'2026-11-05 17:00:03 DEBUG HTTP Status Code: 404\n'
-        )
-
-    host.session = SimpleNamespace(sftp_read=get_log)
-
-    with pytest.raises(ContentHostError, match='last HTTP 404') as error:
+    with pytest.raises(ContentHostError, match=expected):
         host.check_insights_registration(SimpleNamespace(iop_enabled=False))
 
-    assert 'Diagnostic confirmed registration after the initial failure' in str(error.value)
-    assert 'Diagnostic +17.00s: HTTP 200' in str(error.value)
     assert requests.read_text().splitlines() == [
-        *[f'404 https://insights.example.test/v1/systems/{machine_id}'] * 16,
-        f'200 https://insights.example.test/v1/systems/{machine_id}',
+        f'{status} https://insights.example.test/v1/systems/{machine_id}' for status in statuses
     ]
-    assert [call.args[0] for call in host.execute.call_args_list][1:] == ['rpm -q insights-client']
-    logs = list((artifact_dir / 'insights-diagnostics').glob('*.log'))
-    assert len(logs) == int(log_available)
-    if log_available:
-        log = logs[0].read_text()
-        assert 'Host registration succeeded' in log
-        assert 'Insights upload succeeded' in log
-        assert 'HTTP status: 404' in log
-        assert 'proxy-password' not in log
-        assert logs[0].stat().st_mode & 0o777 == 0o600
+    assert host.execute.call_count == 1
 
 
 @pytest.mark.parametrize('backend', ['hussh', 'ssh2-python', 'paramiko'])
@@ -383,7 +378,7 @@ def test_positive_readiness_uses_correct_ssh_timeout(backend):
 
     :id: 22f31b01-8ddb-4e68-aec1-a11bafe71a1c
     :steps: Run readiness through each backend with a simulated SSH connection.
-    :expectedresults: Each connection has enough time for the additional diagnostics.
+    :expectedresults: Each connection receives a 63-second transport timeout.
     """
     host = StubHost([])
     host._settings.SSH.BACKEND = backend
@@ -408,13 +403,13 @@ def test_positive_readiness_uses_correct_ssh_timeout(backend):
     host.execute.side_effect = lambda command, timeout=None: session.run(command, timeout=timeout)
     host.wait_for_insights_registration(SimpleNamespace(iop_enabled=False))
 
-    assert 'timeout -k 1s 76s ' in host.execute.call_args.args[0]
+    assert 'timeout -k 1s 61s ' in host.execute.call_args.args[0]
     if backend == 'hussh':
-        assert session.session.execute.call_args.kwargs['timeout'] == 78000
+        assert session.session.execute.call_args.kwargs['timeout'] == 63000
     elif backend == 'ssh2-python':
-        session.session.set_timeout.assert_called_once_with(78000)
+        session.session.set_timeout.assert_called_once_with(63000)
     else:
-        assert session.client.exec_command.call_args.kwargs['timeout'] == 78
+        assert session.client.exec_command.call_args.kwargs['timeout'] == 63
 
 
 def test_positive_iop_does_not_poll_hosted_endpoint():
@@ -498,7 +493,6 @@ def test_positive_selects_the_core_used_for_registration(tmp_path, monkeypatch, 
     )
     monkeypatch.setattr(sys, 'path', list(sys.path))
 
-    version = select_client_core(str(log))
+    select_client_core(str(log))
 
-    assert version == '3.8.4'
     assert sys.path[0] == available_egg
