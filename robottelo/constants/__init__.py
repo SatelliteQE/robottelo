@@ -1657,7 +1657,6 @@ PERMISSIONS = {
         'unattach_subscriptions',
         'import_manifest',
         'delete_manifest',
-        'manage_subscription_allocations',
     ],
     'Organization': [
         'view_organizations',
@@ -1667,6 +1666,7 @@ PERMISSIONS = {
         'assign_organizations',
         'import_content',
         'export_content',
+        'manage_subscription_allocations',
     ],
     'Katello::SyncPlan': [
         'view_sync_plans',
