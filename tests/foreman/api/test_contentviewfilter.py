@@ -665,6 +665,8 @@ class TestContentViewFilterRule:
         :expectedresults: Module Stream count changes automatically after including or
             excluding modular errata
 
+        :BlockedBy: SAT-53743
+
         """
         content_view = content_view_module_stream
         cv_filter = target_sat.api.ErratumContentViewFilter(
@@ -713,6 +715,8 @@ class TestContentViewFilterRule:
         :id: aeaf2ac7-eda2-4f07-a1dd-fe6057934697
 
         :expectedresults: Verify module stream and errata count should correct
+
+        :BlockedBy: SAT-53743
 
         """
         content_view = content_view_module_stream
