@@ -223,6 +223,7 @@ def module_provisioning_sat(
         domain=[domain.id],
     ).create()
     if sat.network_type == NetworkType.IPV4:
+        sat.close()
         assert sat.execute('cat /dev/null > /var/lib/dhcpd/dhcpd.leases').status == 0
         assert sat.execute('systemctl restart dhcpd').status == 0
     return Box(sat=sat, domain=domain, subnet=subnet, provisioning_type=provisioning_type)
