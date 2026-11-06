@@ -150,6 +150,7 @@ def test_positive_custom_provision_pxe_host(
     provisioning_host,
     provisioning_hostgroup,
     pxe_loader,
+    synced_ansible_roles,
 ):
     """Provision a PXE-based discoveredhost with Customize Host button in WebUI
 
@@ -221,9 +222,7 @@ def test_positive_custom_provision_pxe_host(
         provisioning_hostgroup.update(['root_pass'])
 
     # Sync and assign Ansible role to HostGroup to validate BZ:2025523
-    SELECTED_ROLE = 'theforeman.foreman_scap_client'
-    proxy_id = sat.nailgun_smart_proxy.id
-    sat.cli.Ansible.roles_sync({'role-names': f'{SELECTED_ROLE}', 'proxy-id': proxy_id})
+    SELECTED_ROLE = synced_ansible_roles(sat, ['theforeman.foreman_scap_client'])[0]
     result = sat.cli.HostGroup.ansible_roles_add(
         {'name': provisioning_hostgroup.name, 'ansible-role': SELECTED_ROLE}
     )
