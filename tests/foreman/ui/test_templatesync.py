@@ -91,6 +91,7 @@ def test_positive_import_templates(
     target_sat.cli.HttpProxy.update(
         {'id': proxy.id, 'organization-ids': [templates_org.id], 'location-ids': [templates_loc.id]}
     )
+    import_succeeded = False
     try:
         data = {
             'sync_type': 'Import',
@@ -115,9 +116,12 @@ def test_positive_import_templates(
             imported_template = f'{prefix_name} {import_template}'
             assert session.provisioningtemplate.is_locked(imported_template)
             pt = session.provisioningtemplate.read(imported_template)
+            import_succeeded = True
     finally:
         if use_proxy:
-            target_sat.restore_host_check_log(proxy_hostname, settings.git.hostname, old_log)
+            target_sat.restore_host_check_log(
+                proxy_hostname, settings.git.hostname, old_log, check_proxy=import_succeeded
+            )
     assert pt['template']['name'] == imported_template
     assert pt['template']['default'] is False
     assert pt['type']['snippet'] is False
