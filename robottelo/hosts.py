@@ -75,7 +75,7 @@ from robottelo.host_helpers import (
     SatelliteMixins,
 )
 from robottelo.logging import logger
-from robottelo.utils import insights_readiness, validate_ssh_pub_key
+from robottelo.utils import insights_diagnostics, insights_readiness, validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
 from robottelo.utils.issue_handlers import is_open
@@ -1215,11 +1215,11 @@ class ContentHost(Host, ContentHostMixins):
         started. A 403 can also indicate an authorization problem; a successful
         probe can still be followed by a failed status request.
 
-        If the host is still available, check ``rpm -q insights-client`` and
-        ``/var/log/insights-client/insights-client.log`` for the client and Core
-        versions and registration errors. The host can be removed at teardown;
-        this helper does not archive its client log. ``--external-logging`` enables
-        host log shipping to Loki, but does not guarantee this file is retained.
+        On a readiness or hosted client-status failure, the package version and a
+        sanitized client log are saved as ``logs/insights-readiness-*.log`` before
+        host teardown; PRT archives these files. ``--external-logging`` enables
+        host log shipping to Loki, but does not guarantee that the client log is
+        retained there.
         Avoid rerunning ``--status`` while diagnosing the failure because it can
         change registration state.
         """
@@ -1236,11 +1236,19 @@ class ContentHost(Host, ContentHostMixins):
         transport_timeout = insights_readiness.TIMEOUT + 3
         if self._settings.SSH.BACKEND != 'paramiko':
             transport_timeout = f'{transport_timeout}s'
-        result = self.execute(command, timeout=transport_timeout)
+        try:
+            result = self.execute(command, timeout=transport_timeout)
+        except Exception:
+            insights_diagnostics.capture_insights_diagnostics(self, 'Readiness command failed')
+            raise
         if result.status != 0:
+            diagnostics = insights_diagnostics.capture_insights_diagnostics(self, result.stdout)
+            diagnostic_message = (
+                f'Diagnostics: {diagnostics}' if diagnostics else 'Diagnostics could not be saved'
+            )
             raise ContentHostError(
                 f'Insights registration readiness check failed on {self.hostname} '
-                f'(exit {result.status}): {result.stdout.strip()}'
+                f'(exit {result.status}): {result.stdout.strip()}\n{diagnostic_message}'
             )
 
     def check_insights_registration(self, satellite):
@@ -1250,7 +1258,19 @@ class ContentHost(Host, ContentHostMixins):
         if registration visibility changes after the readiness check.
         """
         self.wait_for_insights_registration(satellite)
-        return self.execute('insights-client --status')
+        try:
+            result = self.execute('insights-client --status')
+        except Exception:
+            if not satellite.iop_enabled:
+                insights_diagnostics.capture_insights_diagnostics(
+                    self, 'Client status command failed'
+                )
+            raise
+        if result.status != 0 and not satellite.iop_enabled:
+            insights_diagnostics.capture_insights_diagnostics(
+                self, f'Client status exited {result.status}'
+            )
+        return result
 
     def unregister_insights(self):
         """Unregister insights client.

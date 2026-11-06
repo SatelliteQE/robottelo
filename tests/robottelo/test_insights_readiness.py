@@ -1,7 +1,10 @@
 """Tests for the non-mutating Insights registration readiness check."""
 
 from contextlib import nullcontext
+from io import BytesIO
+from pathlib import Path
 import sys
+import tarfile
 from types import SimpleNamespace
 from unittest.mock import Mock, call
 
@@ -14,6 +17,7 @@ from requests.exceptions import ReadTimeout, SSLError
 from pytest_fixtures.component.rh_cloud import enable_insights
 from robottelo.exceptions import ContentHostError
 from robottelo.hosts import ContentHost
+from robottelo.utils import insights_diagnostics
 from robottelo.utils.insights_readiness import TIMEOUT, poll_registration, select_client_core
 
 
@@ -48,7 +52,7 @@ class StubHost:
     'transient',
     [
         [response(403)],
-        [response(404)] * 59,
+        [response(404)] * 599,
         [ReadTimeout('private details'), response(404)],
     ],
     ids=['403', '404-near-deadline', 'read-timeout'],
@@ -74,7 +78,7 @@ def test_positive_poll_waits_for_registration(transient, capsys):
 
 
 @pytest.mark.parametrize('transient', [403, 404, 'timeout'])
-def test_negative_poll_stops_at_sixty_seconds(transient):
+def test_negative_poll_stops_at_six_hundred_seconds(transient):
     """Bound polling when registration never appears.
 
     :id: a218f137-50ba-4383-87d3-88c7367a4cff
@@ -93,9 +97,9 @@ def test_negative_poll_stops_at_sixty_seconds(transient):
     )
 
     assert not ready
-    assert TIMEOUT == 60
-    assert clock.now == 60
-    assert get.call_count == 60
+    assert TIMEOUT == 600
+    assert clock.now == 600
+    assert get.call_count == 600
     assert (
         'last request ReadTimeout' if transient == 'timeout' else f'last HTTP {transient}'
     ) in message
@@ -153,27 +157,152 @@ def test_negative_poll_rejects_nontransient_or_unregistered_response(result):
     wait.assert_not_called()
 
 
-@pytest.mark.parametrize('readiness_succeeded', [True, False])
-def test_positive_status_is_checked_only_after_readiness(readiness_succeeded):
+@pytest.mark.parametrize(
+    'scenario',
+    [
+        'ready',
+        'timeout',
+        'missing-log',
+        'transport-error',
+        'artifact-unavailable',
+        'pylibssh',
+        'container',
+    ],
+)
+def test_positive_status_is_checked_only_after_readiness(scenario, tmp_path, monkeypatch):
     """Run client status only after the non-mutating readiness check succeeds.
 
     :id: 5b2f5bbd-e194-4606-90e2-2649d414f675
     :steps: Check registration after a successful or failed readiness probe.
-    :expectedresults: Status runs after success and never runs after failure.
+    :expectedresults: Status runs only after success; failures save sanitized diagnostics.
     """
-    probe = SimpleNamespace(status=0 if readiness_succeeded else 1, stdout='probe result')
+    readiness_succeeded = scenario == 'ready'
+    probe = SimpleNamespace(
+        status=0 if readiness_succeeded else 1, stdout='Timed out waiting for Insights registration'
+    )
+    if scenario == 'transport-error':
+        probe = RuntimeError('readiness transport error')
     status = SimpleNamespace(status=0, stdout='registered')
-    host = StubHost([probe, status])
-    expected = nullcontext() if readiness_succeeded else pytest.raises(ContentHostError)
+    package = SimpleNamespace(status=0, stdout='insights-client-3.9.3-1.el9.noarch')
+    host = StubHost([probe, status if readiness_succeeded else package])
+    if scenario == 'pylibssh':
+        host._settings.SSH.BACKEND = 'pylibssh'
+    client_log = (
+        b'Registration started\n'
+        b'RHSM Proxy: http://user:proxy-secret@example.test\n'
+        b'Authorization: Bearer private-token\n'
+        b'Connecting to https://alice:p@ss@example.test/\n'
+        b'-----BEGIN PRIVATE KEY-----\nprivate-key-body\n-----END PRIVATE KEY-----\n'
+        b'HTTP 404\n'
+    )
+    sftp_read = Mock(return_value=client_log)
+    if scenario == 'missing-log':
+        sftp_read.side_effect = FileNotFoundError('private details')
+    if scenario == 'container':
+
+        class ContainerSession:
+            pass
+
+        monkeypatch.setitem(
+            sys.modules, 'broker.session', SimpleNamespace(ContainerSession=ContainerSession)
+        )
+        host.is_container = True
+        data = BytesIO()
+        with tarfile.open(fileobj=data, mode='w') as archive:
+            member = tarfile.TarInfo(name=Path(insights_diagnostics.CLIENT_LOG).name)
+            member.size = len(client_log)
+            archive.addfile(member, BytesIO(client_log))
+        sftp_read.return_value = data.getvalue()
+        host.session = ContainerSession()
+        host.session.sftp_read = sftp_read
+    else:
+        host.session = SimpleNamespace(sftp_read=sftp_read)
+    monkeypatch.setattr(insights_diagnostics, 'robottelo_log_dir', tmp_path)
+    if scenario == 'artifact-unavailable':
+        monkeypatch.setattr(
+            insights_diagnostics, 'NamedTemporaryFile', Mock(side_effect=PermissionError())
+        )
+    error = RuntimeError if scenario == 'transport-error' else ContentHostError
+    message = 'readiness transport error' if scenario == 'transport-error' else 'Timed out waiting'
+    expected = nullcontext() if readiness_succeeded else pytest.raises(error, match=message)
+
+    with expected as caught:
+        result = host.check_insights_registration(SimpleNamespace(iop_enabled=False))
+
+    assert 'timeout -k 1s 601s ' in host.execute.call_args_list[0].args[0]
+    if readiness_succeeded:
+        assert result is status
+        assert host.execute.call_args_list[1].args[0] == 'insights-client --status'
+        sftp_read.assert_not_called()
+        assert not list(tmp_path.glob('insights-readiness-*.log'))
+    else:
+        assert host.execute.call_args_list[1].args[0] == 'rpm -q insights-client'
+        assert all(c.args[0] != 'insights-client --status' for c in host.execute.call_args_list)
+        if scenario == 'container':
+            sftp_read.assert_called_once_with(
+                insights_diagnostics.CLIENT_LOG, destination='_raw', return_data=True
+            )
+        elif scenario == 'pylibssh':
+            assert sftp_read.call_args.args == (insights_diagnostics.CLIENT_LOG,)
+            assert sftp_read.call_args.kwargs['return_data'] is True
+            assert not Path(sftp_read.call_args.kwargs['destination']).exists()
+        else:
+            sftp_read.assert_called_once_with(insights_diagnostics.CLIENT_LOG, return_data=True)
+        artifacts = list(tmp_path.glob('insights-readiness-*.log'))
+        if scenario == 'artifact-unavailable':
+            assert not artifacts
+            assert 'Diagnostics could not be saved' in str(caught.value)
+            return
+        assert len(artifacts) == 1
+        assert artifacts[0].stat().st_mode & 0o777 == 0o600
+        contents = artifacts[0].read_text()
+        assert 'insights-client-3.9.3-1.el9.noarch' in contents
+        if scenario == 'missing-log':
+            assert 'Could not read client log (FileNotFoundError)' in contents
+        else:
+            assert 'Registration started' in contents
+            assert 'HTTP 404' in contents
+            assert 'proxy-secret' not in contents
+            assert 'private-token' not in contents
+            assert 'p@ss' not in contents
+            assert 'private-key-body' not in contents
+    assert host.execute.call_count == 2
+
+
+@pytest.mark.parametrize('failure', ['nonzero', 'transport-error'])
+def test_negative_client_status_failure_saves_diagnostics(failure, tmp_path, monkeypatch):
+    """Capture diagnostics if status fails after readiness succeeds.
+
+    :id: ec4f8286-8a68-4629-bb77-db8e0e24f1fd
+    :steps: Simulate a failed client status after a successful readiness check.
+    :expectedresults: A sanitized log and client version are saved without changing the result.
+    """
+    probe = SimpleNamespace(status=0, stdout='ready')
+    status = SimpleNamespace(status=1, stdout='unregistered')
+    status_result = (
+        RuntimeError('status transport error') if failure == 'transport-error' else status
+    )
+    package = SimpleNamespace(status=0, stdout='insights-client-3.9.3-1.el9.noarch')
+    host = StubHost([probe, status_result, package])
+    host.session = SimpleNamespace(sftp_read=Mock(return_value=b'Client log\n'))
+    monkeypatch.setattr(insights_diagnostics, 'robottelo_log_dir', tmp_path)
+    expected = (
+        pytest.raises(RuntimeError, match='status transport error')
+        if failure == 'transport-error'
+        else nullcontext()
+    )
 
     with expected:
         result = host.check_insights_registration(SimpleNamespace(iop_enabled=False))
 
-    assert 'timeout -k 1s 61s ' in host.execute.call_args_list[0].args[0]
-    if readiness_succeeded:
+    if failure == 'nonzero':
         assert result is status
-        assert host.execute.call_args_list[1].args[0] == 'insights-client --status'
-    assert host.execute.call_count == (2 if readiness_succeeded else 1)
+    assert host.execute.call_args_list[1].args[0] == 'insights-client --status'
+    artifacts = list(tmp_path.glob('insights-readiness-*.log'))
+    assert len(artifacts) == 1
+    contents = artifacts[0].read_text()
+    assert 'insights-client-3.9.3-1.el9.noarch' in contents
+    assert 'Client log' in contents
 
 
 @pytest.mark.parametrize('backend', ['hussh', 'ssh2-python', 'paramiko'])
@@ -182,7 +311,7 @@ def test_positive_readiness_uses_correct_ssh_timeout(backend):
 
     :id: 22f31b01-8ddb-4e68-aec1-a11bafe71a1c
     :steps: Run readiness through each backend with a simulated SSH connection.
-    :expectedresults: Each connection receives a 63-second transport timeout.
+    :expectedresults: Each connection receives a 603-second transport timeout.
     """
     host = StubHost([])
     host._settings.SSH.BACKEND = backend
@@ -207,13 +336,13 @@ def test_positive_readiness_uses_correct_ssh_timeout(backend):
     host.execute.side_effect = lambda command, timeout=None: session.run(command, timeout=timeout)
     host.wait_for_insights_registration(SimpleNamespace(iop_enabled=False))
 
-    assert 'timeout -k 1s 61s ' in host.execute.call_args.args[0]
+    assert 'timeout -k 1s 601s ' in host.execute.call_args.args[0]
     if backend == 'hussh':
-        assert session.session.execute.call_args.kwargs['timeout'] == 63000
+        assert session.session.execute.call_args.kwargs['timeout'] == 603000
     elif backend == 'ssh2-python':
-        session.session.set_timeout.assert_called_once_with(63000)
+        session.session.set_timeout.assert_called_once_with(603000)
     else:
-        assert session.client.exec_command.call_args.kwargs['timeout'] == 63
+        assert session.client.exec_command.call_args.kwargs['timeout'] == 603
 
 
 def test_positive_iop_does_not_poll_hosted_endpoint():

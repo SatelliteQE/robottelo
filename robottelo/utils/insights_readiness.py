@@ -16,7 +16,7 @@ import threading
 import time
 import uuid
 
-TIMEOUT = 60
+TIMEOUT = 600
 POLL_INTERVAL = 1
 REQUEST_TIMEOUT = 2
 MONOTONIC = getattr(time, 'monotonic', time.time)
