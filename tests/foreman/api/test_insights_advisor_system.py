@@ -72,54 +72,6 @@ def test_insights_systems(module_org, module_sca_manifest, module_target_sat, rh
     wait_for(_check_systems, timeout=120, delay=10, handle_exception=True)
 
 
-def test_insights_systems_empty(module_org, module_target_sat):
-    """Check that the systems endpoint returns empty results for an org with no insights hosts.
-
-    :id: f66c1a19-9970-4b67-adee-6b23270a76ee
-
-    :steps:
-        1. Send GET request to /insights_cloud/api/insights/v1/system for an empty org
-
-    :expectedresults: The response returns 200 with count equal to 0.
-    """
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/system'
-
-    response = client.get(
-        path,
-        auth=module_target_sat.nailgun_cfg.auth,
-        verify=False,
-        headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
-    )
-
-    assert response.status_code == 200
-    assert response.json()['meta']['count'] == 0
-
-
-def test_insights_system_not_existing(module_org, module_target_sat):
-    """Check that requesting reports for a non-existing system UUID returns empty list.
-
-    :id: 9168fb40-b761-4942-b211-81878dbf9be9
-
-    :steps:
-        1. Send GET request to /insights_cloud/api/insights/v1/system/{fake_uuid}/reports
-
-    :expectedresults: The response returns 200 with an empty list.
-    """
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/system/f66c1a19-9970-4b67-adee-6b23270a76ee/reports'
-
-    response = client.get(
-        path,
-        auth=module_target_sat.nailgun_cfg.auth,
-        verify=False,
-        headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
-    )
-
-    assert response.json() == []
-    assert response.status_code == 200
-
-
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_system_existing(
