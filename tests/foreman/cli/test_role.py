@@ -19,7 +19,7 @@ import re
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.constants import PERMISSIONS, ROLES
+from robottelo.constants import PERMISSIONS
 from robottelo.exceptions import CLIDataBaseError, CLIReturnCodeError
 from robottelo.utils.datafactory import generate_strings_list, parametrized
 
@@ -212,7 +212,7 @@ class TestRole:
         )
 
     @pytest.mark.upgrade
-    def test_positive_delete_cloned_builtin(self, module_target_sat):
+    def test_positive_delete_cloned_builtin(self, module_target_sat, expected_roles):
         """Clone a builtin role and attempt to delete it
 
         :id: 1fd9c636-596a-4cb2-b100-de19238042cc
@@ -224,7 +224,9 @@ class TestRole:
         :CaseImportance: Critical
 
         """
-        role_list = module_target_sat.cli.Role.list({'search': f'name=\\"{choice(ROLES)}\\"'})
+        role_list = module_target_sat.cli.Role.list(
+            {'search': f'name=\\"{choice(expected_roles)}\\"'}
+        )
         assert len(role_list) == 1
         cloned_role = module_target_sat.cli.Role.clone(
             {'id': role_list[0]['id'], 'new-name': gen_string('alphanumeric')}
