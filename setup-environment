@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Set up the Python environment used for local Robottelo development.
+
+set -eou pipefail
+
+if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+  python3 -m venv .robottelo
+  source .robottelo/bin/activate
+fi
+if command -v uv >/dev/null 2>&1; then
+  uv pip install -r requirements.txt -r requirements-optional.txt
+else
+  echo "uv not found, falling back to pip (this may be slow)"
+  pip install -r requirements.txt -r requirements-optional.txt
+fi
+
+printf "\n\nSetup complete.\n"
+printf "Activate the virtualenv 'source .robottelo/bin/activate'.\n"
