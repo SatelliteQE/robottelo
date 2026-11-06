@@ -246,6 +246,7 @@ def test_positive_global_registration_end_to_end(
         value='True',
     ).create()
     # Wait without changing client state, then verify the status command through REX.
+    # Registration failure triage: ContentHost.wait_for_insights_registration in robottelo/hosts.py.
     rhel_contenthost.wait_for_insights_registration(module_target_sat)
     command = "insights-client --status"
     invocation_command = module_target_sat.cli_factory.job_invocation(

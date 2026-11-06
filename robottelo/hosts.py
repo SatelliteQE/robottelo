@@ -1207,6 +1207,21 @@ class ContentHost(Host, ContentHostMixins):
         A new host can briefly return 404 before its upload is processed. Running
         ``insights-client --status`` during that window can unregister it locally.
         IoP uses a different endpoint and is intentionally not polled here.
+
+        To investigate a hosted registration failure, find the host's command
+        result in the Jenkins ``logs/robottelo_gw*.log`` artifact (or
+        ``logs/robottelo.log`` without xdist). The ``Insights registration lookup``
+        lines show HTTP responses or read timeouts and seconds since the probe
+        started. A 403 can also indicate an authorization problem; a successful
+        probe can still be followed by a failed status request.
+
+        If the host is still available, check ``rpm -q insights-client`` and
+        ``/var/log/insights-client/insights-client.log`` for the client and Core
+        versions and registration errors. The host can be removed at teardown;
+        this helper does not archive its client log. ``--external-logging`` enables
+        host log shipping to Loki, but does not guarantee this file is retained.
+        Avoid rerunning ``--status`` while diagnosing the failure because it can
+        change registration state.
         """
         if satellite.iop_enabled:
             return
