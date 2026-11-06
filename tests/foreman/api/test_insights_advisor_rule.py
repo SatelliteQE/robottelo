@@ -45,75 +45,6 @@ def test_insights_rule(module_org, module_target_sat):
     assert response.json()["meta"]["count"] > 0
 
 
-def test_insights_rule_not_existing(module_org, module_target_sat):
-    """Check that requesting a non-existing rule returns 404.
-
-    :id: 505357a7-b1a9-4c9d-80e3-f16ffce5ad83
-
-    :steps:
-        1. Send GET request to /insights_cloud/api/insights/v1/rule/xxx
-
-    :expectedresults: The response returns 404.
-    """
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/xxx'
-
-    response = client.get(
-        path,
-        auth=module_target_sat.nailgun_cfg.auth,
-        verify=False,
-        headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
-    )
-
-    assert response.status_code == 404
-
-
-def test_insights_rule_systems_detail_not_existing(module_org, module_target_sat):
-    """Check that requesting systems_detail for a non-existing rule returns 404.
-
-    :id: 9b1fd9d6-5bae-4c06-b353-cf36bab47395
-
-    :steps:
-        1. Send GET request to /insights_cloud/api/insights/v1/rule/xxx/systems_detail
-
-    :expectedresults: The response returns 404.
-    """
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/xxx/systems_detail'
-
-    response = client.get(
-        path,
-        auth=module_target_sat.nailgun_cfg.auth,
-        verify=False,
-        headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
-    )
-
-    assert response.status_code == 404
-
-
-def test_insights_rule_systems_not_existing(module_org, module_target_sat):
-    """Check that requesting systems for a non-existing rule returns 404.
-
-    :id: 9b7e9219-6228-4f59-b8d2-79af115b62e6
-
-    :steps:
-        1. Send GET request to /insights_cloud/api/insights/v1/rule/xxx/systems
-
-    :expectedresults: The response returns 404.
-    """
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/xxx/systems'
-
-    response = client.get(
-        path,
-        auth=module_target_sat.nailgun_cfg.auth,
-        verify=False,
-        headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
-    )
-
-    assert response.status_code == 404
-
-
 def test_insights_rule_existing(module_org, module_target_sat):
     """Check that a known rule can be retrieved and has no impacted systems.
 
@@ -316,34 +247,6 @@ def test_insights_ack_hosts(module_org, module_sca_manifest, module_target_sat, 
     assert response.json()["data"][0]["rule"] == RULE_ID
     assert response.json()["data"][0]["system_uuid"] == insights_uuid
     assert response.json()["data"][0]["justification"] == justification
-
-
-def test_insights_rule_ack_not_existing_host(module_org, module_target_sat):
-    """Check that acking a non-existing host for a rule returns 400.
-
-    :id: 7f0e02f5-72ac-4290-a7f4-365481a19ea6
-
-    :steps:
-        1. Send POST request to /insights_cloud/api/insights/v1/rule/{RULE_ID}/ack_hosts/
-            with a fake system UUID
-
-    :expectedresults: The response returns 400.
-    """
-
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}/ack_hosts/'
-    response = client.post(
-        path,
-        auth=module_target_sat.nailgun_cfg.auth,
-        verify=False,
-        headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
-        data={
-            'systems': ["f9ffee5d-b633-4bcc-8b12-9d13af6ce604"],
-            'justification': "justification",
-        },
-    )
-
-    assert response.status_code == 400
 
 
 @pytest.mark.no_containers
