@@ -22,6 +22,7 @@ from robottelo.config import (
     settings,
 )
 from robottelo.exceptions import CLIFactoryError
+from robottelo.utils.ansible import AnsibleSyncTasks, cleanup_ansible_role
 
 
 def assert_job_invocation_result(
@@ -98,7 +99,8 @@ class TestAnsibleCfgMgmt:
         target_host = rhel_contenthost.nailgun_host
 
         target_sat.cli.Ansible.roles_sync(
-            {'role-names': f'{SELECTED_ROLE},{SELECTED_ROLE_1}', 'proxy-id': proxy_id}
+            {'role-names': f'{SELECTED_ROLE},{SELECTED_ROLE_1}', 'proxy-id': proxy_id},
+            synchronous=True,
         )
         result = target_sat.cli.Host.ansible_roles_add(
             {'id': target_host.id, 'ansible-role': SELECTED_ROLE}
@@ -149,7 +151,7 @@ class TestAnsibleCfgMgmt:
         )
 
     @pytest.mark.e2e
-    def test_add_and_remove_ansible_role_hostgroup(self, target_sat):
+    def test_add_and_remove_ansible_role_hostgroup(self, request, target_sat, synced_ansible_roles):
         """
         Test add and remove functionality for ansible roles in hostgroup via CLI
 
@@ -158,8 +160,8 @@ class TestAnsibleCfgMgmt:
         :customerscenario: true
 
         :steps:
-            1. Create a hostgroup
-            2. Sync few ansible roles
+            1. Sync three configured Ansible roles installed on the proxy
+            2. Create a hostgroup
             3. Assign a few ansible roles with the host group
             4. Add some ansible role with the host group
             5. Remove the added ansible roles from the host group
@@ -169,23 +171,23 @@ class TestAnsibleCfgMgmt:
 
         :BZ: 2029402
         """
-        ROLES = settings.ansible.role_names
-
-        proxy_id = target_sat.nailgun_smart_proxy.id
+        role_names = settings.ansible.role_names[:3]
+        assert len(set(role_names)) == 3, 'Configure at least three distinct Ansible roles'
+        roles = synced_ansible_roles(target_sat, role_names)
         hg_name = gen_string('alpha')
         result = target_sat.cli.HostGroup.create({'name': hg_name})
+        request.addfinalizer(lambda: target_sat.cli.HostGroup.delete({'name': hg_name}))
         assert result['name'] == hg_name
-        target_sat.cli.Ansible.roles_sync({'role-names': ROLES, 'proxy-id': proxy_id})
         result = target_sat.cli.HostGroup.ansible_roles_assign(
-            {'name': hg_name, 'ansible-roles': f'{ROLES[1]},{ROLES[2]}'}
+            {'name': hg_name, 'ansible-roles': f'{roles[1]},{roles[2]}'}
         )
         assert 'Ansible roles were assigned to the hostgroup' in result[0]['message']
         result = target_sat.cli.HostGroup.ansible_roles_add(
-            {'name': hg_name, 'ansible-role': ROLES[0]}
+            {'name': hg_name, 'ansible-role': roles[0]}
         )
         assert 'Ansible role has been associated.' in result[0]['message']
         result = target_sat.cli.HostGroup.ansible_roles_remove(
-            {'name': hg_name, 'ansible-role': ROLES[0]}
+            {'name': hg_name, 'ansible-role': roles[0]}
         )
         assert 'Ansible role has been disassociated.' in result[0]['message']
 
@@ -212,11 +214,13 @@ class TestAnsibleCfgMgmt:
         SELECTED_COLLECTION = 'oasis_roles.system'
         SELECTED_ROLE = 'oasis_roles.system.sshd'
         SELECTED_VAR = 'sshd_allow_password_login'
+        role_search = {'search': f'name="{SELECTED_ROLE}"'}
+
+        sync_task_ids = []
 
         @request.addfinalizer
         def _finalize():
-            result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
-            assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
+            cleanup_ansible_role(target_sat, SELECTED_ROLE, sync_task_ids)
 
         result = rhel_contenthost.register(
             module_org,
@@ -228,6 +232,7 @@ class TestAnsibleCfgMgmt:
         target_host = rhel_contenthost.nailgun_host
         proxy_id = target_sat.nailgun_smart_proxy.id
 
+        sync_task_ids = AnsibleSyncTasks(target_sat, [SELECTED_ROLE], proxy_id)
         for path in ['/etc/ansible/collections', '/usr/share/ansible/collections']:
             http_proxy = (
                 f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
@@ -240,7 +245,14 @@ class TestAnsibleCfgMgmt:
                 ).status
                 == 0
             )
-            target_sat.cli.Ansible.roles_sync({'role-names': SELECTED_ROLE, 'proxy-id': proxy_id})
+            target_sat.cli.Ansible.roles_sync(
+                {'role-names': SELECTED_ROLE, 'proxy-id': proxy_id},
+                synchronous=True,
+                task_ids=sync_task_ids,
+            )
+            assert target_sat.cli.Ansible.roles_list(role_search), (
+                f'Ansible role {SELECTED_ROLE} was not imported'
+            )
             result = target_sat.cli.Host.ansible_roles_assign(
                 {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE}'}
             )
@@ -677,15 +689,17 @@ class TestAnsibleREX:
                     'location-ids': default_location.id,
                 }
             )
-            target_sat.cli.User.add_role(
-                {'id': user['id'], 'login': username, 'role': 'Ansible Roles Manager'}
-            )
+            for role in ['Ansible Roles Manager', 'Tasks Reader']:
+                target_sat.cli.User.add_role({'id': user['id'], 'login': username, 'role': role})
+
+        sync_task_ids = []
 
         @request.addfinalizer
         def _finalize():
-            result = target_sat.cli.Ansible.roles_delete({'name': SELECTED_ROLE})
-            assert f'Ansible role [{SELECTED_ROLE}] was deleted.' in result[0]['message']
-            target_sat.execute(f'rm -rvf /etc/ansible/roles/{SELECTED_ROLE}')
+            try:
+                cleanup_ansible_role(target_sat, SELECTED_ROLE, sync_task_ids)
+            finally:
+                target_sat.execute(f'rm -rvf /etc/ansible/roles/{SELECTED_ROLE}')
 
         SELECTED_ROLE = gen_string('alphanumeric')
         playbook = f'{robottelo_tmp_dir}/playbook.yml'
@@ -725,8 +739,11 @@ class TestAnsibleREX:
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         proxy_id = target_sat.nailgun_smart_proxy.id
         target_host = rhel_contenthost.nailgun_host
+        sync_task_ids = AnsibleSyncTasks(target_sat, [SELECTED_ROLE], proxy_id)
         target_sat.cli.Ansible.with_user(username, password).roles_sync(
-            {'role-names': SELECTED_ROLE, 'proxy-id': proxy_id}
+            {'role-names': SELECTED_ROLE, 'proxy-id': proxy_id},
+            synchronous=True,
+            task_ids=sync_task_ids,
         )
         result = target_sat.cli.Host.with_user(username, password).ansible_roles_assign(
             {'id': target_host.id, 'ansible-roles': f'{SELECTED_ROLE}'}
