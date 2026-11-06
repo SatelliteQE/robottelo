@@ -60,12 +60,12 @@ def module_sat_ready_rhel(request):
         deploy_rhel_version=settings.server.version.rhel_version,
         deploy_flavor=settings.flavors.default,
         deploy_network_type=settings.server.network_type,
+        deploy_fips=param == 'fips',
+        enable_fapolicyd=param == 'fapolicyd',
         host_class=Satellite,
         use_dynamic_inventories_wf_level=False,
     ) as sat:
         sat.install_satellite_foremanctl(
-            enable_fapolicyd=(param == 'fapolicyd'),
-            enable_fips=(param == 'fips'),
             parameters=deploy_args,
         )
         yield sat
@@ -80,6 +80,8 @@ def module_cap_ready_rhel(request):
         deploy_rhel_version=settings.server.version.rhel_version,
         deploy_flavor=settings.flavors.default,
         deploy_network_type=settings.server.network_type,
+        deploy_fips=param == 'fips',
+        enable_fapolicyd=param == 'fapolicyd',
         host_class=Capsule,
         use_dynamic_inventories_wf_level=False,
     ) as cap:
@@ -105,18 +107,6 @@ def module_cap_ready_rhel(request):
         assert cap.execute('dnf install -y satellitectl').status == 0, (
             'Failed to install satellitectl'
         )
-        # Enable fapolicyd/fips after installs
-        if param == 'fapolicyd':
-            assert cap.execute('dnf -y install fapolicyd').status == 0
-            assert cap.execute('systemctl enable --now fapolicyd').status == 0
-            assert cap.execute('systemctl is-active fapolicyd').status == 0
-        if param == 'fips':
-            Broker().execute(
-                workflow='enable-fips',
-                target_vm=cap.name,
-            )
-            cap.connect()
-            assert cap.is_fips_enabled()
         # Unregister capsule in case it's registered to CDN
         cap.unregister()
         # Setup firewall to allow Satellite-Capsule communication
