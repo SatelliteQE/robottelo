@@ -285,10 +285,13 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                 }
             )
             # 1. Host Creation Assertions
-            # 1.1 UI based Assertions
-            host_info = session.host_new.get_host_statuses(hostname)
-            assert session.host.search(hostname)[0]['Name'] == hostname
-            assert host_info['Build']['Status'] == 'Pending installation'
+            # 1.1 API based Assertions
+            hosts = sat_gce.api.Host().search(query={'search': f'name={hostname}'})
+            assert len(hosts) > 0, f"Host {hostname} not found"
+            assert hosts[0].name == hostname, "Host name mismatch"
+            assert hosts[0].build_status_label == 'Pending installation', (
+                f"Expected 'Pending installation', got '{hosts[0].build_status_label}'"
+            )
             # 1.2 GCE Backend Assertions
             gceapi_vm = googleclient.get_vm(gceapi_vmname)
             host_page = session.host_new.get_details(hostname, widget_names='overview')
