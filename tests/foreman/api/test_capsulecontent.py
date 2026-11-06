@@ -2453,6 +2453,35 @@ class TestPodman:
     :team: Artemis
     """
 
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_capsule_token_request_without_account(self, module_capsule_configured):
+        """Ensure Capsule token requests succeed when the client omits ``account``.
+
+        :id: e55907e2-aa2d-49b5-a787-b7cb350761b7
+
+        :steps:
+            1. Request a Capsule registry token with Basic authentication and service/scope
+               parameters, omitting the non-standard account parameter.
+
+        :expectedresults:
+            1. Capsule responds with HTTP 200 and a token.
+
+        :verifies: SAT-50418
+        """
+        response = requests.get(
+            f'{module_capsule_configured.url}/v2/token',
+            auth=(settings.server.admin_username, settings.server.admin_password),
+            params={
+                'service': module_capsule_configured.hostname,
+                'scope': 'repository:registry:pull,push',
+            },
+            verify=settings.server.verify_ca,
+            timeout=30,
+        )
+        assert response.status_code == 200, response.text
+        assert response.headers.get('Docker-Distribution-Api-Version') == 'registry/2.0'
+        assert response.json().get('token'), 'Capsule token endpoint returned no token'
+
     def test_negative_podman_capsule_push(
         self,
         module_capsule_configured,
