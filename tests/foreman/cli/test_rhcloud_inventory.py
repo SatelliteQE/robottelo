@@ -16,12 +16,11 @@ from datetime import UTC, datetime
 import json
 import time
 
+from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
 
-from robottelo import constants
 from robottelo.config import robottelo_tmp_dir
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.utils.io import get_local_file_data, get_remote_report_checksum
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
@@ -606,21 +605,18 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
     assert task_output[0].result == "success"
 
 
-def test_positive_config_on_sat_without_network_protocol(
-    request, target_sat, function_sca_manifest, function_org
-):
+@pytest.mark.destructive
+def test_positive_config_on_sat_without_network_protocol(target_sat, subscribe_satellite):
     """Test cloud connector configuration on Satellite without explicit network protocol.
 
     :id: e6bf1c56-3091-4db2-b162-4cf3c6e23394
 
     :steps:
-        1. Create organization and get its Library lifecycle environment and default content view.
-        2. Upload manifest to enable Red Hat content.
-        3. Enable and sync RHEL BaseOS and AppStream repositories.
-        4. Create activation key and register Satellite to itself.
-        5. Enable cloud connector via CLI.
-        6. Verify that the 'Configure Cloud Connector' job template executes successfully.
-        7. Check that rhcd service proxy configuration is properly set.
+        1. Register Satellite to the CDN and enable the required RHEL repositories.
+        2. Configure remote execution access to the Satellite host.
+        3. Enable cloud connector via CLI.
+        4. Verify that the 'Configure Cloud Connector' job template executes successfully.
+        5. Check that rhcd service proxy configuration is properly set.
 
     :expectedresults:
         1. Satellite is successfully registered.
@@ -633,59 +629,20 @@ def test_positive_config_on_sat_without_network_protocol(
 
     :customerscenario: true
     """
-    # Ensure Satellite is not registered from previous test runs
-    target_sat.unregister()
+    for repo in ('rhel_bos', 'rhel_aps'):
+        target_sat.enable_repo(target_sat.REPOS[repo]['id'])
 
-    # Delete the host from Satellite's database if it exists from a previous test run
-    existing_host = target_sat.api.Host().search(query={'search': f'name="{target_sat.hostname}"'})
-    if existing_host:
-        existing_host[0].delete()
-
-    # Get the Library lifecycle environment and default content view for the organization
-    cv = target_sat.api.ContentView().search(
-        query={'search': f'name="{DEFAULT_CV}" AND organization_id={function_org.id}'}
-    )[0]
-    lce = target_sat.api.LifecycleEnvironment().search(
-        query={'search': f'name="{ENVIRONMENT}" AND organization_id={function_org.id}'}
-    )[0]
-
-    # Upload manifest to enable Red Hat content
-    target_sat.upload_manifest(function_org.id, function_sca_manifest.content)
-
-    # Enable and sync RHEL BaseOS and AppStream repositories based on Satellite's OS version
-    rhel_ver = target_sat.os_version.major
-    for name in [f'rhel{rhel_ver}_bos', f'rhel{rhel_ver}_aps']:
-        # Enable the Red Hat repository and get its ID
-        rh_repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
-            basearch=constants.DEFAULT_ARCHITECTURE,
-            org_id=function_org.id,
-            product=constants.REPOS[name]['product'],
-            repo=constants.REPOS[name]['name'],
-            reposet=constants.REPOS[name]['reposet'],
-            releasever=constants.REPOS[name]['version'],
-        )
-        # Sync the repository
-        rh_repo = target_sat.api.Repository(id=rh_repo_id).read()
-        rh_repo.sync(timeout=2000)
-
-    # Create an activation key for Satellite self-registration
-    ac_key = target_sat.api.ActivationKey(
-        content_view=cv,
-        environment=lce,
-        organization=function_org,
-    ).create()
-
-    # Register the Satellite to itself using the activation key
-    result = target_sat.register(function_org, None, ac_key.name, target_sat, force=True)
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
-
-    # Add finalizer to ensure the Satellite is always unregistered
-    @request.addfinalizer
-    def cleanup():
-        target_sat.unregister()
+    target_sat.add_rex_key(satellite=target_sat)
+    host = target_sat.api.Host().search(query={'search': f'name="{target_sat.hostname}"'})[0].read()
+    host.host_parameters_attributes = [
+        {'name': 'source_display_name', 'value': gen_string('alpha')}
+    ]
+    host.update(['host_parameters_attributes'])
 
     # Enable cloud connector
-    result = target_sat.cli.Insights.cloud_connector_enable({'organization-id': function_org.id})
+    result = target_sat.cli.Insights.cloud_connector_enable(
+        {'organization-id': host.organization.id}
+    )
     assert "Cloud connector enable task started" in result
 
     # Find the job invocation for the 'Configure Cloud Connector' template
