@@ -3,7 +3,7 @@
 from contextlib import nullcontext
 import sys
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 from broker.binds.hussh import Session as HusshSession
 from broker.binds.paramiko import Session as ParamikoSession
@@ -230,13 +230,37 @@ def test_positive_iop_does_not_poll_hosted_endpoint():
     host.execute.assert_called_once_with('insights-client --status')
 
 
-@pytest.mark.parametrize('iop_enabled', [True, False])
-def test_positive_iop_fixture_accepts_local_registration(iop_enabled):
-    """Accept the local-registration marker only for IoP.
+@pytest.mark.parametrize(
+    ('iop_enabled', 'status', 'output', 'marker_status', 'accepted'),
+    [
+        pytest.param(False, 0, 'Insights API confirms registration.', None, True, id='legacy'),
+        pytest.param(False, 0, 'This host is registered.', None, True, id='non-legacy'),
+        pytest.param(
+            False,
+            1,
+            'System is registered locally via .registered file',
+            None,
+            False,
+            id='hosted-status-failed',
+        ),
+        pytest.param(True, 0, 'This host is registered.', None, True, id='iop-status-success'),
+        pytest.param(True, 1, 'Insights API unavailable', 0, True, id='iop-local-registration'),
+        pytest.param(
+            True,
+            1,
+            'System is registered locally via .registered file',
+            1,
+            False,
+            id='iop-not-registered',
+        ),
+    ],
+)
+def test_insights_fixture_registration_status(iop_enabled, status, output, marker_status, accepted):
+    """Accept successful status in either mode and preserve IoP's local fallback.
 
     :id: 089be963-5490-4d61-9567-8267f15c7f87
-    :steps: Return the local-registration message for IoP and hosted Insights.
-    :expectedresults: The fixture accepts it for IoP and rejects it for hosted Insights.
+    :steps: Check legacy, non-legacy, failed, and IoP status responses.
+    :expectedresults: The fixture accepts successful status or an IoP local registration only.
     """
     host = SimpleNamespace(
         hostname='test-host',
@@ -244,19 +268,35 @@ def test_positive_iop_fixture_accepts_local_registration(iop_enabled):
         configure_rex=Mock(),
         configure_insights_client=Mock(),
         check_insights_registration=Mock(
-            return_value=SimpleNamespace(
-                status=1, stdout='System is registered locally via .registered file'
-            )
+            return_value=SimpleNamespace(status=status, stdout=output)
         ),
+        execute=Mock(return_value=SimpleNamespace(status=marker_status)),
     )
-    expected = (
-        nullcontext() if iop_enabled else pytest.raises(AssertionError, match='not registered')
+    satellite = SimpleNamespace(
+        iop_enabled=iop_enabled, generate_inventory_report=Mock(), sync_inventory_status=Mock()
     )
+    calls = Mock()
+    calls.attach_mock(host.execute, 'check_marker')
+    calls.attach_mock(host.check_insights_registration, 'check_status')
+    org = Mock()
+    expected = nullcontext() if accepted else pytest.raises(AssertionError, match='not registered')
 
     with expected:
-        enable_insights(host, SimpleNamespace(iop_enabled=iop_enabled), Mock(), Mock())
+        enable_insights(host, satellite, org, Mock())
 
-    host.check_insights_registration.assert_called_once()
+    if iop_enabled:
+        assert calls.mock_calls == [
+            call.check_marker('test -f "${INSIGHTS_CONF_DIR:-/etc/insights-client}/.registered"'),
+            call.check_status(satellite),
+        ]
+    else:
+        assert calls.mock_calls == [call.check_status(satellite)]
+    if accepted and not iop_enabled:
+        satellite.generate_inventory_report.assert_called_once_with(org)
+        satellite.sync_inventory_status.assert_called_once_with(org)
+    else:
+        satellite.generate_inventory_report.assert_not_called()
+        satellite.sync_inventory_status.assert_not_called()
 
 
 @pytest.mark.parametrize(
