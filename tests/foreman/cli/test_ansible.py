@@ -1049,18 +1049,37 @@ class TestAnsibleAAPIntegration:
             f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={hostname}'
         ).json()
         assert hostname in [host['name'] for host in hosts_list['results']]
+        callback_jobs_url = (
+            f'{api_base}job_templates/{template_id}/jobs/'
+            f'?launch_type=callback&limit__exact={hostname}&order_by=-id'
+        )
+
+        def callback_jobs():
+            response = aap_client.get(callback_jobs_url)
+            response.raise_for_status()
+            return response.json()['results']
+
+        previous_jobs = callback_jobs()
+        previous_id = previous_jobs[0]['id'] if previous_jobs else 0
         assert provisioning_host.execute('systemctl start ansible-callback').status == 0
-        jobs = aap_client.get(
-            f'{api_base}job_templates/{template_id}/jobs/?launch_type=callback&order_by=-created'
-        ).json()['results'][0]
-        # when the callback service is started, the job sometimes starts with pending or waiting state before going to the running state
-        filtered_job = jobs['id'] if jobs['status'] in ('running', 'pending', 'waiting') else None
-        wait_for(
-            lambda: (
-                aap_client.get(f'{api_base}jobs/?id={filtered_job}').json()['results'][0]['status']
-                == 'successful'
-            ),
+        new_jobs = wait_for(
+            lambda: [job for job in callback_jobs() if job['id'] > previous_id],
             timeout=120,
+            delay=5,
+            fail_condition=[],
+        ).out
+        callback_job_id = new_jobs[0]['id']
+
+        def callback_finished():
+            response = aap_client.get(f'{api_base}jobs/{callback_job_id}/')
+            response.raise_for_status()
+            job = response.json()
+            return job if job['status'] in ('successful', 'failed', 'error', 'canceled') else False
+
+        callback_job = wait_for(callback_finished, timeout=120, delay=5).out
+        assert callback_job['status'] == 'successful', (
+            f'Callback job {callback_job_id} ended with {callback_job["status"]}: '
+            f'{callback_job.get("job_explanation", "")}'
         )
         # Verify user rocket and package tmux is installed via ansible-callback on provisioning host
         assert provisioning_host.execute('cat /etc/passwd | grep rocket').status == 0
