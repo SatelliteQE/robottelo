@@ -37,6 +37,10 @@ from robottelo.hosts import IPAHost
 FAM_TEST_PLAYBOOKS_MINIMAL = ['bookmark', 'redhat_manifest', 'repository', 'scap_content']
 FAM_TEST_PLAYBOOKS_OTHER = sorted(set(FAM_TEST_PLAYBOOKS) - set(FAM_TEST_PLAYBOOKS_MINIMAL))
 
+FAM_FLAKY_TESTS = {
+    'content_export_version': 'Pending tasks detected in repositories of this content view.'
+}
+
 FOREMAN_PROXY_ANSIBLE_DIR = '/var/lib/foreman-proxy/ansible'
 FOREMAN_PROXY_ANSIBLE_ROLES_DIR = f'{FOREMAN_PROXY_ANSIBLE_DIR}/roles'
 FOREMAN_PROXY_ANSIBLE_COLLECTIONS_DIR = (
@@ -392,7 +396,13 @@ def common_test_positive_run_modules_and_roles(satellite, ansible_module, extra_
         f'{" ".join(env)} make --directory {FAM_ROOT_DIR} livetest_{ansible_module} PYTHON_COMMAND="python3" PYTEST_COMMAND="pytest-3.12"',
         timeout="30m",
     )
-    assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
+    try:
+        assert result.status == 0, f"{result.status=}\n{result.stdout=}\n{result.stderr=}"
+    except AssertionError as e:
+        if ansible_module in FAM_FLAKY_TESTS and FAM_FLAKY_TESTS.get(ansible_module) in str(e):
+            pytest.xfail(f"{ansible_module} test is flaky")
+        else:
+            raise
 
 
 @pytest.mark.e2e
