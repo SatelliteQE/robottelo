@@ -70,7 +70,7 @@ from robottelo.host_helpers import (
     ContentHostMixins,
     SatelliteMixins,
 )
-from robottelo.logging import logger
+from robottelo.logging import collection_logger, logger
 from robottelo.utils import validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
@@ -2175,9 +2175,10 @@ class Satellite(Capsule, SatelliteMixins):
                     return frame.function
             return None
 
+        session_name = testname or get_caller()
         try:
             with Session(
-                session_name=testname or get_caller(),
+                session_name=session_name,
                 user=user or settings.server.admin_username,
                 password=password or settings.server.admin_password,
                 url=url,
@@ -2186,12 +2187,19 @@ class Satellite(Capsule, SatelliteMixins):
             ) as ui_session:
                 yield ui_session
         finally:
-            if self.record_property is not None and settings.ui.record_video:
+            if settings.ui.record_video:
                 grid_url = urlsplit(settings.ui.grid_url)
                 video_path = f'/videos/{ui_session.ui_session_id}/{ui_session.ui_session_id}.mp4'
                 video_url = urlunsplit((grid_url.scheme, grid_url.hostname, video_path, '', ''))
-                self.record_property('video_url', video_url)
-                self.record_property('session_id', ui_session.ui_session_id)
+                collection_logger.info(
+                    'UI recording for test %s: %s (session ID: %s)',
+                    session_name or '<unnamed>',
+                    video_url,
+                    ui_session.ui_session_id,
+                )
+                if self.record_property is not None:
+                    self.record_property('video_url', video_url)
+                    self.record_property('session_id', ui_session.ui_session_id)
 
     @property
     def satellite(self):
