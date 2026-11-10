@@ -1,4 +1,4 @@
-"""Test for Insights Cloud ack endpoint.
+"""Test for Insights ack endpoint.
 
 :Requirement: RHCloud
 
@@ -13,8 +13,7 @@
 """
 
 from nailgun import client
-
-RULE_ID = "hardening_ssh_config_perms|OPENSSH_HARDENING_CONFIG_PERMS"
+from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
 
 def test_insights_ack_multi_org_isolation(module_target_sat):
@@ -42,7 +41,7 @@ def test_insights_ack_multi_org_isolation(module_target_sat):
         headers={'Accept': 'application/json'},
         params={'organization_id': org_a.id},
         data={
-            'rule_id': RULE_ID,
+            'rule_id': OPENSSH_RECOMMENDATION_RULE_ID,
             'justification': 'org isolation test',
         },
     )
@@ -72,7 +71,7 @@ def test_insights_ack_multi_org_isolation(module_target_sat):
     assert response.status_code == 200
     assert response.json()["meta"]["count"] > 0
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{RULE_ID}/'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
     response = client.delete(
         path,
         auth=module_target_sat.nailgun_cfg.auth,

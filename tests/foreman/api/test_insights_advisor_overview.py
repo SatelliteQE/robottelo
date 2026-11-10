@@ -1,4 +1,4 @@
-"""Test for Insights Cloud stats overview endpoint.
+"""Test for Insights stats overview endpoint.
 
 :Requirement: RHCloud
 
@@ -17,9 +17,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-
-RULE_ID = "hardening_ssh_config_perms|OPENSSH_HARDENING_CONFIG_PERMS"
-
+from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
@@ -147,7 +145,7 @@ def test_insights_stats_overview_after_ack(
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
         data={
-            'rule_id': RULE_ID,
+            'rule_id': OPENSSH_RECOMMENDATION_RULE_ID,
             'justification': 'ack for overview test',
         },
     )
@@ -165,7 +163,7 @@ def test_insights_stats_overview_after_ack(
     assert response.status_code == 200
     assert response.json()['important'] == 0
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{RULE_ID}/'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
     response = client.delete(
         path,
         auth=module_target_sat.nailgun_cfg.auth,

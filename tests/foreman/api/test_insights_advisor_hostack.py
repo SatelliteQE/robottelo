@@ -1,4 +1,4 @@
-"""Test for Insights Cloud hostack endpoint.
+"""Test for Insights hostack endpoint.
 
 :Requirement: RHCloud
 
@@ -17,9 +17,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-
-RULE_ID = "hardening_ssh_config_perms|OPENSSH_HARDENING_CONFIG_PERMS"
-
+from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
@@ -129,7 +127,7 @@ def test_insights_create_hostack(
     result = rhel_contenthost.execute('cat /etc/insights-client/machine-id')
     insights_uuid = result.stdout.strip()
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}/systems'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
 
     def _check_systems():
         response = client.get(
@@ -154,14 +152,14 @@ def test_insights_create_hostack(
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
         data={
-            'rule': RULE_ID,
+            'rule': OPENSSH_RECOMMENDATION_RULE_ID,
             'system_uuid': insights_uuid,
             'justification': justification,
         },
     )
 
     assert response.status_code == 200
-    assert response.json()["rule"] == RULE_ID
+    assert response.json()["rule"] == OPENSSH_RECOMMENDATION_RULE_ID
     assert response.json()["system_uuid"] == insights_uuid
     assert response.json()["justification"] == justification
 
@@ -179,10 +177,10 @@ def test_insights_create_hostack(
     assert response.status_code == 200
     assert response.json()["meta"]["count"] > 0
     assert response.json()["data"][0]["id"] == hostack_id
-    assert response.json()["data"][0]["rule"] == RULE_ID
+    assert response.json()["data"][0]["rule"] == OPENSSH_RECOMMENDATION_RULE_ID
     assert response.json()["data"][0]["justification"] == justification
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}/systems'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
     response = client.get(
         path,
         auth=module_target_sat.nailgun_cfg.auth,
@@ -194,7 +192,7 @@ def test_insights_create_hostack(
     assert response.status_code == 200
     assert insights_uuid not in response.json()["host_ids"]
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
     response = client.get(
         path,
         auth=module_target_sat.nailgun_cfg.auth,
@@ -217,7 +215,7 @@ def test_insights_create_hostack(
 
     assert response.status_code == 200
     assert response.json()["id"] == hostack_id
-    assert response.json()["rule"] == RULE_ID
+    assert response.json()["rule"] == OPENSSH_RECOMMENDATION_RULE_ID
     assert response.json()["justification"] == justification
 
     new_justification = "new justification"
@@ -248,7 +246,7 @@ def test_insights_create_hostack(
 
     assert response.status_code == 200
     assert response.json()["id"] == hostack_id
-    assert response.json()["rule"] == RULE_ID
+    assert response.json()["rule"] == OPENSSH_RECOMMENDATION_RULE_ID
     assert response.json()["justification"] == new_justification
 
     path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/{hostack_id}/'
@@ -262,7 +260,7 @@ def test_insights_create_hostack(
 
     assert response.status_code == 204
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
     response = client.get(
         path,
         auth=module_target_sat.nailgun_cfg.auth,
@@ -274,7 +272,7 @@ def test_insights_create_hostack(
     assert response.status_code == 200
     assert response.json()["hosts_acked_count"] == 0
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}/systems'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
     response = client.get(
         path,
         auth=module_target_sat.nailgun_cfg.auth,
@@ -334,7 +332,7 @@ def test_insights_hostack_multi_host(
         result = host.execute('cat /etc/insights-client/machine-id')
         insights_uuids.append(result.stdout.strip())
 
-    systems_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}/systems'
+    systems_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
 
     def _check_both_hosts():
         response = client.get(
@@ -358,7 +356,7 @@ def test_insights_hostack_multi_host(
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
         data={
-            'rule': RULE_ID,
+            'rule': OPENSSH_RECOMMENDATION_RULE_ID,
             'system_uuid': insights_uuids[0],
             'justification': 'multi-host test',
         },
@@ -379,7 +377,7 @@ def test_insights_hostack_multi_host(
     assert insights_uuids[0] not in response.json()["host_ids"]
     assert insights_uuids[1] in response.json()["host_ids"]
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
     response = client.get(
         path,
         auth=module_target_sat.nailgun_cfg.auth,

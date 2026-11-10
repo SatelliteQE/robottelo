@@ -1,4 +1,4 @@
-"""Test for Insights Cloud system endpoint.
+"""Test for Insights system endpoint.
 
 :Requirement: RHCloud
 
@@ -17,9 +17,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-
-RULE_ID = "hardening_ssh_config_perms|OPENSSH_HARDENING_CONFIG_PERMS"
-
+from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
@@ -56,6 +54,9 @@ def test_insights_systems(module_org, module_sca_manifest, module_target_sat, rh
 
     rhel_contenthost.execute('insights-client --register')
 
+    result = rhel_contenthost.execute('cat /etc/insights-client/machine-id')
+    insights_uuid = result.stdout.strip()
+
     path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/system'
 
     def _check_systems():
@@ -67,7 +68,7 @@ def test_insights_systems(module_org, module_sca_manifest, module_target_sat, rh
             params={'organization_id': module_org.id},
         )
         assert response.status_code == 200
-        return response.json()['meta']['count'] > 0
+        return response.json()['meta']['count'] > 0 and response.json()['data'][0]['system_uuid'] == insights_uuid
 
     wait_for(_check_systems, timeout=120, delay=10, handle_exception=True)
 
@@ -179,6 +180,6 @@ def test_insights_system_existing_with_rule(
             params={'organization_id': module_org.id},
         )
         assert response.status_code == 200
-        return response.json() != [] and RULE_ID in str(response.content)
+        return response.json() != [] and OPENSSH_RECOMMENDATION_RULE_ID in str(response.content)
 
     wait_for(_check_systems, timeout=120, delay=10, handle_exception=True)
