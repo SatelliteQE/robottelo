@@ -1395,7 +1395,9 @@ class TestRepositorySync:
             == []
         )
 
-    def test_positive_validate_async_operation_response(self, module_sca_manifest_org, target_sat):
+    def test_positive_validate_async_operation_response(
+        self, function_sca_manifest_org, target_sat
+    ):
         """Verify that RefreshDistribution action properly tracks Pulp tasks via AsyncOperationResponse.
 
         :id: 84dc1de1-2b9c-4545-8ced-4a6f0857b745
@@ -1415,32 +1417,32 @@ class TestRepositorySync:
         # Enable and sync a Red Hat repository
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_sca_manifest_org.id,
+            org_id=function_sca_manifest_org.id,
             product=constants.PRDS['rhel'],
             repo=constants.REPOS['rhst7']['name'],
             reposet=constants.REPOSET['rhst7'],
             releasever=None,
         )
-        target_sat.api.Repository(id=repo_id).sync()
 
-        # Wait for sync task to complete and get the task
-        task = target_sat.wait_for_tasks(
+        # Ensure the distribution exists before the first sync updates it.
+        target_sat.wait_for_tasks(
             search_query=(
-                f'label = Actions::Katello::Repository::Sync and resource_id = {repo_id}'
-                f' and organization_id = {module_sca_manifest_org.id}'
+                'label = Actions::Katello::Repository::MetadataGenerate'
+                f' and resource_id = {repo_id}'
+                ' and resource_type = Katello::Repository'
             ),
-            search_rate=20,
-            max_tries=15,
+            search_rate=10,
+            max_tries=6,
         )
-        assert len(task) == 1, f'Expected 1 sync task to be found, got {task}'
-        task_id = task[0].id
+        sync_task = target_sat.api.Repository(id=repo_id).sync()
+        task_id = sync_task['id']
 
-        # Query RefreshDistribution action output using foreman-rake console
+        # Print RefreshDistribution action output using foreman-rake console
         rake_command = (
             f"task = ForemanTasks::Task.find('{task_id}'); "
             "refresh_dist_action = task.execution_plan.actions.find do |action| "
             "action.class.name == 'Actions::Pulp3::Repository::RefreshDistribution' end; "
-            "refresh_dist_action.output;"
+            "p refresh_dist_action.output;"
         )
         output = target_sat.execute(f'echo "{rake_command}" | foreman-rake console')
 
