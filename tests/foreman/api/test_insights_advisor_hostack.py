@@ -19,43 +19,46 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
+
+@pytest.fixture(scope='module')
+def module_insights_ak(module_org, module_sca_manifest, module_target_sat):
+    """Upload a manifest and create an activation key for insights tests."""
+    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+        module_org.default_content_view, module_org.library
+    )
+    return module_target_sat.api.ActivationKey(
+        content_view_environment_ids=[cvenv_id],
+        organization=module_org,
+    ).create()
+
+
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_create_hostack_not_existing_rule(
-    module_org, module_sca_manifest, module_target_sat, rhel_contenthost
+    module_org, module_insights_ak, module_target_sat, rhel_contenthost
 ):
     """Check that creating a hostack with a non-existing rule returns 400.
 
     :id: acdee8d1-90c0-499e-baab-705e14412bde
 
     :steps:
-        1. Upload a manifest and register a content host with insights
+        1. Register a content host with insights
         2. Run insights-client --register on the content host
         3. Send POST to /insights_cloud/api/insights/v1/hostack/ with a fake rule
 
     :expectedresults: The response returns 400.
     """
-    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
-
-    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
-        module_org.default_content_view, module_org.library
-    )
-    ak = module_target_sat.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
-        organization=module_org,
-    ).create()
-
     rhel_contenthost.api_register(
         module_target_sat,
         organization=module_org,
-        activation_keys=[ak.name],
+        activation_keys=[module_insights_ak.name],
         setup_insights=True,
     )
 
     rhel_contenthost.execute('insights-client --register')
 
-    result = rhel_contenthost.execute('cat /etc/insights-client/machine-id')
-    insights_uuid = result.stdout.strip()
+    insights_uuid = rhel_contenthost.get_insights_id()
 
     path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/'
     response = client.post(
@@ -77,14 +80,14 @@ def test_insights_create_hostack_not_existing_rule(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_create_hostack(
-    module_org, module_sca_manifest, module_target_sat, rhel_contenthost
+    module_org, module_insights_ak, module_target_sat, rhel_contenthost
 ):
     """Check full CRUD lifecycle of a hostack: create, list, read, update, and delete.
 
     :id: 3ecfefa3-69e6-4d0b-a3fe-ba3a707b2c51
 
     :steps:
-        1. Upload a manifest and register a content host with insights
+        1. Register a content host with insights
         2. Create an SSH config vulnerability and run insights-client
         3. Wait for the host to appear in rule/{RULE_ID}/systems
         4. Send POST to /insights_cloud/api/insights/v1/hostack/ to create a hostack
@@ -102,20 +105,10 @@ def test_insights_create_hostack(
         The acked host is removed from the rule systems list, hosts_acked_count reflects
         the hostack lifecycle, and the host reappears after deletion.
     """
-    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
-
-    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
-        module_org.default_content_view, module_org.library
-    )
-    ak = module_target_sat.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
-        organization=module_org,
-    ).create()
-
     rhel_contenthost.api_register(
         module_target_sat,
         organization=module_org,
-        activation_keys=[ak.name],
+        activation_keys=[module_insights_ak.name],
         setup_insights=True,
     )
 
@@ -124,14 +117,15 @@ def test_insights_create_hostack(
 
     rhel_contenthost.execute('insights-client')
 
-    result = rhel_contenthost.execute('cat /etc/insights-client/machine-id')
-    insights_uuid = result.stdout.strip()
+    insights_uuid = rhel_contenthost.get_insights_id()
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
+    systems_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
+    hostack_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/'
+    rule_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
 
     def _check_systems():
         response = client.get(
-            path,
+            systems_path,
             auth=module_target_sat.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
@@ -144,9 +138,8 @@ def test_insights_create_hostack(
 
     justification = 'first justification'
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/'
     response = client.post(
-        path,
+        hostack_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -164,10 +157,12 @@ def test_insights_create_hostack(
     assert response.json()["justification"] == justification
 
     hostack_id = response.json()["id"]
+    hostack_item_path = (
+        f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/{hostack_id}/'
+    )
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/'
     response = client.get(
-        path,
+        hostack_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -175,14 +170,13 @@ def test_insights_create_hostack(
     )
 
     assert response.status_code == 200
-    assert response.json()["meta"]["count"] > 0
+    assert response.json()["meta"]["count"] == 1
     assert response.json()["data"][0]["id"] == hostack_id
     assert response.json()["data"][0]["rule"] == OPENSSH_RECOMMENDATION_RULE_ID
     assert response.json()["data"][0]["justification"] == justification
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
     response = client.get(
-        path,
+        systems_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -192,9 +186,8 @@ def test_insights_create_hostack(
     assert response.status_code == 200
     assert insights_uuid not in response.json()["host_ids"]
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
     response = client.get(
-        path,
+        rule_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -204,9 +197,8 @@ def test_insights_create_hostack(
     assert response.status_code == 200
     assert response.json()["hosts_acked_count"] > 0
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/{hostack_id}/'
     response = client.get(
-        path,
+        hostack_item_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -220,9 +212,8 @@ def test_insights_create_hostack(
 
     new_justification = "new justification"
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/{hostack_id}/'
     response = client.put(
-        path,
+        hostack_item_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -235,9 +226,8 @@ def test_insights_create_hostack(
     assert response.status_code == 200
     assert response.json()["justification"] == new_justification
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/{hostack_id}/'
     response = client.get(
-        path,
+        hostack_item_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -249,9 +239,8 @@ def test_insights_create_hostack(
     assert response.json()["rule"] == OPENSSH_RECOMMENDATION_RULE_ID
     assert response.json()["justification"] == new_justification
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/{hostack_id}/'
     response = client.delete(
-        path,
+        hostack_item_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -260,9 +249,8 @@ def test_insights_create_hostack(
 
     assert response.status_code == 204
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
     response = client.get(
-        path,
+        rule_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -272,9 +260,8 @@ def test_insights_create_hostack(
     assert response.status_code == 200
     assert response.json()["hosts_acked_count"] == 0
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
     response = client.get(
-        path,
+        systems_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -288,14 +275,14 @@ def test_insights_create_hostack(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_hostack_multi_host(
-    module_org, module_sca_manifest, module_target_sat, content_hosts
+    module_org, module_insights_ak, module_target_sat, content_hosts
 ):
     """Check that acking one host does not affect another host reporting the same rule.
 
     :id: dca5020d-e757-4fce-91e4-4a60df909bbe
 
     :steps:
-        1. Upload a manifest and register two content hosts with insights
+        1. Register two content hosts with insights
         2. Create the SSH config vulnerability on both hosts and run insights-client
         3. Wait for both hosts to appear in rule/{RULE_ID}/systems
         4. Create a hostack for host A only
@@ -307,30 +294,19 @@ def test_insights_hostack_multi_host(
     :expectedresults: Only the acked host is removed from the rule systems list.
         The other host remains unaffected.
     """
-    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
-
-    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
-        module_org.default_content_view, module_org.library
-    )
-    ak = module_target_sat.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
-        organization=module_org,
-    ).create()
-
     insights_uuids = []
     for host in content_hosts:
         host.api_register(
             module_target_sat,
             organization=module_org,
-            activation_keys=[ak.name],
+            activation_keys=[module_insights_ak.name],
             setup_insights=True,
         )
         host.execute('insights-client --register')
         host.execute('chmod 777 /etc/ssh/sshd_config')
         host.execute('insights-client')
 
-        result = host.execute('cat /etc/insights-client/machine-id')
-        insights_uuids.append(result.stdout.strip())
+        insights_uuids.append(host.get_insights_id())
 
     systems_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
 
@@ -348,9 +324,9 @@ def test_insights_hostack_multi_host(
 
     wait_for(_check_both_hosts, timeout=120, delay=10, handle_exception=True)
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/'
+    hostack_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/'
     response = client.post(
-        path,
+        hostack_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -377,9 +353,9 @@ def test_insights_hostack_multi_host(
     assert insights_uuids[0] not in response.json()["host_ids"]
     assert insights_uuids[1] in response.json()["host_ids"]
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
+    rule_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
     response = client.get(
-        path,
+        rule_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -389,9 +365,11 @@ def test_insights_hostack_multi_host(
     assert response.status_code == 200
     assert response.json()["hosts_acked_count"] == 1
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/{hostack_id}/'
+    hostack_item_path = (
+        f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/{hostack_id}/'
+    )
     response = client.delete(
-        path,
+        hostack_item_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},

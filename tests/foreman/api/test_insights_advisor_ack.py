@@ -13,6 +13,7 @@
 """
 
 from nailgun import client
+
 from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
 
@@ -33,9 +34,9 @@ def test_insights_ack_multi_org_isolation(module_target_sat):
     org_a = module_target_sat.api.Organization().create()
     org_b = module_target_sat.api.Organization().create()
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/'
+    ack_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/'
     response = client.post(
-        path,
+        ack_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -48,9 +49,8 @@ def test_insights_ack_multi_org_isolation(module_target_sat):
 
     assert response.status_code == 200
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack'
     response = client.get(
-        path,
+        ack_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -61,7 +61,7 @@ def test_insights_ack_multi_org_isolation(module_target_sat):
     assert response.json()["meta"]["count"] == 0
 
     response = client.get(
-        path,
+        ack_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -69,11 +69,12 @@ def test_insights_ack_multi_org_isolation(module_target_sat):
     )
 
     assert response.status_code == 200
-    assert response.json()["meta"]["count"] > 0
+    assert response.json()["meta"]["count"] == 1
+    assert response.json()["data"][0]["rule"] == OPENSSH_RECOMMENDATION_RULE_ID
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
+    ack_rule_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
     response = client.delete(
-        path,
+        ack_rule_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
