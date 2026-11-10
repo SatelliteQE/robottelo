@@ -2099,7 +2099,7 @@ FOREMAN_TEMPLATES_NOT_IMPORTED_COUNT = {
     'PUPPET_ENABLED': 8,
     'PUPPET_DISABLED': 9,
 }
-FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'
+FOREMAN_TEMPLATE_IMPORT_API_URL = 'https://api.github.com/repos/SatelliteQE/foreman_templates'
 
 FOREMAN_TEMPLATE_TEST_TEMPLATE = (
     'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/example_template.erb'
