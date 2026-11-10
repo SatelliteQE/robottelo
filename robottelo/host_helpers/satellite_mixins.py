@@ -5,6 +5,7 @@ import os
 from pathlib import PurePath
 import random
 import re
+import shlex
 from urllib.parse import urljoin
 from urllib.request import urlopen
 
