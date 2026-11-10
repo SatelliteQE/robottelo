@@ -17,11 +17,13 @@ access and modify filter rules belonging to another organization.
 
 """
 
-from fauxfactory import gen_string
+from contextlib import suppress
+
 import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import user_nailgun_config
+from robottelo.utils.datafactory import gen_string
 
 # Correct authorization denials on this endpoint are 403 (permission denied)
 # or 404 (out-of-scope resource hidden), per the security tracker.
@@ -32,7 +34,8 @@ DENIED_STATUS_CODES = (403, 404)
 def _create_user(target_sat, orgs, permission_names):
     """Create a non-admin user with the given CV permissions scoped to orgs.
 
-    Returns a nailgun server config authenticating as the created user.
+    Returns a ``(server_config, user, role)`` tuple, where ``server_config``
+    authenticates as the created user.
     """
     permissions = target_sat.api.Permission().search(
         query={'search': 'resource_type="Katello::ContentView"'}
@@ -45,14 +48,14 @@ def _create_user(target_sat, orgs, permission_names):
     target_sat.api.Filter(organization=list(orgs), permission=permissions, role=role).create()
     login = gen_string('alpha')
     password = gen_string('alphanumeric')
-    target_sat.api.User(
+    user = target_sat.api.User(
         admin=False,
         organization=list(orgs),
         role=[role],
         login=login,
         password=password,
     ).create()
-    return user_nailgun_config(login, password)
+    return user_nailgun_config(login, password), user, role
 
 
 def _make_filter_with_rule(target_sat, org):
@@ -82,7 +85,7 @@ def _assert_denied(exc_info, user_label, operation):
 
 
 @pytest.fixture
-def cv_filter_rules_env(target_sat, module_org, function_org):
+def function_cv_filter_rules_env(target_sat, module_org, function_org):
     """Two-organization Content View filter rule environment.
 
     OrgA (module_org) holds OwnCV/filter-A/rule-A, OrgB (function_org) holds
@@ -93,22 +96,33 @@ def cv_filter_rules_env(target_sat, module_org, function_org):
     own_cv, filter_a, rule_a = _make_filter_with_rule(target_sat, module_org)
     secret_cv, filter_b, rule_b = _make_filter_with_rule(target_sat, function_org)
 
-    return {
+    editor_cfg, editor_user, editor_role = _create_user(
+        target_sat, [module_org], ['view_content_views', 'edit_content_views']
+    )
+    reader_cfg, reader_user, reader_role = _create_user(
+        target_sat, [module_org], ['view_content_views']
+    )
+
+    yield {
         'filter_a': filter_a,
         'rule_a': rule_a,
         'secret_cv_id': secret_cv.id,
         'filter_b': filter_b,
         'rule_b': rule_b,
-        'editor_a_cfg': _create_user(
-            target_sat, [module_org], ['view_content_views', 'edit_content_views']
-        ),
-        'reader_a_cfg': _create_user(target_sat, [module_org], ['view_content_views']),
+        'editor_a_cfg': editor_cfg,
+        'reader_a_cfg': reader_cfg,
     }
 
+    # Teardown: delete OrgA resources created here. OrgB resources are
+    # removed together with the function_org fixture, and content view
+    # deletion cascades to its filters and rules. Be forgiving in case a
+    # failed test already removed something.
+    for entity in (editor_user, reader_user, editor_role, reader_role, own_cv):
+        with suppress(HTTPError):
+            entity.delete()
 
-def test_positive_content_view_filter_rules_reject_cross_org_access(
-    target_sat, cv_filter_rules_env
-):
+
+def test_negative_crud_content_view_filter_rule_cross_org(target_sat, function_cv_filter_rules_env):
     """Cross-organization rule access and modification are blocked.
 
     :id: 3f1c8a92-6d47-4f2b-9c15-a7d0c4e6b1aa
@@ -128,7 +142,7 @@ def test_positive_content_view_filter_rules_reject_cross_org_access(
 
     :CaseImportance: Critical
     """
-    env = cv_filter_rules_env
+    env = function_cv_filter_rules_env
     cfg = env['editor_a_cfg']
     filter_b, rule_b = env['filter_b'], env['rule_b']
     baseline = _rule_names(target_sat, filter_b)
@@ -161,7 +175,7 @@ def test_positive_content_view_filter_rules_reject_cross_org_access(
 
     with pytest.raises(HTTPError) as exc_info:
         target_sat.api.ContentViewFilterRule(
-            server_config=cfg, content_view_filter=filter_b, name='should-not-work'
+            server_config=cfg, content_view_filter=filter_b, name=gen_string('alphanumeric')
         ).create()
     _assert_denied(exc_info, 'editor-A', 'create OrgB filter rule')
     # 4. Create attempt persisted nothing.
@@ -174,7 +188,7 @@ def test_positive_content_view_filter_rules_reject_cross_org_access(
             server_config=cfg,
             id=rule_b.id,
             content_view_filter=filter_b,
-            name='should-not-work-either',
+            name=gen_string('alphanumeric'),
         ).update(['name'])
     _assert_denied(exc_info, 'editor-A', 'update OrgB filter rule')
     # Update attempt changed nothing.
@@ -197,9 +211,7 @@ def test_positive_content_view_filter_rules_reject_cross_org_access(
     )
 
 
-def test_positive_content_view_filter_rules_enforce_read_and_edit_scopes(
-    target_sat, cv_filter_rules_env
-):
+def test_positive_crud_content_view_filter_rule_rbac(target_sat, function_cv_filter_rules_env):
     """Authorized access and read/edit scope separation work.
 
     :id: 8b4d2e17-95a3-4c60-b1e8-2f9a6d3c7e55
@@ -217,7 +229,7 @@ def test_positive_content_view_filter_rules_enforce_read_and_edit_scopes(
 
     :CaseImportance: Critical
     """
-    env = cv_filter_rules_env
+    env = function_cv_filter_rules_env
     filter_a, rule_a = env['filter_a'], env['rule_a']
 
     # --- A. editor-A on OrgA: full authorized CRUD ---------------------
@@ -259,8 +271,11 @@ def test_positive_content_view_filter_rules_enforce_read_and_edit_scopes(
     target_sat.api.ContentViewFilterRule(
         server_config=editor_cfg, id=disposable.id, content_view_filter=filter_a
     ).delete()
-    with pytest.raises(HTTPError):
+    with pytest.raises(HTTPError) as exc_info:
         target_sat.api.ContentViewFilterRule(id=disposable.id, content_view_filter=filter_a).read()
+    assert exc_info.value.response.status_code == 404, (
+        f'Deleted rule must be gone (HTTP 404), got HTTP {exc_info.value.response.status_code}'
+    )
 
     # --- B. reader-A on OrgA: read allowed, writes denied --------------
     reader_cfg = env['reader_a_cfg']
