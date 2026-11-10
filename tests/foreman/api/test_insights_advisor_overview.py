@@ -21,13 +21,13 @@ from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
 
 @pytest.fixture(scope='module')
-def module_insights_ak(module_org, module_sca_manifest, module_target_sat):
+def module_insights_ak(module_org, module_sca_manifest, module_target_sat_insights):
     """Upload a manifest and create an activation key for insights tests."""
-    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
-    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+    module_target_sat_insights.upload_manifest(module_org.id, module_sca_manifest.content)
+    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
         module_org.default_content_view, module_org.library
     )
-    return module_target_sat.api.ActivationKey(
+    return module_target_sat_insights.api.ActivationKey(
         content_view_environment_ids=[cvenv_id],
         organization=module_org,
     ).create()
@@ -36,7 +36,7 @@ def module_insights_ak(module_org, module_sca_manifest, module_target_sat):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_stats_overview_one_system(
-    module_org, module_insights_ak, module_target_sat, rhel_contenthost
+    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
 ):
     """Check that stats overview reflects one important recommendation after a host reports a vulnerability.
 
@@ -51,7 +51,7 @@ def test_insights_stats_overview_one_system(
     :expectedresults: The response returns 200 with important equal to 1.
     """
     rhel_contenthost.api_register(
-        module_target_sat,
+        module_target_sat_insights,
         organization=module_org,
         activation_keys=[module_insights_ak.name],
         setup_insights=True,
@@ -62,12 +62,12 @@ def test_insights_stats_overview_one_system(
 
     rhel_contenthost.execute('insights-client')
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/stats/overview'
+    path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/stats/overview'
 
     def _check_systems():
         response = client.get(
             path,
-            auth=module_target_sat.nailgun_cfg.auth,
+            auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
             params={'organization_id': module_org.id},
@@ -85,7 +85,7 @@ def test_insights_stats_overview_one_system(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_stats_overview_after_ack(
-    module_org, module_insights_ak, module_target_sat, rhel_contenthost
+    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
 ):
     """Check that stats overview reflects zero important after acking the rule.
 
@@ -104,7 +104,7 @@ def test_insights_stats_overview_after_ack(
         important returns to 1.
     """
     rhel_contenthost.api_register(
-        module_target_sat,
+        module_target_sat_insights,
         organization=module_org,
         activation_keys=[module_insights_ak.name],
         setup_insights=True,
@@ -115,12 +115,12 @@ def test_insights_stats_overview_after_ack(
 
     rhel_contenthost.execute('insights-client')
 
-    overview_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/stats/overview'
+    overview_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/stats/overview'
 
     def _check_important():
         response = client.get(
             overview_path,
-            auth=module_target_sat.nailgun_cfg.auth,
+            auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
             params={'organization_id': module_org.id},
@@ -130,10 +130,10 @@ def test_insights_stats_overview_after_ack(
 
     wait_for(_check_important, timeout=120, delay=10, handle_exception=True)
 
-    ack_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/'
+    ack_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/ack/'
     response = client.post(
         ack_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -147,7 +147,7 @@ def test_insights_stats_overview_after_ack(
 
     response = client.get(
         overview_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -156,10 +156,10 @@ def test_insights_stats_overview_after_ack(
     assert response.status_code == 200
     assert response.json()['important'] == 0
 
-    ack_rule_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
+    ack_rule_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
     response = client.delete(
         ack_rule_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -169,7 +169,7 @@ def test_insights_stats_overview_after_ack(
 
     response = client.get(
         overview_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},

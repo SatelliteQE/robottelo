@@ -21,19 +21,19 @@ from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
 
 @pytest.fixture(scope='module')
-def module_insights_ak(module_org, module_sca_manifest, module_target_sat):
+def module_insights_ak(module_org, module_sca_manifest, module_target_sat_insights):
     """Upload a manifest and create an activation key for insights tests."""
-    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
-    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+    module_target_sat_insights.upload_manifest(module_org.id, module_sca_manifest.content)
+    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
         module_org.default_content_view, module_org.library
     )
-    return module_target_sat.api.ActivationKey(
+    return module_target_sat_insights.api.ActivationKey(
         content_view_environment_ids=[cvenv_id],
         organization=module_org,
     ).create()
 
 
-def test_insights_rule(module_org, module_target_sat):
+def test_insights_rule(module_org, module_target_sat_insights):
     """Check that the rule endpoint returns available rules.
 
     :id: c9f4fa60-678f-4e95-8236-7c59de04bcd3
@@ -43,11 +43,11 @@ def test_insights_rule(module_org, module_target_sat):
 
     :expectedresults: The response returns 200 with count greater than 0.
     """
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/'
+    path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/'
 
     response = client.get(
         path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -57,7 +57,7 @@ def test_insights_rule(module_org, module_target_sat):
     assert response.json()["meta"]["count"] > 0
 
 
-def test_insights_rule_existing(module_org, module_target_sat):
+def test_insights_rule_existing(module_org, module_target_sat_insights):
     """Check that a known rule can be retrieved and has no impacted systems.
 
     :id: f9ffee5d-b633-4bcc-8b12-9d13af6ce604
@@ -69,11 +69,11 @@ def test_insights_rule_existing(module_org, module_target_sat):
     :expectedresults: The rule is returned with correct rule_id, zero hosts_acked_count,
         and systems_detail count equal to 0.
     """
-    rule_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
+    rule_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
 
     response = client.get(
         rule_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -83,11 +83,11 @@ def test_insights_rule_existing(module_org, module_target_sat):
     assert response.json()["rule_id"] == OPENSSH_RECOMMENDATION_RULE_ID
     assert response.json()["hosts_acked_count"] == 0
 
-    systems_detail_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems_detail'
+    systems_detail_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems_detail'
 
     response = client.get(
         systems_detail_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -100,7 +100,7 @@ def test_insights_rule_existing(module_org, module_target_sat):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_rule_reporting_rule(
-    module_org, module_insights_ak, module_target_sat, rhel_contenthost
+    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
 ):
     """Check that a host reporting a known vulnerability appears in rule endpoints.
 
@@ -117,7 +117,7 @@ def test_insights_rule_reporting_rule(
     :expectedresults: The host appears in reports, systems_detail, and systems endpoints.
     """
     rhel_contenthost.api_register(
-        module_target_sat,
+        module_target_sat_insights,
         organization=module_org,
         activation_keys=[module_insights_ak.name],
         setup_insights=True,
@@ -131,12 +131,12 @@ def test_insights_rule_reporting_rule(
     insights_uuid = rhel_contenthost.get_insights_id()
 
     reports_path = (
-        f'{module_target_sat.url}/insights_cloud/api/insights/v1/system/{insights_uuid}/reports'
+        f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/system/{insights_uuid}/reports'
     )
 
     response = client.get(
         reports_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -144,11 +144,11 @@ def test_insights_rule_reporting_rule(
 
     assert len(response.json()) > 0
 
-    systems_detail_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems_detail'
+    systems_detail_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems_detail'
 
     response = client.get(
         systems_detail_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -158,11 +158,11 @@ def test_insights_rule_reporting_rule(
     assert response.json()["meta"]["count"] == 1
     assert response.json()["data"][0]["system_uuid"] == insights_uuid
 
-    systems_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
+    systems_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
 
     response = client.get(
         systems_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -174,7 +174,7 @@ def test_insights_rule_reporting_rule(
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
-def test_insights_ack_hosts(module_org, module_insights_ak, module_target_sat, rhel_contenthost):
+def test_insights_ack_hosts(module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost):
     """Check that hosts can be acked for a specific rule via the ack_hosts endpoint.
 
     :id: 7ce03f45-d8a0-40c5-98f9-4077b3451698
@@ -190,7 +190,7 @@ def test_insights_ack_hosts(module_org, module_insights_ak, module_target_sat, r
     :expectedresults: The ack_hosts POST returns 200 with count > 0 and empty host_ids.
     """
     rhel_contenthost.api_register(
-        module_target_sat,
+        module_target_sat_insights,
         organization=module_org,
         activation_keys=[module_insights_ak.name],
         setup_insights=True,
@@ -205,11 +205,11 @@ def test_insights_ack_hosts(module_org, module_insights_ak, module_target_sat, r
 
     justification = 'first justification'
 
-    ack_hosts_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/ack_hosts/'
+    ack_hosts_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/ack_hosts/'
 
     response = client.post(
         ack_hosts_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -223,10 +223,10 @@ def test_insights_ack_hosts(module_org, module_insights_ak, module_target_sat, r
     assert response.json()["count"] > 0
     assert response.json()["host_ids"] == []
 
-    hostack_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/hostack/'
+    hostack_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/hostack/'
     response = client.get(
         hostack_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -242,7 +242,7 @@ def test_insights_ack_hosts(module_org, module_insights_ak, module_target_sat, r
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_rule_ack_hides_all_hosts(
-    module_org, module_insights_ak, module_target_sat, content_hosts
+    module_org, module_insights_ak, module_target_sat_insights, content_hosts
 ):
     """Check that a rule-level ack hides all hosts from the rule systems endpoint.
 
@@ -263,7 +263,7 @@ def test_insights_rule_ack_hides_all_hosts(
     insights_uuids = []
     for host in content_hosts:
         host.api_register(
-            module_target_sat,
+            module_target_sat_insights,
             organization=module_org,
             activation_keys=[module_insights_ak.name],
             setup_insights=True,
@@ -274,12 +274,12 @@ def test_insights_rule_ack_hides_all_hosts(
 
         insights_uuids.append(host.get_insights_id())
 
-    systems_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
+    systems_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
 
     def _check_both_hosts():
         response = client.get(
             systems_path,
-            auth=module_target_sat.nailgun_cfg.auth,
+            auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
             params={'organization_id': module_org.id},
@@ -292,10 +292,10 @@ def test_insights_rule_ack_hides_all_hosts(
 
     wait_for(_check_both_hosts, timeout=120, delay=10, handle_exception=True)
 
-    ack_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/'
+    ack_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/ack/'
     response = client.post(
         ack_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -309,7 +309,7 @@ def test_insights_rule_ack_hides_all_hosts(
 
     response = client.get(
         systems_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -319,10 +319,10 @@ def test_insights_rule_ack_hides_all_hosts(
     assert insights_uuids[0] not in response.json()["host_ids"]
     assert insights_uuids[1] not in response.json()["host_ids"]
 
-    ack_rule_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
+    ack_rule_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
     response = client.delete(
         ack_rule_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
@@ -332,7 +332,7 @@ def test_insights_rule_ack_hides_all_hosts(
 
     response = client.get(
         systems_path,
-        auth=module_target_sat.nailgun_cfg.auth,
+        auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},

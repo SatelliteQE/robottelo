@@ -21,13 +21,13 @@ from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
 
 @pytest.fixture(scope='module')
-def module_insights_ak(module_org, module_sca_manifest, module_target_sat):
+def module_insights_ak(module_org, module_sca_manifest, module_target_sat_insights):
     """Upload a manifest and create an activation key for insights tests."""
-    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
-    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+    module_target_sat_insights.upload_manifest(module_org.id, module_sca_manifest.content)
+    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
         module_org.default_content_view, module_org.library
     )
-    return module_target_sat.api.ActivationKey(
+    return module_target_sat_insights.api.ActivationKey(
         content_view_environment_ids=[cvenv_id],
         organization=module_org,
     ).create()
@@ -35,7 +35,7 @@ def module_insights_ak(module_org, module_sca_manifest, module_target_sat):
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
-def test_insights_systems(module_org, module_insights_ak, module_target_sat, rhel_contenthost):
+def test_insights_systems(module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost):
     """Check that a registered host with insights appears in the systems endpoint.
 
     :id: 8afdc95b-4891-4d0b-b71a-66146ddc31cf
@@ -48,7 +48,7 @@ def test_insights_systems(module_org, module_insights_ak, module_target_sat, rhe
     :expectedresults: The registered host appears in the Insights systems endpoint.
     """
     rhel_contenthost.api_register(
-        module_target_sat,
+        module_target_sat_insights,
         organization=module_org,
         activation_keys=[module_insights_ak.name],
         setup_insights=True,
@@ -58,12 +58,12 @@ def test_insights_systems(module_org, module_insights_ak, module_target_sat, rhe
 
     insights_uuid = rhel_contenthost.get_insights_id()
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/system'
+    path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/system'
 
     def _check_systems():
         response = client.get(
             path,
-            auth=module_target_sat.nailgun_cfg.auth,
+            auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
             params={'organization_id': module_org.id},
@@ -79,7 +79,7 @@ def test_insights_systems(module_org, module_insights_ak, module_target_sat, rhe
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_system_existing_with_rule(
-    module_org, module_insights_ak, module_target_sat, rhel_contenthost
+    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
 ):
     """Check that reports appear for a host with a known vulnerability.
 
@@ -94,7 +94,7 @@ def test_insights_system_existing_with_rule(
     :expectedresults: The reports endpoint returns a non-empty list for the host.
     """
     rhel_contenthost.api_register(
-        module_target_sat,
+        module_target_sat_insights,
         organization=module_org,
         activation_keys=[module_insights_ak.name],
         setup_insights=True,
@@ -106,12 +106,12 @@ def test_insights_system_existing_with_rule(
 
     insights_uuid = rhel_contenthost.get_insights_id()
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/system/{insights_uuid}/reports'
+    path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/system/{insights_uuid}/reports'
 
     def _check_systems():
         response = client.get(
             path,
-            auth=module_target_sat.nailgun_cfg.auth,
+            auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
             params={'organization_id': module_org.id},
