@@ -3,16 +3,17 @@
 
 set -eou pipefail
 
-if [[ -z "${VIRTUAL_ENV:-}" ]]; then
-  python3 -m venv .robottelo
-  source .robottelo/bin/activate
-fi
-if command -v uv >/dev/null 2>&1; then
-  uv pip install -r requirements.txt -r requirements-optional.txt
-else
-  echo "uv not found, falling back to pip (this may be slow)"
-  pip install -r requirements.txt -r requirements-optional.txt
+if ! command -v uv >/dev/null 2>&1; then
+  echo "uv not found, installing it..."
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  export PATH="${HOME}/.local/bin:${PATH}"
 fi
 
+if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+  uv venv
+  source .venv/bin/activate
+fi
+uv pip install -r requirements.txt -r requirements-optional.txt
+
 printf "\n\nSetup complete.\n"
-printf "Activate the virtualenv 'source .robottelo/bin/activate'.\n"
+printf "Activate the virtualenv 'source .venv/bin/activate'.\n"

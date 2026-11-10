@@ -31,11 +31,11 @@ driven`_. There are three types of tests:
 Local development environment
 -----------------------------
 
-Create the project virtual environment ``.robottelo`` and install the required
+Create the project virtual environment ``.venv`` and install the required
 and optional dependencies with::
 
     ./setup-environment
-    source .robottelo/bin/activate
+    source .venv/bin/activate
 
 The script skips the virtual environment creation if you run it from inside
 an already-activated virtual environment.
