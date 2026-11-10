@@ -19,38 +19,41 @@ from wait_for import wait_for
 from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
+
+@pytest.fixture(scope='module')
+def module_insights_ak(module_org, module_sca_manifest, module_target_sat):
+    """Upload a manifest and create an activation key for insights tests."""
+    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+        module_org.default_content_view, module_org.library
+    )
+    return module_target_sat.api.ActivationKey(
+        content_view_environment_ids=[cvenv_id],
+        organization=module_org,
+    ).create()
+
+
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_stats_overview_one_system(
-    module_org, module_sca_manifest, module_target_sat, rhel_contenthost
+    module_org, module_insights_ak, module_target_sat, rhel_contenthost
 ):
     """Check that stats overview reflects one important recommendation after a host reports a vulnerability.
 
     :id: d2d8e5bc-2d9b-4ad9-9e06-9039d75d07cd
 
     :steps:
-        1. Upload a manifest to the organization
-        2. Create an activation key and register a content host with insights
-        3. Create an SSH config vulnerability on the host
-        4. Run insights-client to upload data
-        5. Send GET request to /insights_cloud/api/insights/v1/stats/overview
+        1. Register a content host with insights
+        2. Create an SSH config vulnerability on the host
+        3. Run insights-client to upload data
+        4. Send GET request to /insights_cloud/api/insights/v1/stats/overview
 
     :expectedresults: The response returns 200 with important equal to 1.
     """
-    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
-
-    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
-        module_org.default_content_view, module_org.library
-    )
-    ak = module_target_sat.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
-        organization=module_org,
-    ).create()
-
     rhel_contenthost.api_register(
         module_target_sat,
         organization=module_org,
-        activation_keys=[ak.name],
+        activation_keys=[module_insights_ak.name],
         setup_insights=True,
     )
 
@@ -82,14 +85,14 @@ def test_insights_stats_overview_one_system(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_stats_overview_after_ack(
-    module_org, module_sca_manifest, module_target_sat, rhel_contenthost
+    module_org, module_insights_ak, module_target_sat, rhel_contenthost
 ):
     """Check that stats overview reflects zero important after acking the rule.
 
     :id: 5bd5c862-0d56-4198-8252-8fbe13deb380
 
     :steps:
-        1. Upload a manifest and register a content host with insights
+        1. Register a content host with insights
         2. Create an SSH config vulnerability and run insights-client
         3. Poll stats/overview until important == 1
         4. Send POST to /insights_cloud/api/insights/v1/ack/ to ack the rule
@@ -100,20 +103,10 @@ def test_insights_stats_overview_after_ack(
     :expectedresults: After acking, important drops to 0. After removing the ack,
         important returns to 1.
     """
-    module_target_sat.upload_manifest(module_org.id, module_sca_manifest.content)
-
-    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
-        module_org.default_content_view, module_org.library
-    )
-    ak = module_target_sat.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
-        organization=module_org,
-    ).create()
-
     rhel_contenthost.api_register(
         module_target_sat,
         organization=module_org,
-        activation_keys=[ak.name],
+        activation_keys=[module_insights_ak.name],
         setup_insights=True,
     )
 
@@ -137,9 +130,9 @@ def test_insights_stats_overview_after_ack(
 
     wait_for(_check_important, timeout=120, delay=10, handle_exception=True)
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/'
+    ack_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/'
     response = client.post(
-        path,
+        ack_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
@@ -163,9 +156,9 @@ def test_insights_stats_overview_after_ack(
     assert response.status_code == 200
     assert response.json()['important'] == 0
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
+    ack_rule_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
     response = client.delete(
-        path,
+        ack_rule_path,
         auth=module_target_sat.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
