@@ -9,6 +9,7 @@ import shlex
 from urllib.parse import urljoin
 from urllib.request import urlopen
 
+from broker.helpers import FileLock
 from broker.hosts import Host
 from fauxfactory import gen_string
 from packaging.version import Version
@@ -776,6 +777,36 @@ class IoPSetup:
 
 class AnsibleCollectionSetup:
     """Helper for configuring Satellite to be able to run AnsibleCollection test suite."""
+
+    def install_ansible_roles(self, role_names):
+        """Install standalone Galaxy roles in the proxy's mounted roles directory."""
+        self._install_ansible_content('role', role_names)
+
+    def install_ansible_collections(self, collection_names):
+        """Install Ansible collections in the proxy's mounted collections directory."""
+        self._install_ansible_content('collection', collection_names)
+
+    def _install_ansible_content(self, kind, names):
+        if not names:
+            return
+        base = PurePath(constants.ANSIBLE_ROLES_PATH).parent
+        proxy_env = (
+            f'HTTPS_PROXY={shlex.quote(settings.http_proxy.http_proxy_ipv6_url)} '
+            if not self.network_type.has_ipv4
+            else ''
+        )
+        with FileLock(robottelo_tmp_dir / f'ansible-roles-{self.hostname}', timeout=600):
+            result = self.execute('command -v ansible-galaxy || dnf install -y ansible-core')
+            assert result.status == 0, f'Failed to install ansible-galaxy: {result.stderr}'
+            arguments = shlex.join(dict.fromkeys(names))
+            # Ignore host-only collections and stage files on the container-readable mount.
+            result = self.execute(
+                f'ANSIBLE_COLLECTIONS_PATH={base}/collections '
+                f'ANSIBLE_LOCAL_TEMP={base}/.tmp {proxy_env}'
+                f'ansible-galaxy {kind} install -p {base}/{kind}s -- {arguments}',
+                timeout='10m',
+            )
+            assert result.status == 0, f'Failed to install Ansible {kind}s: {result.stderr}'
 
     def configure_fam(self):
         self.register_to_cdn()

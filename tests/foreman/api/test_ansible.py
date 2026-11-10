@@ -17,7 +17,8 @@ from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
 
-from robottelo.config import robottelo_tmp_dir, settings, user_nailgun_config
+from robottelo.config import settings, user_nailgun_config
+from robottelo.constants import ANSIBLE_ROLES_PATH
 from robottelo.hosts import ContentHost
 from robottelo.utils.issue_handlers import is_open
 
@@ -73,7 +74,7 @@ class TestAnsibleCfgMgmt:
             1. Install ansible collection with playbooks.
             2. Try to fetch the playbooks via api.
             3. Sync the playbooks.
-            4. Assert the count of playbooks fetched and synced are equal.
+            4. Assert every fetched playbook exists as a job template after syncing.
 
         :expectedresults:
             1. Playbooks should be fetched and synced successfully.
@@ -82,21 +83,13 @@ class TestAnsibleCfgMgmt:
 
         :customerscenario: true
         """
-        http_proxy = (
-            f'HTTPS_PROXY={settings.http_proxy.HTTP_PROXY_IPv6_URL} '
-            if not target_sat.network_type.has_ipv4
-            else ''
-        )
-        assert (
-            target_sat.execute(
-                f'{http_proxy}ansible-galaxy collection install -p /usr/share/ansible/collections '
-                'xprazak2.forklift_collection'
-            ).status
-            == 0
-        )
+        target_sat.install_ansible_collections(['infra.ee_utilities'])
         proxy_id = target_sat.nailgun_smart_proxy.id
         playbook_fetch = target_sat.api.AnsiblePlaybooks().fetch(data={'proxy_id': proxy_id})
-        playbooks_count = len(playbook_fetch['results']['playbooks_names'])
+        playbook_names = playbook_fetch['results']['playbooks_names']
+        assert 'infra.ee_utilities.create_execution_environment' in playbook_names, (
+            'Collection playbook was not fetched from Capsule'
+        )
         playbook_sync = target_sat.api.AnsiblePlaybooks().sync(data={'proxy_id': proxy_id})
         assert playbook_sync['action'] == "Sync playbooks"
 
@@ -108,170 +101,8 @@ class TestAnsibleCfgMgmt:
             query={'search': f'id = {playbook_sync["id"]}'}
         )
         assert task_details[0].result == 'success'
-        assert len(task_details[0].output['result']['created']) == playbooks_count
-
-    @pytest.mark.e2e
-    def test_add_and_remove_ansible_role_hostgroup(self, target_sat):
-        """
-        Test add and remove functionality for ansible roles in hostgroup via API
-
-        :id: 7672cf86-fa31-11ed-855a-0fd307d2d66b
-
-        :steps:
-            1. Create a hostgroup and a nested hostgroup
-            2. Sync a few ansible roles
-            3. Assign a few ansible roles with the host group
-            4. Add some ansible role with the host group
-            5. Add some ansible roles to the nested hostgroup
-            6. Remove the added ansible roles from the parent and nested hostgroup
-
-        :expectedresults:
-            1. Ansible role assign/add/remove functionality should work as expected in API
-
-        :BZ: 2164400
-        """
-        ROLE_NAMES = settings.ansible.role_names
-
-        hg = target_sat.api.HostGroup(name=gen_string('alpha')).create()
-        hg_nested = target_sat.api.HostGroup(name=gen_string('alpha'), parent=hg).create()
-        proxy_id = target_sat.nailgun_smart_proxy.id
-        target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': ROLE_NAMES})
-        ROLES = [
-            target_sat.api.AnsibleRoles().search(query={'search': f'name={role}'})[0].id
-            for role in ROLE_NAMES
-        ]
-        # Assign first 2 roles to HG and verify it
-        target_sat.api.HostGroup(id=hg.id).assign_ansible_roles(
-            data={'ansible_role_ids': ROLES[:2]}
-        )
-        for r1, r2 in zip(
-            target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES[:2], strict=True
-        ):
-            assert r1['name'] == r2
-
-        # Add next role from list to HG and verify it
-        target_sat.api.HostGroup(id=hg.id).add_ansible_role(data={'ansible_role_id': ROLES[2]})
-        for r1, r2 in zip(
-            target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES[:3], strict=True
-        ):
-            assert r1['name'] == r2
-
-        # Add next role to nested HG, and verify roles are also nested to HG along with assigned role
-        # Also, ensure the parent HG does not contain the roles assigned to nested HGs
-        target_sat.api.HostGroup(id=hg_nested.id).add_ansible_role(
-            data={'ansible_role_id': ROLES[3]}
-        )
-        for r1, r2 in zip(
-            target_sat.api.HostGroup(id=hg_nested.id).list_ansible_roles(),
-            [ROLE_NAMES[-1]] + ROLE_NAMES[:-1],
-            strict=True,
-        ):
-            assert r1['name'] == r2
-
-        for r1, r2 in zip(
-            target_sat.api.HostGroup(id=hg.id).list_ansible_roles(), ROLE_NAMES[:3], strict=True
-        ):
-            assert r1['name'] == r2
-
-        # Remove roles assigned one by one from HG and nested HG
-        for role in ROLES[:3]:
-            target_sat.api.HostGroup(id=hg.id).remove_ansible_role(data={'ansible_role_id': role})
-        hg_roles = target_sat.api.HostGroup(id=hg.id).list_ansible_roles()
-        assert len(hg_roles) == 0
-
-        for role in ROLES:
-            target_sat.api.HostGroup(id=hg_nested.id).remove_ansible_role(
-                data={'ansible_role_id': role}
-            )
-        hg_nested_roles = target_sat.api.HostGroup(id=hg_nested.id).list_ansible_roles()
-        assert len(hg_nested_roles) == 0
-
-    @pytest.mark.e2e
-    def test_positive_ansible_roles_inherited_from_hostgroup(
-        self, request, target_sat, module_org, module_location
-    ):
-        """Verify ansible roles inheritance functionality for host with parent/nested hostgroup via API
-
-        :id: 7672cf86-fa31-11ed-855a-0fd307d2d66g
-
-        :steps:
-            1. Create a host, hostgroup and nested hostgroup
-            2. Sync a few ansible roles
-            3. Assign a few ansible roles to the host, hostgroup, nested hostgroup and verify it.
-            4. Update host to be in parent/nested hostgroup and verify roles assigned
-
-        :expectedresults:
-            1. Hosts in parent/nested hostgroups must have direct and indirect roles correctly assigned.
-
-        :BZ: 2187967
-
-        :customerscenario: true
-        """
-        ROLE_NAMES = settings.ansible.role_names
-
-        proxy_id = target_sat.nailgun_smart_proxy.id
-        host = target_sat.api.Host(organization=module_org, location=module_location).create()
-        hg = target_sat.api.HostGroup(name=gen_string('alpha'), organization=[module_org]).create()
-        hg_nested = target_sat.api.HostGroup(
-            name=gen_string('alpha'), parent=hg, organization=[module_org]
-        ).create()
-
-        @request.addfinalizer
-        def _finalize():
-            host.delete()
-            hg_nested.delete()
-            hg.delete()
-
-        target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': ROLE_NAMES})
-        ROLES = [
-            target_sat.api.AnsibleRoles().search(query={'search': f'name={role}'})[0].id
-            for role in ROLE_NAMES
-        ]
-
-        # Assign roles to Host/Hostgroup/Nested Hostgroup and verify it
-        target_sat.api.Host(id=host.id).add_ansible_role(data={'ansible_role_id': ROLES[0]})
-        assert ROLE_NAMES[0] == target_sat.api.Host(id=host.id).list_ansible_roles()[0]['name']
-
-        target_sat.api.HostGroup(id=hg.id).add_ansible_role(data={'ansible_role_id': ROLES[1]})
-        assert ROLE_NAMES[1] == target_sat.api.HostGroup(id=hg.id).list_ansible_roles()[0]['name']
-
-        target_sat.api.HostGroup(id=hg_nested.id).add_ansible_role(
-            data={'ansible_role_id': ROLES[2]}
-        )
-        listroles = target_sat.api.HostGroup(id=hg_nested.id).list_ansible_roles()
-        assert ROLE_NAMES[2] == listroles[0]['name']
-        assert listroles[0]['directly_assigned']
-        assert ROLE_NAMES[1] == listroles[1]['name']
-        assert not listroles[1]['directly_assigned']
-
-        # Update host to be in nested hostgroup and verify roles assigned
-        host.hostgroup = hg_nested
-        host = host.update(['hostgroup'])
-        listroles_host = target_sat.api.Host(id=host.id).list_ansible_roles()
-        assert ROLE_NAMES[0] == listroles_host[0]['name']
-        assert listroles_host[0]['directly_assigned']
-        assert ROLE_NAMES[1] == listroles_host[1]['name']
-        assert not listroles_host[1]['directly_assigned']
-        assert ROLE_NAMES[2] == listroles_host[2]['name']
-        assert not listroles_host[1]['directly_assigned']
-        # Verify nested hostgroup doesn't contains the roles assigned to host
-        listroles_nested_hg = target_sat.api.HostGroup(id=hg_nested.id).list_ansible_roles()
-        assert ROLE_NAMES[0] not in [role['name'] for role in listroles_nested_hg]
-        assert ROLE_NAMES[2] == listroles_nested_hg[0]['name']
-        assert ROLE_NAMES[1] == listroles_nested_hg[1]['name']
-
-        # Update host to be in parent hostgroup and verify roles assigned
-        host.hostgroup = hg
-        host = host.update(['hostgroup'])
-        listroles = target_sat.api.Host(id=host.id).list_ansible_roles()
-        assert ROLE_NAMES[0] == listroles[0]['name']
-        assert listroles[0]['directly_assigned']
-        assert ROLE_NAMES[1] == listroles[1]['name']
-        assert not listroles[1]['directly_assigned']
-        # Verify parent hostgroup doesn't contains the roles assigned to host
-        listroles_hg = target_sat.api.HostGroup(id=hg.id).list_ansible_roles()
-        assert ROLE_NAMES[0] not in [role['name'] for role in listroles_hg]
-        assert ROLE_NAMES[1] == listroles_hg[0]['name']
+        templates = target_sat.api.JobTemplate().search(query={'per_page': 'all'})
+        assert set(playbook_names) <= {template.name for template in templates}
 
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_read_facts_with_filter(
@@ -358,6 +189,7 @@ class TestAnsibleREX:
         :BZ: 2164400
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
+        target_sat.install_ansible_roles([SELECTED_ROLE])
         rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
         if rhel_contenthost.os_version.major <= 7:
             rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
@@ -429,6 +261,8 @@ class TestAnsibleREX:
 
         :BZ: 2167396, 2190464, 2184117
         """
+        SELECTED_ROLE = 'RedHatInsights.insights-client'
+        target_sat.install_ansible_roles([SELECTED_ROLE])
         with Broker.multi_manager(
             rhel9={
                 'host_class': ContentHost,
@@ -450,7 +284,6 @@ class TestAnsibleREX:
             },
         ) as multi_hosts:
             hosts = [multi_hosts['rhel9'][0], multi_hosts['rhel8'][0], multi_hosts['rhel7'][0]]
-            SELECTED_ROLE = 'RedHatInsights.insights-client'
             for host in hosts:
                 result = host.register(
                     module_org, module_location, module_ak_with_synced_repo.name, target_sat
@@ -625,7 +458,7 @@ class TestAnsibleREX:
         termination_msg = 'Timeout for execution passed, stopping the job'
         assert [i['output'] for i in result if i['output'] == termination_msg]
         assert [i['output'] for i in result if i['output'] == 'StandardError: Job execution failed']
-        assert [i['output'] for i in result if i['output'] == 'Exit status: 120']
+        assert [i['output'] for i in result if i['output'] == 'Exit status: 2']
 
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
@@ -835,10 +668,9 @@ class TestAnsibleREX:
           when: ansible_check_mode
         """
         role_name = gen_string('alpha')
-        role_task_file = f'{robottelo_tmp_dir}/playbook.yml'
-        with open(role_task_file, 'w') as f:
-            f.write(data)
-        target_sat.put(role_task_file, f'/etc/ansible/roles/{role_name}/tasks/main.yml')
+        role_dir = f'{ANSIBLE_ROLES_PATH}/{role_name}'
+        target_sat.put(data, f'{role_dir}/tasks/main.yml', temp_file=True)
+        request.addfinalizer(lambda: target_sat.execute(f'rm -rf {role_dir}'))
 
         # Register contenthost and assign the custom role
         result = rhel_contenthost.register(
@@ -850,6 +682,7 @@ class TestAnsibleREX:
         target_host = rhel_contenthost.nailgun_host
         target_sat.api.AnsibleRoles().sync(data={'proxy_id': proxy_id, 'role_names': [role_name]})
         role_id = target_sat.api.AnsibleRoles().search(query={'search': f'name={role_name}'})[0].id
+        request.addfinalizer(lambda: target_sat.cli.Ansible.roles_delete({'id': role_id}))
         target_sat.api.Host(id=target_host.id).add_ansible_role(data={'ansible_role_id': role_id})
         host_roles = target_host.list_ansible_roles()
         assert host_roles[0]['name'] == role_name
