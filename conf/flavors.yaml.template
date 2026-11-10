@@ -1,9 +1,36 @@
 FLAVORS:
-  # 6 CPU, 24 GB RAM, 100 GB disk
-  DEFAULT: satqe-ssd.standard.std
-  # 16 CPU, 32 GB RAM, 160 GB disk
-  LARGE: satqe-ssd.standard.xxxl
-  # 6 CPU, 24 GB RAM, 500 GB disk
-  UPGRADE: satqe-ssd.upgrade.std
-  # 8 CPU, 32 GB RAM, 500 GB disk
-  CUSTOM_DB: satqe-ssd.customerdb.std
+  # Explicit Broker sizing for OCP-V / RHV (OCP ignores OpenStack deploy_flavor).
+  # Unpack at checkout: Broker(..., **settings.flavors.default)
+  # Do not set deploy_flavor here — OSP names are unused on OCP and can break RHV
+  # flavor_data lookups; OSP falls back to inventory default_deploy_flavor.
+  DEFAULT:
+    deploy_cpus: 6
+    deploy_memory: 24Gi
+    deploy_bootvol_size: 100Gi
+    target_cores: 6
+    target_memory: 24Gi
+  LARGE:
+    deploy_cpus: 16
+    deploy_memory: 32Gi
+    deploy_bootvol_size: 160Gi
+    target_cores: 16
+    target_memory: 32Gi
+  UPGRADE:
+    deploy_cpus: 6
+    deploy_memory: 24Gi
+    deploy_bootvol_size: 500Gi
+    target_cores: 6
+    target_memory: 24Gi
+  CUSTOM_DB:
+    deploy_cpus: 8
+    deploy_memory: 32Gi
+    deploy_bootvol_size: 500Gi
+    target_cores: 8
+    target_memory: 32Gi
+  # Large disk, modest CPU/RAM — maintain tuning negative test ("default" profile).
+  DISK_XXXL:
+    deploy_cpus: 4
+    deploy_memory: 8Gi
+    deploy_bootvol_size: 500Gi
+    target_cores: 4
+    target_memory: 8Gi

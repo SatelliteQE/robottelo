@@ -70,9 +70,9 @@ def foremanctl_sat():
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
-        deploy_flavor=settings.flavors.default,
         deploy_network_type=settings.server.network_type,
         host_class=Satellite,
+        **settings.flavors.default,
     ) as sat:
         sat.install_satellite_foremanctl()
         yield sat
