@@ -58,12 +58,12 @@ def module_sat_ready_rhel(request):
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
-        deploy_flavor=settings.flavors.default,
         deploy_network_type=settings.server.network_type,
         deploy_fips=param == 'fips',
         enable_fapolicyd=param == 'fapolicyd',
         host_class=Satellite,
         use_dynamic_inventories_wf_level=False,
+        **settings.flavors.default,
     ) as sat:
         sat.install_satellite_foremanctl(
             parameters=deploy_args,
@@ -78,12 +78,12 @@ def module_cap_ready_rhel(request):
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
-        deploy_flavor=settings.flavors.default,
         deploy_network_type=settings.server.network_type,
         deploy_fips=param == 'fips',
         enable_fapolicyd=param == 'fapolicyd',
         host_class=Capsule,
         use_dynamic_inventories_wf_level=False,
+        **settings.flavors.default,
     ) as cap:
         # Add IPv6 proxy for IPv6 communication
         cap.enable_ipv6_dnf_and_rhsm_proxy()
@@ -125,10 +125,10 @@ def module_sat_foremanctl_tuning(request):
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
-        deploy_flavor=settings.flavors.large,
         deploy_network_type=settings.server.network_type,
         host_class=Satellite,
         use_dynamic_inventories_wf_level=False,
+        **settings.flavors.large,
     ) as sat:
         sat.install_satellite_foremanctl(
             parameters=[
@@ -279,10 +279,10 @@ def module_sat_foremanctl_custom_certs():
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
-        deploy_flavor=settings.flavors.default,
         deploy_network_type=settings.server.network_type,
         host_class=Satellite,
         use_dynamic_inventories_wf_level=False,
+        **settings.flavors.default,
     ) as sat:
         sat.custom_cert_generate(sat.hostname)
         sat.install_satellite_foremanctl(
