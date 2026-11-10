@@ -1,4 +1,4 @@
-"""Test for Insights Cloud rule endpoint.
+"""Test for Insights rule endpoint.
 
 :Requirement: RHCloud
 
@@ -17,9 +17,7 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import settings
-
-RULE_ID = "hardening_ssh_config_perms|OPENSSH_HARDENING_CONFIG_PERMS"
-
+from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
 
 def test_insights_rule(module_org, module_target_sat):
     """Check that the rule endpoint returns available rules.
@@ -57,7 +55,7 @@ def test_insights_rule_existing(module_org, module_target_sat):
     :expectedresults: The rule is returned with correct rule_id, zero hosts_acked_count,
         and systems_detail count equal to 0.
     """
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}'
 
     response = client.get(
         path,
@@ -68,10 +66,10 @@ def test_insights_rule_existing(module_org, module_target_sat):
     )
 
     assert response.status_code == 200
-    assert response.json()["rule_id"] == RULE_ID
+    assert response.json()["rule_id"] == OPENSSH_RECOMMENDATION_RULE_ID
     assert response.json()["hosts_acked_count"] == 0
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}/systems_detail'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems_detail'
 
     response = client.get(
         path,
@@ -142,7 +140,7 @@ def test_insights_rule_reporting_rule(
 
     assert len(response.json()) > 0
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}/systems_detail'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems_detail'
 
     response = client.get(
         path,
@@ -156,7 +154,7 @@ def test_insights_rule_reporting_rule(
     assert response.json()["meta"]["count"] > 0
     assert response.json()["data"][0]["system_uuid"] == insights_uuid
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}/systems'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
 
     response = client.get(
         path,
@@ -215,7 +213,7 @@ def test_insights_ack_hosts(module_org, module_sca_manifest, module_target_sat, 
 
     justification = 'first justification'
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}/ack_hosts/'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/ack_hosts/'
 
     response = client.post(
         path,
@@ -244,7 +242,7 @@ def test_insights_ack_hosts(module_org, module_sca_manifest, module_target_sat, 
 
     assert response.status_code == 200
     assert response.json()["meta"]["count"] > 0
-    assert response.json()["data"][0]["rule"] == RULE_ID
+    assert response.json()["data"][0]["rule"] == OPENSSH_RECOMMENDATION_RULE_ID
     assert response.json()["data"][0]["system_uuid"] == insights_uuid
     assert response.json()["data"][0]["justification"] == justification
 
@@ -295,7 +293,7 @@ def test_insights_rule_ack_hides_all_hosts(
         result = host.execute('cat /etc/insights-client/machine-id')
         insights_uuids.append(result.stdout.strip())
 
-    systems_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{RULE_ID}/systems'
+    systems_path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
 
     def _check_both_hosts():
         response = client.get(
@@ -319,7 +317,7 @@ def test_insights_rule_ack_hides_all_hosts(
         headers={'Accept': 'application/json'},
         params={'organization_id': module_org.id},
         data={
-            'rule_id': RULE_ID,
+            'rule_id': OPENSSH_RECOMMENDATION_RULE_ID,
             'justification': 'rule ack hides all hosts',
         },
     )
@@ -338,7 +336,7 @@ def test_insights_rule_ack_hides_all_hosts(
     assert insights_uuids[0] not in response.json()["host_ids"]
     assert insights_uuids[1] not in response.json()["host_ids"]
 
-    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{RULE_ID}/'
+    path = f'{module_target_sat.url}/insights_cloud/api/insights/v1/ack/{OPENSSH_RECOMMENDATION_RULE_ID}/'
     response = client.delete(
         path,
         auth=module_target_sat.nailgun_cfg.auth,
