@@ -330,7 +330,7 @@ def test_insights_client_registration_with_http_proxy(
     )
     assert rhel_contenthost.execute('insights-client --register').status == 0
     assert rhel_contenthost.execute('insights-client --test-connection').status == 0
-    assert rhel_contenthost.check_insights_registration(satellite).status == 0
+    assert rhel_contenthost.check_insights_registration(module_target_sat_insights).status == 0
     assert rhel_contenthost.execute('insights-client --unregister').status == 0
 
 
