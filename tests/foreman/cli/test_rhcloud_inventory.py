@@ -544,6 +544,7 @@ def test_positive_register_insights_client_host(module_target_sat, rhel_insights
     :CaseAutomation: Automated
 
     """
+    # Registration setup triage: ContentHost.wait_for_insights_registration in robottelo/hosts.py.
     # Test connection of insights client
     assert rhel_insights_vm.execute('insights-client --test-connection').status == 0
 

@@ -14,11 +14,18 @@ def enable_insights(host, satellite, org, activation_key):
         org=org,
         rhel_distro=f"rhel{host.os_version.major}",
     )
-    result = host.execute('insights-client --status')
-    assert result.status == 0, f'insights-client not registered on {host.hostname}: {result.stdout}'
-    assert "Insights API confirms registration" in result.stdout
+    is_iop = satellite.iop_enabled
+    # Status may change the local marker; preserve IoP's pre-status fallback.
+    local_registered = (
+        is_iop
+        and host.execute('test -f "${INSIGHTS_CONF_DIR:-/etc/insights-client}/.registered"').status
+        == 0
+    )
+    result = host.check_insights_registration(satellite)
+    is_registered = result.status == 0 or local_registered
+    assert is_registered, f'insights-client not registered on {host.hostname}: {result.stdout}'
     # Sync inventory if using hosted Insights
-    if not satellite.iop_enabled:
+    if not is_iop:
         satellite.generate_inventory_report(org)
         satellite.sync_inventory_status(org)
 

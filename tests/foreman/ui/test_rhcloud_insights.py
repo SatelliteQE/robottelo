@@ -349,6 +349,7 @@ def test_host_details_page(
 
     :CaseAutomation: Automated
     """
+    # Registration setup triage: ContentHost.wait_for_insights_registration in robottelo/hosts.py.
     org_name = rhcloud_manifest_org.name
 
     # Prepare misconfigured machine and upload data to Insights.
@@ -546,6 +547,7 @@ def test_host_breadcrumb_switcher_updates_insights_tabs(
 
     :Verifies: SAT-38703
     """
+    # Registration setup triage: ContentHost.wait_for_insights_registration in robottelo/hosts.py.
     org_name = rhcloud_manifest_org.name
 
     # Ensure we have at least 2 hosts
