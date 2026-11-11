@@ -135,11 +135,11 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_sca_man
     assert len(yum_repo['output']) == 1
     assert yum_repo['output'][0] == f'{settings.repos.repo_discovery.url}/{repo_name}/'
 
-    # Discover docker type repo through HTTP proxy
+    # Discover docker type repo through HTTP proxy (use https; bare host becomes http://).
     docker_repo = module_target_sat.api.Organization(id=module_sca_manifest_org.id).repo_discover(
         data={
             "id": module_sca_manifest_org.id,
-            "url": 'quay.io',
+            "url": settings.container_repo.registries.quay.url,
             "content_type": "docker",
             "search": 'foreman/foreman',
         }
