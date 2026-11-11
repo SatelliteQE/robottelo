@@ -67,7 +67,7 @@ def test_positive_CRUD_all_types(
     # In case of IPv6, set 'ACS HTTP proxy' of the bound capsule to the IPv6 proxy
     # This is necessary for the Refresh to succeed.
     if not settings.server.network_type.has_ipv4:
-        caps = module_target_sat.nailgun_smart_proxy
+        caps = module_target_sat.nailgun_content_smart_proxy
         caps.http_proxy = module_target_sat.enable_satellite_http_proxy()
         caps.update(['http_proxy'])
         params.update({'use_http_proxies': True})
@@ -227,7 +227,7 @@ def test_positive_run_bulk_actions(module_target_sat, module_yum_repo):
     # In case of IPv6, set 'ACS HTTP proxy' of the bound capsule to the IPv6 proxy
     # This is necessary for the Refresh to succeed.
     if not settings.server.network_type.has_ipv4:
-        caps = module_target_sat.nailgun_smart_proxy
+        caps = module_target_sat.nailgun_content_smart_proxy
         caps.http_proxy = module_target_sat.enable_satellite_http_proxy()
         caps.update(['http_proxy'])
         params.update({'use_http_proxies': True})
