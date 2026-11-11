@@ -1181,6 +1181,15 @@ def test_positive_host_content_library(
     assert client.applicable_errata_count == 0
     assert client.execute(f'yum install -y {FAKE_1_CUSTOM_PACKAGE}').status == 0
     assert client.execute('subscription-manager repos').status == 0
+    # Applicability is regenerated asynchronously. Poll the count rather than an
+    # applicability task, which can match one triggered before the install.
+    wait_for(
+        lambda: client.applicable_errata_count == 1,
+        timeout=300,
+        delay=15,
+        silent_failure=True,
+        handle_exception=True,
+    )
     assert client.applicable_errata_count == 1
     assert client.applicable_package_count == 1
 
@@ -1572,7 +1581,6 @@ def test_content_host_errata_search_commands(
     target_sat,
     module_org,
     module_ak,
-    module_cv,
     session,
 ):
     """View a list of affected content hosts for security (RHSA) and bugfix (RHBA) errata,
@@ -1607,7 +1615,11 @@ def test_content_host_errata_search_commands(
         num=1,
         prefix='rhel',
     )
-    content_view = target_sat.api.ContentView(organization=module_org).create()
+    # Dedicated Content Views for each client. Earlier tests in this module attach an
+    # errata exclusion filter to module_cv, which would hide the RHSA erratum this test
+    # expects to find.
+    RHSA_cv = target_sat.api.ContentView(organization=module_org).create()
+    RHBA_cv = target_sat.api.ContentView(organization=module_org).create()
     RHSA_repo = target_sat.api.Repository(
         url=settings.repos.yum_9.url, product=module_product
     ).create()
@@ -1616,11 +1628,11 @@ def test_content_host_errata_search_commands(
     ).create()
     RHSA_repo.sync()
     RHBA_repo.sync()
-    module_cv.repository = [RHSA_repo]
-    module_cv.update(['repository'])
-    content_view.repository = [RHBA_repo]
-    content_view.update(['repository'])
-    cvs = [module_cv.read(), content_view.read()]  # client0, client1
+    RHSA_cv.repository = [RHSA_repo]
+    RHSA_cv.update(['repository'])
+    RHBA_cv.repository = [RHBA_repo]
+    RHBA_cv.update(['repository'])
+    cvs = [RHSA_cv.read(), RHBA_cv.read()]  # client0, client1
     # walrus-0.71-1.noarch (RHSA), kangaroo-0.1-1.noarch (RHBA)
     packages = [FAKE_1_CUSTOM_PACKAGE, FAKE_4_CUSTOM_PACKAGE]
     with Broker(
@@ -1712,7 +1724,6 @@ def test_positive_repo_sync_status_on_errata_repository(
     module_sca_manifest_org,
     module_product,
     module_target_sat,
-    module_cv,
 ):
     """Verify that errata repository sync status is displayed correctly
     when viewing errata through a Content View, not just the Default
@@ -1749,10 +1760,16 @@ def test_positive_repo_sync_status_on_errata_repository(
     custom_repo.sync()
     custom_repo = custom_repo.read()
     assert custom_repo.last_sync, 'Repository sync task was not recorded.'
-    module_cv.repository = [custom_repo]
-    module_cv.update(['repository'])
-    module_cv.publish()
-    module_cv = module_cv.read()
+    # Use a dedicated Content View rather than the module-scoped one. Earlier
+    # tests in this module attach an errata exclusion filter to module_cv that
+    # excludes CUSTOM_REPO_ERRATA_ID, which would legitimately hide the
+    # repository from the CV-filtered search below.
+    content_view = module_target_sat.api.ContentView(
+        organization=module_product.organization,
+        repository=[custom_repo],
+    ).create()
+    content_view.publish()
+    content_view = content_view.read()
 
     with module_target_sat.ui_session() as session:
         session.organization.select(org_name=module_sca_manifest_org.name)
@@ -1788,11 +1805,11 @@ def test_positive_repo_sync_status_on_errata_repository(
         # Search errata repositories filtered by Content View. The CV was
         # published but not promoted, so its newest version is only in Library.
         cv_repos_table = session.errata.search_repositories(
-            CUSTOM_REPO_ERRATA_ID, custom_repo.name, lce='Library', cv=module_cv.name
+            CUSTOM_REPO_ERRATA_ID, custom_repo.name, lce='Library', cv=content_view.name
         )
         assert cv_repos_table, (
             f'No repositories found for errata {CUSTOM_REPO_ERRATA_ID}'
-            f' when filtered by Content View {module_cv.name}.'
+            f' when filtered by Content View {content_view.name}.'
         )
         cv_repo = next(
             (r for r in cv_repos_table if r.get('Name') == custom_repo.name),
@@ -1800,15 +1817,15 @@ def test_positive_repo_sync_status_on_errata_repository(
         )
         assert cv_repo, (
             f'Repository {custom_repo.name} not found in errata repositories table'
-            f' when filtered by Content View {module_cv.name}.'
+            f' when filtered by Content View {content_view.name}.'
             f' Found instead: {cv_repos_table}'
         )
         cv_sync_status = cv_repo.get('Last Sync')
         assert cv_sync_status, (
             f'Last Sync column is empty for the repository when filtered by'
-            f' Content View {module_cv.name}.'
+            f' Content View {content_view.name}.'
         )
         assert all(x in cv_sync_status for x in ('Success', 'ago')), (
             f'Expected a successful sync timestamp (e.g. "Success less than a minute ago") '
-            f'when filtered by Content View {module_cv.name}, but got: {cv_sync_status}'
+            f'when filtered by Content View {content_view.name}, but got: {cv_sync_status}'
         )
