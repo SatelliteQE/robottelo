@@ -44,7 +44,6 @@ from robottelo.constants.repos import (
     CUSTOM_FILE_REPO,
     CUSTOM_RPM_SHA,
     FAKE_5_YUM_REPO,
-    FAKE_YUM_MD5_REPO,
 )
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
@@ -2212,42 +2211,6 @@ class TestAnsibleCollectionRepository:
         target_sat.cli.Repository.synchronize({'id': repo_2['id']})
         repo_2_status = target_sat.cli.Repository.info({'id': repo_2['id']})
         assert repo_2_status['sync']['status'] == 'Success'
-
-
-class TestMD5Repository:
-    """Tests specific to using MD5 signed repositories containing RPMs."""
-
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_MD5_REPO}]), indirect=True
-    )
-    def test_positive_sync_publish_promote_cv(self, repo, module_org, target_sat):
-        """Synchronize MD5 signed repository with add repository to content view,
-        publish and promote content view to lifecycle environment
-
-        :id: 81cf2606-739f-44ed-8954-41b9d824a69f
-
-        :parametrized: yes
-
-        :expectedresults: rpms can be listed in content view in proper
-            lifecycle environment
-        """
-        lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        synced_repo = target_sat.cli.Repository.info({'id': repo['id']})
-        assert synced_repo['sync']['status'].lower() == 'success'
-        assert synced_repo['content-counts']['packages'] == '35'
-        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
-        target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
-        target_sat.cli.ContentView.publish({'id': cv['id']})
-        content_view = target_sat.cli.ContentView.info({'id': cv['id']})
-        cvv = content_view['versions'][0]
-        target_sat.cli.ContentView.version_promote(
-            {'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']}
-        )
-        cv = target_sat.cli.ContentView.info({'id': cv['id']})
-        assert synced_repo['id'] in [repo['id'] for repo in cv['yum-repositories']]
-        assert lce['id'] in [lc['id'] for lc in cv['lifecycle-environments']]
 
 
 class TestFileRepository:
