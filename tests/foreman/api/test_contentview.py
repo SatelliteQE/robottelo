@@ -1918,9 +1918,11 @@ class TestContentViewPublishPromote:
         rake_command = (
             f'task = ForemanTasks::Task.find("{task[0].id}"); '
             'dist_task = task.execution_plan_action.execution_plan.actions.find do |action| action.is_a?(::Actions::Pulp3::Repository::DeleteDistributions) end; '
-            'dist_task.output;'
+            'p dist_task.output;'
         )
-        output = module_target_sat.execute(f"foreman-rake console <<< '{rake_command}'")
+        output = module_target_sat.rake_console(rake_command)
+        assert output.status == 0, f'Failed to query DeleteDistributions action: {output.stderr}'
+        assert output.stdout.strip(), 'rake console returned no output'
         assert '''"state"=>"completed"''' in output.stdout
         assert '''"name"=>"pulpcore.app.tasks.base.ageneral_delete"''' in output.stdout
 

@@ -28,7 +28,7 @@ from robottelo.utils.datafactory import (
 )
 
 
-def _repo(sat, product_id, name=None, upstream_name=None, url=None):
+def _repo(sat, product_id, name=None, upstream_name=None, url=None, include_tags='latest'):
     """Creates a Docker-based repository.
 
     :param product_id: ID of the ``Product``.
@@ -38,17 +38,22 @@ def _repo(sat, product_id, name=None, upstream_name=None, url=None):
         If ``None`` then defaults to settings.container.upstream_name constant.
     :param str url: URL of repository. If ``None`` then defaults to
         settings.container.registry_hub constant.
+    :param str include_tags: Comma-separated list of upstream tags to sync.
+        Defaults to ``'latest'`` so syncs stay small and fast. Syncing every
+        tag pulls thousands of blobs, which is slow and exposes the test to
+        transient upstream-registry blob errors. Pass ``None`` to sync all tags.
     :return: A ``Repository`` object.
     """
-    return sat.cli_factory.make_repository(
-        {
-            'content-type': REPO_TYPE['docker'],
-            'docker-upstream-name': upstream_name or settings.container.upstream_name,
-            'name': name or gen_string('alpha', 5),
-            'product-id': product_id,
-            'url': url or settings.container.registry_hub,
-        }
-    )
+    options = {
+        'content-type': REPO_TYPE['docker'],
+        'docker-upstream-name': upstream_name or settings.container.upstream_name,
+        'name': name or gen_string('alpha', 5),
+        'product-id': product_id,
+        'url': url or settings.container.registry_hub,
+    }
+    if include_tags:
+        options['include-tags'] = include_tags
+    return sat.cli_factory.make_repository(options)
 
 
 def _content_view(sat, repo_id, org_id):

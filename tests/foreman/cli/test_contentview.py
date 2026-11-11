@@ -2385,7 +2385,11 @@ class TestContentView:
         prod_env = module_target_sat.cli_factory.make_lifecycle_environment(
             {'organization-id': function_org.id, 'prior': qe_env['name']}
         )
-        capsule = module_target_sat.cli.Capsule().info({'name': capsule_configured.hostname})
+        # Use the content-serving proxy: on containerized installs Pulpcore lives on a
+        # separate '<hostname>-pulp' capsule, and only that one accepts lifecycle envs.
+        capsule = module_target_sat.cli.Capsule().info(
+            {'name': capsule_configured.content_hostname}
+        )
         # Add all environments to capsule
         environments = {constants.LIBRARY_LCE, dev_env['name'], qe_env['name'], prod_env['name']}
         for env_name in environments:
@@ -3056,28 +3060,41 @@ class TestContentView:
             f'cv = Katello::ContentView.find_by(name: "{cv["name"]}");'
             'env = cv.content_view_versions.last.content_view_environments.last;'
             'env.content_view_version_id = nil;'
-            'env.save(validate: false)'
+            'puts "CVENV_SAVED=#{env.save(validate: false)}"'
         )
-        result = target_sat.execute(f"foreman-rake console <<< '{rake_snippet}'")
+        result = target_sat.execute(f"echo '{rake_snippet}' | foreman-rake console")
         assert result.status == 0
         assert 'NameError' not in result.stdout
         assert 'RuntimeError' not in result.stdout
-
-        # Attempt to remove the CV and verify it fails with the expected PG error.
-        with pytest.raises(CLIReturnCodeError) as error:
-            target_sat.cli.ContentView.remove({'id': cv['id'], 'destroy-content-view': 'yes'})
-        assert 'PG::NotNullViolation' in error.value.stderr, (
-            f'Expected PG::NotNullViolation in stderr, got: {error.value.stderr}'
+        # The console silently no-ops if stdin is not forwarded, so confirm the
+        # snippet actually ran before relying on the CVEnv being corrupted.
+        assert 'CVENV_SAVED=true' in result.stdout, (
+            f'Corrupting the CVEnv did not take effect, got: {result.stdout!r}'
         )
 
-        # Run foreman-rake task to clean the corrupted CVEnvs.
-        result = target_sat.execute('foreman-rake katello:upgrades:4.20:clean_cve_with_no_cvv')
-        assert result.status == 0, f'Rake cleanup task failed: {result.stderr}'
+        cleaned = False
+        try:
+            # Attempt to remove the CV and verify it fails with the expected PG error.
+            with pytest.raises(CLIReturnCodeError) as error:
+                target_sat.cli.ContentView.remove({'id': cv['id'], 'destroy-content-view': 'yes'})
+            assert 'PG::NotNullViolation' in error.value.stderr, (
+                f'Expected PG::NotNullViolation in stderr, got: {error.value.stderr}'
+            )
 
-        # Attempt to remove the CV again and verify it succeeds.
-        target_sat.cli.ContentView.remove({'id': cv['id'], 'destroy-content-view': 'yes'})
-        with pytest.raises(CLIReturnCodeError):
-            target_sat.cli.ContentView.info({'id': cv['id']})
+            # Run foreman-rake task to clean the corrupted CVEnvs.
+            result = target_sat.rake('katello:upgrades:4.20:clean_cve_with_no_cvv')
+            cleaned = True
+            assert result.status == 0, f'Rake cleanup task failed: {result.stderr}'
+
+            # Attempt to remove the CV again and verify it succeeds.
+            target_sat.cli.ContentView.remove({'id': cv['id'], 'destroy-content-view': 'yes'})
+            with pytest.raises(CLIReturnCodeError):
+                target_sat.cli.ContentView.info({'id': cv['id']})
+        finally:
+            # Satellites are shared across the session, so never leave a CVEnv with a
+            # null content_view_version_id behind for later tests to trip over.
+            if not cleaned:
+                target_sat.rake('katello:upgrades:4.20:clean_cve_with_no_cvv')
 
     def test_positive_inc_update_should_not_fail(self, module_org, module_target_sat):
         """Incremental update after removing a package should not give a 400 error code

@@ -2663,6 +2663,60 @@ class Capsule(ContentHost, CapsuleMixins):
         cmd = f'{base_cmd} -c "{query}"'
         return _execute_db_query(cmd).stdout
 
+    @cached_property
+    def foreman_rake_is_wrapper(self):
+        """Whether ``foreman-rake`` is the containerized ``podman exec`` wrapper.
+
+        Probed on the host rather than inferred from ``settings.server.install_method``,
+        because that setting is frequently stale relative to the deployment and a
+        wrong answer here fails silently (see ``rake_console``).
+        """
+        return self.execute('grep -q "podman exec" "$(command -v foreman-rake)"').status == 0
+
+    def rake(self, task, allow_unsupported=True):
+        """Run a foreman-rake task, transparently handling containerized installs.
+
+        On foremanctl deployments ``foreman-rake`` is a wrapper around
+        ``podman exec`` that rejects any task outside a small allowlist of
+        documented ones, unless ``ALLOW_UNSUPPORTED=true`` is set.
+
+        Args:
+            task: The rake task and its arguments, e.g. 'katello:upgrade_check'
+            allow_unsupported: Permit tasks outside the containerized allowlist
+
+        Returns:
+            The command result
+        """
+        cmd = f'foreman-rake {task}'
+        if allow_unsupported and self.foreman_rake_is_wrapper:
+            cmd = f'ALLOW_UNSUPPORTED=true {cmd}'
+        return self.execute(cmd)
+
+    def rake_console(self, snippet, container='foreman'):
+        """Evaluate a Ruby snippet in the Foreman rails console.
+
+        Handles two deployment differences so callers don't have to:
+
+        * The containerized ``foreman-rake`` wrapper only passes ``-i`` to
+          ``podman exec`` when stdin is already a tty, so a piped snippet is
+          silently discarded and the command still exits 0. We invoke
+          ``podman exec -i`` directly instead.
+        * IRB does not echo the value of a trailing bare expression when stdin
+          is not a tty, so snippets must print explicitly. Use ``p`` or
+          ``puts`` in the snippet for anything you intend to assert on.
+
+        Args:
+            snippet: Ruby source to evaluate
+            container: Name of the Foreman container on containerized installs
+
+        Returns:
+            The command result; stdout holds whatever the snippet printed
+        """
+        cmd = 'foreman-rake console'
+        if self.foreman_rake_is_wrapper:
+            cmd = f'podman exec -i {container} {cmd}'
+        return self.execute(f'{cmd} <<< {shlex.quote(snippet)}')
+
     def load_remote_yaml_file(self, file_path):
         """Load a remote yaml file and return a Box object"""
         data = self.session.sftp_read(file_path, return_data=True)
