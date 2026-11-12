@@ -208,8 +208,13 @@ def test_positive_azurerm_host_provision_ud(
                     }
                 )
 
-                host_info = session.host_new.get_host_statuses(fqdn)
-                assert 'Pending installation' in host_info['Build']['Status']
+                wait_for(
+                    lambda: (
+                        session.host_new.get_host_statuses(fqdn)['Build']['Status'] == 'Installed'
+                    ),
+                    timeout=600,
+                    delay=30,
+                )
                 host_page = session.host_new.get_details(fqdn, widget_names='overview')
                 assert (
                     host_page['overview']['details']['details']['host_group']
