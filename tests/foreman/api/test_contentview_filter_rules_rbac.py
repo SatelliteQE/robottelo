@@ -44,8 +44,8 @@ def _create_user(target_sat, orgs, permission_names):
     assert len(permissions) == len(permission_names), (
         f'Expected permissions {permission_names} not found on server'
     )
-    role = target_sat.api.Role().create()
-    target_sat.api.Filter(organization=list(orgs), permission=permissions, role=role).create()
+    role = target_sat.api.Role(organization=[orgs]).create()
+    target_sat.api.Filter(permission=permissions, role=role).create()
     login = gen_string('alpha')
     password = gen_string('alphanumeric')
     user = target_sat.api.User(
@@ -97,10 +97,10 @@ def function_cv_filter_rules_env(target_sat, module_org, function_org):
     secret_cv, filter_b, rule_b = _make_filter_with_rule(target_sat, function_org)
 
     editor_cfg, editor_user, editor_role = _create_user(
-        target_sat, [module_org], ['view_content_views', 'edit_content_views']
+        target_sat, module_org, ['view_content_views', 'edit_content_views']
     )
     reader_cfg, reader_user, reader_role = _create_user(
-        target_sat, [module_org], ['view_content_views']
+        target_sat, module_org, ['view_content_views']
     )
 
     yield {
