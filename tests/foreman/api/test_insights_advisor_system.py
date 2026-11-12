@@ -35,7 +35,9 @@ def module_insights_ak(module_org, module_sca_manifest, module_target_sat_insigh
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
-def test_insights_systems(module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost):
+def test_insights_systems(
+    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
+):
     """Check that a registered host with insights appears in the systems endpoint.
 
     :id: 8afdc95b-4891-4d0b-b71a-66146ddc31cf
@@ -75,6 +77,7 @@ def test_insights_systems(module_org, module_insights_ak, module_target_sat_insi
         )
 
     wait_for(_check_systems, timeout=120, delay=10, handle_exception=True)
+
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')

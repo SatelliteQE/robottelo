@@ -115,7 +115,9 @@ def test_insights_stats_overview_after_ack(
 
     rhel_contenthost.execute('insights-client')
 
-    overview_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/stats/overview'
+    overview_path = (
+        f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/stats/overview'
+    )
 
     def _check_important():
         response = client.get(
