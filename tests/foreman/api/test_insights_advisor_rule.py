@@ -55,6 +55,25 @@ def test_insights_rule(module_org, module_target_sat_insights):
 
     assert response.status_code == 200
     assert response.json()["meta"]["count"] > 0
+    assert "data" in response.json()
+    assert len(response.json()["data"]) > 0
+    assert "category" in response.json()["data"][0]
+    assert "created_at" in response.json()["data"][0]
+    assert "description" in response.json()["data"][0]
+    assert "generic" in response.json()["data"][0]
+    assert "hosts_acked_count" in response.json()["data"][0]
+    assert "impact" in response.json()["data"][0]
+    assert "impacted_systems_count" in response.json()["data"][0]
+    assert "playbook_count" in response.json()["data"][0]
+    assert "rating" in response.json()["data"][0]
+    assert "reason" in response.json()["data"][0]
+    assert "reports_shown" in response.json()["data"][0]
+    assert "resolution_set" in response.json()["data"][0]
+    assert "rule_id" in response.json()["data"][0]
+    assert "rule_status" in response.json()["data"][0]
+    assert "summary" in response.json()["data"][0]
+    assert "tags" in response.json()["data"][0]
+    assert "updated_at" in response.json()["data"][0]
 
 
 def test_insights_rule_existing(module_org, module_target_sat_insights):
@@ -130,19 +149,19 @@ def test_insights_rule_reporting_rule(
 
     insights_uuid = rhel_contenthost.get_insights_id()
 
-    reports_path = (
-        f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/system/{insights_uuid}/reports'
-    )
+    reports_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/system/{insights_uuid}/reports'
 
-    response = client.get(
-        reports_path,
-        auth=module_target_sat_insights.nailgun_cfg.auth,
-        verify=False,
-        headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
-    )
+    def _check_reports():
+        response = client.get(
+            reports_path,
+            auth=module_target_sat_insights.nailgun_cfg.auth,
+            verify=False,
+            headers={'Accept': 'application/json'},
+            params={'organization_id': module_org.id},
+        )
+        return len(response.json()) > 0
 
-    assert len(response.json()) > 0
+    wait_for(_check_reports, timeout=120, delay=10, handle_exception=True)
 
     systems_detail_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems_detail'
 
@@ -174,7 +193,9 @@ def test_insights_rule_reporting_rule(
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
-def test_insights_ack_hosts(module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost):
+def test_insights_ack_hosts(
+    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
+):
     """Check that hosts can be acked for a specific rule via the ack_hosts endpoint.
 
     :id: 7ce03f45-d8a0-40c5-98f9-4077b3451698
