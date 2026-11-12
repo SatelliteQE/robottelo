@@ -221,8 +221,8 @@ class CapsuleInfo:
         )
         return old_log
 
-    def restore_host_check_log(self, proxy_hostname, hostname, old_log):
-        """For testing of HTTP Proxy, call after running the thing that should use Proxy."""
+    def restore_host_check_log(self, proxy_hostname, hostname, old_log, check_proxy=True):
+        """Restore direct access and optionally verify proxy traffic after a completed operation."""
         log_path = '/var/log/squid/access.log'
         result = self.execute(f'dig +short AAAA {hostname}').stdout.strip()
         if len(result) > 0:
@@ -234,6 +234,9 @@ class CapsuleInfo:
             self.execute(
                 f'firewall-cmd --permanent --direct --remove-rule ipv4 filter OUTPUT 1 -d {result} -j REJECT && firewall-cmd --reload'
             )
+
+        if not check_proxy:
+            return
 
         new_log = ssh.command('echo /tmp/$RANDOM').stdout.strip()
         ssh.command(
