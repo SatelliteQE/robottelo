@@ -942,7 +942,7 @@ API_PATHS = {
 def filtered_api_paths():
     """Filter expected API paths for the Satellite version and known issues."""
     missing = defaultdict(list)
-    if get_sat_version().release[:2] >= (6, 21):
+    if get_sat_version(timeout=30000).release[:2] >= (6, 21):
         # The internal Advisor hit upload endpoint was removed in Satellite 6.21.
         missing['advisor_engine'].append('/api/advisor_engine/upload_hits')
     scap_not_supported = is_open('SAT-40441')
