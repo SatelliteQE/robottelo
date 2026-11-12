@@ -1259,7 +1259,9 @@ def test_positive_search_by_org(session, smart_proxy_location, target_sat):
         assert session.host.search(f'organization = "{org.name}"')[0]['Name'] == host.name
 
 
-def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, module_host_template):
+def test_positive_validate_inherited_cv_lce_ansiblerole(
+    session, target_sat, module_host_template, synced_ansible_roles
+):
     """Create a host with hostgroup specified via CLI. Make sure host
     inherited hostgroup's lifecycle environment, content view and both
     fields are properly reflected via WebUI. Also host should be searchable by the
@@ -1274,7 +1276,7 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
 
     :BZ: 1391656, 2094912
     """
-    SELECTED_ROLE = 'RedHatInsights.insights-client'
+    SELECTED_ROLE = synced_ansible_roles(target_sat, ['RedHatInsights.insights-client'])[0]
     cv_name = gen_string('alpha')
     lce_name = gen_string('alphanumeric')
     cv = target_sat.api_factory.cv_publish_promote(
@@ -1289,9 +1291,6 @@ def test_positive_validate_inherited_cv_lce_ansiblerole(session, target_sat, mod
             }
         )[0]
         .read()
-    )
-    target_sat.cli.Ansible.roles_sync(
-        {'role-names': SELECTED_ROLE, 'proxy-id': target_sat.nailgun_smart_proxy.id}
     )
     hostgroup = target_sat.cli_factory.hostgroup(
         {
