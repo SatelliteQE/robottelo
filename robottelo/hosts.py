@@ -75,7 +75,7 @@ from robottelo.host_helpers import (
     SatelliteMixins,
 )
 from robottelo.logging import collection_logger, logger
-from robottelo.utils import validate_ssh_pub_key
+from robottelo.utils import insights_diagnostics, insights_readiness, validate_ssh_pub_key
 from robottelo.utils.datafactory import valid_emails_list
 from robottelo.utils.installer import InstallerCommand
 
@@ -1198,6 +1198,77 @@ class ContentHost(Host, ContentHostMixins):
             self.register(
                 org, None, activation_key.name, satellite, setup_insights=register_insights
             )
+
+    def wait_for_insights_registration(self, satellite):
+        """Wait for hosted Insights without changing the client's registration state.
+
+        A new host can briefly return 404 before its upload is processed. Running
+        ``insights-client --status`` during that window can unregister it locally.
+        IoP uses a different endpoint and is intentionally not polled here.
+
+        To investigate a hosted registration failure, find the host's command
+        result in the Jenkins ``logs/robottelo_gw*.log`` artifact (or
+        ``logs/robottelo.log`` without xdist). The ``Insights registration lookup``
+        lines show HTTP responses or read timeouts and seconds since the probe
+        started. A 403 can also indicate an authorization problem; a successful
+        probe can still be followed by a failed status request.
+
+        On a readiness or hosted client-status failure, the package version and a
+        sanitized client log are saved as ``logs/insights-readiness-*.log`` before
+        host teardown; PRT archives these files. ``--external-logging`` enables
+        host log shipping to Loki, but does not guarantee that the client log is
+        retained there.
+        Avoid rerunning ``--status`` while diagnosing the failure because it can
+        change registration state.
+        """
+        if satellite.iop_enabled:
+            return
+        source = Path(insights_readiness.__file__).read_text()
+        command = (
+            'python_bin=$(command -v /usr/libexec/platform-python || command -v python3 '
+            '|| command -v python) || { echo "Insights readiness check needs Python"; exit 1; }; '
+            f'timeout -k 1s {insights_readiness.TIMEOUT + 1}s "$python_bin" -c '
+            f'{shlex.quote(source)}'
+        )
+        # Broker's Paramiko backend uses seconds; its hussh/ssh2 backends use milliseconds.
+        transport_timeout = insights_readiness.TIMEOUT + 3
+        if self._settings.SSH.BACKEND != 'paramiko':
+            transport_timeout = f'{transport_timeout}s'
+        try:
+            result = self.execute(command, timeout=transport_timeout)
+        except Exception:
+            insights_diagnostics.capture_insights_diagnostics(self, 'Readiness command failed')
+            raise
+        if result.status != 0:
+            diagnostics = insights_diagnostics.capture_insights_diagnostics(self, result.stdout)
+            diagnostic_message = (
+                f'Diagnostics: {diagnostics}' if diagnostics else 'Diagnostics could not be saved'
+            )
+            raise ContentHostError(
+                f'Insights registration readiness check failed on {self.hostname} '
+                f'(exit {result.status}): {result.stdout.strip()}\n{diagnostic_message}'
+            )
+
+    def check_insights_registration(self, satellite):
+        """Wait for hosted registration, then run the client's status command once.
+
+        Status makes a separate request, so it can still see a different response
+        if registration visibility changes after the readiness check.
+        """
+        self.wait_for_insights_registration(satellite)
+        try:
+            result = self.execute('insights-client --status')
+        except Exception:
+            if not satellite.iop_enabled:
+                insights_diagnostics.capture_insights_diagnostics(
+                    self, 'Client status command failed'
+                )
+            raise
+        if result.status != 0 and not satellite.iop_enabled:
+            insights_diagnostics.capture_insights_diagnostics(
+                self, f'Client status exited {result.status}'
+            )
+        return result
 
     def unregister_insights(self):
         """Unregister insights client.
