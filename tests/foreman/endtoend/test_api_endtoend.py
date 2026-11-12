@@ -29,6 +29,7 @@ from robottelo.config import (
     user_nailgun_config,
 )
 from robottelo.constants.repos import CUSTOM_RPM_REPO
+from robottelo.hosts import get_sat_version
 from robottelo.utils.issue_handlers import is_open
 
 API_PATHS = {
@@ -937,10 +938,13 @@ API_PATHS = {
 }
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope='module')
 def filtered_api_paths():
-    """Filter the API_PATHS dict based on BZs that impact various endpoints"""
+    """Filter expected API paths for the Satellite version and known issues."""
     missing = defaultdict(list)
+    if get_sat_version().release[:2] >= (6, 21):
+        # The internal Advisor hit upload endpoint was removed in Satellite 6.21.
+        missing['advisor_engine'].append('/api/advisor_engine/upload_hits')
     scap_not_supported = is_open('SAT-40441')
     if scap_not_supported:
         # SCAP (OpenSCAP) is not yet supported on containerized (foremanctl) installs
