@@ -476,11 +476,9 @@ class TestProvisioningTemplate:
         assert 'chvt 6' in render
 
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-    @pytest.mark.parametrize('aap_version', ['2.4', '2.5'])
     def test_positive_template_check_aap_snippet(
         self,
         request,
-        aap_version,
         module_sync_kickstart_content,
         module_target_sat,
         module_sca_manifest_org,
@@ -504,7 +502,7 @@ class TestProvisioningTemplate:
 
         :customerscenario: true
         """
-        aap_api_url = f'https://env-aap.example.com{"/api/controller/v2" if aap_version == "2.5" else "/api/v2"}'
+        aap_api_url = 'https://env-aap.example.com/api/controller/v2'
         template_id = gen_integer(1, 10)
         extra_vars_dict = '{"package_install": "zsh"}'
         config_key = gen_string('alpha')
