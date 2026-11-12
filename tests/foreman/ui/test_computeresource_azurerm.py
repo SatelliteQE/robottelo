@@ -209,7 +209,8 @@ def test_positive_azurerm_host_provision_ud(
                 )
 
                 host_info = session.host_new.get_host_statuses(fqdn)
-                assert 'Pending installation' in host_info['Build']['Status']
+                # image-based provisioning  can complete before the UI reads the status;
+                assert host_info['Build']['Status'] in ('Pending installation', 'Installed')
                 host_page = session.host_new.get_details(fqdn, widget_names='overview')
                 assert (
                     host_page['overview']['details']['details']['host_group']
