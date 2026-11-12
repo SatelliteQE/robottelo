@@ -89,11 +89,14 @@ POWER_OPERATIONS = {
 def lru_sat_ready_rhel(rhel_ver):
     """Deploy bare RHEL system ready for Satellite installation."""
     rhel_version = rhel_ver or settings.server.version.rhel_version
-    deploy_args = settings.server.deploy_arguments | {
-        'deploy_rhel_version': rhel_version,
-        'deploy_flavor': settings.flavors.default,
-        'workflow': settings.server.deploy_workflows.os,
-    }
+    deploy_args = (
+        settings.server.deploy_arguments
+        | {
+            'deploy_rhel_version': rhel_version,
+            'workflow': settings.server.deploy_workflows.os,
+        }
+        | settings.flavors.default.to_dict()
+    )
     return Broker(**deploy_args, host_class=Satellite).checkout()
 
 
