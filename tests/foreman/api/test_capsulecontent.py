@@ -1804,6 +1804,7 @@ class TestCapsuleContentManagement:
             'file': {'file'},
             'docker': {'docker_tag', 'docker_manifest', 'docker_manifest_list'},
             'ansible_collection': {'ansible_collection'},
+            'python': {'python_package'},
         }
 
         repos_collection.setup_content(function_org.id, function_lce.id)
