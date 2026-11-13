@@ -1393,6 +1393,8 @@ PERMISSIONS = {
         'edit_vulnerability',
         'view_advisor',
         'edit_advisor',
+        'view_compliance',
+        'edit_compliance',
     ],
     'ForemanTasks::Task': ['edit_foreman_tasks', 'view_foreman_tasks'],
     'JobInvocation': [
