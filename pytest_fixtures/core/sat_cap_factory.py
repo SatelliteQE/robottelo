@@ -129,6 +129,9 @@ def satellite_factory():
         if settings.server.deploy_arguments:
             broker_args.update(settings.server.deploy_arguments)
             logger.debug(f'Updated broker args for sat: {broker_args}')
+        # Default product sizing from conf/flavors.yaml (deploy_cpus / memory / disk).
+        for key, value in settings.flavors.default.to_dict().items():
+            broker_args.setdefault(key, value)
 
         vmb = Broker(
             host_class=Satellite,
@@ -147,7 +150,7 @@ def satellite_factory():
 @pytest.fixture
 def large_capsule_host(capsule_factory, target_sat):
     """A fixture that provides a Capsule based on config settings"""
-    new_cap = capsule_factory(satellite=target_sat, deploy_flavor=settings.flavors.custom_db)
+    new_cap = capsule_factory(satellite=target_sat, **settings.flavors.custom_db.to_dict())
     new_cap.enable_ipv6_dnf_and_rhsm_proxy()
     yield new_cap
     new_cap.teardown()
@@ -393,9 +396,9 @@ def get_sat_deploy_args(request):
         | settings.server.deploy_arguments
         | {
             'deploy_rhel_version': rhel_version.base_version,
-            'deploy_flavor': settings.flavors.default,
             'workflow': settings.server.deploy_workflows.os,
         }
+        | settings.flavors.default.to_dict()
     )
     if hasattr(request, 'param'):
         if isinstance(request.param, dict):
@@ -413,9 +416,9 @@ def get_cap_deploy_args():
         | settings.capsule.deploy_arguments
         | {
             'deploy_rhel_version': rhel_version.base_version,
-            'deploy_flavor': settings.flavors.default,
             'workflow': settings.capsule.deploy_workflows.os,
         }
+        | settings.flavors.default.to_dict()
     )
 
 
