@@ -105,6 +105,35 @@ def test_positive_end_to_end(session, function_sca_manifest, target_sat):
         assert results.stdout == ''
 
 
+def test_positive_update_regional_cdn_url(session, function_org):
+    """Select a regional Red Hat CDN URL without a manifest and verify it persists.
+
+    :id: b8b607a5-9645-4319-bd3a-a33ded021508
+
+    :steps:
+        1. Open Manage Manifest for an organization without an uploaded manifest.
+        2. Open CDN Configuration and check the URL dropdown options.
+        3. Select https://cdn-eu.redhat.com and click Update.
+        4. Close and reopen the modal's CDN Configuration tab.
+
+    :expectedresults:
+        1. The dropdown offers the global, EU, and US Red Hat CDN URLs.
+        2. The EU URL remains selected after reopening the modal.
+
+    :Verifies: SAT-45154
+    """
+    with session:
+        session.organization.select(function_org.name)
+        configuration = session.subscription.read_cdn_configuration()
+        assert set(configuration['cdn_urls']) == {
+            'https://cdn.redhat.com',
+            'https://cdn-eu.redhat.com',
+            'https://cdn-us.redhat.com',
+        }
+        session.subscription.update_cdn_configuration({'url': 'https://cdn-eu.redhat.com'})
+        assert session.subscription.read_cdn_configuration()['url'] == 'https://cdn-eu.redhat.com'
+
+
 def test_positive_access_with_non_admin_user_without_manifest(test_name, target_sat):
     """Access subscription page with non admin user that has the necessary
     permissions to check that there is no manifest uploaded.
