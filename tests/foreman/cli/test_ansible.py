@@ -752,7 +752,6 @@ class TestAnsibleREX:
 
 
 @pytest.mark.upgrade
-@pytest.mark.parametrize('aap_version', ['2.3', '2.5'], scope='class')
 class TestAnsibleAAPIntegration:
     """Test class for Satellite integration with Ansible Automation Controller
 
@@ -766,10 +765,9 @@ class TestAnsibleAAPIntegration:
         username=settings.server.admin_username,
         password=settings.server.admin_password,
         creds_name=settings.AAP_INTEGRATION.satellite_credentials,
-        aap_version='2.5',
     ):
         # Find the Satellite credentials in AAP and update it for target_sat.hostname and user credentials
-        api_base = '/api/v2/' if aap_version == '2.3' else '/api/controller/v2/'
+        api_base = '/api/controller/v2/'
         creds_list = aap_client.get(
             f'{api_base}credentials/', query_parameters=f'name={creds_name}'
         ).json()
@@ -786,9 +784,8 @@ class TestAnsibleAAPIntegration:
         assert response.ok
 
     @pytest.fixture(scope='class')
-    def aap_client(self, aap_version):
-        # Retrieve credentials based on AAP/AWX version
-        fqdn = settings.AAP_INTEGRATION.get('AAP23_FQDN' if aap_version == '2.3' else 'AAP25_FQDN')
+    def aap_client(self):
+        fqdn = settings.AAP_INTEGRATION.AAP25_FQDN
         client = awxkit.api.client.Connection(f'https://{fqdn}/')
         client.login(settings.AAP_INTEGRATION.USERNAME, settings.AAP_INTEGRATION.PASSWORD)
 
@@ -807,7 +804,6 @@ class TestAnsibleAAPIntegration:
         aap_client,
         rhel_contenthost,
         auth_type,
-        aap_version,
     ):
         """Verify AAP is able to pull a dynamic inventory of hosts from Satellite,
         with admin and non-admin user.
@@ -827,7 +823,7 @@ class TestAnsibleAAPIntegration:
         :customerscenario: true
         """
         inventory_name = settings.AAP_INTEGRATION.satellite_inventory
-        api_base = '/api/v2/' if aap_version == '2.3' else '/api/controller/v2/'
+        api_base = '/api/controller/v2/'
 
         password = settings.server.admin_password
         if auth_type == 'admin':
@@ -869,9 +865,7 @@ class TestAnsibleAAPIntegration:
         )
         assert result.status == 0, f'Failed to register host: {result.stderr}'
         # Find the Satellite credentials in AAP and update it for target_sat.hostname and user credentials
-        self.update_sat_credentials_in_aap(
-            aap_client, target_sat, username=login, aap_version=aap_version
-        )
+        self.update_sat_credentials_in_aap(aap_client, target_sat, username=login)
 
         # Find the Satellite inventory in AAP and update it for target_sat and user credentials
         inv_list = aap_client.get(
@@ -909,7 +903,6 @@ class TestAnsibleAAPIntegration:
         self,
         request,
         aap_client,
-        aap_version,
         module_provisioning_sat,
         module_sca_manifest_org,
         module_location,
@@ -943,10 +936,8 @@ class TestAnsibleAAPIntegration:
         """
         host_mac_addr = provisioning_host.provisioning_nic_mac_addr
         sat = module_provisioning_sat.sat
-        aap_fqdn = settings.AAP_INTEGRATION.get(
-            'AAP23_FQDN' if aap_version == '2.3' else 'AAP25_FQDN'
-        )
-        api_base = '/api/v2/' if aap_version == '2.3' else '/api/controller/v2/'
+        aap_fqdn = settings.AAP_INTEGRATION.AAP25_FQDN
+        api_base = '/api/controller/v2/'
         aap_api_url = f'https://{aap_fqdn}{api_base}'
         job_template = settings.AAP_INTEGRATION.callback_job_template
         config_key = settings.AAP_INTEGRATION.host_config_key
@@ -954,7 +945,7 @@ class TestAnsibleAAPIntegration:
         extra_vars_dict = '{"package_install": "tmux"}'
 
         # Find the Satellite credentials in AAP and update it for sat.hostname and user credentials
-        self.update_sat_credentials_in_aap(aap_client, sat, aap_version=aap_version)
+        self.update_sat_credentials_in_aap(aap_client, sat)
 
         # Find the Satellite inventory in AAP and update it for provisioning_sat and user credentials
         inv_list = aap_client.get(
@@ -1058,18 +1049,37 @@ class TestAnsibleAAPIntegration:
             f'{api_base}inventories/{inv_list["results"][0]["id"]}/hosts/?search={hostname}'
         ).json()
         assert hostname in [host['name'] for host in hosts_list['results']]
+        callback_jobs_url = (
+            f'{api_base}job_templates/{template_id}/jobs/'
+            f'?launch_type=callback&limit__exact={hostname}&order_by=-id'
+        )
+
+        def callback_jobs():
+            response = aap_client.get(callback_jobs_url)
+            response.raise_for_status()
+            return response.json()['results']
+
+        previous_jobs = callback_jobs()
+        previous_id = previous_jobs[0]['id'] if previous_jobs else 0
         assert provisioning_host.execute('systemctl start ansible-callback').status == 0
-        jobs = aap_client.get(
-            f'{api_base}job_templates/{template_id}/jobs/?launch_type=callback&order_by=-created'
-        ).json()['results'][0]
-        # when the callback service is started, the job sometimes starts with pending or waiting state before going to the running state
-        filtered_job = jobs['id'] if jobs['status'] in ('running', 'pending', 'waiting') else None
-        wait_for(
-            lambda: (
-                aap_client.get(f'{api_base}jobs/?id={filtered_job}').json()['results'][0]['status']
-                == 'successful'
-            ),
+        new_jobs = wait_for(
+            lambda: [job for job in callback_jobs() if job['id'] > previous_id],
             timeout=120,
+            delay=5,
+            fail_condition=[],
+        ).out
+        callback_job_id = new_jobs[0]['id']
+
+        def callback_finished():
+            response = aap_client.get(f'{api_base}jobs/{callback_job_id}/')
+            response.raise_for_status()
+            job = response.json()
+            return job if job['status'] in ('successful', 'failed', 'error', 'canceled') else False
+
+        callback_job = wait_for(callback_finished, timeout=120, delay=5).out
+        assert callback_job['status'] == 'successful', (
+            f'Callback job {callback_job_id} ended with {callback_job["status"]}: '
+            f'{callback_job.get("job_explanation", "")}'
         )
         # Verify user rocket and package tmux is installed via ansible-callback on provisioning host
         assert provisioning_host.execute('cat /etc/passwd | grep rocket').status == 0
