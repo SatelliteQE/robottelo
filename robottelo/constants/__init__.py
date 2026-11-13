@@ -2552,6 +2552,7 @@ WEBHOOK_METHODS = [
 LIFECYCLE_METADATA_FILE = '/usr/share/satellite/lifecycle-metadata.yml'
 
 OPENSSH_RECOMMENDATION = 'Decreased security: OpenSSH config permissions'
+OPENSSH_RECOMMENDATION_RULE_ID = "hardening_ssh_config_perms|OPENSSH_HARDENING_CONFIG_PERMS"
 INCORRECT_PERM_RECOMMENDATION = 'Incorrect permissions on sensitive files'
 DNF_RECOMMENDATION = (
     'The dnf installs lower versions of packages when the "best" '

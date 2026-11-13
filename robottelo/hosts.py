@@ -1281,6 +1281,17 @@ class ContentHost(Host, ContentHostMixins):
         if result.status != 0:
             raise ContentHostError('Failed to unregister client from Insights through Satellite')
 
+    def get_insights_id(self):
+        """Return the insights machine-id for this host.
+
+        :return: The machine-id string.
+        :rtype: str
+        """
+        result = self.execute('cat /etc/insights-client/machine-id')
+        if result.status != 0:
+            raise ContentHostError('Failed to get insights machine-id')
+        return result.stdout.strip()
+
     def set_infrastructure_type(self, infrastructure_type='physical'):
         """Force host to appear as bare-metal or virtual machine in subscription-manager fact.
 
