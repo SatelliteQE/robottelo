@@ -18,6 +18,75 @@ from robottelo.config import settings
 from robottelo.constants import InstallationServices
 
 
+@pytest.mark.foremanctl
+def test_positive_disconnected_vex_import_creates_missing_destination(module_satellite_iop):
+    """Verify a manual VEX archive is installed when no destination archive exists.
+
+    :id: 69c0522c-47c3-410f-9bc8-ccdae4da7ede
+
+    :steps:
+        1. Enable IoP on Satellite.
+        2. Save any existing manual and destination VEX archives.
+        3. Put a manual VEX archive in /var/lib/foreman and remove the destination archive.
+        4. Run iop-vex-downloader.sh in disconnected mode.
+
+    :expectedresults:
+        1. The downloader exits successfully.
+        2. vex-latest.tar.zst is created in the VEX data directory and matches the manual archive.
+
+    :Verifies: SAT-51935
+    """
+    satellite = module_satellite_iop
+    manual_archive = '/var/lib/foreman/vex-latest.tar.zst'
+    destination_dir = '/var/www/html/pub/iop/data/csaf/v2/vex'
+    destination_archive = f'{destination_dir}/vex-latest.tar.zst'
+
+    backup_dir = satellite.execute('mktemp -d /tmp/sat-51935.XXXXXX')
+    assert backup_dir.status == 0, (
+        f'Failed to create VEX archive backup directory: {backup_dir.stderr}'
+    )
+    backup_dir = backup_dir.stdout.strip()
+
+    try:
+        for archive, backup_name in (
+            (manual_archive, 'manual-vex-latest.tar.zst'),
+            (destination_archive, 'destination-vex-latest.tar.zst'),
+        ):
+            result = satellite.execute(
+                f'if test -e {archive}; then cp -a {archive} {backup_dir}/{backup_name}; fi'
+            )
+            assert result.status == 0, f'Failed to back up {archive}: {result.stderr}'
+
+        result = satellite.execute(
+            f'mkdir -p {destination_dir}; rm -f {manual_archive} {destination_archive}; '
+            f'printf "SAT-51935 disconnected VEX archive\\n" > {manual_archive}'
+        )
+        assert result.status == 0, f'Failed to prepare manual VEX archive: {result.stderr}'
+
+        result = satellite.execute(
+            f'/usr/local/bin/iop-vex-downloader.sh '
+            f'https://security.access.redhat.com/data/csaf/v2/vex/ {destination_dir}/'
+        )
+        assert result.status == 0, f'VEX downloader failed: {result.stdout}\n{result.stderr}'
+        assert satellite.execute(f'test -f {destination_archive}').status == 0, (
+            'VEX downloader did not create the destination archive'
+        )
+        assert satellite.execute(f'cmp -s {manual_archive} {destination_archive}').status == 0, (
+            'Destination VEX archive does not match the manual archive'
+        )
+    finally:
+        satellite.execute(f'rm -f {manual_archive} {destination_archive}')
+        for archive, backup_name in (
+            (manual_archive, 'manual-vex-latest.tar.zst'),
+            (destination_archive, 'destination-vex-latest.tar.zst'),
+        ):
+            satellite.execute(
+                f'if test -e {backup_dir}/{backup_name}; then '
+                f'mv {backup_dir}/{backup_name} {archive}; fi'
+            )
+        satellite.execute(f'rmdir {backup_dir}')
+
+
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-2')
 def test_positive_install_iop_custom_certs(
