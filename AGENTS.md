@@ -704,6 +704,10 @@ When asked to write a PR comment for changes made, use this markdown pattern:
 - If deleting tests, explain what tests were removed
 ```
 - Always output PR comments as plain markdown (not in code blocks) so they can be directly copied to GitHub
+- Write each PRT trigger as one complete, single-line YAML flow mapping, including nested options.
+  Quote the `pytest` value and preserve any shell quotes within it. Validate the YAML and the
+  resulting pytest arguments before posting. See the examples in
+  [PRT_DOCS.md](docs/agents_docs/PRT_DOCS.md).
 
 ---
 
