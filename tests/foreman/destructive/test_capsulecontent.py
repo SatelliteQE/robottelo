@@ -23,10 +23,12 @@ pytestmark = [pytest.mark.destructive]
 
 
 @pytest.mark.skip_if_not_set('capsule')
+@pytest.mark.parametrize('setting_update', ['default_redhat_download_policy'], indirect=True)
 def test_positive_sync_rpm_without_deadlock(
     target_sat,
     large_capsule_configured,
     function_sca_manifest_org,
+    setting_update,
 ):
     """Synchronize one bigger repo, published in multiple CVs, to a blank Capsule.
     Assert that the sync task(s) succeed and no deadlock happens.
