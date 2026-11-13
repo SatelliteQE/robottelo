@@ -24,7 +24,18 @@ The PRT process is initiated by the PR author writing a PRT comment in the PR co
 Write the entire trigger as a **single-line YAML flow mapping**, including any nested `env`,
 `theforeman`, or `Katello` mappings. Put the whole mapping in one comment. This avoids Jenkins
 comment parsing problems that can occur with multiline input; putting only a nested mapping on one
-line does not make the whole comment single-line.
+line does not make the whole comment single-line. **Do not include a trailing newline** (LF or CRLF)
+after the closing `}`: it can also cause Jenkins parsing problems.
+
+When posting from a file, use `printf '%s'` rather than `echo` or a heredoc, which add a newline:
+
+```shell
+printf '%s' "{trigger: test-robottelo, pytest: 'tests/foreman/api/test_product.py::test_positive_sync'}" > /tmp/prt-comment.txt
+gh pr comment <pr-number> --body-file /tmp/prt-comment.txt
+```
+
+Check that the file's final byte is `}` before posting, and that the posted comment has no trailing
+newline. Copying examples from a code block can also include a newline.
 
 Quote the `pytest` value as a YAML string. Keep shell quotes inside that string when needed for
 expressions or parametrized node IDs. For example, YAML double quotes can surround a value containing
