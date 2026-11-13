@@ -26,6 +26,7 @@ tests/foreman/api/test_capsulecontent.py @SatelliteQE/team-artemis
 tests/foreman/api/test_contentcredentials.py @SatelliteQE/team-artemis
 tests/foreman/api/test_contentview.py @SatelliteQE/team-artemis
 tests/foreman/api/test_contentviewfilter.py @SatelliteQE/team-artemis
+tests/foreman/api/test_contentview_filter_rules_rbac.py @SatelliteQE/team-artemis
 tests/foreman/api/test_contentviewversion.py @SatelliteQE/team-artemis
 tests/foreman/api/test_docker.py @SatelliteQE/team-artemis
 tests/foreman/api/test_errata.py @SatelliteQE/team-artemis
