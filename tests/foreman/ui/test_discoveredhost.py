@@ -113,12 +113,10 @@ def test_positive_provision_pxe_host(
                 module_org.name,
                 module_location.name,
             )
-            # Wait for provisioning to complete and report status back to Satellite
-            pending_status = 'N/A' if is_open('SAT-22452') else 'Pending installation'
             wait_for(
                 lambda: (
                     session.host_new.get_host_statuses(host_name)['Build']['Status']
-                    != pending_status
+                    not in ('N/A', 'Pending installation')
                 ),
                 timeout=1800,
                 delay=30,
@@ -239,11 +237,10 @@ def test_positive_custom_provision_pxe_host(
             module_location.name,
             quick=False,
         )
-        # Wait for provisioning to complete and report status back to Satellite
-        pending_status = 'N/A' if is_open('SAT-22452') else 'Pending installation'
         wait_for(
             lambda: (
-                session.host_new.get_host_statuses(host_name)['Build']['Status'] != pending_status
+                session.host_new.get_host_statuses(host_name)['Build']['Status']
+                not in ('N/A', 'Pending installation')
             ),
             timeout=1800,
             delay=30,
