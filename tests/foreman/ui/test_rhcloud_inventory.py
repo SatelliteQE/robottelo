@@ -21,9 +21,10 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
-from robottelo.enums import NetworkType
+from robottelo.enums import InstallMethod, NetworkType
 from robottelo.utils.io import (
     INSIGHTS_REPORTS_DOWNLOAD_DIR,
+    generated_reports_dir,
     get_local_file_data,
     get_remote_report_checksum,
     get_report_data,
@@ -182,10 +183,14 @@ def test_rhcloud_inventory_e2e(
             # When enabled, download via UI
             report_path = session.cloudinventory.download_report_only(org.name)
         else:
-            # When disabled, get from filesystem
-            remote_report_path = (
-                f'/var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+            # When disabled, get from the Satellite filesystem. Foremanctl stores
+            # application data in a Podman volume on the host.
+            reports_dir = (
+                generated_reports_dir
+                if module_target_sat.install_method == InstallMethod.FOREMANCTL
+                else '/var/lib/foreman/red_hat_inventory/generated_reports'
             )
+            remote_report_path = f'{reports_dir}/report_for_{org.id}.tar.xz'
 
             # Verify file exists on Satellite
             result = module_target_sat.execute(f'test -f {remote_report_path}')
