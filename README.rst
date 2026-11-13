@@ -28,6 +28,22 @@ driven`_. There are three types of tests:
 * CLI tests, which rely on `ssh2-python`_.
 * API tests, which rely on `Requests`_ through `nailgun`_.
 
+Local development environment
+-----------------------------
+
+Create the project virtual environment ``.venv`` and install the required
+and optional dependencies with::
+
+    ./setup-environment
+    source .venv/bin/activate
+
+The script skips the virtual environment creation if you run it from inside
+an already-activated virtual environment.
+
+This sets up only the project-local Python environment. Jenkins configuration,
+Vault credentials, Manifester settings, Broker credentials, and the Satellite
+target must still be configured for the local environment.
+
 The `full documentation
 <http://robottelo.readthedocs.org/en/latest/index.html>`_ is available on
 ReadTheDocs. It can also be generated locally::
