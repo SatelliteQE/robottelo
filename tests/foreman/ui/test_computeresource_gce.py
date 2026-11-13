@@ -178,57 +178,57 @@ def test_positive_gce_provision_end_to_end(
         session.organization.select(org_name=sat_gce_org.name)
         session.location.select(loc_name=sat_gce_loc.name)
         # Provision GCE Host
-        with sat_gce.skip_yum_update_during_provisioning(template='Kickstart default finish'):
-            session.host.create(
-                {
-                    'host.name': name,
-                    'host.hostgroup': gce_hostgroup_resource_image.name,
-                    'provider_content.virtual_machine.machine_type': 'g1-small',
-                    'provider_content.virtual_machine.external_ip': True,
-                    'provider_content.virtual_machine.network': 'default',
-                    'provider_content.virtual_machine.storage': storage,
-                    'operating_system.operating_system': sat_gce_default_os.title,
-                    'operating_system.image': 'autogce_img',
-                    'operating_system.root_password': root_pwd,
-                }
-            )
-            wait_for(
-                lambda: (
-                    sat_gce.api.Host()
-                    .search(query={'search': f'name={hostname}'})[0]
-                    .build_status_label
-                    != 'Pending installation'
-                ),
-                timeout=600,
-                delay=15,
-                silent_failure=True,
-                handle_exception=True,
-            )
-            # 1. Host Creation Assertions
-            # 1.1 UI based Assertions
-            host_info = session.host_new.get_host_statuses(hostname)
-            assert session.host_new.search(hostname)[0]['Name'] == hostname
-            assert host_info['Build']['Status'] == 'Installed'
-            # 1.2 GCE Backend Assertions
-            gceapi_vm = googleclient.get_vm(gceapi_vmname)
-            host_page = session.host_new.get_details(hostname, widget_names='overview')
-            assert gceapi_vm.is_running
-            assert gceapi_vm
-            assert gceapi_vm.name == gceapi_vmname
-            assert gceapi_vm.zone == settings.gce.zone
-            assert (
-                gceapi_vm.ip
-                == host_page['overview']['details']['details'][
-                    f'{settings.server.NETWORK_TYPE}_address'
-                ]
-            )
-            assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
-            assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
-            # 2. Host Deletion Assertions
-            session.host_new.delete(hostname)
-            assert not sat_gce.api.Host().search(query={'search': f'name="{hostname}"'})
-            # 2.2 GCE Backend Assertions
-            assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
+        session.host.create(
+            {
+                'host.name': name,
+                'host.hostgroup': gce_hostgroup_resource_image.name,
+                'provider_content.virtual_machine.machine_type': 'g1-small',
+                'provider_content.virtual_machine.external_ip': True,
+                'provider_content.virtual_machine.network': 'default',
+                'provider_content.virtual_machine.storage': storage,
+                'operating_system.operating_system': sat_gce_default_os.title,
+                'operating_system.image': 'autogce_img',
+                'operating_system.root_password': root_pwd,
+                'parameters.host_params': [{'name': 'package_upgrade', 'value': 'false'}],
+            }
+        )
+        wait_for(
+            lambda: (
+                sat_gce.api.Host()
+                .search(query={'search': f'name={hostname}'})[0]
+                .build_status_label
+                != 'Pending installation'
+            ),
+            timeout=600,
+            delay=15,
+            silent_failure=True,
+            handle_exception=True,
+        )
+        # 1. Host Creation Assertions
+        # 1.1 UI based Assertions
+        host_info = session.host_new.get_host_statuses(hostname)
+        assert session.host_new.search(hostname)[0]['Name'] == hostname
+        assert host_info['Build']['Status'] == 'Installed'
+        # 1.2 GCE Backend Assertions
+        gceapi_vm = googleclient.get_vm(gceapi_vmname)
+        host_page = session.host_new.get_details(hostname, widget_names='overview')
+        assert gceapi_vm.is_running
+        assert gceapi_vm
+        assert gceapi_vm.name == gceapi_vmname
+        assert gceapi_vm.zone == settings.gce.zone
+        assert (
+            gceapi_vm.ip
+            == host_page['overview']['details']['details'][
+                f'{settings.server.NETWORK_TYPE}_address'
+            ]
+        )
+        assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
+        assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
+        # 2. Host Deletion Assertions
+        session.host_new.delete(hostname)
+        assert not sat_gce.api.Host().search(query={'search': f'name="{hostname}"'})
+        # 2.2 GCE Backend Assertions
+        assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
 
 
 @pytest.mark.e2e
@@ -269,43 +269,46 @@ def test_positive_gce_cloudinit_provision_end_to_end(
         session.organization.select(org_name=sat_gce_org.name)
         session.location.select(loc_name=sat_gce_loc.name)
         # Provision GCE Host
-
-        with sat_gce.skip_yum_update_during_provisioning(template='Kickstart default user data'):
-            session.host.create(
-                {
-                    'host.name': name,
-                    'host.hostgroup': gce_hostgroup_resource_image.name,
-                    'provider_content.virtual_machine.machine_type': 'g1-small',
-                    'provider_content.virtual_machine.external_ip': True,
-                    'provider_content.virtual_machine.network': 'default',
-                    'provider_content.virtual_machine.storage': storage,
-                    'operating_system.operating_system': sat_gce_default_os.title,
-                    'operating_system.image': 'autogce_img_cinit',
-                    'operating_system.root_password': root_pwd,
-                }
-            )
-            # 1. Host Creation Assertions
-            # 1.1 UI based Assertions
-            host_info = session.host_new.get_host_statuses(hostname)
-            assert session.host.search(hostname)[0]['Name'] == hostname
-            assert host_info['Build']['Status'] == 'Pending installation'
-            # 1.2 GCE Backend Assertions
-            gceapi_vm = googleclient.get_vm(gceapi_vmname)
-            host_page = session.host_new.get_details(hostname, widget_names='overview')
-            assert gceapi_vm
-            assert gceapi_vm.is_running
-            assert gceapi_vm.name == gceapi_vmname
-            assert gceapi_vm.zone == settings.gce.zone
-            assert (
-                gceapi_vm.ip
-                == host_page['overview']['details']['details'][
-                    f'{settings.server.NETWORK_TYPE}_address'
-                ]
-            )
-            assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
-            assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
-            # 2. Host Deletion Assertions
-            session.host_new.delete(hostname)
-            assert not sat_gce.api.Host().search(query={'search': f'name="{hostname}"'})
-            # 2.2 GCE Backend Assertions
-            assert gceapi_vm.is_stopping or gceapi_vm.is_stopped
+        session.host.create(
+            {
+                'host.name': name,
+                'host.hostgroup': gce_hostgroup_resource_image.name,
+                'provider_content.virtual_machine.machine_type': 'g1-small',
+                'provider_content.virtual_machine.external_ip': True,
+                'provider_content.virtual_machine.network': 'default',
+                'provider_content.virtual_machine.storage': storage,
+                'operating_system.operating_system': sat_gce_default_os.title,
+                'operating_system.image': 'autogce_img_cinit',
+                'operating_system.root_password': root_pwd,
+                'parameters.params': {'name': 'package_upgrade', 'value': True},
+            }
+        )
+        # 1. Host Creation Assertions
+        # 1.1 UI based Assertions
+        host_info = session.host_new.get_host_statuses(hostname)
+        assert session.host.search(hostname)[0]['Name'] == hostname
+        assert host_info['Build']['Status'] == 'Pending installation'
+        # 1.2 GCE Backend Assertions
+        gceapi_vm = googleclient.get_vm(gceapi_vmname)
+        host_page = session.host_new.get_details(hostname, widget_names='overview')
+        assert gceapi_vm
+        assert gceapi_vm.is_running
+        assert gceapi_vm.name == gceapi_vmname
+        assert gceapi_vm.zone == settings.gce.zone
+        assert (
+            gceapi_vm.ip
+            == host_page['overview']['details']['details'][
+                f'{settings.server.NETWORK_TYPE}_address'
+            ]
+        )
+        assert 'g1-small' in gceapi_vm.raw['machineType'].split('/')[-1]
+        assert 'default' in gceapi_vm.raw['networkInterfaces'][0]['network'].split('/')[-1]
+        # 2. Host Deletion Assertions
+        session.host_new.delete(hostname)
+        assert not sat_gce.api.Host().search(query={'search': f'name="{hostname}"'})
+        # 2.2 GCE Backend Assertions
+        wait_for(
+            lambda: gceapi_vm.is_stopping or gceapi_vm.is_stopped,
+            timeout=60,
+            delay=1,
+        )
