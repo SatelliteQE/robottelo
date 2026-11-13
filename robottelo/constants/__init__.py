@@ -2591,6 +2591,7 @@ FOREMANCTL_POSTGRESQL_TUNING_PROFILES = {
     },
 }
 
+DEFAULT_RED_HAT_CDN_URL = 'https://cdn.redhat.com'
 REGIONAL_RED_HAT_CDN_URLS = ['https://cdn-us.redhat.com', 'https://cdn-eu.redhat.com']
 
 

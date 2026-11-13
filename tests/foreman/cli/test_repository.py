@@ -25,6 +25,7 @@ from robottelo.constants import (
     CUSTOM_FILE_REPO_FILES_COUNT,
     CUSTOM_LOCAL_FOLDER,
     DEFAULT_ARCHITECTURE,
+    DEFAULT_RED_HAT_CDN_URL,
     DOWNLOAD_POLICIES,
     FAKE_3_YUM_REPO_RPMS,
     MIRRORING_POLICIES,
@@ -2785,3 +2786,118 @@ def test_positive_sync_rh_repo_custom_cdn_no_credential(
     repo = target_sat.cli.Repository.info({'id': repo['id']})
     assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
     assert int(repo['content-counts']['packages']) > 0, 'No packages synced'
+
+
+@pytest.mark.e2e
+def test_positive_switch_redhat_cdn_to_regional_url(
+    target_sat,
+    function_sca_manifest_org,
+):
+    """Switch the Red Hat CDN configuration to a regional CDN URL and sync an
+    already enabled Red Hat repository from it.
+
+    :id: cae238e7-19e9-4431-9d15-3553cbe426ff
+
+    :steps:
+        1. Upload a manifest to the organization and enable a Red Hat repository
+           while the organization still uses the default Red Hat CDN.
+        2. Set the CDN configuration to redhat_cdn with a regional Red Hat CDN URL.
+        3. Re-read the repository that was enabled before the switch.
+        4. Sync the repository.
+
+    :expectedresults:
+        1. The regional URL is accepted for the redhat_cdn type and is reported
+           by the organization's CDN configuration.
+        2. The URL of the already enabled repository is rewritten to the regional URL.
+        3. The repository syncs from the regional URL without SSL errors.
+
+    :Verifies: SAT-45154
+    """
+    org = function_sca_manifest_org
+    regional_url = REGIONAL_RED_HAT_CDN_URLS[0]
+
+    repo_dict = REPOS['rhae2']
+    target_sat.cli.RepositorySet.enable(
+        {
+            'organization-id': org.id,
+            'name': repo_dict['reposet'],
+            'product': repo_dict['product'],
+            'basearch': DEFAULT_ARCHITECTURE,
+        }
+    )
+
+    repos = target_sat.cli.Repository.list({'organization-id': org.id})
+    assert len(repos) == 1, 'Expected only one repo enabled'
+    repo_id = repos[0]['id']
+
+    repo = target_sat.cli.Repository.info({'id': repo_id})
+    assert repo['url'].startswith(DEFAULT_RED_HAT_CDN_URL), (
+        'Repo was not enabled against the default Red Hat CDN'
+    )
+
+    res = target_sat.cli.Org.configure_cdn(
+        {
+            'id': org.id,
+            'type': 'redhat_cdn',
+            'url': regional_url,
+        }
+    )
+    assert 'Updated CDN configuration' in res
+
+    org_info = target_sat.cli.Org.info({'id': org.id})
+    assert org_info['cdn-configuration']['url'] == regional_url, (
+        'CDN configuration does not report the regional URL'
+    )
+
+    repo = target_sat.cli.Repository.info({'id': repo_id})
+    assert repo['url'].startswith(regional_url), (
+        'URL of the already enabled repo was not rewritten to the regional CDN'
+    )
+
+    target_sat.cli.Repository.synchronize({'id': repo_id})
+
+    repo = target_sat.cli.Repository.info({'id': repo_id})
+    assert 'Success' in repo['sync']['status'], 'Sync did not succeed'
+    assert int(repo['content-counts']['packages']) > 0, 'No packages synced'
+
+
+def test_negative_configure_redhat_cdn_with_unsupported_url(target_sat, function_org):
+    """Attempt to point the Red Hat CDN configuration at a URL that is not a
+    known Red Hat CDN endpoint.
+
+    :id: a8e19d47-82ed-4b8d-a5d6-643eb9ed88d2
+
+    :steps:
+        1. Set the CDN configuration to redhat_cdn with a regional Red Hat CDN URL.
+        2. Attempt to update the CDN configuration to an unsupported URL.
+
+    :expectedresults:
+        1. The update is rejected.
+        2. The previously configured regional URL is left untouched.
+
+    :Verifies: SAT-45154
+    """
+    regional_url = REGIONAL_RED_HAT_CDN_URLS[0]
+    res = target_sat.cli.Org.configure_cdn(
+        {
+            'id': function_org.id,
+            'type': 'redhat_cdn',
+            'url': regional_url,
+        }
+    )
+    assert 'Updated CDN configuration' in res
+
+    with pytest.raises(CLIReturnCodeError) as error:
+        target_sat.cli.Org.configure_cdn(
+            {
+                'id': function_org.id,
+                'type': 'redhat_cdn',
+                'url': 'https://cdn.example.com',
+            }
+        )
+    assert 'Could not update CDN configuration' in error.value.stderr
+
+    org_info = target_sat.cli.Org.info({'id': function_org.id})
+    assert org_info['cdn-configuration']['url'] == regional_url, (
+        'Rejected update changed the CDN configuration'
+    )
