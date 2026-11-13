@@ -2507,9 +2507,7 @@ class Capsule(ContentHost, CapsuleMixins):
         )
         assert result.status == 0, f'Failed to write Podman mirror config: {result.stderr}'
 
-    def install_satellite_foremanctl(
-        self, enable_fapolicyd=False, enable_fips=False, parameters=None
-    ):
+    def install_satellite_foremanctl(self, enable_fapolicyd=False, parameters=None):
         """Install Satellite using satellitectl deploy method.
 
         Handles full installation path including:
@@ -2519,9 +2517,8 @@ class Capsule(ContentHost, CapsuleMixins):
         - Satellite deployment via satellitectl
 
         :param enable_fapolicyd: Enable fapolicyd
-        :param enable_fips: Enable FIPS mode
-        :param parameters: Additional parameters for satellitectl deploy
-        :return: Result of final satellitectl deploy command
+        :param parameters: Additional parameters for foremanctl deploy
+        :return: Result of final foremanctl deploy command
         """
         # Add IPv6 proxy for IPv6 communication
         self.enable_ipv6_dnf_and_rhsm_proxy()
@@ -2549,13 +2546,6 @@ class Capsule(ContentHost, CapsuleMixins):
             assert self.execute('dnf -y install fapolicyd').status == 0
             assert self.execute('systemctl enable --now fapolicyd').status == 0
             assert self.execute('systemctl is-active fapolicyd').status == 0
-        if enable_fips:
-            Broker().execute(
-                workflow='enable-fips',
-                target_vm=self.name,
-            )
-            self.connect()
-            assert self.is_fips_enabled()
 
         # Configure Satellite firewall to open communication
         self.configure_firewall(
@@ -2615,7 +2605,6 @@ class Capsule(ContentHost, CapsuleMixins):
         self,
         installer_method=None,
         enable_fapolicyd=False,
-        enable_fips=False,
         installer_args=None,
         installer_opts=None,
         foremanctl_parameters=None,
@@ -2627,7 +2616,6 @@ class Capsule(ContentHost, CapsuleMixins):
 
         :param installer_method: Override auto-detection (InstallMethod enum or string)
         :param enable_fapolicyd: Enable fapolicyd (foremanctl only)
-        :param enable_fips: Enable FIPS mode (foremanctl only)
         :param installer_args: Arguments for satellite-installer
         :param installer_opts: Options dict for satellite-installer
         :param foremanctl_parameters: Parameters list for foremanctl deploy
@@ -2660,7 +2648,6 @@ class Capsule(ContentHost, CapsuleMixins):
         if method == InstallMethod.FOREMANCTL:
             result = self.install_satellite_foremanctl(
                 enable_fapolicyd=enable_fapolicyd,
-                enable_fips=enable_fips,
                 parameters=foremanctl_parameters,
             )
         else:  # InstallMethod.INSTALLER
