@@ -614,32 +614,32 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.8',
-            'version': '9.8',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.9',
+            'version': '9.9',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.8',
-            'version': '9.8',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.9',
+            'version': '9.9',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel10_bos': {
             'id': 'rhel-10-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Kickstart 10.2',
-            'version': '10.2',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Kickstart 10.3',
+            'version': '10.3',
             'reposet': REPOSET['kickstart']['rhel10_bos'],
             'product': PRDS['rhel10'],
             'distro': 'rhel10',
         },
         'rhel10_aps': {
             'id': 'rhel-10-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Kickstart 10.2',
-            'version': '10.2',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Kickstart 10.3',
+            'version': '10.3',
             'reposet': REPOSET['kickstart']['rhel10_aps'],
             'product': PRDS['rhel10'],
             'distro': 'rhel10',
@@ -769,8 +769,8 @@ REPOS = {
 # RHEL versions for LEAPP testing
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.10'
-RHEL9_VER = '9.8'
-RHEL10_VER = '10.2'
+RHEL9_VER = '9.9'
+RHEL10_VER = '10.3'
 
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
