@@ -24,10 +24,10 @@ from robottelo.constants import DEFAULT_LOC, DEFAULT_ORG
 from robottelo.enums import NetworkType
 from robottelo.utils.io import (
     INSIGHTS_REPORTS_DOWNLOAD_DIR,
+    generated_reports_dir,
     get_local_file_data,
     get_remote_report_checksum,
     get_report_data,
-    generated_reports_dir,
 )
 
 
@@ -89,10 +89,7 @@ def common_assertion(
         )
     else:
         # When connection disabled, just verify report was generated
-        assert (
-                f'Report generated'
-                in inventory_data['report_status']
-        )
+        assert 'Report generated' in inventory_data['report_status']
 
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
@@ -184,9 +181,7 @@ def test_rhcloud_inventory_e2e(
             report_path = session.cloudinventory.download_report_only(org.name)
         else:
             # When disabled, get from filesystem
-            remote_report_path = (
-                f'{generated_reports_dir}/report_for_{org.id}.tar.xz'
-            )
+            remote_report_path = f'{generated_reports_dir}/report_for_{org.id}.tar.xz'
 
             # Verify file exists on Satellite
             result = module_target_sat.execute(f'test -f {remote_report_path}')
