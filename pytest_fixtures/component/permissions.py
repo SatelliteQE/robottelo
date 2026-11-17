@@ -1,6 +1,7 @@
 import pytest
 
 from robottelo.constants import PERMISSIONS
+from robottelo.enums import InstallMethod
 
 
 @pytest.fixture(scope="session")
@@ -19,6 +20,9 @@ def expected_permissions(session_target_sat):
         permissions[None].remove('download_bootdisk')
     if 'gem-foreman_virt_who_configure' not in rpm_packages:
         permissions.pop('ForemanVirtWhoConfigure::Config')
+    # SAT-44794: Adapt foreman_virt_who_configure for Containerized Satellite Stream
+    if session_target_sat.install_method == InstallMethod.FOREMANCTL:
+        permissions.pop('ForemanVirtWhoConfigure::Config', None)
     if 'gem-foreman_openscap' not in rpm_packages:
         permissions.pop('ForemanOpenscap::Policy')
         permissions.pop('ForemanOpenscap::ScapContent')
