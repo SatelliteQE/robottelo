@@ -27,6 +27,7 @@ from robottelo.utils.io import (
     get_local_file_data,
     get_remote_report_checksum,
     get_report_data,
+    generated_reports_dir,
 )
 
 
@@ -89,8 +90,8 @@ def common_assertion(
     else:
         # When connection disabled, just verify report was generated
         assert (
-            f'/var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
-            in inventory_data['report_saved_to']
+                f'Report generated'
+                in inventory_data['report_status']
         )
 
     assert local_file_data['size'] > 0
@@ -184,7 +185,7 @@ def test_rhcloud_inventory_e2e(
         else:
             # When disabled, get from filesystem
             remote_report_path = (
-                f'/var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
+                f'{generated_reports_dir}/report_for_{org.id}.tar.xz'
             )
 
             # Verify file exists on Satellite
