@@ -121,10 +121,14 @@ def handle_blocked_by(item, blocked_by_marker, blocked_by):
         if all(issue not in blocked_by for issue in blocked_by_marker.args[0]):
             log_and_deselect(item, '--blocked-by')
             return False
-    elif isinstance(blocked_by, bool) and blocked_by_marker:
-        if blocked_by and are_any_jira_open(blocked_by_marker.args[0]):
-            log_and_deselect(item, '--blocked-by')
-            return False
+    elif (
+        isinstance(blocked_by, bool)
+        and blocked_by_marker
+        and blocked_by
+        and are_any_jira_open(blocked_by_marker.args[0])
+    ):
+        log_and_deselect(item, '--blocked-by')
+        return False
     return True
 
 
