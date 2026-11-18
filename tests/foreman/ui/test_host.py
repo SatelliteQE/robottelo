@@ -653,8 +653,7 @@ def test_positive_export_selected_columns(request, target_sat):
         Box(ui='RHEL Lifecycle status', csv='Rhel Lifecycle Status', displayed=True),
         Box(ui='Installable updates', csv='Installable updates', displayed=False),
         Box(ui='Last seen', csv='Last Checkin', displayed=True),
-        Box(ui='Lifecycle environment', csv='Lifecycle Environment', displayed=True),
-        Box(ui='Content view', csv='Content View', displayed=True),
+        Box(ui='Content view environments', csv='Content View Environments', displayed=True),
         Box(ui='Registered at', csv='Registered', displayed=True),
         Box(ui='Recommendations', csv='Recommendations', displayed=True),
     )
