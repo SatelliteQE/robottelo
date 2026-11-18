@@ -55,6 +55,7 @@ def shared_checkout(shared_name, iop=False):
         workflow=workflow,
         deploy_sat_version=settings.upgrade.from_version,
         deploy_network_type=settings.server.network_type,
+        deploy_container=False,
         host_class=Satellite,
         upgrade_group=f"{shared_name}_shared_checkout",
     )
