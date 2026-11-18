@@ -2112,24 +2112,30 @@ def test_all_hosts_bulk_cve_reassign(
         session.location.select(module_location.name)
         try:
             headers = session.all_hosts.get_displayed_table_headers()
-            if 'Lifecycle environment' not in headers:
+            if 'Content view environments' not in headers:
                 session.all_hosts.manage_table_columns(
                     {
-                        'Lifecycle environment': True,
+                        'Content view environments': True,
                     }
                 )
             pre_table = session.all_hosts.read_table()
-            for row in pre_table:
-                assert row['Lifecycle environment'] == module_lce.name
+            assert {row['Content view environments'] for row in pre_table} == {
+                f'{module_lce.name}/{module_cv.name}'
+            }
             session.all_hosts.manage_cve(lce_name=lce2.name, cv_name=module_cv.name)
-            wait_for(lambda: session.browser.refresh(), timeout=5)
-            post_table = session.all_hosts.read_table()
-            for row in post_table:
-                assert row['Lifecycle environment'] == lce2.name
+            wait_for(
+                lambda: (
+                    {row['Content view environments'] for row in session.all_hosts.read_table()}
+                    == {f'{lce2.name}/{module_cv.name}'}
+                ),
+                timeout=60,
+                delay=2,
+                fail_func=session.browser.refresh,
+            )
         finally:
             session.all_hosts.manage_table_columns(
                 {
-                    'Lifecycle environment': False,
+                    'Content view environments': False,
                 }
             )
 
