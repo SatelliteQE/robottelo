@@ -22,7 +22,6 @@ Subcommands::
      interface                     View and manage host's network interfaces
      list                          List all hosts
      package                       Manage packages on your hosts
-     package-group                 Manage package-groups on your hosts
      policies-enc                  View policies ENC for host
      puppet-classes                List all Puppet classes
      reboot                        Reboot a host
@@ -213,18 +212,6 @@ class Host(Base):
     def package_upgrade_all(cls, options):
         """Update all packages remotely."""
         cls.command_sub = 'package upgrade-all'
-        return cls.execute(cls._construct_command(options), output_format='csv')
-
-    @classmethod
-    def package_group_install(cls, options):
-        """Install package groups remotely."""
-        cls.command_sub = 'package-group install'
-        return cls.execute(cls._construct_command(options), output_format='csv')
-
-    @classmethod
-    def package_group_remove(cls, options):
-        """Uninstall package groups remotely."""
-        cls.command_sub = 'package-group remove'
         return cls.execute(cls._construct_command(options), output_format='csv')
 
     @classmethod

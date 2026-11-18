@@ -639,7 +639,7 @@ def test_positive_subnet_CRUD_parameters(module_target_sat, module_org, module_l
     subnet = module_target_sat.cli.Subnet.info({'id': subnet['id']}, output_format='json')
     assert name in subnet['parameters'][0]['name']  # Now preserves original case
     assert value in subnet['parameters'][0]['value']
-    assert "string" in subnet['parameters'][0]['parameter_type']
+    assert "string" in subnet['parameters'][0]['type']
 
     # Update parameter
     updated_value = gen_string('alphanumeric', 10)
