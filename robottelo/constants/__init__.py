@@ -614,32 +614,32 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.8',
-            'version': '9.8',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.9',
+            'version': '9.9',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.8',
-            'version': '9.8',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.9',
+            'version': '9.9',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel10_bos': {
             'id': 'rhel-10-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Kickstart 10.2',
-            'version': '10.2',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Kickstart 10.3',
+            'version': '10.3',
             'reposet': REPOSET['kickstart']['rhel10_bos'],
             'product': PRDS['rhel10'],
             'distro': 'rhel10',
         },
         'rhel10_aps': {
             'id': 'rhel-10-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Kickstart 10.2',
-            'version': '10.2',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Kickstart 10.3',
+            'version': '10.3',
             'reposet': REPOSET['kickstart']['rhel10_aps'],
             'product': PRDS['rhel10'],
             'distro': 'rhel10',
@@ -769,8 +769,8 @@ REPOS = {
 # RHEL versions for LEAPP testing
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.10'
-RHEL9_VER = '9.8'
-RHEL10_VER = '10.2'
+RHEL9_VER = '9.9'
+RHEL10_VER = '10.3'
 
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
@@ -930,7 +930,6 @@ REAL_RHEL7_0_2_PACKAGE_FILENAME = 'python2-psutil-5.7.2-2.el7sat.x86_64.rpm'
 REAL_RHEL8_1_PACKAGE_NAME = 'puppet-agent'  # for RHSA-2022:4867
 REAL_RHEL8_1_PACKAGE_FILENAME = 'puppet-agent-6.19.1-1.el8sat.x86_64'
 REAL_RHEL8_2_PACKAGE_FILENAME = 'puppet-agent-6.26.0-1.el8sat.x86_64'
-FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_3_YUM_OUTDATED_PACKAGES = [
     'acme-package-1.0.1-1.noarch',
     'ant-7.7.5-1.noarch',
@@ -1057,12 +1056,6 @@ FAKE_11_YUM_ENHANCEMENT_ERRATUM = [
 ]
 FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT = len(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
-FAKE_0_CUSTOM_PACKAGE_GROUP = [
-    'cockateel-3.1-1.noarch',
-    'duck-0.6-1.noarch',
-    'penguin-0.9.1-1.noarch',
-    'stork-0.12-2.noarch',
-]
 FAKE_1_YUM_REPO_RPMS = ['bear-4.1-1.noarch.rpm', 'camel-0.1-1.noarch.rpm', 'cat-1.0-1.noarch.rpm']
 FAKE_3_YUM_REPO_RPMS = [
     'ant-7.7.7-1.noarch.rpm',
@@ -2505,9 +2498,6 @@ WEBHOOK_EVENTS = [
     "actions.remote_execution.run_host_job_ansible_run_playbook_succeeded",
     "actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded",
     "actions.remote_execution.run_host_job_katello_errata_install_succeeded",
-    "actions.remote_execution.run_host_job_katello_group_install_succeeded",
-    "actions.remote_execution.run_host_job_katello_group_remove_succeeded",
-    "actions.remote_execution.run_host_job_katello_group_update_succeeded",
     "actions.remote_execution.run_host_job_katello_module_stream_action_succeeded",
     "actions.remote_execution.run_host_job_katello_package_install_succeeded",
     "actions.remote_execution.run_host_job_katello_package_remove_succeeded",

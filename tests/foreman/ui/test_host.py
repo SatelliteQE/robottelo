@@ -3574,6 +3574,57 @@ def test_positive_change_hosts_org_loc(
             )
 
 
+def test_positive_bulk_change_location_nested_locations(target_sat, function_org, request):
+    """Verify nested locations are distinguishable in the bulk location selector.
+
+    :steps:
+        1. Create two location hierarchies with the same child and grandchild names.
+        2. Create a fake host in one of the root locations.
+        3. Select the host on All Hosts and open Change associations -> Location.
+        4. Read the available locations and cancel the modal.
+
+    :expectedresults:
+        1. Root locations and the full paths of their children and grandchildren
+           are listed, distinguishing locations with the same name.
+
+    :id: 5ef2747b-10c7-4edf-9feb-485de24c7a50
+
+    :Verifies: SAT-49565
+
+    :customerscenario: true
+    """
+    city_name = gen_string('alpha')
+    network_name = gen_string('alpha')
+    roots = []
+    expected_locations = set()
+    for _ in range(2):
+        root = target_sat.api.Location(organization=[function_org]).create()
+        request.addfinalizer(root.delete)
+        roots.append(root)
+        city = target_sat.api.Location(
+            name=city_name, parent=root, organization=[function_org]
+        ).create()
+        request.addfinalizer(city.delete)
+        network = target_sat.api.Location(
+            name=network_name, parent=city, organization=[function_org]
+        ).create()
+        request.addfinalizer(network.delete)
+        expected_locations.update(
+            [root.name, f'{root.name}/{city_name}', f'{root.name}/{city_name}/{network_name}']
+        )
+
+    host = target_sat.cli_factory.make_fake_host(
+        {'organization': function_org.name, 'location': roots[0].name}
+    )
+    request.addfinalizer(target_sat.api.Host(id=host.id).delete)
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=roots[0].name)
+        locations = session.all_hosts.read_change_location_options(host.name)
+        assert expected_locations.issubset(locations)
+
+
 def test_positive_bulk_change_location_select_all_respects_context(
     module_target_sat,
     request,
