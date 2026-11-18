@@ -14,7 +14,6 @@
 
 from calendar import monthrange
 from datetime import UTC, datetime, timedelta
-import random
 from time import sleep
 
 from dateutil.relativedelta import FR, relativedelta
@@ -40,9 +39,6 @@ def valid_feature_names():
         {'label': 'katello_package_install', 'jt_name': 'Install Package - Katello Script Default'},
         {'label': 'katello_package_update', 'jt_name': 'Update Package - Katello Script Default'},
         {'label': 'katello_package_remove', 'jt_name': 'Remove Package - Katello Script Default'},
-        {'label': 'katello_group_install', 'jt_name': 'Install Group - Katello Script Default'},
-        {'label': 'katello_group_update', 'jt_name': 'Update Group - Katello Script Default'},
-        {'label': 'katello_group_remove', 'jt_name': 'Remove Group - Katello Script Default'},
         {'label': 'katello_errata_install', 'jt_name': 'Install Errata - Katello Script Default'},
     ]
 
@@ -857,56 +853,6 @@ class TestRemoteExecution:
         assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
         result = client.run(f'rpm -q {" ".join(packages)}')
         assert result.status == len(packages)
-
-    @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-    @pytest.mark.skipif(
-        (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
-    )
-    def test_positive_install_remove_packagegroup_with_a_job(
-        self, rhel_contenthost, module_org, module_ak_with_cv, target_sat
-    ):
-        """Run job to install and remove several package groups on host
-
-        :id: 5be2a5c0-199a-4655-9784-e95c7ef151f5
-
-        :expectedresults: Verify the package groups were successfully installed
-            and removed on a host
-
-        :parametrized: yes
-        """
-        client = rhel_contenthost
-        groups = ['birds', 'mammals']
-        client.register(
-            module_org,
-            None,
-            module_ak_with_cv.name,
-            target_sat,
-            repo_data=f'repo={settings.repos.yum_1.url}',
-        )
-        # Install the package groups
-        invocation_command = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Install Group - Katello Script Default',
-                'inputs': f'package={" ".join(groups)}',
-                'search-query': f'name ~ {client.hostname}',
-            }
-        )
-        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
-        result = client.run('dnf grouplist --installed')
-        assert all(item in result.stdout for item in groups)
-        # Remove one of the installed package groups
-        remove = random.choice(groups)
-        invocation_command = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Remove Group - Katello Script Default',
-                'inputs': f'package={remove}',
-                'search-query': f'name ~ {client.hostname}',
-            }
-        )
-        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
-        result = client.run('dnf grouplist --installed')
-        assert remove not in result.stdout
 
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])

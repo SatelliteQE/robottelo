@@ -19,7 +19,6 @@ Subcommands::
  info                          Show a host collection
  list                          List host collections
  package                       Manipulate packages for a host collection
- package-group                 Manipulate package-groups for a host collection
  remove-host                   Remove hosts from the host collection
  update                        Update a host collection
 """
