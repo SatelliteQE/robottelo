@@ -1383,9 +1383,9 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(function_host, 
     host_parameters = yaml_content.get('Parameters')
     # check that number of params increased by one
     assert len(host_parameters) == 1 + len(host_initial_params)
-    filtered_params = [param for param in host_parameters if param['Name'] == param_name]
+    filtered_params = [param for param in host_parameters if param['name'] == param_name]
     assert len(filtered_params) == 1
-    assert filtered_params[0]['Value'] == param_value
+    assert filtered_params[0]['value'] == param_value
 
 
 # -------------------------- HOST PROVISION SCENARIOS -------------------------

@@ -170,9 +170,12 @@ def test_positive_create_update_delete_domain(module_target_sat):
     parameter_options = valid_set_params()[0]
     parameter_options['domain-id'] = domain['id']
     module_target_sat.cli.Domain.set_parameter(parameter_options)
-    domain = module_target_sat.cli.Domain.info({'id': domain['id']}, output_format='json')
-    parameter = {parameter_options['name']: parameter_options['value']}
-    assert parameter == {param['name']: param['value'] for param in domain['parameters']}
+    domain = module_target_sat.cli.Domain.info({'id': domain['id']})
+    parameter = {
+        # Satellite applies lower to parameter's name
+        parameter_options['name'].lower(): parameter_options['value']
+    }
+    assert parameter == domain['parameters']
 
     # update domain
     options = valid_update_params()[0]
