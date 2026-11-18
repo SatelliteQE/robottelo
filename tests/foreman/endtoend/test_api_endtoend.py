@@ -937,6 +937,56 @@ API_PATHS = {
 }
 
 
+PUPPET_API_PATHS = {
+    'config_groups': (
+        '/foreman_puppet/api/config_groups',
+        '/foreman_puppet/api/config_groups/:id',
+        '/foreman_puppet/api/config_groups',
+        '/foreman_puppet/api/config_groups/:id',
+        '/foreman_puppet/api/config_groups/:id',
+    ),
+    'environments': (
+        '/foreman_puppet/api/environments',
+        '/foreman_puppet/api/environments/:id',
+        '/foreman_puppet/api/environments',
+        '/foreman_puppet/api/environments/:id',
+        '/foreman_puppet/api/environments/:id',
+    ),
+    'host_classes': (
+        '/foreman_puppet/api/hosts/:host_id/puppetclass_ids',
+        '/foreman_puppet/api/hosts/:host_id/puppetclass_ids',
+        '/foreman_puppet/api/hosts/:host_id/puppetclass_ids/:id',
+    ),
+    'hostgroup_classes': (
+        '/foreman_puppet/api/hostgroups/:hostgroup_id/puppetclass_ids',
+        '/foreman_puppet/api/hostgroups/:hostgroup_id/puppetclass_ids',
+        '/foreman_puppet/api/hostgroups/:hostgroup_id/puppetclass_ids/:id',
+    ),
+    'override_values': (
+        '/foreman_puppet/api/smart_class_parameters/:smart_class_parameter_id/override_values',
+        '/foreman_puppet/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
+        '/foreman_puppet/api/smart_class_parameters/:smart_class_parameter_id/override_values',
+        '/foreman_puppet/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
+        '/foreman_puppet/api/smart_class_parameters/:smart_class_parameter_id/override_values/:id',
+    ),
+    'puppet_base': (),
+    'puppet_lookups_common': (),
+    'puppetclasses': (
+        '/foreman_puppet/api/puppetclasses',
+        '/foreman_puppet/api/puppetclasses/:id',
+        '/foreman_puppet/api/puppetclasses',
+        '/foreman_puppet/api/puppetclasses/:id',
+        '/foreman_puppet/api/puppetclasses/:id',
+    ),
+    'smart_class_parameters': (
+        '/foreman_puppet/api/smart_class_parameters',
+        '/foreman_puppet/api/smart_class_parameters/:id',
+        '/foreman_puppet/api/smart_class_parameters/:id',
+    ),
+    'smart_proxies': ('/api/smart_proxies/:id/import_puppetclasses',),
+}
+
+
 @pytest.fixture(scope='module', autouse=True)
 def filtered_api_paths():
     """Filter the API_PATHS dict based on BZs that impact various endpoints"""
@@ -972,7 +1022,7 @@ class TestAvailableURLs:
         assert response.status_code == http.client.OK
         assert 'application/json' in response.headers['content-type']
 
-    def test_positive_get_links(self, api_url, filtered_api_paths):
+    def test_positive_get_links(self, api_url, filtered_api_paths, target_sat):
         """GET ``api/v2`` and check the links returned.
 
         :id: 7b2dd77a-a821-485b-94db-b583f93c9a89
@@ -999,10 +1049,16 @@ class TestAvailableURLs:
         #          '/katello/api/organizations/:organization_id/content_views',
         #          '/katello/api/organizations/:organization_id/content_views',
         #     ], …}
+        expected_paths = filtered_api_paths.copy()
+        packages = target_sat.execute('rpm -qa')
+        assert packages.status == 0, f'Failed to list installed packages: {packages.stderr}'
+        if 'rubygem-foreman_puppet-' in packages.stdout:
+            for resource, paths in PUPPET_API_PATHS.items():
+                expected_paths[resource] = expected_paths.get(resource, ()) + paths
         sat_api_paths = response.json()['links']
         transformed_paths = {ep: tuple(paths.values()) for ep, paths in sat_api_paths.items()}
         api_diff = DeepDiff(
-            filtered_api_paths,
+            expected_paths,
             transformed_paths,
             ignore_order=True,
             report_repetition=True,
