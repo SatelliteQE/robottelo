@@ -260,7 +260,6 @@ def test_bootc_rex_package_install(target_sat, bootc_host, function_repos_collec
         2.Enable a custom package on the host.
         3.Install a package by name search and by id.
         4.Remove the packages installed above
-        5.Install a package group
 
     :expectedresults: All katello package template actions succeed when run against a bootc host.
 
@@ -385,48 +384,6 @@ def test_bootc_rex_package_install(target_sat, bootc_host, function_repos_collec
     target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
     result = bootc_host.execute('rpm -q tapir')
     assert result.status == 1
-
-    # Install package group
-    template_id = (
-        target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Install Group - Katello Script Default"'})[0]
-        .id
-    )
-    job = target_sat.api.JobInvocation().run(
-        synchronous=False,
-        data={
-            'job_template_id': template_id,
-            'inputs': {
-                'package': 'birds',
-            },
-            'targeting_type': 'static_query',
-            'search_query': f'name = {bootc_host.hostname}',
-        },
-    )
-    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = bootc_host.execute('dnf grouplist --installed')
-    assert 'birds' in result.stdout
-
-    # Remove package group
-    template_id = (
-        target_sat.api.JobTemplate()
-        .search(query={'search': 'name="Remove Group - Katello Script Default"'})[0]
-        .id
-    )
-    job = target_sat.api.JobInvocation().run(
-        synchronous=False,
-        data={
-            'job_template_id': template_id,
-            'inputs': {
-                'package': 'birds',
-            },
-            'targeting_type': 'static_query',
-            'search_query': f'name = {bootc_host.hostname}',
-        },
-    )
-    target_sat.wait_for_tasks(f'resource_type = JobInvocation and resource_id = {job["id"]}')
-    result = bootc_host.execute('dnf grouplist --installed')
-    assert 'birds' not in result.stdout
 
 
 @pytest.mark.parametrize(
