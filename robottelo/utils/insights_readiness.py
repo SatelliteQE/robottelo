@@ -52,6 +52,14 @@ def response_summary(response):
     for key in ('total', 'count', 'unregistered_at'):
         if key in body and (body[key] is None or isinstance(body[key], (int, float))):
             summary[key] = body[key]
+    unregistered_at = body.get('unregistered_at')
+    # Preserve timestamp-shaped JSON strings, not arbitrary upstream error text.
+    if hasattr(unregistered_at, 'startswith') and re.match(
+        r'^[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt ][0-9]{2}:[0-9]{2}:[0-9]{2}'
+        r'(?:\.[0-9]{1,9})?(?:[Zz]|[+-][0-9]{2}:?[0-9]{2})?\Z',
+        unregistered_at,
+    ):
+        summary['unregistered_at'] = unregistered_at
     return summary
 
 
@@ -107,7 +115,6 @@ class RegistrationDiagnostics(object):  # noqa: UP004 - runs on Python 2 content
         now = self.clock()
         if now < self.next_snapshot and not recovered:
             return
-        self.next_snapshot = now + DIAGNOSTIC_INTERVAL
         if self.deadline - now < DIAGNOSTIC_TIMEOUT + 1:
             print('Insights diagnostic snapshot skipped: readiness deadline is near')
             return
@@ -124,6 +131,7 @@ class RegistrationDiagnostics(object):  # noqa: UP004 - runs on Python 2 content
         previous_handler = signal.signal(signal.SIGALRM, interrupt)
         try:
             signal.setitimer(signal.ITIMER_REAL, DIAGNOSTIC_TIMEOUT)
+            self.next_snapshot = now + DIAGNOSTIC_INTERVAL
             self.snapshot(registration_response, error, recovered)
         except DiagnosticTimeout:
             print('Insights diagnostic snapshot exceeded its wall-clock budget')
@@ -160,6 +168,8 @@ class RegistrationDiagnostics(object):  # noqa: UP004 - runs on Python 2 content
         # diagnostic cookies or interrupted requests cannot affect polling.
         connection = self.connection_factory()
         try:
+            # Like Insights Core's legacy-mode lookups, append /platform to the
+            # legacy root. Keep Satellite's forwarding route and identity intact.
             base = connection.api_url
             inventory = connection.session.get(
                 base + '/platform/inventory/v1/hosts',
