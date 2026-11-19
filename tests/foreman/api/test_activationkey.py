@@ -15,13 +15,14 @@
 
 import http
 import random
+import re
 
 from fauxfactory import gen_integer, gen_string
 from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.config import get_credentials, user_nailgun_config
+from robottelo.config import get_credentials, settings, user_nailgun_config
 from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.utils.datafactory import (
     invalid_names_list,
@@ -442,6 +443,59 @@ def test_positive_search_by_org(target_sat):
     keys = target_sat.api.ActivationKey(organization=org).search()
     assert len(keys) == 1
     assert act_key.id == keys[0].id
+
+
+@pytest.mark.e2e
+@pytest.mark.rhel_ver_match(f'{settings.content_host.default_rhel_version}')
+@pytest.mark.no_containers
+def test_positive_register_host_with_ordered_content_view_environments(
+    target_sat, rhel_contenthost
+):
+    """Register a host with CVEnv assignments in a specified priority order.
+
+    :id: e3284ee6-4d81-41c0-b7e5-7630f5ea34d4
+
+    :steps:
+        1. Create two lifecycle environments and content views.
+        2. Publish each content view and promote it to its lifecycle environment.
+        3. Create an activation key with the CVEnv IDs in reverse creation order.
+        4. Register a host with the activation key.
+        5. List the enabled environments on the host.
+
+    :expectedresults: Candlepin reports the host's enabled content view environments
+        in the priority order stored by Satellite.
+
+    :Verifies: SAT-51801
+    """
+    org = target_sat.api.Organization().create()
+    lces = [target_sat.api.LifecycleEnvironment(organization=org).create() for _ in range(2)]
+    cvs = [target_sat.api.ContentView(organization=org).create() for _ in range(2)]
+
+    for cv, lce in zip(cvs, lces, strict=True):
+        cv.publish()
+        cv = cv.read()
+        cv.version[0].promote(data={'environment_ids': lce.id})
+
+    cvenv_ids = [
+        target_sat.api_factory.get_cvenv_id(cv, lce) for cv, lce in zip(cvs, lces, strict=True)
+    ]
+    ordered_cvenv_ids = list(reversed(cvenv_ids))
+    activation_key = target_sat.api.ActivationKey(
+        organization=org,
+        content_view_environment_ids=ordered_cvenv_ids,
+    ).create()
+
+    activation_key = target_sat.api.ActivationKey(id=activation_key.id).read()
+    expected_environment_names = [
+        f"{cvenv['lifecycle_environment']['name']}/{cvenv['content_view']['name']}"
+        for cvenv in activation_key.content_view_environments
+    ]
+    result = rhel_contenthost.register(org, None, activation_key.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+
+    result = rhel_contenthost.execute('subscription-manager environments --list-enabled')
+    assert result.status == 0, f'Failed to list enabled environments: {result.stderr}'
+    assert re.findall(r'Name:\s*(.+)', result.stdout) == expected_environment_names
 
 
 def test_positive_search_by_environment(target_sat):
