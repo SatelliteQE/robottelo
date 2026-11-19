@@ -3,6 +3,7 @@
 from contextlib import nullcontext
 from io import BytesIO
 from pathlib import Path
+import shlex
 import sys
 import tarfile
 from types import SimpleNamespace
@@ -467,7 +468,13 @@ def test_positive_readiness_uses_client_python(major):
 
     host.wait_for_insights_registration(SimpleNamespace(iop_enabled=False))
 
-    lookup = host.execute.call_args.args[0].split(') ', 1)[0]
+    command = host.execute.call_args.args[0]
+    assert shlex.split(command)[-3:] == [
+        '$python_bin',
+        '-c',
+        Path(insights_readiness.__file__).read_text(),
+    ]
+    lookup = command.split(') ', 1)[0]
     if major == 7:
         assert lookup == 'python_bin=$(command -v /usr/bin/python2'
     else:
@@ -511,6 +518,56 @@ def test_positive_selects_older_client_bootstrap_core(scenario, tmp_path, monkey
     else:
         select_client_core(str(log))
         assert sys.path[0] == expected
+
+
+@pytest.mark.parametrize('scenario', ['missing', 'unreadable', 'unknown', 'outside-tail'])
+def test_negative_core_selection_requires_a_log_record(scenario, tmp_path, monkeypatch):
+    """Never silently import a different Core from the default Python path.
+
+    :id: 0a17a747-f06a-483f-a75f-23f8e6201eae
+    :steps: Select Core from a missing, unreadable, or unrecognized client log.
+    :expectedresults: Selection fails explicitly without modifying the Python path.
+    """
+    log = tmp_path / 'client.log'
+    if scenario == 'unreadable':
+        log.mkdir()
+    elif scenario == 'unknown':
+        log.write_text('Unrecognized client output\n')
+    elif scenario == 'outside-tail':
+        log.write_text(
+            'Loaded initial egg: /etc/insights-client/rpm.egg/insights\n' + 'x' * (2 * 1024 * 1024)
+        )
+    monkeypatch.setattr(sys, 'path', list(sys.path))
+    original_path = list(sys.path)
+
+    with pytest.raises(RuntimeError, match='Core record'):
+        select_client_core(str(log))
+
+    assert sys.path == original_path
+
+
+def test_positive_core_log_decoding_uses_python2_signature(monkeypatch):
+    """Read an older log with Python 2-compatible decode arguments.
+
+    :id: 555209ec-f685-4e92-9171-dee38dada9c0
+    :steps: Read a log through a byte string whose decode accepts only positional arguments.
+    :expectedresults: Invalid UTF-8 is replaced and the recorded egg is selected.
+    """
+
+    class Python2Bytes(bytes):
+        def decode(self, encoding, errors, /):
+            return super().decode(encoding, errors)
+
+    stream = BytesIO(b'\xff DEBUG root Loaded initial egg: /etc/insights-client/rpm.egg/insights\n')
+    read = stream.read
+    stream.read = lambda: Python2Bytes(read())
+    monkeypatch.setattr('builtins.open', Mock(return_value=stream))
+    monkeypatch.setattr(insights_readiness.os.path, 'exists', lambda path: True)
+    monkeypatch.setattr(sys, 'path', list(sys.path))
+
+    select_client_core()
+
+    assert sys.path[0] == '/etc/insights-client/rpm.egg'
 
 
 def test_negative_core_import_failure_identifies_stage(monkeypatch, capsys):

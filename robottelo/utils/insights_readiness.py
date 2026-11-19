@@ -28,9 +28,11 @@ def select_client_core(log_path='/var/log/insights-client/insights-client.log'):
         with open(log_path, 'rb') as stream:
             stream.seek(0, os.SEEK_END)
             stream.seek(max(0, stream.tell() - 2 * 1024 * 1024))
-            log = stream.read().decode('utf-8', errors='replace')
+            # Python 2's str.decode does not accept keyword arguments.
+            log = stream.read().decode('utf-8', 'replace')
     except (IOError, OSError):
-        return
+        # Python 2 cannot use explicit exception chaining.
+        raise RuntimeError('Could not read the Insights client Core record')  # noqa: B904
 
     pattern = (
         r'path=(\S+)/insights/client/client\.py, version=[^,]+, '
@@ -45,7 +47,7 @@ def select_client_core(log_path='/var/log/insights-client/insights-client.log'):
         # Core to read configuration, rather than guessing an installed egg.
         matches = list(re.finditer(r'Loaded initial egg: (\S+)/insights\s*$', log, re.MULTILINE))
         if not matches:
-            return
+            raise RuntimeError('No Insights client Core record found in the log tail')
         root = matches[-1].group(1)
     if root == '/var/lib/insights/newest.egg' and not os.path.exists(root):
         # A successful upload moves the new Core to last_stable.egg.
