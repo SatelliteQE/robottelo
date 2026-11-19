@@ -9,6 +9,7 @@ connection as the client, including its certificate and proxy configuration.
 
 from __future__ import print_function
 
+import json
 import os
 import re
 import sys
@@ -20,6 +21,143 @@ TIMEOUT = 600
 POLL_INTERVAL = 1
 REQUEST_TIMEOUT = 2
 MONOTONIC = getattr(time, 'monotonic', time.time)
+DIAGNOSTIC_INTERVAL = 60
+
+
+def response_summary(response):
+    """Describe a response without dumping arbitrary bodies, headers, or identities."""
+    summary = {'status': response.status_code}
+    headers = getattr(response, 'headers', {})
+    for name in ('x-rh-insights-request-id', 'x-request-id', 'content-type'):
+        value = headers.get(name, '')
+        if value and re.match(r'^[A-Za-z0-9_.:/;= -]{1,160}$', value):
+            summary[name] = value
+    try:
+        body = response.json()
+    except (ValueError, TypeError):
+        summary['body_kind'] = 'non-JSON'
+        return summary
+    if not isinstance(body, dict):
+        summary['body_kind'] = 'non-object JSON'
+        return summary
+    # Do not print raw error text: upstream errors can echo credentials/headers.
+    detail = body.get('detail', '')
+    if hasattr(detail, 'startswith'):  # Accept Python 2 unicode JSON strings too.
+        if 'No AdvisorInventoryHost matches' in detail:
+            summary['error_kind'] = 'advisor-host-not-found'
+        elif 'System with insights_id' in detail and 'not found' in detail:
+            summary['error_kind'] = 'legacy-system-not-found'
+    for key in ('total', 'count', 'unregistered_at'):
+        if key in body and (body[key] is None or isinstance(body[key], (int, float))):
+            summary[key] = body[key]
+    return summary
+
+
+def host_summary(host):
+    """Allowlist correlation IDs and freshness fields; omit facts, tags and identity headers."""
+    result = {}
+    for key in ('id', 'insights_id', 'subscription_manager_id', 'satellite_id', 'owner_id'):
+        value = host.get(key)
+        if value is not None:
+            try:
+                result[key] = str(uuid.UUID(str(value)))
+            except (ValueError, TypeError, AttributeError):
+                result[key] = 'invalid UUID'
+    org_id = str(host.get('org_id', ''))
+    if org_id.isdigit():
+        result['org_id'] = org_id
+    for key in (
+        'created',
+        'updated',
+        'last_check_in',
+        'stale_timestamp',
+        'stale_warning_timestamp',
+        'culled_timestamp',
+    ):
+        if key in host:
+            value = host[key]
+            if value is None or re.match(r'^[0-9TtZz: .+-]{1,50}$', str(value)):
+                result[key] = value
+    staleness = host.get('per_reporter_staleness') or {}
+    if isinstance(staleness, dict) and isinstance(staleness.get('puptoo'), dict):
+        result['puptoo'] = host_summary(staleness['puptoo'])
+    profile = host.get('system_profile') or {}
+    if isinstance(profile, dict) and 'owner_id' in profile:
+        result['system_profile'] = host_summary({'owner_id': profile['owner_id']})
+    return result
+
+
+class RegistrationDiagnostics(object):  # noqa: UP004 - runs on Python 2 content hosts
+    """Temporary PRT snapshots using the same client session and original deadline."""
+
+    def __init__(self, connection, machine_id, deadline, clock=MONOTONIC):
+        self.connection = connection
+        self.machine_id = machine_id
+        self.deadline = deadline
+        self.clock = clock
+        self.next_snapshot = 0
+
+    def __call__(self, registration_response):
+        now = self.clock()
+        if now < self.next_snapshot and registration_response.status_code != 200:
+            return
+        self.next_snapshot = now + DIAGNOSTIC_INTERVAL
+        print(
+            'Insights diagnostic snapshot: '
+            + json.dumps(
+                {
+                    'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                    'machine_id': self.machine_id,
+                },
+                sort_keys=True,
+            )
+        )
+        print(
+            'Insights diagnostic registration: '
+            + json.dumps(response_summary(registration_response), sort_keys=True)
+        )
+        # Leave time for polling; diagnostics must not extend the 600-second budget.
+        if self.deadline - self.clock() < 2 * REQUEST_TIMEOUT + 1:
+            return
+        try:
+            base = self.connection.api_url
+            inventory = self.connection.session.get(
+                base + '/platform/inventory/v1/hosts',
+                params={'insights_id': self.machine_id, 'fields[system_profile]': 'owner_id'},
+                timeout=REQUEST_TIMEOUT,
+            )
+            print(
+                'Insights diagnostic inventory: '
+                + json.dumps(response_summary(inventory), sort_keys=True)
+            )
+            if inventory.status_code != 200:
+                return
+            hosts = inventory.json().get('results', [])
+            print(
+                'Insights diagnostic correlation: '
+                + json.dumps(
+                    {
+                        'machine_id': self.machine_id,
+                        'hosts': [host_summary(host) for host in hosts[:5]],
+                    },
+                    sort_keys=True,
+                )
+            )
+            if not hosts or self.deadline - self.clock() < REQUEST_TIMEOUT + 1:
+                return
+            inventory_id = str(uuid.UUID(hosts[0]['id']))
+            advisor = self.connection.session.get(
+                base + '/platform/insights/v1/system/' + inventory_id,
+                timeout=REQUEST_TIMEOUT,
+            )
+            print(
+                'Insights diagnostic advisor: '
+                + json.dumps(response_summary(advisor), sort_keys=True)
+            )
+        except Exception as exc:
+            print('Insights diagnostic snapshot failed ({})'.format(type(exc).__name__))
+        finally:
+            sys.stdout.flush()
 
 
 def select_client_core(log_path='/var/log/insights-client/insights-client.log'):
@@ -57,7 +195,9 @@ def select_client_core(log_path='/var/log/insights-client/insights-client.log'):
         )
 
 
-def poll_registration(session, url, deadline, clock=MONOTONIC, wait=None, started=None):
+def poll_registration(
+    session, url, deadline, clock=MONOTONIC, wait=None, started=None, diagnostics=None
+):
     """Poll transient responses and read timeouts without changing client state."""
     from requests.exceptions import ReadTimeout
 
@@ -95,6 +235,12 @@ def poll_registration(session, url, deadline, clock=MONOTONIC, wait=None, starte
             sys.stdout.flush()
             if clock() >= deadline:
                 return False, timeout_message()
+            if diagnostics is not None:
+                # Diagnostic failures must not change the readiness decision.
+                try:
+                    diagnostics(response)
+                except Exception as exc:
+                    print('Insights diagnostics failed ({})'.format(type(exc).__name__))
             if last_status == 200:
                 try:
                     body = response.json()
@@ -136,7 +282,10 @@ def main():
             machine_id = str(uuid.UUID(stream.read().strip(), version=4))
         connection = InsightsConnection(config)
         url = connection.api_url + '/v1/systems/' + machine_id
-        ready, message = poll_registration(connection.session, url, deadline, started=started)
+        diagnostics = RegistrationDiagnostics(connection, machine_id, deadline)
+        ready, message = poll_registration(
+            connection.session, url, deadline, started=started, diagnostics=diagnostics
+        )
         print(message)
         return 0 if ready else 1
     except RuntimeError as exc:

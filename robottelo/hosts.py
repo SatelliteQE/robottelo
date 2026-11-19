@@ -1220,6 +1220,13 @@ class ContentHost(Host, ContentHostMixins):
         host teardown; PRT archives these files. ``--external-logging`` enables
         host log shipping to Loki, but does not guarantee that the client log is
         retained there.
+        Temporary PRT instrumentation also emits ``Insights diagnostic`` snapshots
+        on the first response, every minute, and on success. These compare legacy
+        registration, platform inventory, and Advisor visibility using the same
+        client session. Correlation IDs, owner ID, and Puptoo freshness fields are
+        allowlisted; arbitrary response bodies and identity headers are not saved.
+        Snapshots are in the command output and, on readiness failure, the archived
+        ``insights-readiness-*.log`` artifact above.
         Avoid rerunning ``--status`` while diagnosing the failure because it can
         change registration state.
         """
