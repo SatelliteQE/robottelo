@@ -64,13 +64,13 @@ def test_positive_repositories_validate(sat_maintain):
     [
         {
             'deploy_rhel_version': settings.server.version.rhel_version,
-            'deploy_flavor': 'satqe-ssd.disk.xxxl',
             'deploy_network_type': settings.server.network_type,
+            **settings.flavors.disk_xxxl.to_dict(),
         },
         {
             'deploy_rhel_version': settings.server.version.rhel_version,
-            'deploy_flavor': 'satqe-ssd.standard.std',
             'deploy_network_type': settings.server.network_type,
+            **settings.flavors.default.to_dict(),
         },
     ],
     ids=['default', 'medium'],
