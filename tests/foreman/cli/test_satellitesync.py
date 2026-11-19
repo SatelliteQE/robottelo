@@ -38,6 +38,20 @@ from robottelo.constants.repos import ANSIBLE_GALAXY, RHEL10_BASEOS_MLDSA
 from robottelo.exceptions import CLIReturnCodeError
 
 
+@pytest.fixture
+def ensure_iss_sshpass(target_sat):
+    """Install sshpass on the exporting Satellite if it is missing."""
+    if target_sat.execute('rpm -q sshpass').status == 0:
+        return
+
+    target_sat.register_to_cdn()
+    result = target_sat.execute('dnf -y install sshpass')
+    assert result.status == 0, (
+        f'Failed to install sshpass on {target_sat.hostname}: {result.status=}\n'
+        f'{result.stdout}\n{result.stderr}'
+    )
+
+
 @pytest.fixture(scope='class')
 def class_immediate_rh_download_policy(class_target_sat):
     """Set RH default download policy to immediate for export. Reset to original after."""
@@ -820,7 +834,9 @@ class TestExport:
         ), 'Unexpected permission for one or more exported files'
 
 
-@pytest.mark.usefixtures('class_immediate_rh_download_policy', 'complete_export_import_cleanup')
+@pytest.mark.usefixtures(
+    'ensure_iss_sshpass', 'class_immediate_rh_download_policy', 'complete_export_import_cleanup'
+)
 class TestExportImport:
     """Implements content export and import tests in CLI"""
 
