@@ -204,9 +204,12 @@ class ContentInfo:
         sets ownership, returns import path
         """
         if target and isinstance(target, Host) and target.hostname != self.hostname:
-            self.execute(
+            result = self.execute(
                 f'sshpass -p "{settings.server.ssh_password}" rsync -e "ssh -o StrictHostKeyChecking=no" -aPz '
                 f'{PULP_EXPORT_DIR}{org.name} root@{target.hostname}:{PULP_IMPORT_DIR}'
+            )
+            assert result.status == 0, (
+                f'Archive transfer failed: {result.status=}\n{result.stdout}\n{result.stderr}'
             )
             self.execute(f'rm -rf {PULP_EXPORT_DIR}{org.name}')
             target.execute(f'chown -R pulp:pulp {PULP_IMPORT_DIR}')

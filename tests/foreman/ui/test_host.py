@@ -653,8 +653,7 @@ def test_positive_export_selected_columns(request, target_sat):
         Box(ui='RHEL Lifecycle status', csv='Rhel Lifecycle Status', displayed=True),
         Box(ui='Installable updates', csv='Installable updates', displayed=False),
         Box(ui='Last seen', csv='Last Checkin', displayed=True),
-        Box(ui='Lifecycle environment', csv='Lifecycle Environment', displayed=True),
-        Box(ui='Content view', csv='Content View', displayed=True),
+        Box(ui='Content view environments', csv='Content View Environments', displayed=True),
         Box(ui='Registered at', csv='Registered', displayed=True),
         Box(ui='Recommendations', csv='Recommendations', displayed=True),
     )
@@ -2113,24 +2112,30 @@ def test_all_hosts_bulk_cve_reassign(
         session.location.select(module_location.name)
         try:
             headers = session.all_hosts.get_displayed_table_headers()
-            if 'Lifecycle environment' not in headers:
+            if 'Content view environments' not in headers:
                 session.all_hosts.manage_table_columns(
                     {
-                        'Lifecycle environment': True,
+                        'Content view environments': True,
                     }
                 )
             pre_table = session.all_hosts.read_table()
-            for row in pre_table:
-                assert row['Lifecycle environment'] == module_lce.name
+            assert {row['Content view environments'] for row in pre_table} == {
+                f'{module_lce.name}/{module_cv.name}'
+            }
             session.all_hosts.manage_cve(lce_name=lce2.name, cv_name=module_cv.name)
-            wait_for(lambda: session.browser.refresh(), timeout=5)
-            post_table = session.all_hosts.read_table()
-            for row in post_table:
-                assert row['Lifecycle environment'] == lce2.name
+            wait_for(
+                lambda: (
+                    {row['Content view environments'] for row in session.all_hosts.read_table()}
+                    == {f'{lce2.name}/{module_cv.name}'}
+                ),
+                timeout=60,
+                delay=2,
+                fail_func=session.browser.refresh,
+            )
         finally:
             session.all_hosts.manage_table_columns(
                 {
-                    'Lifecycle environment': False,
+                    'Content view environments': False,
                 }
             )
 
