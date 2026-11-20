@@ -1,8 +1,14 @@
 from manifester import Manifester
 import pytest
+from wait_for import TimedOutError, wait_for
 
 from robottelo.config import settings
-from robottelo.constants import CAPSULE_REGISTRATION_OPTS
+from robottelo.constants import (
+    CAPSULE_REGISTRATION_OPTS,
+    DEFAULT_ARCHITECTURE,
+    REPOS,
+    VULNERABLE_PACKAGES,
+)
 
 
 def _activation_key_content_payload(module_target_sat_insights, organization):
@@ -195,3 +201,174 @@ def rhcloud_capsule(
         }
     )
     return module_capsule_host
+
+
+def trigger_cve_sync(satellite, best_effort=False, assert_start=False):
+    """Start CVE sync services and wait for each to complete.
+
+    Args:
+        satellite: Satellite instance used to run IoP sync services.
+        best_effort: If True, ignore service wait timeouts.
+        assert_start: If True, assert that each `systemctl start` succeeds.
+    """
+    for service in ('iop-cvemap-download', 'iop-service-vuln-vmaas-sync'):
+        start_result = satellite.execute(f'systemctl start {service}')
+        if assert_start:
+            assert start_result.status == 0, f'Failed to start {service}: {start_result.stderr}'
+        try:
+            wait_for(
+                lambda svc=service: satellite.execute(f'systemctl is-active {svc}').status != 0,
+                timeout=300,
+                delay=10,
+                handle_exception=True,
+            )
+        except TimedOutError:
+            if not best_effort:
+                raise
+
+
+def cleanup_stale_insights_state(client):
+    """Clean up stale insights-client state, re-register, and collect data.
+
+    This handles the case where a previous registration left behind
+    a stale machine-id that causes insights-client to fail.
+
+    Args:
+        client: ContentHost instance to clean up
+
+    Returns:
+        Result of the final insights-client command (data collection/upload)
+    """
+    client.execute('insights-client --unregister')
+    client.execute('rm -f /etc/insights-client/machine-id')
+    client.execute('rm -f /etc/insights-client/.registered')
+    client.execute('insights-client --register')
+    # Run insights-client again to collect and upload data after re-registration
+    return client.execute('insights-client')
+
+
+def sync_rhel_content(satellite, organization, rhel_versions):
+    """Enable and synchronously sync RHEL repos for the given major versions.
+
+    Syncs the BaseOS and AppStream repositories each pinned vulnerable
+    package in ``VULNERABLE_PACKAGES`` can be installed from.
+
+    Args:
+        satellite: Satellite instance to enable and sync the repositories on.
+        organization: Organization to enable the repositories in.
+        rhel_versions: Iterable of RHEL major versions, e.g. ``(9,)``.
+    """
+    for rhel_ver in rhel_versions:
+        for repo_type in ('bos', 'aps'):
+            name = f'rhel{rhel_ver}_{repo_type}'
+            if name not in REPOS:
+                continue
+            rh_repo_id = satellite.api_factory.enable_rhrepo_and_fetchid(
+                basearch=DEFAULT_ARCHITECTURE,
+                org_id=organization.id,
+                product=REPOS[name]['product'],
+                repo=REPOS[name]['name'],
+                reposet=REPOS[name]['reposet'],
+                releasever=REPOS[name]['releasever'],
+            )
+
+            rh_repo = satellite.api.Repository(id=rh_repo_id).read()
+            task = rh_repo.sync(synchronous=False)
+            satellite.wait_for_tasks(
+                search_query=(f'id = {task["id"]}'),
+                poll_timeout=2500,
+                must_succeed=False,
+            )
+            task_status = satellite.api.ForemanTask(id=task['id']).poll()
+            assert task_status['result'] == 'success'
+
+
+def prepare_vulnerable_host(client):
+    """Install a pinned vulnerable package on a host and upload the insights archive.
+
+    The package picked per RHEL version from ``VULNERABLE_PACKAGES`` is
+    guaranteed to report known CVEs once the Vulnerability Engine evaluates
+    the uploaded archive.
+
+    Args:
+        client: Content host registered with insights (see ``enable_insights``).
+
+    Returns:
+        The same content host instance.
+    """
+    rhel_ver = client.os_version.major
+    vuln_data = VULNERABLE_PACKAGES[rhel_ver]
+    assert vuln_data['rpm'], f'No vulnerable package defined for RHEL {rhel_ver}'
+
+    assert (
+        client.execute(
+            'find /etc/yum.repos.d/ -type f | grep -vF redhat.repo | xargs -I \'{}\' rm \'{}\''
+        ).status
+        == 0
+    )
+    update_result = client.execute('dnf -y update')
+    if update_result.status != 0:
+        # Some RHEL snapshots can have transient dependency resolution conflicts.
+        # Retry with safer solver flags to keep fixture setup stable.
+        update_result = client.execute('dnf -y update --nobest --allowerasing')
+    assert update_result.status == 0, (
+        f'Failed to update packages before vulnerability setup: '
+        f'{update_result.stdout}\n{update_result.stderr}'
+    )
+    # Install vulnerable package version for the host's RHEL version
+    assert client.execute(f'dnf install -y {vuln_data["rpm"]}').status == 0
+    # Run insights-client to report the vulnerabilities to Satellite
+    result = client.execute('insights-client')
+    if result.status != 0 and 'Machine-id found' in result.stdout:
+        result = cleanup_stale_insights_state(client)
+    assert result.status == 0, f'insights-client failed: {result.stdout}'
+    return client
+
+
+@pytest.fixture
+def vulnerable_rhel_host(rhel_insights_vm):
+    """A function-level fixture to prepare a RHEL host with a vulnerable package"""
+    return prepare_vulnerable_host(rhel_insights_vm)
+
+
+@pytest.fixture
+def vulnerable_rhel_host_with_recommendations(vulnerable_rhel_host):
+    """A fixture to prepare a RHEL host with both vulnerabilities and recommendations.
+
+    Extends vulnerable_rhel_host by adding file permission misconfiguration
+    to trigger a recommendation.
+    """
+    client = vulnerable_rhel_host
+    # Add permission misconfiguration to create a recommendation.
+    assert client.execute('chmod 777 /etc/shadow').status == 0
+    # Run insights-client to report the recommendation to Satellite
+    result = client.execute('insights-client')
+    assert result.status == 0, f'insights-client failed: {result.stdout}'
+    return client
+
+
+@pytest.fixture(scope='module')
+def module_vulnerable_insights_host(
+    module_target_sat_insights,
+    rhcloud_manifest_org,
+    rhcloud_activation_key,
+    module_rhel_contenthost,
+):
+    """A module-level fixture providing a vulnerable insights-registered RHEL host.
+
+    Syncs the RHEL content for the host's version into the manifest
+    organization (so the pinned vulnerable package can be installed), starts
+    the IoP CVE feed sync services, enables insights on the host, and finally
+    installs the vulnerable package and uploads the insights archive for the
+    Vulnerability Engine to evaluate. Unlike the function-scoped
+    ``vulnerable_rhel_host`` the host is provisioned once per test module.
+    """
+    satellite = module_target_sat_insights
+    client = module_rhel_contenthost
+    rhel_ver = client.os_version.major
+
+    sync_rhel_content(satellite, rhcloud_manifest_org, (rhel_ver,))
+    # Manually trigger CVE sync and wait for completion.
+    trigger_cve_sync(satellite, assert_start=True)
+    enable_insights(client, satellite, rhcloud_manifest_org, rhcloud_activation_key)
+    return prepare_vulnerable_host(client)
