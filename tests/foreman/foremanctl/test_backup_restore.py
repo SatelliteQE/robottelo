@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Installation
+:CaseComponent: BackupandRestore
 
 :Team: Rocket
 
