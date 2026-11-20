@@ -167,6 +167,7 @@ class TestAnsibleREX:
     @pytest.mark.pit_client
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.hosted_insights
     def test_positive_ansible_job_on_host(
         self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
     ):
@@ -235,6 +236,7 @@ class TestAnsibleREX:
         host_roles = target_host.list_ansible_roles()
         assert len(host_roles) == 0
 
+    @pytest.mark.hosted_insights
     def test_positive_ansible_job_on_multiple_host(
         self,
         target_sat,

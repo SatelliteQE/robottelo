@@ -39,6 +39,7 @@ def common_assertion(report_path):
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.e2e
+@pytest.mark.hosted_insights
 def test_rhcloud_inventory_api_e2e(
     inventory_settings,
     rhcloud_manifest_org,
@@ -120,6 +121,7 @@ def test_rhcloud_inventory_api_e2e(
 
 
 @pytest.mark.e2e
+@pytest.mark.hosted_insights
 def test_rhcloud_inventory_api_hosts_synchronization(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -217,6 +219,7 @@ def test_inventory_upload_with_http_proxy():
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.e2e
+@pytest.mark.hosted_insights
 def test_include_parameter_tags_setting(
     inventory_settings,
     rhcloud_manifest_org,
@@ -291,6 +294,7 @@ def test_include_parameter_tags_setting(
 
 
 @pytest.mark.e2e
+@pytest.mark.hosted_insights
 def test_rhcloud_scheduled_insights_sync(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -336,6 +340,7 @@ def test_rhcloud_scheduled_insights_sync(
 @pytest.mark.no_containers
 @pytest.mark.run_in_one_thread
 @pytest.mark.rhel_ver_list('[8,9]')
+@pytest.mark.hosted_insights
 def test_rhcloud_compliance_policies(
     inventory_settings,
     rhcloud_manifest_org,

@@ -9,4 +9,5 @@ about its capabilities.
 
     commands
     decorators
+    hosted_insights
     ssh
