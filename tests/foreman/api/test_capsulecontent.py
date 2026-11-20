@@ -1804,6 +1804,9 @@ class TestCapsuleContentManagement:
             'file': {'file'},
             'docker': {'docker_tag', 'docker_manifest', 'docker_manifest_list'},
             'ansible_collection': {'ansible_collection'},
+            # Inactive until a PythonRepository is added to the parametrization above, which
+            # is not possible while Satellite does not enable the python content type.
+            'python': {'python_package'},
         }
 
         repos_collection.setup_content(function_org.id, function_lce.id)
