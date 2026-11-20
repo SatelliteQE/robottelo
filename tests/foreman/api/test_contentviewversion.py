@@ -112,12 +112,13 @@ def test_positive_restore_rpms_after_promoting_older_version(function_org, reque
     :expectedresults: The final environment contains the original RPM set again,
         and the earlier environment keeps the newer set.
 
-    :customerscenario: true
+    :CaseImportance: High
+
+    :Verifies: SAT-54043
     """
     request.addfinalizer(function_org.delete)
-    api = target_sat.api
-    product = api.Product(organization=function_org).create()
-    repo = api.Repository(
+    product = target_sat.api.Product(organization=function_org).create()
+    repo = target_sat.api.Repository(
         product=product, url=CUSTOM_RPM_REPO, download_policy='immediate'
     ).create()
     target_sat.wait_for_tasks(
@@ -129,15 +130,14 @@ def test_positive_restore_rpms_after_promoting_older_version(function_org, reque
     )
     repo.sync()
 
-    cv = api.ContentView(organization=function_org, repository=[repo]).create()
-    earlier_env = api.LifecycleEnvironment(organization=function_org).create()
-    final_env = api.LifecycleEnvironment(organization=function_org, prior=earlier_env).create()
-
-    def packages(repository_id):
-        return api.Package(repository=repository_id).search(query={'per_page': 1000})
+    cv = target_sat.api.ContentView(organization=function_org, repository=[repo]).create()
+    earlier_env = target_sat.api.LifecycleEnvironment(organization=function_org).create()
+    final_env = target_sat.api.LifecycleEnvironment(
+        organization=function_org, prior=earlier_env
+    ).create()
 
     def environment_rpms(environment):
-        repositories = api.Repository().search_json(
+        repositories = target_sat.api.Repository().search_json(
             query={
                 'organization_id': function_org.id,
                 'content_view_id': cv.id,
@@ -149,9 +149,14 @@ def test_positive_restore_rpms_after_promoting_older_version(function_org, reque
             for repository in repositories
             if repository['library_instance_id'] == repo.id
         ]
-        return {package.filename for package in packages(promoted_repo['id'])}
+        return {
+            package.filename
+            for package in target_sat.api.Package(repository=promoted_repo['id']).search(
+                query={'per_page': 1000}
+            )
+        }
 
-    original_packages = packages(repo.id)
+    original_packages = target_sat.api.Package(repository=repo.id).search(query={'per_page': 1000})
     original_rpms = {package.filename for package in original_packages}
     assert len(original_rpms) >= 2, 'The fixture repository must contain at least two RPMs'
     cv.publish()
@@ -166,7 +171,10 @@ def test_positive_restore_rpms_after_promoting_older_version(function_org, reque
     (newer_version,) = [version for version in cv.read().version if version.id != older_version.id]
     for environment in (earlier_env, final_env):
         newer_version.promote(data={'environment_ids': [environment.id]})
-        assert environment_rpms(environment) == newer_rpms
+    promoted_rpms = {
+        environment.id: environment_rpms(environment) for environment in (earlier_env, final_env)
+    }
+    assert promoted_rpms == {earlier_env.id: newer_rpms, final_env.id: newer_rpms}
 
     older_version.promote(data={'environment_ids': [final_env.id], 'force': True})
     assert environment_rpms(final_env) == original_rpms, (
