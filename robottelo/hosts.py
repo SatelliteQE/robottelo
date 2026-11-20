@@ -1220,6 +1220,12 @@ class ContentHost(Host, ContentHostMixins):
         host teardown; PRT archives these files. ``--external-logging`` enables
         host log shipping to Loki, but does not guarantee that the client log is
         retained there.
+        After a failed lookup, diagnostic snapshots compare registration,
+        Inventory, and Advisor visibility. They are sampled at most once per
+        minute and again on recovery; first-lookup success adds no requests.
+        Snapshots have a four-second budget, use a separate client connection,
+        and log only allowlisted fields. They appear in the command output and
+        failure artifact above. Diagnostic errors do not change the result.
         Avoid rerunning ``--status`` while diagnosing the failure because it can
         change registration state.
         """
