@@ -158,10 +158,10 @@ def module_disconnected_sat():
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
-        deploy_flavor=settings.flavors.default,
         deploy_network_type=settings.server.network_type,
         host_class=Satellite,
         use_dynamic_inventories_wf_level=False,
+        **settings.flavors.default,
     ) as sat:
         install_satellite_disconnected_iso(
             sat,

@@ -256,7 +256,7 @@ def module_import_sat(module_target_sat, satellite_factory):
     An air-gapped import Satellite has subscription_connection_enabled set to No.
     """
     if settings.iss.separate_import_sat:
-        sat = satellite_factory(deploy_flavor=settings.flavors.upgrade)
+        sat = satellite_factory(**settings.flavors.upgrade)
         sat.enable_satellite_ipv6_http_proxy()
         sat.cli.Settings.set({'name': 'subscription_connection_enabled', 'value': 'No'})
         yield sat
