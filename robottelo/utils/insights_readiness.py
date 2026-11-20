@@ -2,6 +2,11 @@
 
 This module also runs on the content host. It uses the same Insights Core
 connection as the client, including its certificate and proxy configuration.
+
+If registration is not ready, collect a snapshot of three views of the host:
+legacy registration, platform Inventory, and Advisor. A separate connection
+keeps these diagnostic requests from affecting the readiness check. Snapshots
+are optional: failures, rate limits, and time limits never decide readiness.
 """
 
 # The remote client can run Python 2 on RHEL 7 content hosts.
@@ -26,14 +31,32 @@ DIAGNOSTIC_INTERVAL = 60
 DIAGNOSTIC_TIMEOUT = 4
 
 
+# These fields are safe to include in CI logs. Never log complete responses: they
+# can contain facts, identity headers, or error messages that echo credentials.
+RESPONSE_HEADERS = ('x-rh-insights-request-id', 'x-request-id', 'content-type')
+HOST_IDS = ('id', 'insights_id', 'subscription_manager_id', 'satellite_id', 'owner_id')
+HOST_TIMESTAMPS = (
+    'created',
+    'updated',
+    'last_check_in',
+    'stale_timestamp',
+    'stale_warning_timestamp',
+    'culled_timestamp',
+)
+UNREGISTERED_TIMESTAMP = re.compile(
+    r'^[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt ][0-9]{2}:[0-9]{2}:[0-9]{2}'
+    r'(?:\.[0-9]{1,9})?(?:[Zz]|[+-][0-9]{2}:?[0-9]{2})?\Z'
+)
+
+
 def response_summary(response):
-    """Describe a response without dumping arbitrary bodies, headers, or identities."""
+    """Keep HTTP status, safe request IDs and a few known response fields."""
     summary = {'status': response.status_code}
-    headers = getattr(response, 'headers', {})
-    for name in ('x-rh-insights-request-id', 'x-request-id', 'content-type'):
-        value = headers.get(name, '')
+    for name in RESPONSE_HEADERS:
+        value = getattr(response, 'headers', {}).get(name, '')
         if value and re.match(r'^[A-Za-z0-9_.:/;= -]{1,160}$', value):
             summary[name] = value
+
     try:
         body = response.json()
     except (ValueError, TypeError):
@@ -42,67 +65,74 @@ def response_summary(response):
     if not isinstance(body, dict):
         summary['body_kind'] = 'non-object JSON'
         return summary
-    # Do not print raw error text: upstream errors can echo credentials/headers.
+
+    # Classify known errors rather than logging the upstream error text.
     detail = body.get('detail', '')
-    if hasattr(detail, 'startswith'):  # Accept Python 2 unicode JSON strings too.
+    if hasattr(detail, 'startswith'):  # Also accepts Python 2 unicode strings.
         if 'No AdvisorInventoryHost matches' in detail:
             summary['error_kind'] = 'advisor-host-not-found'
         elif 'System with insights_id' in detail and 'not found' in detail:
             summary['error_kind'] = 'legacy-system-not-found'
+
     for key in ('total', 'count', 'unregistered_at'):
         if key in body and (body[key] is None or isinstance(body[key], (int, float))):
             summary[key] = body[key]
-    unregistered_at = body.get('unregistered_at')
-    # Preserve timestamp-shaped JSON strings, not arbitrary upstream error text.
-    if hasattr(unregistered_at, 'startswith') and re.match(
-        r'^[0-9]{4}-[0-9]{2}-[0-9]{2}[Tt ][0-9]{2}:[0-9]{2}:[0-9]{2}'
-        r'(?:\.[0-9]{1,9})?(?:[Zz]|[+-][0-9]{2}:?[0-9]{2})?\Z',
-        unregistered_at,
-    ):
-        summary['unregistered_at'] = unregistered_at
+    value = body.get('unregistered_at')
+    if hasattr(value, 'startswith') and UNREGISTERED_TIMESTAMP.match(value):
+        summary['unregistered_at'] = value
     return summary
 
 
+def safe_uuid(value):
+    """Normalize an ID, or record that it was invalid without logging its value."""
+    try:
+        return str(uuid.UUID(str(value)))
+    except (ValueError, TypeError, AttributeError):
+        return 'invalid UUID'
+
+
 def host_summary(host):
-    """Allowlist correlation IDs and freshness fields; omit facts, tags and identity headers."""
-    result = {}
-    for key in ('id', 'insights_id', 'subscription_manager_id', 'satellite_id', 'owner_id'):
+    """Keep inventory correlation IDs and freshness fields, but not facts or tags."""
+    summary = {}
+    for key in HOST_IDS:
         value = host.get(key)
         if value is not None:
-            try:
-                result[key] = str(uuid.UUID(str(value)))
-            except (ValueError, TypeError, AttributeError):
-                result[key] = 'invalid UUID'
+            summary[key] = safe_uuid(value)
+
     org_id = str(host.get('org_id', ''))
     if org_id.isdigit():
-        result['org_id'] = org_id
-    for key in (
-        'created',
-        'updated',
-        'last_check_in',
-        'stale_timestamp',
-        'stale_warning_timestamp',
-        'culled_timestamp',
-    ):
+        summary['org_id'] = org_id
+    for key in HOST_TIMESTAMPS:
         if key in host:
             value = host[key]
             if value is None or re.match(r'^[0-9TtZz: .+-]{1,50}$', str(value)):
-                result[key] = value
-    staleness = host.get('per_reporter_staleness') or {}
-    if isinstance(staleness, dict) and isinstance(staleness.get('puptoo'), dict):
-        result['puptoo'] = host_summary(staleness['puptoo'])
+                summary[key] = value
+
+    reporters = host.get('per_reporter_staleness') or {}
+    if isinstance(reporters, dict) and isinstance(reporters.get('puptoo'), dict):
+        summary['puptoo'] = host_summary(reporters['puptoo'])
     profile = host.get('system_profile') or {}
     if isinstance(profile, dict) and 'owner_id' in profile:
-        result['system_profile'] = host_summary({'owner_id': profile['owner_id']})
-    return result
+        owner_id = profile['owner_id']
+        summary['system_profile'] = {} if owner_id is None else {'owner_id': safe_uuid(owner_id)}
+    return summary
+
+
+def log_diagnostic(name, data):
+    """Print one labeled, structured line for the archived readiness log."""
+    print('Insights diagnostic {}: {}'.format(name, json.dumps(data, sort_keys=True)))
 
 
 class DiagnosticTimeout(BaseException):
-    """Escape HTTP-library exception handling when a diagnostic exceeds its budget."""
+    """Escape HTTP-library exception handling when the wall-clock budget expires."""
+
+
+def interrupt_diagnostic(signum, frame):
+    raise DiagnosticTimeout()
 
 
 class RegistrationDiagnostics(object):  # noqa: UP004 - runs on Python 2 content hosts
-    """Rate-limit failure snapshots and bound the entire collection on Linux hosts."""
+    """Collect occasional snapshots without changing the registration polling session."""
 
     def __init__(self, connection_factory, machine_id, deadline, clock=MONOTONIC):
         self.connection_factory = connection_factory
@@ -111,28 +141,26 @@ class RegistrationDiagnostics(object):  # noqa: UP004 - runs on Python 2 content
         self.clock = clock
         self.next_snapshot = 0
 
-    def __call__(self, registration_response=None, error=None, recovered=False):
+    def collect(self, registration_response=None, error=None, recovered=False):
+        """Collect at most once a minute on failure, and once more on recovery."""
         now = self.clock()
-        if now < self.next_snapshot and not recovered:
+        if not recovered and now < self.next_snapshot:
             return
         if self.deadline - now < DIAGNOSTIC_TIMEOUT + 1:
             print('Insights diagnostic snapshot skipped: readiness deadline is near')
             return
-        # Requests timeouts bound socket inactivity, not the whole operation (DNS,
-        # redirects and slow streaming can take longer). This helper runs on the
-        # main thread of a dedicated Linux process, so use a wall-clock watchdog.
         if signal.getitimer(signal.ITIMER_REAL)[0]:
             print('Insights diagnostic snapshot skipped: another timer is active')
             return
 
-        def interrupt(signum, frame):
-            raise DiagnosticTimeout()
-
-        previous_handler = signal.signal(signal.SIGALRM, interrupt)
+        # A requests timeout only limits socket inactivity. DNS, redirects and
+        # streaming can take longer, so bound the whole snapshot with SIGALRM.
+        # This helper runs on the main thread of a dedicated Linux process.
+        previous_handler = signal.signal(signal.SIGALRM, interrupt_diagnostic)
         try:
             signal.setitimer(signal.ITIMER_REAL, DIAGNOSTIC_TIMEOUT)
             self.next_snapshot = now + DIAGNOSTIC_INTERVAL
-            self.snapshot(registration_response, error, recovered)
+            self._collect_snapshot(registration_response, error, recovered)
         except DiagnosticTimeout:
             print('Insights diagnostic snapshot exceeded its wall-clock budget')
         except Exception as exc:
@@ -142,68 +170,55 @@ class RegistrationDiagnostics(object):  # noqa: UP004 - runs on Python 2 content
             signal.signal(signal.SIGALRM, previous_handler)
             sys.stdout.flush()
 
-    def snapshot(self, registration_response, error, recovered):
-        """Collect only read-only, allowlisted evidence; never use the polling session."""
-        print(
-            'Insights diagnostic snapshot: '
-            + json.dumps(
-                {
-                    'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
-                    'machine_id': self.machine_id,
-                    'recovered': recovered,
-                },
-                sort_keys=True,
-            )
+    def _collect_snapshot(self, registration_response, error, recovered):
+        """Compare legacy registration with Inventory and Advisor visibility."""
+        log_diagnostic(
+            'snapshot',
+            {
+                'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                'machine_id': self.machine_id,
+                'recovered': recovered,
+            },
         )
-        print(
-            'Insights diagnostic registration: '
-            + json.dumps(
-                response_summary(registration_response)
-                if registration_response is not None
-                else {'error': error},
-                sort_keys=True,
-            )
+        registration = (
+            response_summary(registration_response)
+            if registration_response is not None
+            else {'error': error}
         )
-        # A fresh connection has the same client configuration and identity, but
+        log_diagnostic('registration', registration)
+
+        # Use the client's configuration and identity, but a fresh session so
         # diagnostic cookies or interrupted requests cannot affect polling.
         connection = self.connection_factory()
         try:
-            # Like Insights Core's legacy-mode lookups, append /platform to the
-            # legacy root. Keep Satellite's forwarding route and identity intact.
-            base = connection.api_url
+            # Keep the legacy root and Satellite forwarding route, like Insights Core.
+            base = connection.api_url + '/platform'
             inventory = connection.session.get(
-                base + '/platform/inventory/v1/hosts',
+                base + '/inventory/v1/hosts',
                 params={'insights_id': self.machine_id, 'fields[system_profile]': 'owner_id'},
                 timeout=REQUEST_TIMEOUT,
             )
-            print(
-                'Insights diagnostic inventory: '
-                + json.dumps(response_summary(inventory), sort_keys=True)
-            )
+            log_diagnostic('inventory', response_summary(inventory))
             if inventory.status_code != 200:
                 return
+
             hosts = inventory.json().get('results', [])
-            print(
-                'Insights diagnostic correlation: '
-                + json.dumps(
-                    {
-                        'machine_id': self.machine_id,
-                        'hosts': [host_summary(host) for host in hosts[:5]],
-                    },
-                    sort_keys=True,
-                )
+            log_diagnostic(
+                'correlation',
+                {
+                    'machine_id': self.machine_id,
+                    'hosts': [host_summary(host) for host in hosts[:5]],
+                },
             )
             if not hosts or self.deadline - self.clock() < REQUEST_TIMEOUT + 1:
                 return
+
             inventory_id = str(uuid.UUID(hosts[0]['id']))
             advisor = connection.session.get(
-                base + '/platform/insights/v1/system/' + inventory_id,
+                base + '/insights/v1/system/' + inventory_id,
                 timeout=REQUEST_TIMEOUT,
             )
-            print(
-                'Insights diagnostic advisor: '
-                + json.dumps(response_summary(advisor), sort_keys=True)
-            )
+            log_diagnostic('advisor', response_summary(advisor))
         finally:
             connection.session.close()
 
@@ -349,7 +364,7 @@ def main():
             lambda: InsightsConnection(config), machine_id, deadline
         )
         ready, message = poll_registration(
-            connection.session, url, deadline, started=started, diagnostics=diagnostics
+            connection.session, url, deadline, started=started, diagnostics=diagnostics.collect
         )
         print(message)
         return 0 if ready else 1
