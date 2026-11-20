@@ -7,7 +7,6 @@ import pytest
 from robottelo.config import settings
 from robottelo.constants import (
     AUDIENCE_MAPPER,
-    CERT_PATH,
     GROUP_MEMBERSHIP_MAPPER,
     HAMMER_CONFIG,
     HAMMER_SESSIONS,
@@ -17,7 +16,6 @@ from robottelo.constants import (
 from robottelo.hosts import IPAHost, RHBKHost, RHSSOHost
 from robottelo.logging import logger
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.installer import InstallerCommand
 
 LOGGEDOUT = 'Logged out.'
 
@@ -313,23 +311,15 @@ def enroll_configure_rhsso_external_auth(request, module_target_sat):
         ).status
         == 0
     )
-    # if target directory not given it is installing in /usr/local/lib64
     assert (
         module_target_sat.execute(
-            f'openssl s_client -connect {uri} -showcerts </dev/null 2>/dev/null| '
-            f'sed "/BEGIN CERTIFICATE/,/END CERTIFICATE/!d" > {CERT_PATH}/rh-sso.crt'
-        ).status
-        == 0
-    )
-    assert (
-        module_target_sat.execute(
-            f'echo {password} | keycloak-httpd-client-install \
-                --app-name foreman-openidc \
-                --keycloak-server-url {uri} \
-                --keycloak-admin-username "admin" \
-                --keycloak-realm "{realm}" \
-                --keycloak-admin-realm master \
-                --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
+            f'KEYCLOAK_ADMIN_PASSWORD={password} keycloak-httpd-client-install'
+            f' --app-name foreman-openidc'
+            f' --keycloak-server-url {uri}'
+            f' --keycloak-admin-username "admin"'
+            f' --keycloak-realm "{realm}"'
+            f' --keycloak-admin-realm master'
+            f' --keycloak-auth-role root-admin -t openidc -l /users/extlogin --force'
         ).status
         == 0
     )
@@ -388,9 +378,6 @@ def configure_realm(module_target_sat, default_ipa_host):
         f'--foreman-proxy-realm-principal realm-proxy@{realm} '
         f'--foreman-proxy-dhcp-nameservers {socket.gethostbyname(default_ipa_host.hostname)}'
     )
-    module_target_sat.execute('cp /etc/ipa/ca.crt /etc/pki/ca-trust/source/anchors/ipa.crt')
-    module_target_sat.execute('update-ca-trust enable ; update-ca-trust')
-    module_target_sat.execute('service foreman-proxy restart')
 
 
 @pytest.fixture(scope="module")
@@ -451,35 +438,26 @@ def func_enroll_ad_and_configure_external_auth(ad_data, target_sat):
 
 @pytest.fixture
 def configure_hammer_no_creds(parametrized_enrolled_sat):
-    """Configures hammer to use sessions and negotiate auth."""
-    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
+    """Remove configured Hammer credentials."""
+    backup = f'{HAMMER_CONFIG}.no_creds.backup'
+    assert parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {backup}').status == 0
     parametrized_enrolled_sat.execute(f"sed -i '/:username.*/d' {HAMMER_CONFIG}")
     parametrized_enrolled_sat.execute(f"sed -i '/:password.*/d' {HAMMER_CONFIG}")
     yield
-    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
-
-
-@pytest.fixture
-def configure_hammer_negotiate(parametrized_enrolled_sat, configure_hammer_no_creds):
-    """Configures hammer to use sessions and negotiate auth."""
-    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
-    parametrized_enrolled_sat.execute(f"sed -i '/:default_auth_type.*/d' {HAMMER_CONFIG}")
-    parametrized_enrolled_sat.execute(f"sed -i '/:use_sessions.*/d' {HAMMER_CONFIG}")
-    parametrized_enrolled_sat.execute(f"echo '  :use_sessions: true' >> {HAMMER_CONFIG}")
-    parametrized_enrolled_sat.execute(
-        f"echo '  :default_auth_type: Negotiate_Auth' >> {HAMMER_CONFIG}"
-    )
-    yield
-    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+    assert parametrized_enrolled_sat.execute(f'mv -f {backup} {HAMMER_CONFIG}').status == 0
 
 
 @pytest.fixture
 def configure_hammer_no_negotiate(parametrized_enrolled_sat):
     """Configures hammer not to use automatic negotiation."""
-    parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {HAMMER_CONFIG}.backup')
-    parametrized_enrolled_sat.execute(f"sed -i '/:default_auth_type.*/d' {HAMMER_CONFIG}")
+    backup = f'{HAMMER_CONFIG}.no_negotiate.backup'
+    assert parametrized_enrolled_sat.execute(f'cp {HAMMER_CONFIG} {backup}').status == 0
+    parametrized_enrolled_sat.execute(
+        f"sed -i 's/^[[:space:]]*:default_auth_type:.*/  :default_auth_type: Basic_Auth/' "
+        f'{HAMMER_CONFIG}'
+    )
     yield
-    parametrized_enrolled_sat.execute(f'mv -f {HAMMER_CONFIG}.backup {HAMMER_CONFIG}')
+    assert parametrized_enrolled_sat.execute(f'mv -f {backup} {HAMMER_CONFIG}').status == 0
 
 
 @pytest.fixture
@@ -504,35 +482,3 @@ def sessions_tear_down(parametrized_enrolled_sat):
         parametrized_enrolled_sat.execute(
             f'rm -f {HAMMER_SESSIONS}/https_{parametrized_enrolled_sat.shortened_hostname}'
         )
-
-
-@pytest.fixture
-def configure_ipa_api(
-    request,
-    parametrized_enrolled_sat,
-    enabled=True,
-):
-    """Enable Kerberos authentication in Hammer."""
-    if enabled:
-        # Normal ipa authentication needs to be enabled already
-        assert (
-            parametrized_enrolled_sat.execute(
-                'satellite-installer --help | grep foreman-ipa-authentication[^-] | grep true'
-            ).status
-            == 0
-        )
-    original_value = (
-        parametrized_enrolled_sat.execute(
-            'satellite-installer --help | grep foreman-ipa-authentication-api | grep true'
-        ).status
-        == 0
-    )
-    result = parametrized_enrolled_sat.install(
-        InstallerCommand(f'foreman-ipa-authentication-api {"true" if enabled else "false"}')
-    )
-    assert result.status == 0, 'Installer failed to enable IPA API authentication.'
-    yield
-    result = parametrized_enrolled_sat.install(
-        InstallerCommand(f'foreman-ipa-authentication-api {"true" if original_value else "false"}')
-    )
-    assert result.status == 0, 'Installer failed to reset IPA API authentication.'

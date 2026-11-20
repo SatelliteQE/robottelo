@@ -12,6 +12,8 @@
 
 """
 
+import random
+
 from fauxfactory import gen_integer
 import pytest
 
@@ -20,7 +22,6 @@ from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
     invalid_id_list,
     invalid_values_list,
-    parametrized,
     valid_hostgroups_list,
 )
 
@@ -83,20 +84,19 @@ def hostgroup(content_source, module_org, module_target_sat):
     )
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_name(name, module_target_sat):
+def test_negative_create_with_name(module_target_sat):
     """Don't create an HostGroup with invalid data.
 
     :id: 853a6d43-129a-497b-94f0-08dc622862f8
 
-    :parametrized: yes
-
     :expectedresults: HostGroup is not created.
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.HostGroup.create({'name': name})
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.e2e
 @pytest.mark.upgrade
 def test_positive_create_with_multiple_entities_and_delete(
@@ -108,6 +108,8 @@ def test_positive_create_with_multiple_entities_and_delete(
 
     :expectedresults: Hostgroup should be created, has all defined
         entities assigned and deleted
+
+    :BlockedBy: SAT-40445
 
     :BZ: 1395254, 1313056
 
@@ -217,6 +219,7 @@ def test_negative_create_with_content_source(module_org, module_target_sat):
         )
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.run_in_one_thread
 def test_positive_update_hostgroup_with_puppet(
     request,
@@ -232,6 +235,8 @@ def test_positive_update_hostgroup_with_puppet(
     :id: c22218a1-4d86-4ac1-ad4b-79b10c9adcde
 
     :customerscenario: true
+
+    :BlockedBy: SAT-40445
 
     :BZ: 1260697, 1313056
 

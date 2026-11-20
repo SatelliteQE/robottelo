@@ -12,8 +12,107 @@ from robottelo.constants import (
     PUPPET_COMMON_INSTALLER_OPTS,
 )
 from robottelo.enums import NetworkType
+from robottelo.exceptions import CapsuleHostError
 from robottelo.logging import logger
 from robottelo.utils.installer import InstallerCommand
+
+
+class InstallationVerification:
+    """Installation verification helper methods for Satellite and Capsule hosts."""
+
+    @staticmethod
+    def assert_hammer_ping_ok(result):
+        """Assert that 'hammer ping' output shows all services as ok.
+
+        :param result: Command result from executing 'hammer ping'
+        """
+        from robottelo.cli import hammer
+
+        assert result.status == 0, 'hammer ping failed'
+        services = hammer.parse_ping(result.stdout)
+        for service_name, status in services.items():
+            assert status == 'ok', f'Service {service_name} status is {status}, expected ok'
+
+    def assert_install_assertions(self):
+        """Assert common post-installation health checks.
+
+        Works for both Satellite and Capsule hosts, with both satellite-installer
+        and foremanctl installation methods. Checks logs, services, and overall
+        system health.
+        """
+        from robottelo.config import settings
+        from robottelo.enums import InstallMethod
+        from robottelo.utils.issue_handlers import is_open
+
+        is_satellite = type(self).__name__ == 'Satellite'
+
+        if is_satellite:
+            sat_version = 'stream' if self.is_stream else self.version
+            if settings.server.version.source != 'nightly':
+                assert settings.server.version.release == sat_version
+
+        # Check foreman-proxy service status (relevant for containerized Capsule)
+        if not is_satellite and self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('systemctl status foreman-proxy.service foreman.target')
+            if 'inactive (dead)' in result.stdout:
+                raise CapsuleHostError(f'foreman-proxy service is not running:\n{result.stdout}')
+
+        # Check journald for errors using installation-method-aware service list
+        services = self.get_service_names()
+        service_units = ' '.join([f'-u "{svc}"' for svc in services])
+        result = self.execute(f'journalctl --quiet --no-pager --boot --grep ERROR {service_units}')
+        if is_open('SAT-21086') and is_satellite:
+            errors = [line for line in result.stdout.splitlines() if 'PG::' not in line]
+            if is_open('SAT-49648'):
+                errors = [
+                    line
+                    for line in errors
+                    if 'Control server error: [Errno 13] Permission denied' not in line
+                ]
+            assert not errors
+        else:
+            assert not result.stdout
+
+        # Log file checks only for satellite-installer (Not applicable for containers)
+        if self.install_method == InstallMethod.INSTALLER:
+            result = self.execute(
+                r'grep "\[ERROR" --context=100 /var/log/foreman-installer/satellite.log'
+            )
+            assert not result.stdout
+
+            if is_satellite:
+                result = self.execute(
+                    r'grep --context=100 -E "\[E\|" /var/log/foreman/production.log'
+                )
+                if not is_open('SAT-21086'):
+                    assert not result.stdout
+
+                result = self.execute(r'grep -iR "error" /var/log/candlepin/*')
+                assert not result.stdout
+
+            if not is_satellite:
+                result = self.execute(
+                    r'grep "\[ERROR" --context=100 /var/log/foreman-installer/capsule.log'
+                )
+                assert not result.stdout
+
+                result = self.execute(r'grep -iR "error" /var/log/foreman-proxy/*')
+                assert not result.stdout
+
+        # Check httpd logs, filtering expected transient startup errors
+        result = self.execute(r'grep -iR "error" /var/log/httpd/*')
+        assert not result.stdout
+
+        httpd_log = self.execute('journalctl --unit=httpd')
+        assert 'WARNING' not in httpd_log.stdout
+
+        if self.install_method == InstallMethod.FOREMANCTL:
+            result = self.execute('satellitectl health')
+        else:
+            result = self.cli.Health.check()
+        assert result.status == 0
+        assert 'FAIL' not in result.stdout
+        assert 'Some services are not running' not in result.stdout
 
 
 class EnablePluginsCapsule:
@@ -245,3 +344,50 @@ class CapsuleInfo:
         ).stdout.strip()
         # assert that proxy has been used
         assert satellite_ip in diff
+
+    def configure_firewall(self, ports=None, services=None):
+        """Configure firewall with specified ports and services.
+
+        Args:
+            ports (list): List of port specifications (e.g., ['8000/tcp', '8443/tcp'])
+            services (list): List of firewall services (e.g., ['http', 'https', 'RH-Satellite-6'])
+
+        Raises:
+            AssertionError: If firewall installation, configuration, or verification fails
+        """
+        # Install and enable firewalld
+        result = self.execute(
+            'which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld'
+        )
+        assert result.status == 0, 'firewalld is not present and can\'t be installed'
+
+        # Add ports if specified
+        if ports:
+            ports_str = ' '.join([f'--add-port={port}' for port in ports])
+            result = self.execute(f'firewall-cmd {ports_str}')
+            assert result.status == 0, f'Failed to add ports: {ports}'
+
+        # Add services if specified
+        if services:
+            services_str = ' '.join([f'--add-service={service}' for service in services])
+            result = self.execute(f'firewall-cmd {services_str}')
+            assert result.status == 0, f'Failed to add services: {services}'
+
+        # Make changes persistent
+        assert self.execute('firewall-cmd --runtime-to-permanent').status == 0
+
+        # Verify configuration - check that ports and services were actually applied
+        firewall_status = self.execute('firewall-cmd --list-all')
+        assert firewall_status.status == 0, 'Failed to verify firewall configuration'
+
+        # Verify each port was added
+        if ports:
+            for port in ports:
+                assert port in firewall_status.stdout, f'Port {port} not found in firewall rules'
+
+        # Verify each service was added
+        if services:
+            for service in services:
+                assert service in firewall_status.stdout, (
+                    f'Service {service} not found in firewall rules'
+                )

@@ -13,6 +13,7 @@
 """
 
 from copy import copy
+import random
 from random import randint
 
 from fauxfactory import gen_string
@@ -24,7 +25,6 @@ from robottelo.config import get_credentials
 from robottelo.constants import DEFAULT_ARCHITECTURE, REPOS
 from robottelo.utils.datafactory import (
     invalid_values_list,
-    parametrized,
     valid_hostgroups_list,
 )
 
@@ -46,6 +46,7 @@ def puppet_hostgroup(module_puppet_org, module_puppet_loc, session_puppet_enable
 class TestHostGroup:
     """Tests for host group entity."""
 
+    @pytest.mark.foreman_installer
     @pytest.mark.upgrade
     def test_inherit_puppetclass(self, session_puppet_enabled_sat):
         """Host that created from HostGroup entity with PuppetClass
@@ -56,6 +57,8 @@ class TestHostGroup:
 
         :expectedresults: Host inherited 'all_puppetclasses' details from
             HostGroup that was used for such Host create procedure
+
+        :BlockedBy: SAT-40445
 
         :BZ: 1107708, 1222118, 1487586
 
@@ -189,23 +192,23 @@ class TestHostGroup:
             == 'Configuration successfully rebuilt.'
         )
 
-    @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))
-    def test_positive_create_with_name(self, name, module_org, module_location, module_target_sat):
+    @pytest.mark.migration_candidate
+    def test_positive_create_with_name(self, module_org, module_location, module_target_sat):
         """Create a hostgroup with different names
 
         :id: fd5d353c-fd0c-4752-8a83-8f399b4c3416
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is created with expected name
 
         :CaseImportance: Critical
         """
+        name = random.choice(valid_hostgroups_list())
         hostgroup = module_target_sat.api.HostGroup(
             location=[module_location], name=name, organization=[module_org]
         ).create()
         assert name == hostgroup.name
 
+    @pytest.mark.migration_candidate
     def test_positive_clone(self, hostgroup, target_sat):
         """Create a hostgroup by cloning an existing one
 
@@ -231,6 +234,7 @@ class TestHostGroup:
 
         assert hostgroup_cloned_reduced.items() <= hostgroup_origin.items()
 
+    @pytest.mark.foreman_installer
     def test_positive_create_with_properties(
         self, module_puppet_org, module_puppet_loc, session_puppet_enabled_sat
     ):
@@ -240,6 +244,8 @@ class TestHostGroup:
 
         :expectedresults: A hostgroup is created with expected properties,
             updated and deleted
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: High
         """
@@ -439,28 +445,30 @@ class TestHostGroup:
         hostgroup = target_sat.api.HostGroup(organization=orgs).create()
         assert {org.name for org in orgs}, {org.read().name for org in hostgroup.organization}
 
-    @pytest.mark.parametrize('name', **parametrized(valid_hostgroups_list()))
-    def test_positive_update_name(self, name, hostgroup):
+    @pytest.mark.migration_candidate
+    def test_positive_update_name(self, hostgroup):
         """Update a hostgroup with a new name
 
         :id: 8abb151f-a058-4f47-a1c1-f60a32cd7572
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is updated with expected name
 
         :CaseImportance: Critical
         """
+        name = random.choice(valid_hostgroups_list())
         hostgroup.name = name
         hostgroup = hostgroup.update(['name'])
         assert name == hostgroup.name
 
+    @pytest.mark.foreman_installer
     def test_positive_update_puppet_ca_proxy(self, puppet_hostgroup, session_puppet_enabled_sat):
         """Update a hostgroup with a new puppet CA proxy
 
         :id: fd13ab0e-1a5b-48a0-a852-3fff8306271f
 
         :expectedresults: A hostgroup is updated with expected puppet CA proxy
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: Medium
 
@@ -504,10 +512,13 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['realm'])
         assert hostgroup.realm.read().name == new_realm.name
 
+    @pytest.mark.foreman_installer
     def test_positive_update_puppet_proxy(self, puppet_hostgroup, session_puppet_enabled_sat):
         """Update a hostgroup with a new puppet proxy
 
         :id: 86eca603-2cdd-4563-b6f6-aaa5cea1a723
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: Medium
 
@@ -571,35 +582,33 @@ class TestHostGroup:
         hostgroup = hostgroup.update(['organization'])
         assert {org.name for org in new_orgs} == {org.read().name for org in hostgroup.organization}
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_name(self, name, module_org, module_location, module_target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_name(self, module_org, module_location, module_target_sat):
         """Attempt to create a hostgroup with invalid names
 
         :id: 3f5aa17a-8db9-4fe9-b309-b8ec5e739da1
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is not created
 
         :CaseImportance: Critical
         """
+        name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             module_target_sat.api.HostGroup(
                 location=[module_location], name=name, organization=[module_org]
             ).create()
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, new_name, hostgroup):
+    @pytest.mark.migration_candidate
+    def test_negative_update_name(self, hostgroup):
         """Attempt to update a hostgroup with invalid names
 
         :id: 6d8c4738-a0c4-472b-9a71-27c8a3832335
-
-        :parametrized: yes
 
         :expectedresults: A hostgroup is not updated
 
         :CaseImportance: Critical
         """
+        new_name = random.choice(invalid_values_list())
         original_name = hostgroup.name
         hostgroup.name = new_name
         with pytest.raises(HTTPError):
@@ -823,11 +832,14 @@ class TestHostGroupMissingAttr:
             f'{names.difference(hostgroup_attrs)} not found in {hostgroup_attrs}'
         )
 
+    @pytest.mark.foreman_installer
     def test_positive_read_puppet_proxy_name(self, session_puppet_enabled_sat):
         """Read a hostgroup created with puppet proxy and inspect server's
         response
 
         :id: f93d0866-0073-4577-8777-6d645b63264f
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: Medium
 
@@ -843,11 +855,14 @@ class TestHostGroupMissingAttr:
         assert 'puppet_proxy_name' in hg
         assert proxy.name == hg['puppet_proxy_name']
 
+    @pytest.mark.foreman_installer
     def test_positive_read_puppet_ca_proxy_name(self, session_puppet_enabled_sat):
         """Read a hostgroup created with puppet ca proxy and inspect server's
         response
 
         :id: ab151e09-8e64-4377-95e8-584629750659
+
+        :BlockedBy: SAT-40445
 
         :CaseImportance: Medium
 

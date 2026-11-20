@@ -19,7 +19,10 @@ import pytest
 
 from pytest_fixtures.component.usage_report import process_keys
 
-pytestmark = pytest.mark.destructive
+pytestmark = [
+    pytest.mark.destructive,
+    pytest.mark.skip(reason='Usage reports are unavailable for the containerized satellite'),
+]
 
 
 def compare_report_keys(report_keys, expected_keys):

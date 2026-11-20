@@ -224,9 +224,8 @@ def test_negative_check_katello_reimport(request, target_sat, function_org):
     target_sat.cli.Subscription.upload({'organization-id': function_org.id, 'file': remote_path})
     with pytest.raises(CLIReturnCodeError):
         target_sat.cli.Subscription.refresh_manifest({'organization-id': function_org.id})
-    exec_val = target_sat.execute(
-        'grep -i "Katello::HttpErrors::BadRequest: This Organization\'s subscription '
-        'manifest has expired. Please import a new manifest" /var/log/foreman/production.log'
+    exec_val = target_sat.grep_foreman_log(
+        "Katello::HttpErrors::BadRequest: This Organization.s subscription manifest has expired. Please import a new manifest"
     )
     assert exec_val.status == 0
     # Delete expired manifest
@@ -241,7 +240,12 @@ def test_negative_check_katello_reimport(request, target_sat, function_org):
     ret_val = target_sat.cli.Subscription.refresh_manifest({'organization-id': function_org.id})
     assert 'Candlepin job status: SUCCESS' in ret_val
     # Additional check, katello:reimport trace should not fail with TypeError
-    trace_output = target_sat.execute("foreman-rake katello:reimport --trace")
+    # On foremanctl, foreman-rake is a wrapper that rejects tasks not on its allowlist
+    # (katello:reimport is not listed); ALLOW_UNSUPPORTED=true lets it through. The var
+    # is harmless on satellite-installer, where foreman-rake has no such allowlist.
+    trace_output = target_sat.execute(
+        "ALLOW_UNSUPPORTED=true foreman-rake katello:reimport --trace"
+    )
     assert 'TypeError: no implicit conversion of String into Integer' not in trace_output.stdout
     assert trace_output.status == 0
 

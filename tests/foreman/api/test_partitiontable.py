@@ -34,15 +34,11 @@ from robottelo.utils.datafactory import (
 class TestPartitionTable:
     """Tests for the ``ptables`` path."""
 
-    @pytest.mark.parametrize(
-        'name', **parametrized(generate_strings_list(length=1, exclude_types='alphanumeric'))
-    )
-    def test_positive_create_with_one_character_name(self, target_sat, name):
+    @pytest.mark.migration_candidate
+    def test_positive_create_with_one_character_name(self, target_sat):
         """Create Partition table with 1 character in name
 
         :id: 71601d96-8ce8-4ecb-b053-af6f26a246ea
-
-        :parametrized: yes
 
         :expectedresults: Partition table was created
 
@@ -50,9 +46,11 @@ class TestPartitionTable:
 
         :CaseImportance: Low
         """
+        name = random.choice(generate_strings_list(length=1, exclude_types='alphanumeric'))
         ptable = target_sat.api.PartitionTable(name=name).create()
         assert ptable.name == name
 
+    @pytest.mark.migration_candidate
     @pytest.mark.parametrize(
         ('name', 'new_name'),
         **parametrized(
@@ -88,6 +86,7 @@ class TestPartitionTable:
         with pytest.raises(HTTPError):
             ptable.read()
 
+    @pytest.mark.migration_candidate
     @pytest.mark.parametrize(
         ('layout', 'new_layout'),
         **parametrized(list(zip(valid_data_list(), valid_data_list(), strict=True))),
@@ -110,6 +109,7 @@ class TestPartitionTable:
         ptable.layout = new_layout
         assert ptable.update(['layout']).layout == new_layout
 
+    @pytest.mark.migration_candidate
     def test_positive_create_with_layout_length(self, target_sat):
         """Create a Partition Table with layout length more than 4096 chars
 
@@ -124,6 +124,7 @@ class TestPartitionTable:
         ptable = target_sat.api.PartitionTable(layout=layout).create()
         assert ptable.layout == layout
 
+    @pytest.mark.migration_candidate
     def test_positive_create_update_with_os(self, target_sat):
         """Create new partition table with random operating system and update it with
             random operating system
@@ -141,6 +142,7 @@ class TestPartitionTable:
         ptable.os_family = new_os_family
         assert ptable.update(['os_family']).os_family == new_os_family
 
+    @pytest.mark.migration_candidate
     def test_positive_create_search_with_org(self, target_sat, module_org):
         """Create new partition table with organization and try to find it using its name and
             organization it assigned to
@@ -160,68 +162,65 @@ class TestPartitionTable:
         assert len(result) == 1
         assert result[0].read().organization[0].id == module_org.id
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_invalid_name(self, target_sat, name):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_invalid_name(self, target_sat):
         """Try to create partition table using invalid names only
 
         :id: 02631917-2f7a-4cf7-bb2a-783349a04758
-
-        :parametrized: yes
 
         :expectedresults: Partition table was not created
 
         :CaseImportance: Medium
         """
+        name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             target_sat.api.PartitionTable(name=name).create()
 
-    @pytest.mark.parametrize('layout', **parametrized(('', ' ', None)))
-    def test_negative_create_with_empty_layout(self, target_sat, layout):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_empty_layout(self, target_sat):
         """Try to create partition table with empty layout
 
         :id: 03cb7a35-e4c3-4874-841b-0760c3b8d6af
 
-        :parametrized: yes
-
         :expectedresults: Partition table was not created
         """
+        layout = random.choice(('', ' ', None))
         with pytest.raises(HTTPError):
             target_sat.api.PartitionTable(layout=layout).create()
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, target_sat, new_name):
+    @pytest.mark.migration_candidate
+    def test_negative_update_name(self, target_sat):
         """Try to update partition table using invalid names only
 
         :id: 7e9face8-2c20-450e-890c-6def6de570ca
-
-        :parametrized: yes
 
         :expectedresults: Partition table was not updated
 
         :CaseImportance: Medium
         """
+        new_name = random.choice(invalid_values_list())
         ptable = target_sat.api.PartitionTable().create()
         ptable.name = new_name
         with pytest.raises(HTTPError):
             assert ptable.update(['name']).name != new_name
 
-    @pytest.mark.parametrize('new_layout', **parametrized(('', ' ', None)))
-    def test_negative_update_layout(self, target_sat, new_layout):
+    @pytest.mark.migration_candidate
+    def test_negative_update_layout(self, target_sat):
         """Try to update partition table with empty layout
 
         :id: 35c84c8f-b802-4076-89f2-4ec04cf43a31
-
-        :parametrized: yes
 
         :expectedresults: Partition table was not updated
 
         :CaseImportance: Medium
         """
+        new_layout = random.choice(('', ' ', None))
         ptable = target_sat.api.PartitionTable().create()
         ptable.layout = new_layout
         with pytest.raises(HTTPError):
             assert ptable.update(['layout']).layout != new_layout
 
+    @pytest.mark.migration_candidate
     def test_positive_clone_locked_ptable(self, target_sat, locked_partition_table):
         """Clone a locked partition table. Verify the cloned ptable is not locked.
 

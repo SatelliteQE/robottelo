@@ -30,7 +30,10 @@ def test_positive_check_eol_date(target_sat):
     :expectedresults: EOL date from satellite-lifecycle package is accurate
     """
     current_version = '.'.join(target_sat.version.split('.')[0:2])
-    output = yaml.load(target_sat.execute(rf'cat {LIFECYCLE_METADATA_FILE}').stdout, yaml.Loader)
+    output = yaml.load(
+        target_sat.execute(rf'podman exec foreman cat {LIFECYCLE_METADATA_FILE}').stdout,
+        yaml.Loader,
+    )
     logger.debug(f'contents of {LIFECYCLE_METADATA_FILE} :{output}')
     eol_datetime = datetime.strptime(output['releases'][current_version]['end_of_life'], '%Y-%m-%d')
     result = requests.get(settings.subscription.lifecycle_api_url, verify=False)
@@ -45,7 +48,7 @@ def test_positive_check_eol_date(target_sat):
             if p['name'] == 'Maintenance support'
         ]
         if api_date[0][0] == 'string':
-            assert eol_datetime.strftime("%B, %Y") in api_date[0][1]
+            assert any(eol_datetime.strftime(fmt) in api_date[0][1] for fmt in ("%b, %Y", "%B, %Y"))
         elif api_date[0][0] == 'date':
             assert eol_datetime.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + 'Z' == api_date[0][1]
         else:

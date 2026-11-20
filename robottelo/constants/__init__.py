@@ -162,7 +162,7 @@ AZURERM_VALID_REGIONS = [
     'Norway West',
     'Norway East',
 ]
-AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:RHEL:7-RAW:latest'
+AZURERM_RHEL7_FT_IMG_URN = 'marketplace://RedHat:rhel-raw:7-raw:7.9.2026031104'
 AZURERM_RHEL9_UD_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm97:9.7.2026012716'
 AZURERM_RHEL7_FT_BYOS_IMG_URN = 'marketplace://RedHat:rhel-byos:rhel-lvm78:7.8.20200410'
 AZURERM_RHEL7_FT_CUSTOM_IMG_URN = 'custom://imageVM1-RHEL7-image-20220617150105'
@@ -318,6 +318,7 @@ REPOSET = {
     'rhel9_aps': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream (RPMs)',
     'rhel10_bos': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS (RPMs)',
     'rhel10_aps': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream (RPMs)',
+    'rhel10_ext': 'Red Hat Enterprise Linux 10 for x86_64 - Extensions (RPMs)',
     'rhel7_extra': 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)',
     'rhel7_optional': 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)',
     'rhel7_sup': 'Red Hat Enterprise Linux 7 Server - Supplementary (RPMs)',
@@ -613,32 +614,32 @@ REPOS = {
         },
         'rhel9_bos': {
             'id': 'rhel-9-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.8',
-            'version': '9.8',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - BaseOS Kickstart 9.9',
+            'version': '9.9',
             'reposet': REPOSET['kickstart']['rhel9_bos'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel9_aps': {
             'id': 'rhel-9-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.8',
-            'version': '9.8',
+            'name': 'Red Hat Enterprise Linux 9 for x86_64 - AppStream Kickstart 9.9',
+            'version': '9.9',
             'reposet': REPOSET['kickstart']['rhel9_aps'],
             'product': PRDS['rhel9'],
             'distro': 'rhel9',
         },
         'rhel10_bos': {
             'id': 'rhel-10-for-x86_64-baseos-kickstart',
-            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Kickstart 10.2',
-            'version': '10.2',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - BaseOS Kickstart 10.3',
+            'version': '10.3',
             'reposet': REPOSET['kickstart']['rhel10_bos'],
             'product': PRDS['rhel10'],
             'distro': 'rhel10',
         },
         'rhel10_aps': {
             'id': 'rhel-10-for-x86_64-appstream-kickstart',
-            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Kickstart 10.2',
-            'version': '10.2',
+            'name': 'Red Hat Enterprise Linux 10 for x86_64 - AppStream Kickstart 10.3',
+            'version': '10.3',
             'reposet': REPOSET['kickstart']['rhel10_aps'],
             'product': PRDS['rhel10'],
             'distro': 'rhel10',
@@ -710,6 +711,17 @@ REPOS = {
         'distro': 'rhel10',
         'key': 'rhel10_aps',
     },
+    'rhel10_ext': {
+        'id': 'rhel-10-for-x86_64-extensions-rpms',
+        'name': 'Red Hat Enterprise Linux 10 for x86_64 - Extensions RPMs 10',
+        'releasever': '10',
+        'basearch': 'x86_64',
+        'version': '10',
+        'reposet': REPOSET['rhel10_ext'],
+        'product': PRDS['rhel10'],
+        'distro': 'rhel10',
+        'key': 'rhel10_ext',
+    },
     'rhel7_optional': {
         'id': 'rhel-7-server-optional-rpms',
         'name': 'Red Hat Enterprise Linux 7 Server - Optional RPMs x86_64 7Server',
@@ -757,8 +769,8 @@ REPOS = {
 # RHEL versions for LEAPP testing
 RHEL7_VER = '7.9'
 RHEL8_VER = '8.10'
-RHEL9_VER = '9.8'
-RHEL10_VER = '10.2'
+RHEL9_VER = '9.9'
+RHEL10_VER = '10.3'
 
 BULK_REPO_LIST = [
     REPOS['rhel7_optional'],
@@ -782,7 +794,9 @@ DEFAULT_SUBSCRIPTION_NAME = 'Red Hat Enterprise Linux Server, Premium (Physical 
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 DEFAULT_ROLE = 'Default role'
-DEFAULT_OS_SEARCH_QUERY = 'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9")'
+DEFAULT_OS_SEARCH_QUERY = (
+    'name="RedHat" AND (major="6" OR major="7" OR major="8" OR major="9" OR major="10")'
+)
 
 
 TIMESTAMP_FMT_ZONE = '%Y-%m-%d %H:%M:%S %Z'  # timezone-aware format (by code: UTC, EST, etc)
@@ -878,7 +892,6 @@ CUSTOM_LOCAL_FOLDER = '/var/lib/pulp/imports/myrepo/'
 CUSTOM_LOCAL_FILE = '/var/lib/pulp/imports/myrepo/test.txt'
 CUSTOM_FILE_REPO_FILES_COUNT = 3
 CUSTOM_RPM_SHA_512_FEED_COUNT = {'rpm': 35, 'errata': 4}
-CERT_PATH = "/etc/pki/ca-trust/source/anchors/"
 CONTAINER_CERTS_PATH = "/etc/containers/certs.d/"
 CERT_DATA = {
     'capsule_hostname': 'capsule.example.com',
@@ -917,7 +930,6 @@ REAL_RHEL7_0_2_PACKAGE_FILENAME = 'python2-psutil-5.7.2-2.el7sat.x86_64.rpm'
 REAL_RHEL8_1_PACKAGE_NAME = 'puppet-agent'  # for RHSA-2022:4867
 REAL_RHEL8_1_PACKAGE_FILENAME = 'puppet-agent-6.19.1-1.el8sat.x86_64'
 REAL_RHEL8_2_PACKAGE_FILENAME = 'puppet-agent-6.26.0-1.el8sat.x86_64'
-FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_3_YUM_OUTDATED_PACKAGES = [
     'acme-package-1.0.1-1.noarch',
     'ant-7.7.5-1.noarch',
@@ -966,7 +978,7 @@ REAL_RHEL9_OUTDATED_PACKAGE_FILENAME = 'python3-gofer-2.12.5-7.1.el9sat.noarch'
 REAL_RHEL9_PACKAGE = 'python3-gofer'
 REAL_RHEL10_OUTDATED_PACKAGE_FILENAME = 'katello-host-tools-4.4.0-1.el10sat.noarch'
 REAL_RHEL10_PACKAGE = 'katello-host-tools'
-REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # for rhst7 (update every GA day)
+REAL_0_ERRATA_ID = 'RHBA-2021:1314'  # immutable; from EOL/frozen rhst7 (Sat Tools 6.9, RHEL7)
 REAL_1_ERRATA_ID = 'RHBA-2012:1076'  # for REAL_0_RH_PACKAGE
 REAL_2_ERRATA_ID = 'RHBA-2012:0707'  # for REAL_0_RH_PACKAGE
 REAL_4_ERRATA_ID = 'RHSA-2014:1873'  # for rhva6 with type=security and cves
@@ -1044,12 +1056,6 @@ FAKE_11_YUM_ENHANCEMENT_ERRATUM = [
 ]
 FAKE_11_YUM_ENHANCEMENT_ERRATUM_COUNT = len(FAKE_11_YUM_ENHANCEMENT_ERRATUM)
 
-FAKE_0_CUSTOM_PACKAGE_GROUP = [
-    'cockateel-3.1-1.noarch',
-    'duck-0.6-1.noarch',
-    'penguin-0.9.1-1.noarch',
-    'stork-0.12-2.noarch',
-]
 FAKE_1_YUM_REPO_RPMS = ['bear-4.1-1.noarch.rpm', 'camel-0.1-1.noarch.rpm', 'cat-1.0-1.noarch.rpm']
 FAKE_3_YUM_REPO_RPMS = [
     'ant-7.7.7-1.noarch.rpm',
@@ -1662,7 +1668,6 @@ PERMISSIONS = {
         'unattach_subscriptions',
         'import_manifest',
         'delete_manifest',
-        'manage_subscription_allocations',
     ],
     'Organization': [
         'view_organizations',
@@ -1672,6 +1677,7 @@ PERMISSIONS = {
         'assign_organizations',
         'import_content',
         'export_content',
+        'manage_subscription_allocations',
     ],
     'Katello::SyncPlan': [
         'view_sync_plans',
@@ -2111,19 +2117,13 @@ BOOKMARK_ENTITIES_SELECTION = [
         'controller': 'provisioning_templates',
         'session_name': 'provisioningtemplate',
     },
-    {
-        'name': 'ArfReport',
-        'controller': 'arf_reports',
-        'session_name': 'arfreport',
-        'skip_for_ui': True,  # search bar is only available when reports exist; otherwise the welcome page renders
-    },
 ]
 
 STRING_TYPES = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8', 'cjk', 'html']
 
 VMWARE_CONSTANTS = {
     'folder': 'vm',
-    'scsicontroller': 'LSI Logic Parallel',
+    'scsicontroller': 'VMware Paravirtual',
     'virtualhw_version': 'Default',
     'pool': 'Resources',
     'network_interface_name': 'VMXNET 3',
@@ -2152,7 +2152,7 @@ FOREMAN_TEMPLATES_NOT_IMPORTED_COUNT = {
     'PUPPET_ENABLED': 8,
     'PUPPET_DISABLED': 9,
 }
-FOREMAN_TEMPLATE_IMPORT_API_URL = 'http://api.github.com/repos/SatelliteQE/foreman_templates'
+FOREMAN_TEMPLATE_IMPORT_API_URL = 'https://api.github.com/repos/SatelliteQE/foreman_templates'
 
 FOREMAN_TEMPLATE_TEST_TEMPLATE = (
     'https://raw.githubusercontent.com/SatelliteQE/foreman_templates/example/example_template.erb'
@@ -2160,6 +2160,7 @@ FOREMAN_TEMPLATE_TEST_TEMPLATE = (
 
 FOREMAN_TEMPLATE_ROOT_DIR = '/usr/share/foreman_templates'
 FOREMAN_CONFIG_SETTINGS_YAML = '/usr/share/foreman/config/settings.yaml'
+SETTINGS_YAML_SECRET = 'foreman-settings-yaml'
 
 DEFAULT_SYSPURPOSE_ATTRIBUTES = {
     'service_level': ('sla', 'Self-Support', 'Standard', 'Premium'),
@@ -2239,6 +2240,8 @@ RHSSO_NEW_GROUP = {
 RHSSO_RESET_PASSWORD = {"temporary": "false", "type": "password", "value": ""}
 
 LOGIN_DELEGATION_LOGOUT_URL = "https://theforeman.org/"
+
+ANSIBLE_ROLES_PATH = '/var/lib/foreman-proxy/ansible/roles'
 
 FOREMAN_ANSIBLE_MODULES = [
     "activation_key",
@@ -2450,9 +2453,6 @@ FAM_TEST_PLAYBOOKS = [
     "webhook",
 ]
 
-# randomly selected subset of FAM_TEST_PLAYBOOKS to be run in IDM tests
-FAM_IDM_TEST_PLAYBOOKS = ['activation_key', 'content_view', 'job_invocation']
-
 FAM_TEST_LIBVIRT_PLAYBOOKS = [
     "compute_attribute",
     "compute_profile",
@@ -2499,9 +2499,6 @@ WEBHOOK_EVENTS = [
     "actions.remote_execution.run_host_job_ansible_run_playbook_succeeded",
     "actions.remote_execution.run_host_job_foreman_openscap_run_scans_succeeded",
     "actions.remote_execution.run_host_job_katello_errata_install_succeeded",
-    "actions.remote_execution.run_host_job_katello_group_install_succeeded",
-    "actions.remote_execution.run_host_job_katello_group_remove_succeeded",
-    "actions.remote_execution.run_host_job_katello_group_update_succeeded",
     "actions.remote_execution.run_host_job_katello_module_stream_action_succeeded",
     "actions.remote_execution.run_host_job_katello_package_install_succeeded",
     "actions.remote_execution.run_host_job_katello_package_remove_succeeded",
@@ -2606,6 +2603,16 @@ class InstallationServices:
         'tomcat',
     ]
 
+    INSTALLER_CAPSULE_SERVICES = [
+        'foreman-proxy',
+        'httpd',
+        'postgresql',
+        'pulpcore-api',
+        'pulpcore-content',
+        'pulpcore-worker@*',
+        'redis',
+    ]
+
     # foremanctl quadlet container services
     FOREMANCTL_SERVICES = [
         'candlepin',
@@ -2620,6 +2627,41 @@ class InstallationServices:
         'pulp-content',
         'pulp-worker@*',
         'valkey',
+    ]
+
+    FOREMANCTL_CAPSULE_SERVICES = [
+        'foreman-proxy',
+        'httpd',
+        'postgresql',
+        'pulp-api',
+        'pulp-content',
+        'pulp-worker@*',
+        'valkey',
+    ]
+
+    # IoP (Insights on Prem) quadlet container services, only present while IoP is enabled
+    IOP_SERVICES = [
+        'iop-core-engine',
+        'iop-core-gateway',
+        'iop-core-host-inventory-api',
+        'iop-core-host-inventory-migrate',
+        'iop-core-host-inventory',
+        'iop-core-ingress',
+        'iop-core-kafka',
+        'iop-core-puptoo',
+        'iop-core-yuptoo',
+        'iop-service-advisor-backend-api',
+        'iop-service-advisor-backend-service',
+        'iop-service-remediations-api',
+        'iop-service-vmaas-reposcan',
+        'iop-service-vmaas-webapp-go',
+        'iop-service-vuln-dbupgrade',
+        'iop-service-vuln-evaluator-recalc',
+        'iop-service-vuln-evaluator-upload',
+        'iop-service-vuln-grouper',
+        'iop-service-vuln-listener',
+        'iop-service-vuln-manager',
+        'iop-service-vuln-taskomatic',
     ]
 
 
@@ -2647,3 +2689,14 @@ class DataFile(Box):
     EXPIRED_MANIFEST_FILE = DATA_DIR.joinpath(EXPIRED_MANIFEST)
     USAGE_REPORT_ITEMS = DATA_DIR.joinpath('usage_report.yml')
     USAGE_REPORT_ITEMS_CONDENSED = DATA_DIR.joinpath('usage_report_condensed.yml')
+
+
+class CertificateAlgorithmOIDs:
+    """OID strings for certificate algorithms (SAT-48622)."""
+
+    # Signature algorithms
+    SHA256_WITH_RSA = "1.2.840.113549.1.1.11"
+
+    # Key algorithms
+    RSA = "1.2.840.113549.1.1.1"
+    ML_DSA_65 = "2.16.840.1.101.3.4.3.18"  # Post-quantum (not yet supported by Candlepin)

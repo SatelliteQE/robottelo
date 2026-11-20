@@ -15,6 +15,7 @@ http://www.katello.org/docs/api/apidoc/compute_resources.html
 
 """
 
+import json
 import random
 
 from fauxfactory import gen_string
@@ -24,14 +25,11 @@ from robottelo.config import settings
 from robottelo.constants import GCE_RHEL_CLOUD_PROJECTS, VALID_GCE_ZONES
 from robottelo.utils.issue_handlers import is_open
 
-pytestmark = pytest.mark.foreman_installer
-
 
 @pytest.mark.skip_if_not_set('gce')
 class TestGCEComputeResourceTestCases:
     """Tests for ``api/v2/compute_resources``."""
 
-    @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
     def test_positive_crud_gce_cr(self, sat_gce, sat_gce_org, sat_gce_loc, gce_cert):
         """Create, Read, Update and Delete GCE compute resources
 
@@ -47,7 +45,7 @@ class TestGCEComputeResourceTestCases:
         compresource = sat_gce.api.GCEComputeResource(
             name=cr_name,
             provider='GCE',
-            key_path=settings.gce.cert_path,
+            key_content=json.dumps(gce_cert),
             zone=settings.gce.zone,
             organization=[sat_gce_org],
             location=[sat_gce_loc],
@@ -228,7 +226,6 @@ class TestGCEHostProvisioningTestCase:
         (is_open('SAT-27997')),
         reason='Google CR APIs failing',
     )
-    @pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
     def test_positive_gce_host_provisioned(self, class_host, google_host):
         """Host can be provisioned on Google Cloud
 
@@ -270,8 +267,8 @@ class TestGCEHostProvisioningTestCase:
             2. The provisioned host should be powered on and on requesting so
         """
         class_host.power(data={'power_action': 'stop'})
-        google_host.wait_for_state('VmState.STOPPED', '5m')
+        google_host.wait_for_state('VmState.STOPPED', 300)
         assert google_host.is_stopped
         class_host.power(data={'power_action': 'start'})
-        google_host.wait_for_state('VmState.RUNNING', '2m')
+        google_host.wait_for_state('VmState.RUNNING', 120)
         assert google_host.is_running

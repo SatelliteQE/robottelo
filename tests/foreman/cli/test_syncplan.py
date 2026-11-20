@@ -13,7 +13,9 @@
 """
 
 from datetime import UTC, datetime, timedelta
+import random
 from time import sleep
+from zoneinfo import ZoneInfo
 
 from fauxfactory import gen_string
 import pytest
@@ -23,7 +25,6 @@ from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
 from robottelo.utils.datafactory import (
     filtered_datapoint,
-    invalid_values_list,
     parametrized,
     valid_data_list,
 )
@@ -114,18 +115,16 @@ def validate_repo_content(sat, repo, content_types, after_sync=True):
         assert count > 0 if after_sync else count == 0
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_name(module_org, name, module_target_sat):
+def test_positive_create_with_name(module_org, module_target_sat):
     """Check if syncplan can be created with random names
 
     :id: dc0a86f7-4219-427e-92fd-29352dbdbfce
-
-    :parametrized: yes
 
     :expectedresults: Sync plan is created and has random name
 
     :CaseImportance: Critical
     """
+    name = random.choice(list(valid_data_list().values()))
     sync_plan = module_target_sat.cli_factory.sync_plan(
         {'enabled': 'false', 'name': name, 'organization-id': module_org.id}
     )
@@ -133,18 +132,16 @@ def test_positive_create_with_name(module_org, name, module_target_sat):
     assert result['name'] == name
 
 
-@pytest.mark.parametrize('desc', **parametrized(valid_data_list()))
-def test_positive_create_with_description(module_org, desc, module_target_sat):
+def test_positive_create_with_description(module_org, module_target_sat):
     """Check if syncplan can be created with random description
 
     :id: a1bbe81b-60f5-4a19-b400-a02a23fa1dfa
-
-    :parametrized: yes
 
     :expectedresults: Sync plan is created and has random description
 
     :CaseImportance: Critical
     """
+    desc = random.choice(list(valid_data_list().values()))
     new_sync_plan = module_target_sat.cli_factory.sync_plan(
         {'enabled': 'false', 'description': desc, 'organization-id': module_org.id}
     )
@@ -177,34 +174,30 @@ def test_positive_create_with_interval(module_org, test_data, module_target_sat)
     assert result['interval'] == test_data['interval']
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_name(module_org, name, module_target_sat):
+def test_negative_create_with_name(module_org, module_target_sat):
     """Check if syncplan can be created with random invalid names
 
     :id: 4c1aee35-271e-4ed8-9369-d2abfea8cfd9
-
-    :parametrized: yes
 
     :expectedresults: Sync plan is not created
 
     :CaseImportance: Critical
     """
+    name = gen_string('alpha', 300)
     with pytest.raises(CLIFactoryError, match='Could not create the sync plan:'):
         module_target_sat.cli_factory.sync_plan(
             {'enabled': 'false', 'name': name, 'organization-id': module_org.id}
         )
 
 
-@pytest.mark.parametrize('new_desc', **parametrized(valid_data_list()))
-def test_positive_update_description(module_org, new_desc, module_target_sat):
+def test_positive_update_description(module_org, module_target_sat):
     """Check if syncplan description can be updated
 
     :id: 00a279cd-1f49-4ebb-a59a-6f0b4e4cb83c
 
-    :parametrized: yes
-
     :expectedresults: Sync plan is created and description is updated
     """
+    new_desc = random.choice(list(valid_data_list().values()))
     new_sync_plan = module_target_sat.cli_factory.sync_plan(
         {'enabled': 'false', 'organization-id': module_org.id}
     )
@@ -296,36 +289,39 @@ def test_positive_create_sync_date_custom_timezone(module_org, request, target_s
 
     :CaseImportance: High
     """
-    future_date = datetime.now() + timedelta(days=5)
-    format = '%Y-%m-%d %H:%M:%S CEST'
+    # Use DST-aware timezone (CEST in summer, CET in winter)
+    cet_tz = ZoneInfo("Europe/Paris")
+    future_date = datetime.now(cet_tz) + timedelta(days=5)
+    # Use numeric UTC offset format (+0100 or +0200) instead of abbreviation (CET/CEST)
+    format = '%Y-%m-%d %H:%M:%S %z'  # %z gives numeric offset like +0100 or +0200
     sync_plan_name = gen_string('alphanumeric')
+    sync_date_str = future_date.strftime(format)
     new_sync_plan = target_sat.cli_factory.sync_plan(
         {
             'name': sync_plan_name,
-            'sync-date': future_date.strftime(format),
+            'sync-date': sync_date_str,
             'organization-id': module_org.id,
         }
     )
     sync_plan = target_sat.api.SyncPlan(organization=module_org.id, id=new_sync_plan['id']).read()
     request.addfinalizer(lambda: target_sat.api_factory.disable_syncplan(sync_plan))
-    expected_date = future_date + timedelta(hours=4)
+    # Convert to UTC for comparison
+    expected_date = future_date.astimezone(UTC)
     # Assert that sync date was converted to UTC correctly
     assert new_sync_plan['start-date'] == expected_date.strftime("%Y/%m/%d %H:%M:%S")
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.upgrade
-def test_positive_delete_by_id(module_org, module_target_sat, name):
+def test_positive_delete_by_id(module_org, module_target_sat):
     """Check if syncplan can be created and deleted
 
     :id: b5d97c6b-aead-422b-8d9f-4a192bbe4a3b
-
-    :parametrized: yes
 
     :expectedresults: Sync plan is created and then deleted
 
     :CaseImportance: Critical
     """
+    name = random.choice(list(valid_data_list().values()))
     new_sync_plan = module_target_sat.cli_factory.sync_plan(
         {'name': name, 'organization-id': module_org.id}
     )

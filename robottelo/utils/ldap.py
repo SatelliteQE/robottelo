@@ -16,11 +16,15 @@ def get_ldap_cacert_pem(sat, server_type, hostname):
         assert result.status == 0, f'Failed to fetch IPA CA cert: {result.stderr}'
         return result.stdout
     if server_type == 'AD':
-        sat.execute('yum -y --disableplugin=foreman-protector install cifs-utils')
-        sat.execute(
+        # If the CA is removed, Satellite Engineering repositories cannot be verified.
+        # cifs-utils only requires RHEL repositories.
+        result = sat.execute("yum -y --disablerepo='Satellite*' install cifs-utils")
+        assert result.status == 0, f'Failed to install cifs-utils: {result.stderr}'
+        result = sat.execute(
             rf'mount -t cifs -o username=administrator,pass={settings.ldap.password} '
             rf'//{hostname}/c\$ /mnt'
         )
+        assert result.status == 0, f'Failed to mount AD certificate share: {result.stderr}'
         try:
             cert_path = '/mnt/Users/Administrator/Desktop/satqe-QE-SAT6-AD-CA.cer'
             result = sat.execute(f'cat {cert_path}')

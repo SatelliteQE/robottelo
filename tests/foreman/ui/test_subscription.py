@@ -124,11 +124,14 @@ def test_positive_access_with_non_admin_user_without_manifest(test_name, target_
         {
             'Katello::Subscription': [
                 'view_subscriptions',
-                'manage_subscription_allocations',
                 'import_manifest',
                 'delete_manifest',
             ],
-            'Organization': ['view_organizations', 'edit_organizations'],
+            'Organization': [
+                'view_organizations',
+                'edit_organizations',
+                'manage_subscription_allocations',
+            ],
         },
     )
     user_password = gen_string('alphanumeric')
@@ -380,7 +383,7 @@ def test_positive_populate_future_date_subcription(
         # Get subscription Start Date and compare with current date
         subscriptions = session.subscription.read_subscriptions()
         if not any(
-            datetime.strptime(sub['Start date'], '%b %d, %Y').date() > current_date
+            datetime.strptime(sub['Start date'], '%B %d, %Y at %I:%M %p').date() > current_date
             for sub in subscriptions
         ):
             raise AssertionError('Subscription start date is not in the future')

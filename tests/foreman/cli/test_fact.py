@@ -129,8 +129,7 @@ def test_positive_facts_end_to_end(
         'net::interface::eth1::ipv4_address': ip,
         'network::fqdn': rhel_contenthost.hostname,
         'lscpu::architecture': rhel_contenthost.arch,
-        'ansible_distribution_major_version': str(rhel_contenthost.os_version.major),
-        'ansible_fqdn': rhel_contenthost.hostname,
+        'distribution::version': f'{rhel_contenthost.os_version.major}.{rhel_contenthost.os_version.minor}',
     }
     for fact, expected_value in expected_values.items():
         actual_value = facts_dict.get(fact)

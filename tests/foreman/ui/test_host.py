@@ -42,7 +42,6 @@ from robottelo.constants import (
     OSCAP_WEEKDAY,
     REPO_TYPE,
     REPOS,
-    ROLES,
 )
 from robottelo.constants.repos import CUSTOM_FILE_REPO
 from robottelo.exceptions import APIResponseError
@@ -201,6 +200,12 @@ def ui_user(ui_user, smart_proxy_location, module_target_sat):
 
 
 @pytest.fixture
+def function_sca_manifest_org(smart_proxy_function_sca_manifest_org):
+    """Override function_sca_manifest_org to use smart proxy enabled organization"""
+    return smart_proxy_function_sca_manifest_org
+
+
+@pytest.fixture
 def ui_admin_user(target_sat):
     """Admin user."""
     admin_user = target_sat.api.User().search(
@@ -222,22 +227,24 @@ def host_ui_default(target_sat):
 
 
 @pytest.fixture
-def ui_view_hosts_user(target_sat, current_sat_org, current_sat_location, expected_permissions):
+def ui_view_hosts_user(target_sat, expected_permissions):
     """User with View hosts role."""
-    role = target_sat.api.Role(organization=[current_sat_org]).create()
+    default_org = target_sat.api.Organization().search(query={'search': f'name="{DEFAULT_ORG}"'})[0]
+    default_loc = target_sat.api.Location().search(query={'search': f'name="{DEFAULT_LOC}"'})[0]
+    role = target_sat.api.Role(organization=[default_org]).create()
     target_sat.api_factory.create_role_permissions(
         role,
         {
             'Host': ['view_hosts'],
-            'Organization': expected_permissions['Organization'],
-            'Location': expected_permissions['Location'],
+            'Organization': ['view_organizations'],
+            'Location': ['view_locations'],
         },
     )
     password = gen_string('alphanumeric')
     user = target_sat.api.User(
         admin=False,
-        location=[current_sat_location],
-        organization=[current_sat_org],
+        organization=[default_org],
+        location=[default_loc],
         role=[role],
         password=password,
     ).create()
@@ -602,7 +609,7 @@ def test_positive_assign_taxonomies(
 @pytest.mark.skipif(
     (settings.ui.webdriver != 'chrome'), reason='Currently only chrome is supported'
 )
-def test_positive_export_selected_columns(request, target_sat, current_sat_location):
+def test_positive_export_selected_columns(request, target_sat):
     """Select certain columns in the hosts table and check that they are exported in the CSV file.
 
     :id: 2b65c1d6-0b94-11ef-a4b7-000c2989e153
@@ -646,14 +653,25 @@ def test_positive_export_selected_columns(request, target_sat, current_sat_locat
         Box(ui='RHEL Lifecycle status', csv='Rhel Lifecycle Status', displayed=True),
         Box(ui='Installable updates', csv='Installable updates', displayed=False),
         Box(ui='Last seen', csv='Last Checkin', displayed=True),
-        Box(ui='Lifecycle environment', csv='Lifecycle Environment', displayed=True),
-        Box(ui='Content view', csv='Content View', displayed=True),
+        Box(ui='Content view environments', csv='Content View Environments', displayed=True),
         Box(ui='Registered at', csv='Registered', displayed=True),
         Box(ui='Recommendations', csv='Recommendations', displayed=True),
     )
 
+    fake_host = target_sat.cli_factory.make_fake_host(
+        {
+            'organization': DEFAULT_ORG,
+            'location': DEFAULT_LOC,
+        }
+    )
+
+    @request.addfinalizer
+    def _cleanup():
+        target_sat.api.Host().search(query={"search": f'name={fake_host.name}'})[0].delete()
+
     with target_sat.ui_session() as session:
-        session.location.select(loc_name=current_sat_location.name)
+        session.organization.select(org_name=DEFAULT_ORG)
+        session.location.select(loc_name=DEFAULT_LOC)
         # Save original column settings
         original_headers = session.all_hosts.get_displayed_table_headers()
         original_columns = {header: True for header in original_headers if header is not None}
@@ -661,7 +679,8 @@ def test_positive_export_selected_columns(request, target_sat, current_sat_locat
         def restore_columns():
             """Restore original column settings after test"""
             with target_sat.ui_session() as restore_session:
-                restore_session.location.select(loc_name=current_sat_location.name)
+                restore_session.organization.select(org_name=DEFAULT_ORG)
+                restore_session.location.select(loc_name=DEFAULT_LOC)
                 wait_for(lambda: restore_session.browser.refresh(), timeout=5)
                 all_possible_columns = {column.ui: False for column in columns}
                 all_possible_columns.update(original_columns)
@@ -797,7 +816,7 @@ def test_positive_remove_parameter_non_admin_user(
         role,
         {
             'Parameter': expected_permissions['Parameter'],
-            'Host': expected_permissions['Host'],
+            'Host': ['view_hosts', 'edit_hosts'],
             'Operatingsystem': ['view_operatingsystems'],
             'Organization': expected_permissions['Organization'],
             'Location': expected_permissions['Location'],
@@ -1091,10 +1110,9 @@ def test_positive_search_by_reported_data(
             )
 
 
-@pytest.mark.usefixtures('function_host')
-def test_positive_search_by_configuration_status_alias(target_sat):
+def test_positive_search_by_configuration_status_alias(target_sat, function_host):
     """
-    Search for host by new alias `configuration_status`.
+    Search for host by new alias `configuration_status` within its organization and location.
 
     :id: 6af725d2-44fe-4b04-a8d6-ce8321a673d4
 
@@ -1115,8 +1133,8 @@ def test_positive_search_by_configuration_status_alias(target_sat):
     ]
 
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=ANY_CONTEXT['org'])
-        session.location.select(loc_name=ANY_CONTEXT['location'])
+        session.organization.select(org_name=function_host.organization.read().name)
+        session.location.select(loc_name=function_host.location.read().name)
 
         for search_param in search_params:
             results = {}
@@ -1295,10 +1313,8 @@ def test_positive_validate_inherited_cvenv_ansiblerole(session, target_sat, modu
     :customerscenario: true
 
     :BZ: 1391656, 2094912
-
-    :BlockedBy: SAT-46639
     """
-    SELECTED_ROLE = 'RedHatInsights.insights-client'
+    SELECTED_ROLE = 'redhat.satellite.hostgroups'
     cv_name = gen_string('alpha')
     lce_name = gen_string('alphanumeric')
     cv = target_sat.api_factory.cv_publish_promote(
@@ -1316,6 +1332,14 @@ def test_positive_validate_inherited_cvenv_ansiblerole(session, target_sat, modu
     )
     target_sat.cli.Ansible.roles_sync(
         {'role-names': SELECTED_ROLE, 'proxy-id': target_sat.nailgun_smart_proxy.id}
+    )
+    wait_for(
+        lambda: bool(
+            target_sat.api.AnsibleRoles().search(query={'search': f'name="{SELECTED_ROLE}"'})
+        ),
+        timeout=60,
+        delay=2,
+        logger=logger,
     )
     cv_env_id = target_sat.api_factory.get_cvenv_id(cv, lce)
     hostgroup = target_sat.cli_factory.hostgroup(
@@ -1347,8 +1371,8 @@ def test_positive_validate_inherited_cvenv_ansiblerole(session, target_sat, modu
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_host_template.organization.name)
         session.location.select(loc_name=module_host_template.location.name)
-        values = session.host_new.read(host['name'], ['host.content_view_environment'])
-        assert values['host']['content_view_environment'] == f'{lce.name}/{cv.name}'
+        values = session.host_new.read(host['name'], ['host.read_content_view_environment'])
+        assert values['host']['read_content_view_environment'] == f'{lce.name}/{cv.name}'
         matching_hosts = target_sat.api.Host().search(
             query={'search': f'ansible_role="{SELECTED_ROLE}"'}
         )
@@ -1381,9 +1405,7 @@ def test_positive_read_details_page_from_new_ui(target_sat, host_ui_options):
         assert values['overview']['details']['details']['comment'] == 'Host with fake data'
 
 
-def test_positive_manage_table_columns(
-    target_sat, test_name, ui_hosts_columns_user, current_sat_org, current_sat_location
-):
+def test_positive_manage_table_columns(request, target_sat, test_name, ui_hosts_columns_user):
     """Set custom columns of the hosts table.
 
     :id: e5e18982-cc43-11ed-8562-000c2989e153
@@ -1416,11 +1438,22 @@ def test_positive_manage_table_columns(
         'Boot time': True,
         'Recommendations': False,
     }
+    fake_host = target_sat.cli_factory.make_fake_host(
+        {
+            'organization': DEFAULT_ORG,
+            'location': DEFAULT_LOC,
+        }
+    )
+
+    @request.addfinalizer
+    def _cleanup():
+        target_sat.api.Host().search(query={"search": f'name={fake_host.name}'})[0].delete()
+
     with target_sat.ui_session(
         test_name, ui_hosts_columns_user.login, ui_hosts_columns_user.password
     ) as session:
-        session.organization.select(org_name=current_sat_org.name)
-        session.location.select(loc_name=current_sat_location.name)
+        session.organization.select(DEFAULT_ORG)
+        session.location.select(DEFAULT_LOC)
         session.all_hosts.manage_table_columns(columns)
         displayed_columns = session.host.get_displayed_table_headers()
         for column, is_displayed in columns.items():
@@ -1461,8 +1494,9 @@ def test_all_hosts_manage_columns(target_sat):
             assert (column in displayed_columns) is is_displayed
 
 
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_host_details_read_templates(
-    session, target_sat, current_sat_org, current_sat_location
+    session, target_sat, rhel_contenthost, module_org, module_ak_with_cv
 ):
     """Check if all assigned host provisioning templates are correctly reported
     in host detail / Details tab / Provisioning templates card.
@@ -1470,10 +1504,11 @@ def test_positive_host_details_read_templates(
     :id: 43ca722e-d28a-11ed-8970-000c2989e153
 
     :steps:
-        1. Go to Hosts page and select the Satellite host machine.
-        2. Go to the Details tab.
-        3. Gather all names from the `Provisioning templates` card.
-        4. Compare them with the host provisioning templates obtained via API.
+        1. Register a RHEL content host.
+        2. Go to Hosts page and select the registered host.
+        3. Go to the Details tab.
+        4. Gather all names from the `Provisioning templates` card.
+        5. Compare them with the host provisioning templates obtained via API.
 
     :expectedresults: Provisioning templates reported via API and in UI should match.
 
@@ -1481,12 +1516,16 @@ def test_positive_host_details_read_templates(
 
     :customerscenario: true
     """
-    host = target_sat.api.Host().search(query={'search': f'name={target_sat.hostname}'})[0]
+    result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
+    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    host = target_sat.api.Host().search(query={'search': f'name={rhel_contenthost.hostname}'})[0]
     api_templates = [template['name'] for template in host.list_provisioning_templates()]
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=current_sat_org.name)
-        session.location.select(loc_name=current_sat_location.name)
-        host_detail = session.host_new.get_details(target_sat.hostname, widget_names='details')
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=DEFAULT_LOC)
+        host_detail = session.host_new.get_details(
+            rhel_contenthost.hostname, widget_names='details'
+        )
         ui_templates = [
             row['column1'].strip()
             for row in host_detail['details']['provisioning_templates']['templates_table']
@@ -1497,7 +1536,7 @@ def test_positive_host_details_read_templates(
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
+    'module_repos_collection_with_smart_proxy',
     [{'YumRepository': {'url': settings.repos.yum_3.url}}],
     ids=['yum_3'],
     indirect=True,
@@ -1506,7 +1545,7 @@ def test_positive_update_delete_package(
     session,
     target_sat,
     rhel_contenthost,
-    module_repos_collection_with_setup,
+    module_repos_collection_with_smart_proxy,
     module_org,
 ):
     """Update a package on a host using the new Content tab
@@ -1528,11 +1567,11 @@ def test_positive_update_delete_package(
     """
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+    module_repos_collection_with_smart_proxy.setup_virtual_machine(client, enable_custom_repos=True)
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
-        product_name = module_repos_collection_with_setup.custom_product.name
+        product_name = module_repos_collection_with_smart_proxy.custom_product.name
 
         session.host_new.override_repo_sets(client.hostname, product_name, "Override to disabled")
         repos = session.host_new.get_repo_sets(client.hostname, product_name)
@@ -1612,7 +1651,7 @@ def test_positive_update_delete_package(
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
+    'module_repos_collection_with_smart_proxy',
     [{'YumRepository': {'url': settings.repos.yum_3.url}}],
     ids=['yum3'],
     indirect=True,
@@ -1621,8 +1660,8 @@ def test_positive_apply_erratum(
     session,
     target_sat,
     rhel_contenthost,
-    module_repos_collection_with_setup,
-    module_org,
+    module_repos_collection_with_smart_proxy,
+    smart_proxy_module_org,
 ):
     """Apply an erratum on a host using the new Errata tab
 
@@ -1643,13 +1682,13 @@ def test_positive_apply_erratum(
     # install package
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+    module_repos_collection_with_smart_proxy.setup_virtual_machine(client, enable_custom_repos=True)
     errata_id = settings.repos.yum_3.errata[25]
     client.run(f'yum install -y {FAKE_7_CUSTOM_PACKAGE}')
     result = client.run(f'rpm -q {FAKE_7_CUSTOM_PACKAGE}')
     assert result.status == 0
     with target_sat.ui_session() as session:
-        session.organization.select(org_name=module_org.name)
+        session.organization.select(org_name=smart_proxy_module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
         assert session.host_new.search(client.hostname)[0]['Name'] == client.hostname
         # read widget on overview page
@@ -1690,7 +1729,7 @@ def test_positive_apply_erratum(
 @pytest.mark.rhel_ver_match('N-1')
 @pytest.mark.no_containers
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
+    'module_repos_collection_with_smart_proxy',
     [{'YumRepository': {'url': settings.repos.module_stream_1.url}}],
     ids=['module_stream_1'],
     indirect=True,
@@ -1699,7 +1738,7 @@ def test_positive_crud_module_streams(
     session,
     target_sat,
     rhel_contenthost,
-    module_repos_collection_with_setup,
+    module_repos_collection_with_smart_proxy,
     module_org,
 ):
     """CRUD test for the Module streams new UI tab
@@ -1721,7 +1760,7 @@ def test_positive_crud_module_streams(
     module_name = 'duck'
     client = rhel_contenthost
     client.add_rex_key(target_sat)
-    module_repos_collection_with_setup.setup_virtual_machine(client, enable_custom_repos=True)
+    module_repos_collection_with_smart_proxy.setup_virtual_machine(client, enable_custom_repos=True)
     with target_sat.ui_session() as session:
         session.organization.select(org_name=module_org.name)
         session.location.select(loc_name=DEFAULT_LOC)
@@ -1802,6 +1841,7 @@ def module_puppet_enabled_proxy_with_loc(
     session_puppet_enabled_proxy.update(['location'])
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_create_with_puppet_class(
@@ -1817,6 +1857,8 @@ def test_positive_create_with_puppet_class(
     :id: d883f169-1105-435c-8422-a7160055734a
 
     :expectedresults: Host is created and contains correct puppet class
+
+    :BlockedBy: SAT-40445
     """
 
     host_template = session_puppet_enabled_sat.api.Host(
@@ -1861,6 +1903,7 @@ def test_positive_create_with_puppet_class(
         )
 
 
+@pytest.mark.foreman_installer
 def test_positive_inherit_puppet_env_from_host_group_when_create(
     session_puppet_enabled_sat, module_env_search, module_puppet_org, module_puppet_loc
 ):
@@ -1872,6 +1915,8 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
     :customerscenario: true
 
     :expectedresults: Expected puppet environment is inherited to the form
+
+    :BlockedBy: SAT-40445
 
     :BZ: 1414914
     """
@@ -1903,6 +1948,7 @@ def test_positive_inherit_puppet_env_from_host_group_when_create(
         assert values['host']['inherit_puppet_environment'] is False
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.usefixtures('module_puppet_enabled_proxy_with_loc')
 def test_positive_set_multi_line_and_with_spaces_parameter_value(
     session_puppet_enabled_sat,
@@ -1917,6 +1963,8 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
     :id: d72b481d-2279-4478-ab2d-128f92c76d9c
 
     :customerscenario: true
+
+    :BlockedBy: SAT-40445
 
     :expectedresults:
         1. parameter is correctly represented in yaml format without
@@ -1975,7 +2023,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_match('[7,8,9]')
-def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
+def test_positive_tracer_enable_reload(tracer_install_host, target_sat, smart_proxy_module_org):
     """Using the new Host UI,enable tracer and verify that the page reloads
 
     :id: c9ebd4a8-6db3-4d0e-92a2-14951c26769b
@@ -1993,11 +2041,8 @@ def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     :expectedresults: The Tracer tab message updates accordingly during the process, and displays
         the state the correct Title
     """
-    host = (
-        target_sat.api.Host().search(query={'search': tracer_install_host.hostname})[0].read_json()
-    )
     with target_sat.ui_session() as session:
-        session.organization.select(host['organization_name'])
+        session.organization.select(smart_proxy_module_org.name)
         tracer_title = session.host_new.get_tracer_tab_title(tracer_install_host.hostname)
         assert tracer_title == "Traces are not enabled"
         session.host_new.enable_tracer(tracer_install_host.hostname)
@@ -2067,43 +2112,32 @@ def test_all_hosts_bulk_cve_reassign(
         session.location.select(module_location.name)
         try:
             headers = session.all_hosts.get_displayed_table_headers()
-            if 'Lifecycle environment' not in headers:
+            if 'Content view environments' not in headers:
                 session.all_hosts.manage_table_columns(
                     {
-                        'Lifecycle environment': True,
+                        'Content view environments': True,
                     }
                 )
             pre_table = session.all_hosts.read_table()
-            for row in pre_table:
-                assert row['Lifecycle environment'] == module_lce.name
+            assert {row['Content view environments'] for row in pre_table} == {
+                f'{module_lce.name}/{module_cv.name}'
+            }
             session.all_hosts.manage_cve(lce_name=lce2.name, cv_name=module_cv.name)
-            wait_for(lambda: session.browser.refresh(), timeout=5)
-            post_table = session.all_hosts.read_table()
-            for row in post_table:
-                assert row['Lifecycle environment'] == lce2.name
+            wait_for(
+                lambda: (
+                    {row['Content view environments'] for row in session.all_hosts.read_table()}
+                    == {f'{lce2.name}/{module_cv.name}'}
+                ),
+                timeout=60,
+                delay=2,
+                fail_func=session.browser.refresh,
+            )
         finally:
             session.all_hosts.manage_table_columns(
                 {
-                    'Lifecycle environment': False,
+                    'Content view environments': False,
                 }
             )
-
-
-def test_all_hosts_redirect_button(target_sat):
-    """Verify that the New UI button on the old Host page correctly redirects
-    to the All Hosts UI
-
-    :id: 7256f6d0-3ad9-471c-9e3e-bd41cc00a217
-
-    :expectedresults: New UI Button redirects to All Hosts page
-
-    :CaseComponent: Hosts
-
-    :Team: Proton
-    """
-    with target_sat.ui_session() as session:
-        url = session.host.new_ui_button()
-        assert "/new/hosts" in url
 
 
 def test_all_hosts_bulk_build_management(target_sat, function_org, function_location):
@@ -2189,10 +2223,13 @@ def change_content_source_prep(
         content_view_environment_ids=[cvenv_id], organization=org.id
     ).create()
 
-    # Edit capsule's taxonomies
-    capsule = module_target_sat.cli.Capsule.update(
+    capsule = module_capsule_configured
+    content_capsule_id = capsule.nailgun_capsule.id
+
+    # Assign taxonomies and content to the same content-serving proxy.
+    module_target_sat.cli.Capsule.update(
         {
-            'name': module_capsule_configured.hostname,
+            'id': content_capsule_id,
             'organization-ids': org.id,
             'location-ids': loc.id,
         }
@@ -2200,7 +2237,7 @@ def change_content_source_prep(
 
     module_target_sat.cli.Capsule.content_add_lifecycle_environment(
         {
-            'id': module_capsule_configured.nailgun_capsule.id,
+            'id': content_capsule_id,
             'organization-id': org.id,
             'lifecycle-environment': lce.name,
         }
@@ -2211,6 +2248,7 @@ def change_content_source_prep(
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('[789]')
+@pytest.mark.network_sensitive
 def test_change_content_source(session, change_content_source_prep, rhel_contenthost):
     """
     This test exercises different ways to change host's content source
@@ -2242,15 +2280,15 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
             entities_list=[
                 rhel_contenthost.hostname,
             ],
-            content_source=capsule[0]['name'],
+            content_source=capsule.content_hostname,
             lce=lce.name,
             content_view=content_view.name,
         )
         rhel_contenthost_post_values = rhel_contenthost.nailgun_host.content_facet_attributes
         content_source_from_script = re.search(r'--server.hostname=\"(.*?)\"', generated_script)
 
-        assert content_source_from_script.group(1) == capsule[0]['name']
-        assert rhel_contenthost_post_values['content_source']['name'] == capsule[0]['name']
+        assert content_source_from_script.group(1) == capsule.hostname
+        assert rhel_contenthost_post_values['content_source']['name'] == capsule.content_hostname
         assert rhel_contenthost_post_values['content_view']['name'] == content_view.name
         assert rhel_contenthost_post_values['lifecycle_environment']['name'] == lce.name
 
@@ -2371,7 +2409,10 @@ def test_manage_content_source_with_multi_cv(
     result = rhel_contenthost.register(module_org, None, ak.name, module_target_sat)
     assert result.status == 0, f'Failed to register host: {result.stderr}'
 
-    # Step 5 & 6: Use UI to manage content source with multiple CVEnv assignments
+    # Step 5: Get the default smart proxy for content source
+    default_proxy = module_target_sat.get_default_smart_proxy()
+
+    # Step 6 & 7: Use UI to manage content source with multiple CVEnv assignments
     with module_target_sat.ui_session() as session:
         session.organization.select(module_org.name)
 
@@ -2384,7 +2425,7 @@ def test_manage_content_source_with_multi_cv(
             entities_list=[
                 rhel_contenthost.hostname,
             ],
-            content_source=module_target_sat.hostname,
+            content_source=default_proxy.name,
             cv_env_assignments=[
                 {'content_view': module_cv.name, 'lce': module_lce.name},
                 {'content_view': cv2.name, 'lce': lce2.name},
@@ -2392,16 +2433,11 @@ def test_manage_content_source_with_multi_cv(
             run_job_invocation=True,
         )
         session.jobinvocation.submit_prefilled_view()
-    # Step 7: Verify results using API (more reliable after job invocation navigation)
+    # Step 8: Verify results using API (more reliable after job invocation navigation)
     host = module_target_sat.api.Host().search(
         query={'search': f'name={rhel_contenthost.hostname}'}
     )[0]
     host_content_facet = host.read_json()
-    # Verify content source was changed
-    assert (
-        host_content_facet['content_facet_attributes']['content_source']['name']
-        == module_target_sat.hostname
-    )
 
     # Verify multiple CVEnv assignments
     cv_envs = host_content_facet['content_facet_attributes']['content_view_environments']
@@ -2503,7 +2539,9 @@ def test_host_status_honors_taxonomies(
             'password': password,
             'mail': 'root@localhost',
             'login': login,
-            'roles': ROLES,
+            # This test only needs core read access. The complete ROLES list also
+            # contains optional plugin roles that are not guaranteed on Foremanctl.
+            'roles': ['Viewer'],
         }
     )
     with target_sat.ui_session(test_name, user=login, password=password) as session:
@@ -2524,7 +2562,7 @@ def test_host_status_honors_taxonomies(
 
 
 @pytest.mark.parametrize(
-    'module_repos_collection_with_setup',
+    'module_repos_collection_with_smart_proxy',
     [
         {
             'distro': 'rhel8',
@@ -2553,7 +2591,7 @@ def test_positive_manage_packages(
     request,
     module_target_sat,
     mod_content_hosts,
-    module_repos_collection_with_setup,
+    module_repos_collection_with_smart_proxy,
     number_of_hosts,
     package_management_action,
     finish_via,
@@ -2590,12 +2628,12 @@ def test_positive_manage_packages(
 
     for host in mod_content_hosts:
         host.add_rex_key(module_target_sat)
-        module_repos_collection_with_setup.setup_virtual_machine(host)
+        module_repos_collection_with_smart_proxy.setup_virtual_machine(host)
 
-    product_name = module_repos_collection_with_setup.custom_product.name
+    product_name = module_repos_collection_with_smart_proxy.custom_product.name
 
     with module_target_sat.ui_session() as session:
-        session.organization.select(module_repos_collection_with_setup.organization['name'])
+        session.organization.select(module_repos_collection_with_smart_proxy.organization['name'])
 
         for host in mod_content_hosts:
             if (
@@ -2896,7 +2934,7 @@ def test_all_hosts_manage_errata(
             errata_ids = f'{errata_ids[0]},{errata_ids[1]}'
         for host in content_hosts:
             task_result = module_target_sat.wait_for_tasks(
-                search_query=(f'"Install errata errata_id ^ ({errata_ids}) on {host.hostname}"'),
+                search_query=(f'Install errata on {host.hostname} and result = "success" '),
                 search_rate=2,
                 max_tries=60,
             )
@@ -3300,14 +3338,14 @@ def test_positive_change_power_state(
                 )
             session.all_hosts.change_power_state(state='Power Off', select_all_hosts=True)
             # Wait for the modal to close and table to refresh after power state change
-            session.browser.plugin.ensure_page_safe(timeout='20s')
+            session.browser.plugin.ensure_page_safe(timeout=20)
             # UI check
             for host in vm_names_with_domains:
                 state = session.all_hosts.read_power_state_icon(host_name=host)
                 assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
             session.all_hosts.change_power_state(state='Start', select_all_hosts=True)
             # Wait for the modal to close and table to refresh after power state change
-            session.browser.plugin.ensure_page_safe(timeout='20s')
+            session.browser.plugin.ensure_page_safe(timeout=20)
             for host in vm_names_with_domains:
                 state = session.all_hosts.read_power_state_icon(host_name=host)
                 assert state['state'] == 'On', f"Host {host} state didn't change to On"
@@ -3316,7 +3354,7 @@ def test_positive_change_power_state(
             session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
             session.all_hosts.change_power_state(state='Stop', select_all_hosts=True)
             # Wait for the modal to close and table to refresh after power state change
-            session.browser.plugin.ensure_page_safe(timeout='20s')
+            session.browser.plugin.ensure_page_safe(timeout=20)
             for host in vm_names_with_domains:
                 state = session.all_hosts.read_power_state_icon(host_name=host)
                 assert state['state'] == 'Off', f"Host {host} state didn't change to Off"
@@ -3539,6 +3577,57 @@ def test_positive_change_hosts_org_loc(
             assert host_entity.location.id == new_location.id, (
                 f'Host {host_name} not moved to second location'
             )
+
+
+def test_positive_bulk_change_location_nested_locations(target_sat, function_org, request):
+    """Verify nested locations are distinguishable in the bulk location selector.
+
+    :steps:
+        1. Create two location hierarchies with the same child and grandchild names.
+        2. Create a fake host in one of the root locations.
+        3. Select the host on All Hosts and open Change associations -> Location.
+        4. Read the available locations and cancel the modal.
+
+    :expectedresults:
+        1. Root locations and the full paths of their children and grandchildren
+           are listed, distinguishing locations with the same name.
+
+    :id: 5ef2747b-10c7-4edf-9feb-485de24c7a50
+
+    :Verifies: SAT-49565
+
+    :customerscenario: true
+    """
+    city_name = gen_string('alpha')
+    network_name = gen_string('alpha')
+    roots = []
+    expected_locations = set()
+    for _ in range(2):
+        root = target_sat.api.Location(organization=[function_org]).create()
+        request.addfinalizer(root.delete)
+        roots.append(root)
+        city = target_sat.api.Location(
+            name=city_name, parent=root, organization=[function_org]
+        ).create()
+        request.addfinalizer(city.delete)
+        network = target_sat.api.Location(
+            name=network_name, parent=city, organization=[function_org]
+        ).create()
+        request.addfinalizer(network.delete)
+        expected_locations.update(
+            [root.name, f'{root.name}/{city_name}', f'{root.name}/{city_name}/{network_name}']
+        )
+
+    host = target_sat.cli_factory.make_fake_host(
+        {'organization': function_org.name, 'location': roots[0].name}
+    )
+    request.addfinalizer(target_sat.api.Host(id=host.id).delete)
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org_name=function_org.name)
+        session.location.select(loc_name=roots[0].name)
+        locations = session.all_hosts.read_change_location_options(host.name)
+        assert expected_locations.issubset(locations)
 
 
 def test_positive_bulk_change_location_select_all_respects_context(
@@ -3783,6 +3872,38 @@ def test_positive_all_hosts_manage_host_collections(target_sat, function_org, fu
         hosts_in_host_col = read_host_collections_hosts(target_sat, host_col_names, function_org)
         assert hosts_in_host_col[host_col_names[0]] == []
         assert hosts_in_host_col[host_col_names[1]] == []
+
+
+def test_positive_all_hosts_manage_host_collections_with_no_hc_created(
+    target_sat, function_org, function_location
+):
+    """
+    On All Hosts page verify the flow for bulk-assigning Host Collections
+    to the host when the selected organization has no Host Collections.
+
+    :id: 272a8821-1055-4f87-b646-87ab379b074a
+
+    :steps:
+        1. Create a fake host in an organization with no host collections.
+        2. Select the host on All Hosts page and open Change associations -> Host collections.
+        3. Click Create host collection in the empty-state modal.
+
+    :expectedresults:
+        1. The modal displays No host collections yet.
+        2. The user is redirected to the New Host Collection page.
+
+    :Verifies: SAT-39460
+    """
+    host = target_sat.cli_factory.make_fake_host(
+        {'organization': function_org.name, 'location': function_location.name}
+    )
+    try:
+        with target_sat.ui_session() as session:
+            session.organization.select(org_name=function_org.name)
+            session.location.select(loc_name=function_location.name)
+            assert session.all_hosts.create_host_collection_from_empty_state(host.name)
+    finally:
+        target_sat.api.Host(id=host.id).delete()
 
 
 @pytest.mark.parametrize(

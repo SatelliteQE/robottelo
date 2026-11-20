@@ -7,8 +7,6 @@
 :CaseComponent: Virt-whoConfigurePlugin
 
 :team: Proton
-
-:BlockedBy: SAT-45010
 """
 
 import pytest
@@ -20,6 +18,9 @@ from robottelo.utils.virtwho import (
     get_configure_option,
     hypervisor_guest_mapping_newcontent_ui,
 )
+
+# TODO: Remove this marker when SAT-44794 is complete.
+pytestmark = pytest.mark.foreman_installer
 
 
 class TestVirtwhoConfigforHyperv:

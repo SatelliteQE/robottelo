@@ -501,8 +501,9 @@ class CLIFactory:
 
         if options is None or 'url' not in options:
             newport = self._satellite.available_capsule_port
+            proxy_port = 8443
             try:
-                with self._satellite.default_url_on_new_port(9090, newport) as url:
+                with self._satellite.default_url_on_new_port(proxy_port, newport) as url:
                     args['url'] = url
                     return create_object(self._satellite.cli.Proxy, args, options)
             except CapsuleTunnelError as err:

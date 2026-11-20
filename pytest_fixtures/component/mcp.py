@@ -47,13 +47,10 @@ def _setup_mcp_server(target_sat, image_settings):
         target_sat.enable_ipv6_dnf_and_rhsm_proxy()
         target_sat.enable_ipv6_system_proxy()
     image_name = image_settings.image_path.split('/')[-1]
-    assert (
-        target_sat.execute(
-            f'firewall-cmd --permanent --add-port="{settings.foreman_mcp.port}/tcp"'
-        ).status
-        == 0
-    )
-    assert target_sat.execute('firewall-cmd --reload').status == 0
+    # A firewalld reload can discard the networking rules of running Podman containers.
+    port_option = f'--add-port={settings.foreman_mcp.port}/tcp'
+    assert target_sat.execute(f'firewall-cmd --permanent {port_option}').status == 0
+    assert target_sat.execute(f'firewall-cmd {port_option}').status == 0
     target_sat.ensure_podman_installed()
     authfile_arg = ''
     network_arg = '--network ipv6' if not target_sat.network_type.has_ipv4 else ''
@@ -76,7 +73,7 @@ def _setup_mcp_server(target_sat, image_settings):
     run_cmd = (
         f'podman run {network_arg} '
         f'-d --pull=never -it -p {settings.foreman_mcp.port}:8080 '
-        f'-v /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:{ca_mountpoint}:ro,Z '
+        f'-v {target_sat.ca_cert_file}:{ca_mountpoint}:ro,Z '
         f'{image_name}:{image_settings.image_tag} '
         f'--foreman-url https://{target_sat.hostname} --host 0.0.0.0 '
         f'--allowed-rex-features "katello_errata_install,katello_package_install" '

@@ -12,10 +12,9 @@
 
 """
 
-import json
-
 from fauxfactory import gen_string
 import pytest
+from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
@@ -26,6 +25,7 @@ from robottelo.utils.issue_handlers import is_open
 @pytest.mark.e2e
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
+@pytest.mark.network_sensitive
 @pytest.mark.parametrize(
     'use_ip',
     [False] if is_open('SAT-39098') else [False, True],
@@ -135,11 +135,11 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_sca_man
     assert len(yum_repo['output']) == 1
     assert yum_repo['output'][0] == f'{settings.repos.repo_discovery.url}/{repo_name}/'
 
-    # Discover docker type repo through HTTP proxy
+    # Discover docker type repo through HTTP proxy (use https; bare host becomes http://).
     docker_repo = module_target_sat.api.Organization(id=module_sca_manifest_org.id).repo_discover(
         data={
             "id": module_sca_manifest_org.id,
-            "url": 'quay.io',
+            "url": settings.container_repo.registries.quay.url,
             "content_type": "docker",
             "search": 'foreman/foreman',
         }
@@ -163,6 +163,7 @@ def test_positive_end_to_end(setup_http_proxy, module_target_sat, module_sca_man
     indirect=True,
     ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
+@pytest.mark.network_sensitive
 def test_positive_install_content_with_http_proxy(
     setup_http_proxy, module_target_sat, rhel_contenthost, function_sca_manifest_org
 ):
@@ -296,6 +297,7 @@ def test_positive_assign_http_proxy_to_products(target_sat, function_org):
     assert 'success' in product_a.sync()['result'], 'Product sync failed'
 
 
+@pytest.mark.network_sensitive
 def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, module_product):
     """Assign http_proxy with cacert.crt to repository and test
        that http_proxy and cacert are used during sync.
@@ -360,14 +362,14 @@ def test_positive_sync_proxy_with_certificate(request, target_sat, module_org, m
     assert repo.read().content_counts['rpm'] >= 1
 
 
+@pytest.mark.network_sensitive
 def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_product):
     """Ensure that repo refresh updates the http-proxy of pulp remote.
 
     :id: ab0f3734-40bd-4524-b8b9-0ab857ca3c3f
 
     :setup:
-        1. Disable pulp CLI safe mode.
-        2. Create a product, repo and HTTP proxy.
+        1. Create a product, repo and HTTP proxy.
 
     :steps:
         1. Get repository remote's href.
@@ -378,7 +380,9 @@ def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_pro
     :expectedresults:
         1. Repo refresh restores remote's original proxy_url value.
 
-    :verifies: SAT-26741
+    :verifies: SAT-26741, SAT-52508
+
+    :BlockedBy: SAT-52508
 
     :customerscenario: true
     """
@@ -403,16 +407,27 @@ def test_refresh_updates_remotes_proxy(module_target_sat, module_org, module_pro
     ).stdout.split('"')[1]
 
     # Ensure proxy_url matches the one from setup.
-    remote = json.loads(sat.execute(f'pulp rpm remote show --href "{href}"').stdout)
+    remote = sat.pulp_api(href)
     assert remote['proxy_url'] == http_proxy.url
 
     # Set fake value to proxy_url, ensure it's written.
     fake_proxy_url = 'http://my.proxy.com:3128'
-    sat.execute(f'pulp --force rpm remote update --href "{href}" --proxy-url "{fake_proxy_url}"')
-    remote = json.loads(sat.execute(f'pulp rpm remote show --href "{href}"').stdout)
+    task_href = sat.pulp_api(href, method='PATCH', payload={'proxy_url': fake_proxy_url})['task']
+    task, _ = wait_for(
+        lambda: sat.pulp_api(task_href),
+        fail_condition=lambda task: (
+            task['state'] not in ('completed', 'failed', 'canceled', 'skipped')
+        ),
+        timeout=120,
+        delay=2,
+    )
+    assert task['state'] == 'completed', (
+        f'Pulp task {task_href} ended in {task["state"]}: {task.get("error")}'
+    )
+    remote = sat.pulp_api(href)
     assert remote['proxy_url'] == fake_proxy_url
 
     # Refresh repos via rake and ensure the original proxy_url has been restored.
     sat.run_repos_refresh()
-    remote = json.loads(sat.execute(f'pulp rpm remote show --href "{href}"').stdout)
+    remote = sat.pulp_api(href)
     assert remote['proxy_url'] == http_proxy.url

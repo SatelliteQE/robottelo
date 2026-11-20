@@ -64,6 +64,7 @@ def test_positive_end_to_end(session, module_org, module_location, module_target
         assert not module_target_sat.api.HostGroup().search(query={'search': f'name={new_name}'})
 
 
+@pytest.mark.foreman_installer
 def test_negative_delete_with_discovery_rule(
     session, module_org, module_location, module_target_sat
 ):
@@ -95,12 +96,15 @@ def test_negative_delete_with_discovery_rule(
         assert session.hostgroup.search(hostgroup.name)[0]['Name'] == hostgroup.name
 
 
+@pytest.mark.foreman_installer
 def test_create_with_config_group(module_puppet_org, module_puppet_loc, session_puppet_enabled_sat):
     """Create new host group with assigned config group to it
 
     :id: 05a64d6b-113b-4652-86bf-19bc65b70131
 
     :CaseImportance: Medium
+
+    :BlockedBy: SAT-40445
 
     :expectedresults: Host group created and contains proper config group
     """
@@ -125,6 +129,7 @@ def test_create_with_config_group(module_puppet_org, module_puppet_loc, session_
         assert hostgroup_values['puppet_enc']['config_groups']['assigned'][0] == config_group.name
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_create_with_puppet_class(module_puppet_org, module_puppet_loc, session_puppet_enabled_sat):
     """Create new host group with assigned puppet class to it
@@ -132,6 +137,8 @@ def test_create_with_puppet_class(module_puppet_org, module_puppet_loc, session_
     :id: 166ca6a6-c0f7-4fa0-a3f2-b0d6980cf50d
 
     :CaseImportance: Medium
+
+    :BlockedBy: SAT-40445
 
     :expectedresults: Host group created and contains proper puppet class
     """
@@ -193,7 +200,9 @@ def test_positive_create_new_host(
     """
     name = gen_string('alpha')
     description = gen_string('alpha')
-    capsule = target_sat.nailgun_smart_proxy
+    capsule = target_sat.api.SmartProxy().search(
+        query={'search': f'feature = "Pulpcore" and url ~ {target_sat.hostname}'}
+    )[0]
     capsule.location = [smart_proxy_location]
     capsule.update(['location'])
     capsule.organization = [module_org]

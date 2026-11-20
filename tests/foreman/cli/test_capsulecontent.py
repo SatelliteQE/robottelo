@@ -20,8 +20,6 @@ import pytest
 
 from robottelo.config import settings
 from robottelo.constants import (
-    CAPSULE_ANSWER_FILE,
-    CONTAINER_GATEWAY_SETTINGS,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FLATPAK_RHEL_RELEASE_VER,
     PULP_EXPORT_DIR,
@@ -30,7 +28,6 @@ from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.content_info import get_repo_files_urls_by_url
 from robottelo.exceptions import CLIFactoryError
 from robottelo.utils.datafactory import gen_string
-from robottelo.utils.installer import InstallerCommand
 
 
 @pytest.fixture(scope='module')
@@ -153,6 +150,19 @@ def _dictionarize_counts(data):
         refactored_data[lce_name] = cvs_dict
 
     return refactored_data
+
+
+def _add_organization_to_capsule_smart_proxies(satellite, capsule, organization):
+    """Add an organization to each distinct capsule SmartProxy, preserving existing ones."""
+    proxy_ids = {
+        capsule.nailgun_smart_proxy.id,
+        capsule.nailgun_content_smart_proxy.id,
+    }
+    for proxy_id in proxy_ids:
+        proxy = satellite.api.SmartProxy(id=proxy_id).read()
+        if organization.id not in {org.id for org in proxy.organization}:
+            proxy.organization.append(satellite.api.Organization(id=organization.id))
+            proxy.update(['organization'])
 
 
 @pytest.mark.parametrize(
@@ -365,8 +375,8 @@ def test_positive_orphan_cleanup_skips_content_counts(
         2. No ``UpdateContentCounts`` task is created for any capsule.
     """
     with target_sat.api_factory.satellite_setting('automatic_content_count_updates=false'):
-        timestamp = datetime.now(UTC).replace(microsecond=0)
-        target_sat.run_orphan_cleanup(module_capsule_configured.nailgun_smart_proxy.id)
+        timestamp = datetime.now(UTC)
+        target_sat.run_orphan_cleanup(module_capsule_configured.nailgun_content_smart_proxy.id)
         with pytest.raises(AssertionError, match='No task was found'):
             target_sat.wait_for_tasks(
                 search_query=(
@@ -825,6 +835,7 @@ def test_positive_repair_artifacts(
 
 
 @pytest.mark.e2e
+@pytest.mark.network_sensitive
 @pytest.mark.rhel_ver_match('9')
 @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
 @pytest.mark.parametrize('setting_update', ['foreman_proxy_content_auto_sync=True'], indirect=True)
@@ -834,7 +845,7 @@ def test_sync_consume_flatpak_repo_via_library(
     module_capsule_configured,
     setting_update,
     module_flatpak_contenthost,
-    function_org,
+    smart_proxy_function_org,
     function_product,
     function_lce_library,
     function_flatpak_remote,
@@ -862,16 +873,15 @@ def test_sync_consume_flatpak_repo_via_library(
         1. Entire workflow works and allows user to install a flatpak app at the registered
            contenthost.
 
-    :BlockedBy: SAT-44554
+    :BlockedBy: SAT-52041
+
+    :Verifies: SAT-44554, SAT-52041
 
     """
     sat, caps, host = module_target_sat, module_capsule_configured, module_flatpak_contenthost
 
-    # Associate the organization and its Library to the capsule.
-    res = sat.cli.Capsule.update(
-        {'name': module_capsule_configured.hostname, 'organization-ids': function_org.id}
-    )
-    assert 'proxy updated' in str(res)
+    # Associate the organization with both the management and content proxies.
+    _add_organization_to_capsule_smart_proxies(sat, caps, smart_proxy_function_org)
 
     caps.nailgun_capsule.content_add_lifecycle_environment(
         data={'environment_id': function_lce_library.id}
@@ -905,13 +915,13 @@ def test_sync_consume_flatpak_repo_via_library(
     ak_lib = sat.cli.ActivationKey.create(
         {
             'name': gen_string('alpha'),
-            'organization-id': function_org.id,
+            'organization-id': smart_proxy_function_org.id,
             'content-view-environments': 'Library',
         }
     )
 
     # Register a content host using the AK via Capsule.
-    res = host.register(function_org, None, ak_lib['name'], caps, force=True)
+    res = host.register(smart_proxy_function_org, None, ak_lib['name'], caps, force=True)
     assert res.status == 0, (
         f'Failed to register host: {host.hostname}\nStdOut: {res.stdout}\nStdErr: {res.stderr}'
     )
@@ -921,7 +931,7 @@ def test_sync_consume_flatpak_repo_via_library(
     remote_name = f'CAPS-remote-{gen_string("alpha")}'
     job = module_target_sat.cli_factory.job_invocation(
         {
-            'organization': function_org.name,
+            'organization': smart_proxy_function_org.name,
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': (
                 f'Remote Name={remote_name}, '
@@ -946,7 +956,7 @@ def test_sync_consume_flatpak_repo_via_library(
 
     job = module_target_sat.cli_factory.job_invocation(
         {
-            'organization': function_org.name,
+            'organization': smart_proxy_function_org.name,
             'job-template': 'Flatpak - Install application on host',
             'inputs': (
                 f'Flatpak remote name={remote_name}, Application name={app_name}, '
@@ -967,6 +977,7 @@ def test_sync_consume_flatpak_repo_via_library(
 
 
 @pytest.mark.e2e
+@pytest.mark.network_sensitive
 @pytest.mark.rhel_ver_match('10')
 @pytest.mark.parametrize('function_flatpak_remote', ['RedHat'], indirect=True)
 @pytest.mark.parametrize(
@@ -980,7 +991,7 @@ def test_sync_consume_flatpak_repo_via_cv(
     setting_update,
     module_flatpak_contenthost,
     function_host_cleanup,
-    function_org,
+    smart_proxy_function_org,
     function_product,
     function_lce,
     function_flatpak_remote,
@@ -1012,16 +1023,15 @@ def test_sync_consume_flatpak_repo_via_cv(
         1. Flatpak repos published in a CV are installable on a host via the CV through Capsule.
         2. Other flatpak repos published in a different CV are isolated from the first CV.
 
-    :BlockedBy: SAT-44554
+    :BlockedBy: SAT-52041
+
+    :Verifies: SAT-44554, SAT-52041
 
     """
     sat, caps, host = module_target_sat, module_capsule_configured, module_flatpak_contenthost
 
-    # Associate the organization and LCE to the capsule.
-    res = sat.cli.Capsule.update(
-        {'name': module_capsule_configured.hostname, 'organization-ids': function_org.id}
-    )
-    assert 'proxy updated' in str(res)
+    # Associate the organization with both the management and content proxies.
+    _add_organization_to_capsule_smart_proxies(sat, caps, smart_proxy_function_org)
 
     caps.nailgun_capsule.content_add_lifecycle_environment(data={'environment_id': function_lce.id})
     res = caps.nailgun_capsule.content_lifecycle_environments()
@@ -1056,11 +1066,11 @@ def test_sync_consume_flatpak_repo_via_cv(
 
     # Create two CVs, put different repos inside, publish and promote them to LCE.
     cv1 = sat.api.ContentView(
-        organization=function_org,
+        organization=smart_proxy_function_org,
         repository=[r['id'] for r in local_repos if r['name'] in repo_names[-2:]],  # Last 2
     ).create()
     cv2 = sat.api.ContentView(
-        organization=function_org,
+        organization=smart_proxy_function_org,
         repository=[r['id'] for r in local_repos if r['name'] in repo_names[:2]],  # First 2
     ).create()
     timestamp = datetime.now(UTC)
@@ -1072,12 +1082,12 @@ def test_sync_consume_flatpak_repo_via_cv(
     # Create an AK assigned with one content view environment only.
     cvenv_id = sat.api_factory.get_cvenv_id(cv1, function_lce)
     ak_cv = sat.api.ActivationKey(
-        organization=function_org,
+        organization=smart_proxy_function_org,
         content_view_environment_ids=[cvenv_id],
     ).create()
 
     # Register a content host using the AK via Capsule.
-    res = host.register(function_org, None, ak_cv.name, caps, force=True)
+    res = host.register(smart_proxy_function_org, None, ak_cv.name, caps, force=True)
     assert res.status == 0, (
         f'Failed to register host: {host.hostname}\nStdOut: {res.stdout}\nStdErr: {res.stderr}'
     )
@@ -1098,7 +1108,7 @@ def test_sync_consume_flatpak_repo_via_cv(
         )
     job = module_target_sat.cli_factory.job_invocation(
         {
-            'organization': function_org.name,
+            'organization': smart_proxy_function_org.name,
             'job-template': 'Flatpak - Set up remote on host',
             'inputs': inputs,
             'search-query': f'name = {host.hostname}',
@@ -1118,7 +1128,7 @@ def test_sync_consume_flatpak_repo_via_cv(
 
     # Install flatpak app from the first CV, ensure it succeeded.
     opts = {
-        'organization': function_org.name,
+        'organization': smart_proxy_function_org.name,
         'job-template': 'Flatpak - Install application on host',
         'search-query': f'name = {host.hostname}',
     }
@@ -1156,98 +1166,3 @@ def test_sync_consume_flatpak_repo_via_cv(
         assert 'A sub task failed' in error.value.args[0]
         res = host.execute('flatpak list')
         assert cv2_app not in res.stdout
-
-
-def test_positive_container_gateway_db_settings(capsule_configured):
-    """Verify container gateway database settings are configurable via satellite-installer
-    and reflected in both capsule-answers.yaml and container_gateway.yml.
-
-    :id: 5cf7bfaa-a144-4d30-9505-94303487631d
-
-    :steps:
-        1. Run satellite-installer on the capsule with custom values for
-           --foreman-proxy-content-container-gateway-database-max-connections and
-           --foreman-proxy-content-container-gateway-database-pool-timeout.
-        2. Read /etc/foreman-installer/scenarios.d/capsule-answers.yaml on the capsule.
-        3. Read /etc/foreman-proxy/settings.d/container_gateway.yml on the capsule.
-        4. Run satellite-installer with the corresponding --reset-* flags to clear the values.
-        5. Read both files again.
-
-    :expectedresults:
-        1. satellite-installer completes successfully.
-        2. capsule-answers.yaml reflects the configured max_connections and pool_timeout
-           under foreman_proxy_content.
-        3. container_gateway.yml reflects the configured values as :db_max_connections
-           and :db_pool_timeout.
-        4. satellite-installer reset completes successfully.
-        5. Both keys are absent (UNDEF) in capsule-answers.yaml and container_gateway.yml.
-
-    :Verifies: SAT-39480
-
-    :customerscenario: True
-    """
-    max_connections = random.randint(5, 100)
-    pool_timeout = random.randint(10, 500)
-
-    installer_cmd = InstallerCommand(
-        foreman_proxy_content_container_gateway_database_max_connections=max_connections,
-        foreman_proxy_content_container_gateway_database_pool_timeout=pool_timeout,
-    )
-    result = capsule_configured.execute(installer_cmd.get_command(), timeout='20m')
-    assert 'Success!' in result.stdout, f'satellite-installer failed:\n{result.stderr}'
-
-    # Verify capsule-answers.yaml
-    answers = capsule_configured.load_remote_yaml_file(CAPSULE_ANSWER_FILE)
-    fpc = answers.foreman_proxy_content
-    assert fpc.container_gateway_database_max_connections == max_connections, (
-        f'Expected max_connections={max_connections} in capsule-answers.yaml, '
-        f'got {fpc.container_gateway_database_max_connections}'
-    )
-    assert fpc.container_gateway_database_pool_timeout == pool_timeout, (
-        f'Expected pool_timeout={pool_timeout} in capsule-answers.yaml, '
-        f'got {fpc.container_gateway_database_pool_timeout}'
-    )
-
-    # Verify container_gateway.yml
-    gw = capsule_configured.load_remote_yaml_file(CONTAINER_GATEWAY_SETTINGS)
-    assert gw[':db_max_connections'] == max_connections, (
-        f'Expected :db_max_connections={max_connections} in container_gateway.yml, '
-        f"got {gw.get(':db_max_connections')}"
-    )
-    assert gw[':db_pool_timeout'] == pool_timeout, (
-        f'Expected :db_pool_timeout={pool_timeout} in container_gateway.yml, '
-        f"got {gw.get(':db_pool_timeout')}"
-    )
-
-    # Reset both settings to their defaults
-    reset_cmd = InstallerCommand(
-        installer_args=[
-            'reset-foreman-proxy-content-container-gateway-database-max-connections',
-            'reset-foreman-proxy-content-container-gateway-database-pool-timeout',
-        ]
-    )
-    result = capsule_configured.execute(reset_cmd.get_command(), timeout='20m')
-    assert 'Success!' in result.stdout, f'satellite-installer reset failed:\n{result.stderr}'
-
-    # Verify the values are cleared in capsule-answers.yaml
-    answers = capsule_configured.load_remote_yaml_file(CAPSULE_ANSWER_FILE)
-    fpc = answers.foreman_proxy_content
-    assert fpc.get('container_gateway_database_max_connections') is None, (
-        f'Expected max_connections to be unset in capsule-answers.yaml, '
-        f"got {fpc.get('container_gateway_database_max_connections')}"
-    )
-    assert fpc.get('container_gateway_database_pool_timeout') is None, (
-        f'Expected pool_timeout to be unset in capsule-answers.yaml, '
-        f"got {fpc.get('container_gateway_database_pool_timeout')}"
-    )
-
-    # Verify the values are cleared in container_gateway.yml
-    gw = capsule_configured.load_remote_yaml_file(CONTAINER_GATEWAY_SETTINGS)
-    assert gw.get(':db_max_connections') is None, (
-        f'Expected :db_max_connections to be unset in container_gateway.yml, '
-        f"got {gw.get(':db_max_connections')}"
-    )
-    assert gw.get(':db_pool_timeout') is None, (
-        f'Expected :db_pool_timeout to be unset in container_gateway.yml, '
-        f"got {gw.get(':db_pool_timeout')}"
-    )

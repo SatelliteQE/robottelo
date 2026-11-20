@@ -16,38 +16,211 @@ import re
 from fauxfactory import gen_string
 import pytest
 
+from pytest_fixtures.component.maintain import _sync_repositories
 from robottelo.config import settings
+from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT, LIBRARY_LCE
+from robottelo.content_info import get_repo_files_by_url
+from robottelo.hosts import Capsule, Satellite
 
 pytestmark = [pytest.mark.foremanctl]
 
 BACKUP_DIR = '/tmp/'
-BASIC_FILES = {'foremanctl-state.tar.gz', 'metadata.yml'}
+BACKUP_PREFIX = 'backup-'
+BASIC_FILES = {'foremanctl-state.tar.gz', 'metadata.yml', 'config.snar'}
 SAT_FILES = {'candlepin.dump', 'foreman.dump', 'pulp.dump'} | BASIC_FILES
-CONTENT_FILES = {'pulp-content.tar.gz'}
+# A smart proxy carries pulp only, it has no candlepin/foreman databases of its own
+CAPS_FILES = {'container_gateway.dump', 'pulp.dump'} | BASIC_FILES
+CONTENT_FILES = {'pulp-content.tar.gz', 'pulp.snar'}
+# Capsule fixtures a test may pull in, and on which a backup can therefore be taken
+CAPSULE_FIXTURES = ('capsule_configured', 'module_capsule_configured', 'large_capsule_configured')
 
 
-def get_exp_files(module_target_sat, skip_pulp=False):
-    expected_files = SAT_FILES
+@pytest.fixture(autouse=True, scope='module')
+def install_postgresql_client(module_target_sat):
+    """Ensure the PostgreSQL client (pg_dump/pg_restore) is available on the Satellite.
+
+    foremanctl backup/restore invokes ``pg_dump``/``pg_restore`` on the host, but the RPM does
+    not yet declare ``postgresql`` as a dependency. Until it does, install it here. Skip if
+    the client is already pre-installed.
+
+    TODO: drop this fixture once foremanctl declares postgresql as an RPM dependency.
+    """
+    if module_target_sat.execute('command -v pg_dump').status == 0:
+        return  # client already present
+
+    module_target_sat.register_to_cdn()
+    result = module_target_sat.execute('dnf -y install postgresql')
+    assert result.status == 0, (
+        f'Failed to install postgresql client:\n{result.stdout}\n{result.stderr}'
+    )
+
+
+@pytest.fixture(autouse=True)
+def cleanup_backup_dir(request, module_target_sat):
+    """Clean up backup directories before and after each test.
+
+    A backup can be taken on the Satellite or on a Capsule, so clean up every capsule
+    the test pulls in as well, not just the Satellite.
+    """
+    hosts = [module_target_sat]
+    hosts.extend(
+        request.getfixturevalue(name) for name in CAPSULE_FIXTURES if name in request.fixturenames
+    )
+
+    for host in hosts:
+        host.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+
+    yield
+
+    for host in hosts:
+        host.execute(f'rm -rf {BACKUP_DIR}{BACKUP_PREFIX}*')
+
+
+@pytest.fixture(scope='module')
+def module_synced_repos(module_target_sat, module_sca_manifest):
+    """Sync custom and RH repositories against the foremanctl-managed Satellite.
+
+    Overrides the satellite-maintain fixture of the same name so the repos are
+    synced against ``module_target_sat`` directly, rather than the ``sat_maintain``
+    host, which may resolve to a different instance when ``remotedb.server`` is set.
+    """
+    synced = _sync_repositories(module_target_sat, module_sca_manifest)
+    return {'custom': synced['cust_repo'], 'rh': synced['rh_repo']}
+
+
+def _assert_backup_files(server, backup_dir, skip_pulp=False):
+    """Verify that backup directory contains all expected files.
+
+    :param server: Satellite or Capsule server instance to execute commands on
+    :param backup_dir: Path to the backup directory
+    :param skip_pulp: Whether pulp content was skipped in the backup
+    """
+    expected_files = SAT_FILES if type(server) is Satellite else CAPS_FILES
     if not skip_pulp:
         expected_files = expected_files | CONTENT_FILES
-    return expected_files
+
+    ls_output = server.execute(f'ls -a {backup_dir}').stdout
+    files = ls_output.split('\n')
+    files = [i for i in files if not re.compile(r'^\.*$').search(i)]
+    assert set(files).issuperset(expected_files), (
+        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
+    )
 
 
-def _create_backup(sat, subdir, skip_pulp=False):
+def _create_backup(
+    server, subdir, skip_pulp=False, base_backup=None, wait_for_tasks=True, tar_volume_size=None
+):
     """Run foremanctl backup and return the timestamped backup subdirectory path."""
-    cmd = f'foremanctl backup {subdir} --wait-for-tasks'
+    cmd = f'foremanctl backup {subdir}'
+    is_capsule = True if type(server) is Capsule else None
     if skip_pulp:
         cmd += ' --skip-pulp-content'
-    result = sat.execute(cmd, timeout='30m')
+    if base_backup:
+        cmd += f' --base-backup {base_backup}'
+    if wait_for_tasks:
+        cmd += ' --wait-for-tasks'
+    if is_capsule:
+        cmd += ' --target-host proxy'
+    if tar_volume_size:
+        cmd += f' --tar-volume-size {tar_volume_size}'
+    result = server.execute(cmd, timeout='30m')
     assert result.status == 0, f'foremanctl backup failed:\n{result.stdout}\n{result.stderr}'
-    result = sat.execute(f'test -d {subdir}')
-    assert result.status == 0, f'Backup directory {subdir} was not created'
-    backup_dir = re.findall(rf'{subdir}/foreman-backup-\S+', result.stdout)
-    if not backup_dir:
-        ls_result = sat.execute(f'ls -d {subdir}/foreman-backup-*')
-        assert ls_result.status == 0, f'No foreman-backup-* subdirectory found in {subdir}'
-        backup_dir = ls_result.stdout.strip().splitlines()
-    return backup_dir[0]
+    backup_dir = re.search(r'Location:\s*(\S+)', result.stdout)
+    assert backup_dir, f'Backup location not found in output:\n{result.stdout}'
+    return backup_dir.group(1)
+
+
+@pytest.mark.destructive
+def test_positive_backup_restore_on_proxy(
+    module_target_sat, module_capsule_configured, module_synced_repos
+):
+    """Verify backup and restore can perform on capsule (smart proxy)
+
+    :id: 8fc00792-313d-41a8-9dfb-40a2fc200b5d
+
+    :setup:
+        1. Custom and RH repositories synced on the Satellite.
+        2. Library lifecycle environment assigned to the capsule and synced,
+           so the capsule holds pulp content to back up.
+
+    :steps:
+        1. Run foremanctl backup <dir> --target-host proxy on proxy server
+        2. Verify the backup command completes and the backup directory is created
+        3. Verify the backup directory contains the expected backup files
+        4. Drop the pulp artifacts on the capsule
+        5. Run foremanctl restore <backup_dir> --target-host proxy --force on proxy server
+        6. Verify the restore command completes successfully
+        7. Verify the capsule is healthy after restore
+        8. Verify the pulp artifacts and the published repo content are back on the capsule
+
+    :expectedresults:
+        1. Backup command exits with status 0 and creates a backup directory
+        2. Backup directory contains the expected database dumps, configuration files
+           and pulp content
+        3. Restore command exits with status 0
+        4. Capsule remains healthy after restore
+        5. The content synced before the backup is served by the capsule again
+
+    :Verifies: SAT-45029
+    """
+    # Assign the Library LCE to the capsule and sync, so there is content to back up
+    org = module_synced_repos['custom'].product.read().organization
+    lce = module_target_sat.api.LifecycleEnvironment(organization=org).search(
+        query={'search': f'name={LIBRARY_LCE}'}
+    )[0]
+    module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+        data={'environment_id': lce.id}
+    )
+    sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout='60m')
+    assert sync_status['result'] == 'success', 'Capsule content sync failed'
+
+    repo_url = module_synced_repos['custom'].full_path.replace(
+        module_target_sat.hostname, module_capsule_configured.hostname
+    )
+    assert len(get_repo_files_by_url(repo_url)) == FAKE_0_YUM_REPO_PACKAGES_COUNT, (
+        'Capsule does not serve the expected content before the backup'
+    )
+
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+
+    # Take a backup of capsule data using '--target-host proxy' option.
+    # A smart proxy runs no Foreman tasks, so there is nothing for --wait-for-tasks to wait on.
+    backup_dir = _create_backup(module_capsule_configured, subdir, wait_for_tasks=False)
+
+    # Verify the backup directory was created
+    result = module_capsule_configured.execute(f'test -d {backup_dir}')
+    assert result.status == 0, f'Backup directory {backup_dir} was not created'
+    _assert_backup_files(module_capsule_configured, backup_dir)
+
+    # Drop the pulp artifacts to confirm the restore repopulates them
+    module_capsule_configured.execute('rm -rf /var/lib/pulp/media/artifact')
+
+    # Restore the capsule data from the backup via --target-host
+    result = module_capsule_configured.execute(
+        f'foremanctl restore {backup_dir} --target-host proxy --force',
+        timeout='30m',
+    )
+    assert result.status == 0, (
+        f'foremanctl restore failed on capsule:\n{result.stdout}\n{result.stderr}'
+    )
+
+    # Verify the capsule is healthy after restore
+    result = module_capsule_configured.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, (
+        f'foremanctl health check failed on capsule after restore:\n{result.stdout}'
+    )
+
+    # Verify the content synced before the backup is restored and served again
+    artifact_count = int(
+        module_capsule_configured.execute(
+            'find /var/lib/pulp/media/artifact -type f | wc -l'
+        ).stdout
+    )
+    assert artifact_count > 0, 'Pulp artifacts were not restored on the capsule'
+
+    assert len(get_repo_files_by_url(repo_url)) == FAKE_0_YUM_REPO_PACKAGES_COUNT, (
+        'Capsule does not serve the expected content after the restore'
+    )
 
 
 def test_positive_offline_backup(module_target_sat, setup_backup_tests):
@@ -68,40 +241,121 @@ def test_positive_offline_backup(module_target_sat, setup_backup_tests):
 
     :Verifies: SAT-44895
     """
-    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+    backup_dir = _create_backup(module_target_sat, subdir)
 
-    # Run backup with --wait-for-tasks to ensure no running tasks block it
-    result = module_target_sat.execute(
-        f'foremanctl backup {subdir} --wait-for-tasks',
-        timeout='30m',
-    )
-    assert result.status == 0, f'foremanctl backup failed:\n{result.stdout}\n{result.stderr}'
+    _assert_backup_files(module_target_sat, backup_dir)
 
-    # Verify backup directory was created
-    result = module_target_sat.execute(f'test -d {subdir}')
-    assert result.status == 0, f'Backup directory {subdir} was not created'
-
-    # Get list of files in backup directory
-    files = module_target_sat.execute(f'ls -a {subdir}/*').stdout.split('\n')
-    files = [i for i in files if not re.compile(r'^\.*$').search(i)]
-    expected_files = get_exp_files(module_target_sat)
-
-    # Verify all expected files are present
-    assert set(files).issuperset(expected_files), (
-        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
-    )
-
-    # Verify foremanctl is still healthy after backup
     result = module_target_sat.execute('foremanctl health', timeout='5m')
     assert result.status == 0, f'foremanctl health check failed after backup:\n{result.stdout}'
 
 
-@pytest.mark.destructive
+@pytest.mark.e2e
+def test_positive_backup_restore_split_tar(module_target_sat, module_synced_repos):
+    """Verify foremanctl splits pulp content into volumes and restores from them
+
+    :id: 789ed846-6abb-442b-ae42-e918fa7e5b39
+
+    :setup:
+        1. Repositories with sufficient content synced to the server
+
+    :steps:
+        1. Run foremanctl backup with --tar-volume-size set to a small value
+        2. Verify pulp content is split into multiple numbered volumes within the size cap
+        3. Drop the pulp artifacts on the server
+        4. Run foremanctl restore --force from the split backup
+        5. Verify the restore completes and the server is healthy
+        6. Verify the split volumes are reassembled into the original pulp artifacts
+
+    :expectedresults:
+        1. Backup command exits with status 0 and splits pulp content into multiple volumes
+        2. Expected files are present in the backup
+        3. No volume exceeds the requested size
+        4. Restore reassembles the split volumes and exits with status 0
+        5. Health check passes after restore
+        6. Pulp artifacts are repopulated from the split volumes
+
+    :Verifies: SAT-44897
+    """
+    set_size_kb = 100
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+    backup_dir = _create_backup(module_target_sat, subdir, tar_volume_size=f'{set_size_kb}k')
+
+    ls_output = module_target_sat.execute(f'ls -a {backup_dir}').stdout
+    files = [f for f in ls_output.split('\n') if not re.compile(r'^\.*$').search(f)]
+
+    # Databases, config files and the pulp snapshot must still be present
+    # (the monolithic pulp-content.tar.gz is replaced by the split volumes)
+    expected_files = SAT_FILES | (CONTENT_FILES - {'pulp-content.tar.gz'})
+    assert set(files).issuperset(expected_files), (
+        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
+    )
+    assert 'pulp-content.tar.gz' not in files, (
+        'Monolithic pulp-content.tar.gz should be replaced by the split volumes'
+    )
+
+    # The pulp content must be split into multiple numbered volumes
+    part_files = [f for f in files if re.fullmatch(r'pulp-content\.tar\.gz\.part\d+', f)]
+    assert len(part_files) > 1, f'Expected multiple pulp-content volumes, found: {part_files}'
+
+    # Each volume must respect the requested size cap
+    sizes = module_target_sat.execute(
+        f'stat -c %s {backup_dir}/pulp-content.tar.gz.part*'
+    ).stdout.split()
+    assert max(int(size) for size in sizes) <= set_size_kb * 1024, (
+        f'A pulp-content volume exceeds the requested size of {set_size_kb}k: {sizes}'
+    )
+
+    # Drop the pulp artifacts to confirm restore reassembles them from the split volumes
+    module_target_sat.execute('rm -rf /var/lib/pulp/media/artifact')
+
+    result = module_target_sat.execute(
+        f'foremanctl restore {backup_dir} --force',
+        timeout='30m',
+    )
+    assert result.status == 0, f'foremanctl restore failed:\n{result.stdout}\n{result.stderr}'
+
+    result = module_target_sat.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, f'foremanctl health check failed after restore:\n{result.stdout}'
+
+    # The split volumes must be reassembled into the original pulp artifacts
+    artifact_count = int(
+        module_target_sat.execute('find /var/lib/pulp/media/artifact -type f | wc -l').stdout
+    )
+    assert artifact_count > 0, 'Pulp artifacts were not reassembled from the split volumes'
+
+
+@pytest.mark.parametrize('bad_size', ['0', '0M', '0G', '1H'])
+def test_negative_backup_split_tar_invalid_size(module_target_sat, bad_size):
+    """Verify foremanctl backup rejects a zero --tar-volume-size
+
+    :id: fa1ead69-0788-4083-93bf-6bd373033358
+
+    :parametrized: yes
+
+    :steps:
+        1. Run foremanctl backup with --tar-volume-size set to a zero value (0, 0M, 0G)
+
+    :expectedresults:
+        1. Backup command exits with a non-zero status
+        2. The output reports the invalid tar_volume_size format
+
+    :Verifies: SAT-44897
+    """
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+    result = module_target_sat.execute(f'foremanctl backup {subdir} --tar-volume-size {bad_size}')
+    assert result.status != 0, (
+        f'Backup should reject zero volume size {bad_size!r}:\n{result.stdout}'
+    )
+    assert f"Invalid tar_volume_size format '{bad_size}'" in result.stdout + result.stderr, (
+        f'Expected an invalid tar_volume_size error for {bad_size!r}, got:'
+        f'\n{result.stdout}\n{result.stderr}'
+    )
+
+
 @pytest.mark.e2e
 @pytest.mark.parametrize('skip_pulp', [False, True], ids=['include_pulp', 'skip_pulp'])
-def test_positive_backup_restore(
-    module_target_sat, setup_backup_tests, module_synced_repos, skip_pulp
-):
+def test_positive_backup_restore(module_target_sat, module_synced_repos, skip_pulp):
     """Verify foremanctl restore recovers a satellite to its original state from backup
 
     :id: cb8447fb-b25f-4ec7-b515-8fe7391bd867
@@ -130,15 +384,10 @@ def test_positive_backup_restore(
 
     :Verifies: SAT-44898
     """
-    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
     backup_dir = _create_backup(module_target_sat, subdir, skip_pulp=skip_pulp)
 
-    files = module_target_sat.execute(f'ls {backup_dir}').stdout.split('\n')
-    files = [i for i in files if i.strip()]
-    expected_files = get_exp_files(module_target_sat, skip_pulp)
-    assert set(files).issuperset(expected_files), (
-        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
-    )
+    _assert_backup_files(module_target_sat, backup_dir, skip_pulp=skip_pulp)
 
     post_backup_repo = module_target_sat.api.Repository(
         url=settings.repos.yum_3.url, product=module_synced_repos['custom'].product
@@ -200,7 +449,7 @@ def test_positive_backup_restore(
         ), 'Pulp artifacts should be repopulated after restore'
 
 
-def test_positive_restore_validate(module_target_sat, setup_backup_tests):
+def test_positive_restore_validate(module_target_sat):
     """Verify foremanctl restore --validate checks backup integrity without making changes
 
     :id: b4573263-ce88-4a89-9600-8e8b89aa3d63
@@ -219,7 +468,7 @@ def test_positive_restore_validate(module_target_sat, setup_backup_tests):
 
     :Verifies: SAT-44898
     """
-    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
     backup_dir = _create_backup(module_target_sat, subdir)
 
     health_before = module_target_sat.execute('foremanctl health', timeout='5m')
@@ -237,50 +486,82 @@ def test_positive_restore_validate(module_target_sat, setup_backup_tests):
     assert health_after.status == 0, f'Health check failed after validate:\n{health_after.stdout}'
 
 
-def test_negative_restore_baddir(module_target_sat, setup_backup_tests):
-    """Verify foremanctl restore fails with a non-existing backup directory
+@pytest.mark.e2e
+def test_positive_backup_restore_incremental(module_target_sat):
+    """Incremental backup/restore end-to-end test using foremanctl.
 
-    :id: a7b530e6-7496-45b6-ba14-198980dc3ca8
-
-    :steps:
-        1. Run foremanctl restore with a non-existing backup directory
-
-    :expectedresults:
-        1. Restore command exits with non-zero status
-
-    :Verifies: SAT-44898
-    """
-    bad_dir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
-
-    result = module_target_sat.execute(
-        f'foremanctl restore {bad_dir} --force',
-        timeout='5m',
-    )
-    assert result.status != 0, 'foremanctl restore should fail with non-existing backup directory'
-
-
-def test_negative_restore_no_force(module_target_sat, setup_backup_tests):
-    """Verify foremanctl restore fails without --force on an existing deployment
-
-    :id: ba844ee3-6837-4f8d-b856-3bd8cf5f1d2a
+    :id: 2fc57857-bba0-425e-a7f2-e70ff5cafaab
 
     :steps:
-        1. Create a backup using foremanctl backup
-        2. Run foremanctl restore without --force flag
+        1. Sync a custom repository
+        2. Take an initial backup with foremanctl
+        3. Create additional content (sync another repo)
+        4. Take an incremental backup referencing the initial one
+        5. Verify expected files are present in the incremental backup
+        6. Restore the initial backup and check system health
+        7. Verify the additional content is missing
+        8. Restore the incremental backup and check system health
+        9. Verify all content is restored
 
     :expectedresults:
-        1. Backup succeeds
-        2. Restore command exits with non-zero status due to safety check
-
-    :Verifies: SAT-44898
+        1. Initial and incremental backups succeed
+        2. Expected files are present in the incremental backup
+        3. Restore of both backups succeeds
+        4. System health checks pass after each restore
+        5. Content is present/absent as expected after each restore
     """
-    subdir = f'{BACKUP_DIR}backup-{gen_string("alpha")}'
-    backup_dir = _create_backup(module_target_sat, subdir)
+    product = module_target_sat.api.Product(
+        organization=module_target_sat.api.Organization().create()
+    ).create()
+
+    initial_repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_1.url, product=product
+    ).create()
+    initial_repo.sync()
+    initial_repo = initial_repo.read()
+
+    subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
+    init_backup_dir = _create_backup(module_target_sat, subdir)
+
+    secondary_repo = module_target_sat.api.Repository(
+        url=settings.repos.yum_3.url, product=product
+    ).create()
+    secondary_repo.sync()
+    secondary_repo = secondary_repo.read()
+
+    inc_backup_dir = _create_backup(module_target_sat, subdir, base_backup=init_backup_dir)
+
+    _assert_backup_files(module_target_sat, inc_backup_dir)
 
     result = module_target_sat.execute(
-        f'foremanctl restore {backup_dir}',
-        timeout='5m',
+        f'foremanctl restore {init_backup_dir} --force',
+        timeout='30m',
     )
-    assert result.status != 0, (
-        'foremanctl restore should fail without --force on existing deployment'
+    assert result.status == 0, f'Initial restore failed:\n{result.stdout}\n{result.stderr}'
+
+    result = module_target_sat.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, f'Health check failed after initial restore:\n{result.stdout}'
+
+    result = module_target_sat.api.Repository().search(
+        query={'search': f'name="{secondary_repo.name}"'}
     )
+    assert len(result) == 0, 'Secondary repo should not exist after restoring initial backup'
+
+    result = module_target_sat.execute(
+        f'foremanctl restore {inc_backup_dir} --force',
+        timeout='30m',
+    )
+    assert result.status == 0, f'Incremental restore failed:\n{result.stdout}\n{result.stderr}'
+
+    result = module_target_sat.execute('foremanctl health', timeout='5m')
+    assert result.status == 0, f'Health check failed after incremental restore:\n{result.stdout}'
+
+    repo = module_target_sat.api.Repository().search(
+        query={'search': f'name="{initial_repo.name}"'}
+    )[0]
+    assert repo.id == initial_repo.id
+
+    repo = module_target_sat.api.Repository().search(
+        query={'search': f'name="{secondary_repo.name}"'}
+    )[0]
+    assert repo.id == secondary_repo.id

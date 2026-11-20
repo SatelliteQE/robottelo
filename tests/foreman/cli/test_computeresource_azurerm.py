@@ -20,12 +20,12 @@ from robottelo.constants import (
     AZURERM_FILE_URI,
     AZURERM_PLATFORM_DEFAULT,
     AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
+    AZURERM_RHEL7_FT_GALLERY_IMG_URN,
+    AZURERM_RHEL7_FT_IMG_URN,
     AZURERM_RHEL9_UD_IMG_URN,
     AZURERM_VM_SIZE_DEFAULT,
     AZURERM_PREMIUM_OS_Disk,
 )
-
-pytestmark = pytest.mark.foreman_installer
 
 
 @pytest.fixture(scope='class')
@@ -55,9 +55,6 @@ class TestAzureRMComputeResourceTestCase:
     """AzureRm compute resource Tests"""
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_crud_azurerm_cr(
         self, azurerm_settings, sat_azure, sat_azure_loc, sat_azure_org
     ):
@@ -86,7 +83,7 @@ class TestAzureRMComputeResourceTestCase:
             }
         )
         assert compresource['name'] == cr_name
-        assert compresource['provider'] == 'Azure Resource Manager'
+        assert compresource['provider'] == 'Microsoft Azure'
         assert compresource['tenant'] == azurerm_settings['tenant']
         assert compresource['app_ident'] == azurerm_settings['app_ident']
         assert compresource['sub_id'] == azurerm_settings['sub_id']
@@ -114,13 +111,12 @@ class TestAzureRMComputeResourceTestCase:
 
     @pytest.mark.upgrade
     @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
-    @pytest.mark.parametrize(
         "image",
         [
             AZURERM_RHEL9_UD_IMG_URN,
             AZURERM_RHEL7_FT_CUSTOM_IMG_URN,
+            AZURERM_RHEL7_FT_IMG_URN,
+            AZURERM_RHEL7_FT_GALLERY_IMG_URN,
         ],
     )
     def test_positive_image_crud(
@@ -130,8 +126,10 @@ class TestAzureRMComputeResourceTestCase:
         module_azurerm_cr,
         sat_azure_default_os,
         image,
+        sat_azure_loc,
+        sat_azure_org,
     ):
-        """Finish template/Cloud_init image along with username is being Create, Read, Update and
+        """Marketplace/Gallery/Custom/Cloud_init image along with username is being Create, Read, Update and
         Delete in AzureRm compute resources
 
         :id: e4f40640-46dd-4ef8-8be5-99c625056aff
@@ -140,15 +138,18 @@ class TestAzureRMComputeResourceTestCase:
 
         :steps:
             1. Create an AzureRm Compute Resource.
-            2. Create a finish template/Cloud_init based image in it.
+            2. Create a marketplace/gallery/custom/cloud_init based image in it with organization and location.
             3. List/info the created image
-            4. Update image name and username
-            5. Delete created image
+            4. Verify image properties including taxonomy
+            5. Update image name and username
+            6. Delete created image
 
-        :expectedresults: Finish template/Cloud_init image should be created, list, updated and
-                          deleted in AzureRm CR along with username
+        :expectedresults: Marketplace/Gallery/Custom/Cloud_init image should be created, list, updated and
+                          deleted in AzureRm CR along with username and taxonomy parameters
 
         :CaseImportance: Critical
+
+        :Verifies: SAT-48157
 
         """
 
@@ -164,6 +165,8 @@ class TestAzureRMComputeResourceTestCase:
                 'compute-resource': module_azurerm_cr.name,
                 'username': username,
                 'user-data': 'no',
+                'organization-id': sat_azure_org.id,
+                'location-id': sat_azure_loc.id,
             }
         )[0]
         assert img_ft['message'] == 'Image created.'
@@ -212,9 +215,6 @@ class TestAzureRMComputeResourceTestCase:
         assert result['message'] == 'Image deleted.'
         assert result['name'] == new_img_name
 
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_check_available_networks(self, sat_azure, azurermclient, module_azurerm_cr):
         """Check networks from AzureRm CR are available to select during host provision.
 
@@ -228,9 +228,6 @@ class TestAzureRMComputeResourceTestCase:
         result = sat_azure.cli.ComputeResource.networks({'id': module_azurerm_cr.id})
         assert len(result) > 0
 
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_create_compute_profile_values(
         self, azurermclient, module_azurerm_cr, sat_azure
     ):
@@ -376,7 +373,6 @@ class TestAzureRMFinishTemplateProvisioning:
 
     @pytest.mark.e2e
     @pytest.mark.upgrade
-    @pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
     def test_positive_azurerm_host_provisioned(
         self,
         class_host_ft,
@@ -504,9 +500,6 @@ class TestAzureRMUserDataProvisioning:
         return azurermclient.get_vm(name=class_host_ud['name'].split('.')[0])
 
     @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-    )
     def test_positive_azurerm_host_provisioned(
         self,
         class_host_ud,

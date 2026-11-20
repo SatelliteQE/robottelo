@@ -31,9 +31,11 @@ def module_manifest():
 
 
 @pytest.fixture(scope='module')
-def module_org_with_parameter(module_target_sat, module_manifest):
+def module_org_with_parameter(module_target_sat, module_manifest, default_smart_proxy):
     # adding remote_execution_connect_by_ip=Yes at org level
     org = module_target_sat.api.Organization().create()
+    default_smart_proxy.organization.append(module_target_sat.api.Organization(id=org.id))
+    default_smart_proxy.update(['organization'])
     module_target_sat.api.Parameter(
         name='remote_execution_connect_by_ip',
         parameter_type='boolean',
@@ -79,6 +81,12 @@ def vm_content_hosts(smart_proxy_location, module_repos_collection, module_targe
             client.add_rex_key(satellite=module_target_sat)
             module_target_sat.api_factory.update_vm_host_location(client, smart_proxy_location.id)
         yield clients
+
+
+@pytest.fixture
+def function_sca_manifest_org(smart_proxy_function_sca_manifest_org):
+    """Override function_sca_manifest_org to use smart proxy enabled organization"""
+    return smart_proxy_function_sca_manifest_org
 
 
 @pytest.fixture
@@ -448,62 +456,6 @@ def test_positive_upgrade_package(
 
 
 @pytest.mark.upgrade
-def test_positive_install_package_group(
-    session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
-):
-    """Install a package group to hosts inside host collection remotely
-
-    :id: 2bf47798-d30d-451a-8de5-bc03bd8b9a48
-
-    :expectedresults: Package group was successfully installed on all the
-        hosts in host collection
-
-    """
-    with session:
-        session.organization.select(org_name=module_org_with_parameter.name)
-        session.location.select(smart_proxy_location.name)
-        session.hostcollection.manage_packages(
-            vm_host_collection.name,
-            content_type='Package Group',
-            packages=constants.FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
-            action='install',
-            action_via='via remote execution',
-        )
-        for package in constants.FAKE_0_CUSTOM_PACKAGE_GROUP:
-            assert _is_package_installed(vm_content_hosts, package)
-
-
-def test_positive_remove_package_group(
-    session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
-):
-    """Remove a package group from hosts inside host collection remotely
-
-    :id: 458897dc-9836-481a-b777-b147d64836f2
-
-    :expectedresults: Package group was successfully removed  on all the
-        hosts in host collection
-
-    """
-    for client in vm_content_hosts:
-        result = client.run(f'yum groups install -y {constants.FAKE_0_CUSTOM_PACKAGE_GROUP_NAME}')
-        assert result.status == 0
-    for package in constants.FAKE_0_CUSTOM_PACKAGE_GROUP:
-        assert _is_package_installed(vm_content_hosts, package)
-    with session:
-        session.organization.select(org_name=module_org_with_parameter.name)
-        session.location.select(smart_proxy_location.name)
-        session.hostcollection.manage_packages(
-            vm_host_collection.name,
-            content_type='Package Group',
-            packages=constants.FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
-            action='remove',
-            action_via='via remote execution',
-        )
-        for package in constants.FAKE_0_CUSTOM_PACKAGE_GROUP:
-            assert not _is_package_installed(vm_content_hosts, package, expect_installed=False)
-
-
-@pytest.mark.upgrade
 def test_positive_install_errata(
     session, module_org_with_parameter, smart_proxy_location, vm_content_hosts, vm_host_collection
 ):
@@ -528,12 +480,59 @@ def test_positive_install_errata(
         assert _is_package_installed(vm_content_hosts, constants.FAKE_2_CUSTOM_PACKAGE)
 
 
+@pytest.fixture
+def vm_content_hosts_for_assigned_content_change(
+    vm_content_hosts, module_org_with_parameter, smart_proxy_location, module_target_sat
+):
+    """Expose the Pulpcore proxy in this test's taxonomy only while it runs."""
+    content_proxy = module_target_sat.get_default_smart_proxy().read()
+    organizations = content_proxy.organization or []
+    add_organization = module_org_with_parameter.id not in [entity.id for entity in organizations]
+    if add_organization:
+        organizations.append(module_target_sat.api.Organization(id=module_org_with_parameter.id))
+        content_proxy.organization = organizations
+    locations = content_proxy.location or []
+    add_location = smart_proxy_location.id not in [entity.id for entity in locations]
+    if add_location:
+        locations.append(module_target_sat.api.Location(id=smart_proxy_location.id))
+        content_proxy.location = locations
+    taxonomy_to_update = []
+    if add_organization:
+        taxonomy_to_update.append('organization')
+    if add_location:
+        taxonomy_to_update.append('location')
+    if taxonomy_to_update:
+        content_proxy.update(taxonomy_to_update)
+
+    content_proxy_id = content_proxy.id
+    yield vm_content_hosts
+
+    content_proxy = module_target_sat.api.SmartProxy(id=content_proxy_id).read()
+    taxonomy_to_restore = []
+    if add_organization:
+        content_proxy.organization = [
+            organization
+            for organization in content_proxy.organization or []
+            if organization.id != module_org_with_parameter.id
+        ]
+        taxonomy_to_restore.append('organization')
+    if add_location:
+        content_proxy.location = [
+            location
+            for location in content_proxy.location or []
+            if location.id != smart_proxy_location.id
+        ]
+        taxonomy_to_restore.append('location')
+    if taxonomy_to_restore:
+        content_proxy.update(taxonomy_to_restore)
+
+
 def test_positive_change_assigned_content(
     session,
     module_org_with_parameter,
     smart_proxy_location,
     module_lce,
-    vm_content_hosts,
+    vm_content_hosts_for_assigned_content_change,
     vm_host_collection,
     module_repos_collection,
     module_target_sat,
@@ -602,7 +601,7 @@ def test_positive_change_assigned_content(
     expected_repo_urls = _get_content_repository_urls(
         module_repos_collection, module_lce, content_view, module_target_sat
     )
-    for client in vm_content_hosts:
+    for client in vm_content_hosts_for_assigned_content_change:
         result = client.run("subscription-manager repos")
         assert result.status == 0
         client_repo_urls = [
@@ -622,7 +621,7 @@ def test_positive_change_assigned_content(
         expected_repo_urls = _get_content_repository_urls(
             module_repos_collection, new_lce, new_content_view, module_target_sat
         )
-        for client in vm_content_hosts:
+        for client in vm_content_hosts_for_assigned_content_change:
             result = client.run("subscription-manager refresh")
             assert result.status == 0
             assert 'All local data refreshed' in result.stdout

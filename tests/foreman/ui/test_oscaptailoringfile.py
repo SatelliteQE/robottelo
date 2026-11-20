@@ -10,11 +10,14 @@
 
 :CaseImportance: High
 
+:BlockedBy: SAT-40441
 """
 
 import pytest
 
 from robottelo.utils.datafactory import gen_string
+
+pytestmark = pytest.mark.foreman_installer
 
 
 @pytest.mark.upgrade

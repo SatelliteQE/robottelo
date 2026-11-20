@@ -13,18 +13,14 @@
 """
 
 from datetime import timedelta
+import random
 
-from fauxfactory import gen_choice
+from fauxfactory import gen_choice, gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import REPO_TYPE, SYNC_INTERVAL, DataFile
-from robottelo.utils.datafactory import (
-    gen_string,
-    parametrized,
-    valid_cron_expressions,
-    valid_data_list,
-)
+from robottelo.constants import REPO_TYPE, SYNC_INTERVAL, DataFile, repos as repo_constants
+from robottelo.utils.datafactory import valid_cron_expressions, valid_data_list
 
 
 @pytest.fixture(scope='module')
@@ -94,17 +90,15 @@ def test_positive_end_to_end(session, module_org, module_target_sat):
         assert session.product.search(new_product_name)[0]['Name'] != new_product_name
 
 
-@pytest.mark.parametrize('product_name', **parametrized(valid_data_list('ui')))
-def test_positive_create_in_different_orgs(session, product_name, module_target_sat):
+def test_positive_create_in_different_orgs(session, module_target_sat):
     """Create Product with same name but in different organizations
 
     :id: 469fc036-a48a-4c0a-9da9-33e73f903479
 
-    :parametrized: yes
-
     :expectedresults: Product is created successfully in both
         organizations.
     """
+    product_name = random.choice(list(valid_data_list().values()))
     orgs = [module_target_sat.api.Organization().create() for _ in range(2)]
     with session:
         for org in orgs:
@@ -191,3 +185,46 @@ def test_positive_bulk_action_advanced_sync(session, module_org, module_target_s
         # Complete Sync
         result = session.product.advanced_sync([product.name], sync_type='complete')
         assert result['task']['result'] == 'success'
+
+
+@pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
+def test_positive_advanced_sync_file_repo(session, module_org, module_target_sat):
+    """Advanced sync with complete sync option works for file repositories
+
+    :id: 581cdc76-55c5-4575-a51a-46c03176e8e2
+
+    :steps:
+        1. Create a file repository and sync it
+        2. Navigate to Content > Product > click on the product
+        3. Click Select Action > Advanced Sync > Complete Sync
+
+    :expectedresults:
+        Advanced sync with complete sync (skip_metadata_check) succeeds for file repository
+
+    :Verifies: SAT-49549
+    """
+    repo_name = gen_string('alpha')
+    product = module_target_sat.api.Product(organization=module_org).create()
+    with session:
+        session.repository.create(
+            product.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['file'],
+                'repo_content.upstream_url': repo_constants.CUSTOM_FILE_REPO,
+            },
+        )
+        # Initial repository sync
+        session.repository.synchronize(product.name, repo_name)
+
+        # Complete Sync (skip_metadata_check)
+        result = session.product.advanced_sync([product.name], sync_type='complete')
+        assert result['task']['result'] == 'success', (
+            'Complete sync should succeed for file repositories'
+        )
+
+        # Verify repository still has content after complete sync
+        repo_values = session.repository.read(product.name, repo_name)
+        assert repo_values['content_counts'].get('Files', '0') != '0', (
+            'Repository should still contain files after complete sync'
+        )

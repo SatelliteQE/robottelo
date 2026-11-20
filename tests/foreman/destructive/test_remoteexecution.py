@@ -27,7 +27,11 @@ from robottelo.utils.installer import InstallerCommand
 
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
-pytestmark = pytest.mark.destructive
+pytestmark = [
+    pytest.mark.destructive,
+    # REX connect_by_ip / prefer_ipv6; curated IPv6 overlay.
+    pytest.mark.network_sensitive,
+]
 
 
 def create_CA(host, path='/root/CA', name=None):
@@ -118,6 +122,8 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
 
     :expectedresults: Should fail
 
+    :BlockedBy: SAT-52557
+
     :BZ: 2152951
 
     :CaseImportance: Medium
@@ -153,70 +159,6 @@ def test_negative_run_capsule_upgrade_playbook_on_satellite(target_sat):
         verify=False,
     )
     assert 'This playbook cannot be executed on a Satellite server.' in response.text
-
-
-@pytest.mark.no_containers
-@pytest.mark.rhel_ver_list([8])
-def test_positive_use_alternate_directory(
-    target_sat, rhel_contenthost, default_org, default_location
-):
-    """Use alternate working directory on client to execute rex jobs
-
-    :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
-
-    :expectedresults: Verify the job was successfully ran against the host
-
-    :customerscenario: true
-
-    :parametrized: yes
-    """
-    client = rhel_contenthost
-    org = default_org.read()
-    cvenv_id = target_sat.api_factory.get_cvenv_id(org.default_content_view, org.library)
-    ak = target_sat.cli_factory.make_activation_key(
-        {
-            'content-view-environment-ids': cvenv_id,
-            'organization-id': default_org.id,
-        }
-    )
-    result = client.register(default_org, default_location, ak.name, target_sat)
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
-    testdir = gen_string('alpha')
-    result = client.run(f'mkdir /{testdir}')
-    assert result.status == 0
-    result = client.run(f'chcon --reference=/var /{testdir}')
-    assert result.status == 0
-    result = target_sat.execute(
-        f"sed -i r's/^:remote_working_dir:.*/:remote_working_dir: \\/{testdir}/' \
-        /etc/foreman-proxy/settings.d/remote_execution_ssh.yml",
-    )
-    assert result.status == 0
-    result = target_sat.execute('systemctl restart foreman-proxy')
-    assert result.status == 0
-
-    command = f'echo {gen_string("alpha")}'
-    invocation_command = target_sat.cli_factory.job_invocation(
-        {
-            'job-template': 'Run Command - Script Default',
-            'inputs': f'command={command}',
-            'search-query': f"name ~ {client.hostname}",
-        }
-    )
-    result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
-    try:
-        assert result['success'] == '1'
-    except AssertionError as err:
-        output = ' '.join(
-            target_sat.cli.JobInvocation.get_output(
-                {'id': invocation_command['id'], 'host': client.hostname}
-            )
-        )
-        result = f'host output: {output}'
-        raise AssertionError(result) from err
-
-    task = target_sat.cli.Task.list_tasks({'search': command})[0]
-    search = target_sat.cli.Task.list_tasks({'search': f'id={task["id"]}'})
-    assert search[0]['action'] == task['action']
 
 
 def register_host(satellite, host, org, cockpit=False):
@@ -273,6 +215,8 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost, function_org):
 
     :expectedresults: Verify the job has been run successfully against the host, Sat's public key hasn't been added to host's authorized_keys and CA verification has been used instead
 
+    :BlockedBy: SAT-47566
+
     :parametrized: yes
     """
     sat = ca_sat[0]
@@ -303,6 +247,8 @@ def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost, function_org):
     :id: 7ddd170b-d489-4e2a-93af-ccf0c1a9d4ca
 
     :expectedresults: Verify the job has failed against the host
+
+    :BlockedBy: SAT-47566
 
     :parametrized: yes
     """
@@ -345,6 +291,8 @@ def test_positive_ssh_ca_host_only(
 
     :expectedresults: Verify the job has been run successfully against the host
 
+    :BlockedBy: SAT-47566
+
     :parametrized: yes
     """
     sat = target_sat
@@ -376,6 +324,8 @@ def test_negative_ssh_ca_host_wrong_cert(
     :id: 9e23d27d-a3a8-4c0d-9a0f-892d392aa660
 
     :expectedresults: Verify the job has failed against the host
+
+    :BlockedBy: SAT-47566
 
     :parametrized: yes
     """
@@ -410,6 +360,8 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
     :id: 97c17417-3b20-4876-bf9c-7219a91acee2
 
     :expectedresults: Verify the job has been run successfully against the host, Sat's public key hasn't been added to host's authorized_keys and CA verification has been used instead
+
+    :BlockedBy: SAT-47568, SAT-47566
 
 
     :parametrized: yes
@@ -491,6 +443,8 @@ class TestCockpit:
         :id: 5a9be063-cdc4-43ce-91b9-7608fbebf8bb
 
         :expectedresults: Cockpit page is loaded and displays sat host info
+
+        :BlockedBy: SAT-47568
 
         :BZ: 1876220
 

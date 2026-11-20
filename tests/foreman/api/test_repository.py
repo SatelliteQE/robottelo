@@ -21,9 +21,10 @@ from urllib.parse import urljoin, urlparse, urlunparse
 
 from fauxfactory import gen_string
 from nailgun import client
-from nailgun.entity_mixins import TaskFailedError, call_entity_method_with_timeout
+from nailgun.entity_mixins import TaskFailedError
 import pytest
 from requests.exceptions import HTTPError
+from wait_for import wait_for
 
 from robottelo import constants
 from robottelo.config import settings
@@ -488,21 +489,20 @@ class TestRepository:
         [
             {'content_type': content_type, 'download_policy': 'on_demand'}
             for content_type in constants.REPO_TYPE
-            if content_type not in ['yum', 'docker', 'deb', 'file']
+            if content_type not in ['yum', 'docker', 'deb', 'file', 'python']
         ],
         indirect=True,
         ids=lambda x: x['content_type'],
     )
     def test_negative_create_repos_with_download_policy(self, repo_options, target_sat):
-        """Verify that non-YUM, non-docker, non-debian, and non-file repositories cannot be created with
-        download policy
+        """Verify that repositories not supporting download policy cannot be created with one
 
         :id: 8a59cb31-164d-49df-b3c6-9b90634919ce
 
         :parametrized: yes
 
-        :expectedresults: Non-YUM & non-docker repositories are not created with on_demand download
-            policy
+        :expectedresults: Repositories that do not support download policy are not created with
+            on_demand download policy
 
         :CaseImportance: Critical
         """
@@ -1069,20 +1069,28 @@ class TestRepository:
             reposet=constants.REPOSET['rhst7'],
             releasever=None,
         )
-        call_entity_method_with_timeout(target_sat.api.Repository(id=repo_id).sync, timeout=1500)
-        with target_sat.session.shell() as sh:
-            sh.send('foreman-rake console')
-            time.sleep(30)  # sleep to allow time for console to open
-            sh.send(f'::Katello::Repository.find({repo_id}).version_href')
-            time.sleep(3)  # give enough time for the command to complete
-        results = sh.result
-        identifier = results.stdout.split('version_href\n"', 1)[1].split('version')[0]
-        target_sat.execute(
-            f'curl -X DELETE {target_sat.url}/{identifier}'
-            f' --cert /etc/foreman/client_cert.pem'
-            f' --key /etc/foreman/client_key.pem'
+        repo = target_sat.api.Repository(id=repo_id)
+        repo.sync(timeout=1500)
+        version_href = repo.read_json()['version_href']
+        repository_href = target_sat.pulp_api(version_href)['repository']
+        # Deliberately corrupt the backend state so correct_repositories has work to do.
+        deletion_task_href = target_sat.pulp_api(repository_href, method='DELETE')['task']
+        deletion_task, _ = wait_for(
+            lambda: target_sat.pulp_api(deletion_task_href),
+            fail_condition=lambda task: (
+                task['state'] not in ('completed', 'failed', 'canceled', 'skipped')
+            ),
+            timeout=300,
+            delay=2,
         )
-        command_output = target_sat.execute('foreman-rake katello:correct_repositories COMMIT=true')
+        assert deletion_task['state'] == 'completed', (
+            f'Pulp task {deletion_task_href} ended in {deletion_task["state"]}: '
+            f'{deletion_task.get("error")}'
+        )
+        command_output = target_sat.execute(
+            'podman exec foreman foreman-rake katello:correct_repositories COMMIT=true'
+        )
+        assert command_output.status == 0, command_output.stderr
         assert 'Recreating' in command_output.stdout
         assert 'TaskError' not in command_output.stdout
 
@@ -1386,7 +1394,9 @@ class TestRepositorySync:
             == []
         )
 
-    def test_positive_validate_async_operation_response(self, module_sca_manifest_org, target_sat):
+    def test_positive_validate_async_operation_response(
+        self, function_sca_manifest_org, target_sat
+    ):
         """Verify that RefreshDistribution action properly tracks Pulp tasks via AsyncOperationResponse.
 
         :id: 84dc1de1-2b9c-4545-8ced-4a6f0857b745
@@ -1406,32 +1416,32 @@ class TestRepositorySync:
         # Enable and sync a Red Hat repository
         repo_id = target_sat.api_factory.enable_rhrepo_and_fetchid(
             basearch='x86_64',
-            org_id=module_sca_manifest_org.id,
+            org_id=function_sca_manifest_org.id,
             product=constants.PRDS['rhel'],
             repo=constants.REPOS['rhst7']['name'],
             reposet=constants.REPOSET['rhst7'],
             releasever=None,
         )
-        target_sat.api.Repository(id=repo_id).sync()
 
-        # Wait for sync task to complete and get the task
-        task = target_sat.wait_for_tasks(
+        # Ensure the distribution exists before the first sync updates it.
+        target_sat.wait_for_tasks(
             search_query=(
-                f'label = Actions::Katello::Repository::Sync and resource_id = {repo_id}'
-                f' and organization_id = {module_sca_manifest_org.id}'
+                'label = Actions::Katello::Repository::MetadataGenerate'
+                f' and resource_id = {repo_id}'
+                ' and resource_type = Katello::Repository'
             ),
-            search_rate=20,
-            max_tries=15,
+            search_rate=10,
+            max_tries=6,
         )
-        assert len(task) == 1, f'Expected 1 sync task to be found, got {task}'
-        task_id = task[0].id
+        sync_task = target_sat.api.Repository(id=repo_id).sync()
+        task_id = sync_task['id']
 
-        # Query RefreshDistribution action output using foreman-rake console
+        # Print RefreshDistribution action output using foreman-rake console
         rake_command = (
             f"task = ForemanTasks::Task.find('{task_id}'); "
             "refresh_dist_action = task.execution_plan.actions.find do |action| "
             "action.class.name == 'Actions::Pulp3::Repository::RefreshDistribution' end; "
-            "refresh_dist_action.output;"
+            "p refresh_dist_action.output;"
         )
         output = target_sat.execute(f'echo "{rake_command}" | foreman-rake console')
 
@@ -1605,11 +1615,13 @@ class TestDockerRepository:
             {
                 'large_repo': {
                     'content_type': 'docker',
-                    'docker_upstream_name': settings.container.docker.repo_upstream_name,
+                    'docker_upstream_name': settings.container_repo.registries.redhat.repos_to_sync[
+                        0
+                    ],
                     'name': gen_string('alphanumeric', 10),
-                    'url': settings.container.rh.registry_hub,
-                    'upstream_username': settings.subscription.rhn_username,
-                    'upstream_password': settings.subscription.rhn_password,
+                    'url': settings.container_repo.registries.redhat.url,
+                    'upstream_username': settings.container_repo.registries.redhat.username,
+                    'upstream_password': settings.container_repo.registries.redhat.password,
                 }
             }
         ),
@@ -1624,7 +1636,7 @@ class TestDockerRepository:
             1. Create new product
             2. Create docker repo with:
                 a. URL - https://registry.redhat.io
-                b. Repo - openshift3/logging-elasticsearch
+                b. Repo - from container_repo.registries.redhat.repos_to_sync
             3. Sync repo
             4. Cancel sync
             5. Assert sync has stopped
@@ -2484,6 +2496,41 @@ class TestFileRepository:
             f'Expected HTTP 200 for {iso_path}, got {result.stdout.strip()}'
         )
 
+    @pytest.mark.parametrize(
+        'repo_options',
+        **parametrized([{'content_type': 'file', 'url': repo_constants.CUSTOM_FILE_REPO}]),
+        indirect=True,
+    )
+    def test_positive_sync_file_repo_with_skip_metadata_check(self, repo, target_sat):
+        """Verify skip_metadata_check parameter is accepted for file repositories
+
+        :id: 55feff08-7705-4f47-885a-1e1ba7b13c38
+
+        :steps:
+            1. Create a file repository
+            2. Sync the repository normally
+            3. Sync again with skip_metadata_check=True
+
+        :expectedresults:
+            1. Initial sync succeeds
+            2. Sync with skip_metadata_check succeeds without error
+            3. Previously would error with "Cannot skip metadata check on non-yum/deb repositories"
+
+        :Verifies: SAT-49549
+        """
+        # Initial sync
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['file'] > 0, 'Repository should contain files after sync'
+
+        # Sync with skip_metadata_check - should not raise an error
+        result = repo.sync(data={'skip_metadata_check': True})
+        assert result, 'Sync with skip_metadata_check should succeed'
+
+        # Verify repository still has content
+        repo = repo.read()
+        assert repo.content_counts['file'] > 0, 'Repository should still contain files'
+
 
 @pytest.mark.skip_if_not_set('container_repo')
 class TestTokenAuthContainerRepository:
@@ -2642,7 +2689,7 @@ class TestPythonRepository:
 
         :id: e521a7a4-2502-4fe2-b297-a13fc99e679f
 
-        :BlockedBy: SAT-23430
+        :BlockedBy: SAT-36514
 
         :steps:
             1. Sync python repo
@@ -2654,3 +2701,93 @@ class TestPythonRepository:
         :CaseAutomation: Automated
         """
         repo.sync()
+
+    @pytest.mark.parametrize(
+        'repo_options',
+        [
+            {
+                'content_type': constants.REPO_TYPE['python'],
+                'url': 'https://pypi.org',
+                'download_policy': policy,
+                'generic_remote_options': '{"includes":["pulp-python"]}',
+            }
+            for policy in constants.DOWNLOAD_POLICIES
+        ],
+        indirect=True,
+        ids=lambda x: x['download_policy'],
+    )
+    def test_positive_create_with_download_policy(self, repo_options, repo):
+        """Create Python repositories with available download policies.
+
+        :id: 08ca23cd-cb5f-458b-b769-f59923e19eb0
+
+        :parametrized: yes
+
+        :Verifies: SAT-36510
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo with each download policy (on_demand, immediate)
+
+        :expectedresults: Python repo is created with the specified download policy
+        """
+        assert repo.download_policy == repo_options['download_policy']
+
+    def test_positive_download_policy_lifecycle(self, module_org, module_product, target_sat):
+        """Verify the default and updated download policies through Python repository syncs.
+
+        :id: da18fdfc-20df-4d95-bfb9-ecca9275fe4f
+
+        :Verifies: SAT-36510
+
+        :BlockedBy: SAT-36514
+
+        :steps:
+            1. Create a Python repo without specifying a download policy.
+            2. Sync the repository and verify that its Pulp remote uses the default policy.
+               -> Specify shelf-reader in the includes to limit the number of synced packages.
+            3. Update the repository to the other supported download policy.
+            4. Sync the repository again and verify that its Pulp remote uses the new policy.
+
+        :expectedresults: The Python repo syncs successfully with both the default and updated
+            download policies.
+
+        :CaseImportance: Critical
+        """
+        default_dl_policy = target_sat.api.Setting().search(
+            query={'search': 'name=default_download_policy'}
+        )
+        assert default_dl_policy
+        default_policy = default_dl_policy[0].value
+        updated_policy = 'on_demand' if default_policy == 'immediate' else 'immediate'
+
+        repo = target_sat.api.Repository(
+            content_type=constants.REPO_TYPE['python'],
+            includes=['shelf-reader'],
+            organization=module_org,
+            product=module_product,
+            url=settings.repos.python.pypi.url,
+        ).create()
+        assert repo.download_policy == default_policy
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['python_package'] > 0
+
+        remote_href = target_sat.execute(
+            f'echo "::Katello::Repository.find({repo.id}).remote_href" | foreman-rake console'
+        ).stdout.split('"')[1]
+        remote = target_sat.pulp_api(remote_href)
+        assert remote['policy'] == default_policy
+
+        repo.download_policy = updated_policy
+        repo = repo.update(['download_policy'])
+        assert repo.download_policy == updated_policy
+
+        repo.sync()
+        repo = repo.read()
+        assert repo.content_counts['python_package'] > 0
+
+        remote = target_sat.pulp_api(remote_href)
+        assert remote['policy'] == updated_policy

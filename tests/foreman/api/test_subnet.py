@@ -17,19 +17,17 @@ http://theforeman.org/api/apidoc/v2/1.15.html
 
 """
 
+import random
 import re
 
+from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
 
-from robottelo.utils.datafactory import (
-    gen_string,
-    generate_strings_list,
-    invalid_values_list,
-    parametrized,
-)
+from robottelo.utils.datafactory import generate_strings_list, invalid_values_list
 
 
+@pytest.mark.migration_candidate
 def test_positive_create_with_parameter(target_sat):
     """Subnet can be created along with parameters
 
@@ -46,13 +44,11 @@ def test_positive_create_with_parameter(target_sat):
     assert subnet.subnet_parameters_attributes[0]['value'] == parameter[0]['value']
 
 
-@pytest.mark.parametrize('name', **parametrized(generate_strings_list()))
-def test_positive_add_parameter(name, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_add_parameter(target_sat):
     """Parameters can be created in subnet
 
     :id: c1dae6f4-45b1-45db-8529-d7918e41a99b
-
-    :parametrized: yes
 
     :steps:
 
@@ -63,6 +59,7 @@ def test_positive_add_parameter(name, target_sat):
 
     :CaseImportance: Medium
     """
+    name = random.choice(generate_strings_list())
     subnet = target_sat.api.Subnet().create()
     value = gen_string('utf8')
     subnet_param = target_sat.api.Parameter(subnet=subnet.id, name=name, value=value).create()
@@ -70,6 +67,7 @@ def test_positive_add_parameter(name, target_sat):
     assert subnet_param.value == value
 
 
+@pytest.mark.migration_candidate
 def test_positive_add_parameter_with_values_and_separator(target_sat):
     """Subnet parameters can be created with values separated by comma
 
@@ -94,15 +92,11 @@ def test_positive_add_parameter_with_values_and_separator(target_sat):
     assert subnet_param.value == values
 
 
-@pytest.mark.parametrize(
-    'separator', **parametrized({'comma': ',', 'slash': '/', 'dash': '-', 'pipe': '|'})
-)
-def test_positive_create_with_parameter_and_valid_separator(separator, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_create_with_parameter_and_valid_separator(target_sat):
     """Subnet parameters can be created with name with valid separators
 
     :id: d1e2d75a-a1e8-4767-93f1-0bb1b75e10a0
-
-    :parametrized: yes
 
     :steps:
         1. Create Subnet with all the details
@@ -114,6 +108,7 @@ def test_positive_create_with_parameter_and_valid_separator(separator, target_sa
 
     :CaseImportance: Low
     """
+    separator = random.choice([',', '/', '-', '|'])
     name = f'{separator}'.join(generate_strings_list())
     subnet = target_sat.api.Subnet().create()
     value = gen_string('utf8')
@@ -122,14 +117,12 @@ def test_positive_create_with_parameter_and_valid_separator(separator, target_sa
     assert subnet_param.value == value
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list() + ['name with space']))
-def test_negative_create_with_parameter_and_invalid_separator(name, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_parameter_and_invalid_separator(target_sat):
     """Subnet parameters can not be created with name with invalid
     separators
 
     :id: 08d10b75-a0db-4a11-a915-965a2a207d16
-
-    :parametrized: yes
 
     :steps:
 
@@ -145,11 +138,13 @@ def test_negative_create_with_parameter_and_invalid_separator(name, target_sat):
 
     :CaseImportance: Low
     """
+    name = random.choice(invalid_values_list() + ['name with space'])
     subnet = target_sat.api.Subnet().create()
     with pytest.raises(HTTPError):
         target_sat.api.Parameter(name=name, subnet=subnet.id).create()
 
 
+@pytest.mark.migration_candidate
 def test_negative_create_with_duplicated_parameters(target_sat):
     """Attempt to create multiple parameters with same key name for the
     same subnet
@@ -272,6 +267,7 @@ def test_positive_subnet_parameters_override_impact_on_subnet(target_sat):
     assert org_subnet.read().subnet_parameters_attributes[0]['value'] == parameter[0]['value']
 
 
+@pytest.mark.migration_candidate
 def test_positive_update_parameter(target_sat):
     """Subnet parameter can be updated
 
@@ -296,13 +292,11 @@ def test_positive_update_parameter(target_sat):
     assert up_subnet.subnet_parameters_attributes[0]['value'] == update_parameter[0]['value']
 
 
-@pytest.mark.parametrize('new_name', **parametrized(invalid_values_list() + ['name with space']))
-def test_negative_update_parameter(new_name, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_update_parameter(target_sat):
     """Subnet parameter can not be updated with invalid names
 
     :id: fcdbad13-ad96-4152-8e20-e023d61a2853
-
-    :parametrized: yes
 
     :steps:
 
@@ -317,6 +311,7 @@ def test_negative_update_parameter(new_name, target_sat):
 
     :CaseImportance: Medium
     """
+    new_name = random.choice(invalid_values_list() + ['name with space'])
     subnet = target_sat.api.Subnet().create()
     sub_param = target_sat.api.Parameter(
         name=gen_string('utf8'), subnet=subnet.id, value=gen_string('utf8')
@@ -435,6 +430,7 @@ def test_positive_delete_subnet_overridden_parameter_host_impact():
     """
 
 
+@pytest.mark.migration_candidate
 def test_positive_list_parameters(target_sat):
     """Satellite lists all the subnet parameters
 

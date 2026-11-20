@@ -10,10 +10,13 @@
 
 :CaseImportance: High
 
+:BlockedBy: SAT-40441
 """
 
 from fauxfactory import gen_string
 import pytest
+
+pytestmark = pytest.mark.foreman_installer
 
 
 class TestOscapPolicy:

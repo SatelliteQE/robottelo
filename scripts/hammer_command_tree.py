@@ -10,18 +10,21 @@ from robottelo.cli import hammer
 from robottelo.config import settings
 
 
-def generate_command_tree(command):
+def generate_command_tree(client, command):
     """Recursively walk through the hammer commands and subcommands and fetch
     their help. Return a dictionary with the contents.
     """
-    output = ssh.command(f'{command} --help', hostname=settings.server.hostnames[0]).stdout
+    output = client.execute(f'{command} --help').stdout
     contents = hammer.parse_help(output)
     if len(contents['subcommands']) > 0:
         for subcommand in contents['subcommands']:
-            subcommand.update(generate_command_tree('{} {}'.format(command, subcommand['name'])))
+            subcommand.update(
+                generate_command_tree(client, '{} {}'.format(command, subcommand['name']))
+            )
     return contents
 
 
 # Generate the json file in the working directory
+client = ssh.get_client(settings.server.hostnames[0])
 with open('hammer_commands.json', 'w') as f:
-    f.write(json.dumps(generate_command_tree('hammer'), indent=2, sort_keys=True))
+    f.write(json.dumps(generate_command_tree(client, 'hammer'), indent=2, sort_keys=True))

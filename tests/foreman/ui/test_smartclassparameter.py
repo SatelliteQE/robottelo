@@ -22,7 +22,7 @@ from robottelo.utils.datafactory import gen_string
 
 PM_NAME = 'generic_1'
 
-pytestmark = [pytest.mark.run_in_one_thread]
+pytestmark = [pytest.mark.run_in_one_thread, pytest.mark.foreman_installer]
 
 
 @pytest.fixture(scope='module')

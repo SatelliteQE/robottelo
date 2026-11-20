@@ -15,6 +15,8 @@
 from fauxfactory import gen_string
 import pytest
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.e2e
 @pytest.mark.upgrade

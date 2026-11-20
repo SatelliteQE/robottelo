@@ -12,17 +12,19 @@
 
 """
 
+import random
+
 from fauxfactory import gen_choice
 import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.utils.datafactory import (
     invalid_names_list,
-    parametrized,
     valid_data_list,
 )
 
 
+@pytest.mark.migration_candidate
 def test_positive_CRUD(default_os, target_sat):
     """Create a new Architecture with several attributes, update the name
     and delete the Architecture itself.
@@ -52,13 +54,11 @@ def test_positive_CRUD(default_os, target_sat):
         arch.read()
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-def test_negative_create_with_invalid_name(name, target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_invalid_name(target_sat):
     """Create architecture providing an invalid initial name.
 
     :id: 0fa6377d-063a-4e24-b606-b342e0d9108b
-
-    :parametrized: yes
 
     :expectedresults: Architecture is not created
 
@@ -66,22 +66,22 @@ def test_negative_create_with_invalid_name(name, target_sat):
 
     :BZ: 1401519
     """
+    name = random.choice(invalid_names_list())
     with pytest.raises(HTTPError):
         target_sat.api.Architecture(name=name).create()
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_names_list()))
-def test_negative_update_with_invalid_name(name, module_architecture, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_update_with_invalid_name(module_architecture, module_target_sat):
     """Update architecture's name to an invalid name.
 
     :id: cb27b69b-14e0-42d0-9e44-e09d68324803
-
-    :parametrized: yes
 
     :expectedresults: Architecture's name is not updated.
 
     :CaseImportance: Medium
     """
+    name = random.choice(invalid_names_list())
     with pytest.raises(HTTPError):
         module_target_sat.api.Architecture(id=module_architecture.id, name=name).update(['name'])
     arch = module_target_sat.api.Architecture(id=module_architecture.id).read()

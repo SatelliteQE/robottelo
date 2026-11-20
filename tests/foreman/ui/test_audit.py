@@ -206,7 +206,7 @@ def test_positive_add_remove_ansible_host_role_event(request, module_org, module
     """
     host = module_target_sat.api.Host(organization=module_org).create()
     request.addfinalizer(module_target_sat.api.Host(id=host.id).delete)
-    role_name = 'theforeman.foreman_scap_client'
+    role_name = 'redhat.satellite.locations'
     role_id = (
         module_target_sat.api.AnsibleRoles().search(query={'search': f'name={role_name}'})[0].id
     )

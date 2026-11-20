@@ -31,6 +31,7 @@ from robottelo.utils.issue_handlers import is_open
 def test_positive_verify_default_values_for_global_registration(
     module_target_sat,
     default_org,
+    default_os,
 ):
     """Check for all the Default values pre-populated in the global registration template
 
@@ -158,8 +159,6 @@ def test_positive_global_registration_end_to_end(
          client work out of the box
 
     :parametrized: yes
-
-    :BlockedBy: SAT-47528
     """
     # Adding IPv6 proxy for IPv6 communication
     rhel_contenthost.enable_ipv6_dnf_and_rhsm_proxy()
@@ -246,7 +245,9 @@ def test_positive_global_registration_end_to_end(
         parameter_type='boolean',
         value='True',
     ).create()
-    # run insights-client via REX
+    # Wait without changing client state, then verify the status command through REX.
+    # Registration failure triage: ContentHost.wait_for_insights_registration in robottelo/hosts.py.
+    rhel_contenthost.wait_for_insights_registration(module_target_sat)
     command = "insights-client --status"
     invocation_command = module_target_sat.cli_factory.job_invocation(
         {
@@ -642,6 +643,7 @@ def test_positive_global_registration_form(
         assert pair in cmd
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_global_registration_with_capsule_host(
     capsule_configured,

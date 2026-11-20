@@ -14,6 +14,7 @@ Satellite 6.8
 
 """
 
+import random
 from tempfile import mkstemp
 
 from fauxfactory import gen_alphanumeric, gen_choice, gen_integer, gen_string
@@ -21,11 +22,7 @@ import pytest
 
 from robottelo.constants import DataFile
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
-from robottelo.utils.datafactory import (
-    invalid_values_list,
-    parametrized,
-    valid_data_list,
-)
+from robottelo.utils.datafactory import invalid_values_list, valid_data_list
 
 VALID_GPG_KEY_FILE_PATH = DataFile.VALID_GPG_KEY_FILE
 
@@ -155,20 +152,17 @@ def test_positive_block_delete_key_in_use(target_sat, module_org):
     assert repo_info['gpg-key']['id'] == gpg_key['id']
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_default_org(target_sat, name, default_org):
+def test_positive_create_with_default_org(target_sat, default_org):
     """Create gpg key with valid name and valid gpg key via file
     import using the default created organization
 
     :id: 4265dfd1-dc64-4119-8a64-8724b09d6fb7
 
-    :parametrized: yes
-
     :expectedresults: gpg key is created
 
     :CaseImportance: Critical
     """
-
+    name = random.choice(list(valid_data_list().values()))
     gpg_key = target_sat.cli_factory.make_content_credential(
         {'path': VALID_GPG_KEY_FILE_PATH, 'name': name, 'organization-id': default_org.id}
     )
@@ -180,19 +174,17 @@ def test_positive_create_with_default_org(target_sat, name, default_org):
     assert gpg_key[search_key] == result[search_key]
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_create_with_custom_org(target_sat, name, module_org):
+def test_positive_create_with_custom_org(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import using a new organization
 
     :id: 10dd9fc0-e088-4cf1-9fb6-24fe04df2895
 
-    :parametrized: yes
-
     :expectedresults: gpg key is created
 
     :CaseImportance: Critical
     """
+    name = random.choice(list(valid_data_list().values()))
     gpg_key = target_sat.cli_factory.make_content_credential(
         {
             'path': VALID_GPG_KEY_FILE_PATH,
@@ -233,35 +225,31 @@ def test_negative_create_with_same_name(target_sat, module_org):
         )
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_negative_create_with_no_gpg_key(name, target_sat, module_org):
+def test_negative_create_with_no_gpg_key(target_sat, module_org):
     """Create gpg key with valid name and no gpg key
 
     :id: bbfd5306-cfe7-40c1-a3a2-35834108163c
-
-    :parametrized: yes
 
     :expectedresults: gpg key is not created
 
     :CaseImportance: Critical
     """
+    name = random.choice(list(valid_data_list().values()))
     with pytest.raises(CLIReturnCodeError):
         target_sat.cli.ContentCredential.create({'name': name, 'organization-id': module_org.id})
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_invalid_name(target_sat, name, module_org):
+def test_negative_create_with_invalid_name(target_sat, module_org):
     """Create gpg key with invalid name and valid gpg key via
     file import
 
     :id: fbbaf8a5-1570-4910-9f6a-baa35b15d2ad
 
-    :parametrized: yes
-
     :expectedresults: gpg key is not created
 
     :CaseImportance: Critical
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIFactoryError):
         # factory will provide a valid key
         target_sat.cli_factory.make_content_credential(
@@ -269,20 +257,18 @@ def test_negative_create_with_invalid_name(target_sat, name, module_org):
         )
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
 @pytest.mark.upgrade
-def test_positive_delete(target_sat, name, module_org):
+def test_positive_delete(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then delete it
 
     :id: 9640cabc-e0c3-41a0-b4de-99b06bf51c02
 
-    :parametrized: yes
-
     :expectedresults: gpg key is deleted
 
     :CaseImportance: Critical
     """
+    name = random.choice(list(valid_data_list().values()))
     gpg_key = target_sat.cli_factory.make_content_credential(
         {'name': name, 'organization-id': module_org.id}
     )
@@ -299,19 +285,17 @@ def test_positive_delete(target_sat, name, module_org):
     assert (len(result)) == 0
 
 
-@pytest.mark.parametrize('new_name', **parametrized(valid_data_list()))
-def test_positive_update_name(target_sat, new_name, module_org):
+def test_positive_update_name(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then update its name
 
     :id: f3bb254d-f831-4f86-944a-26d9a36bd906
 
-    :parametrized: yes
-
     :expectedresults: gpg key is updated
 
     :CaseImportance: Critical
     """
+    new_name = random.choice(list(valid_data_list().values()))
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     target_sat.cli.ContentCredential.update(
         {
@@ -325,14 +309,11 @@ def test_positive_update_name(target_sat, new_name, module_org):
     )
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_update_key(name, module_org, target_sat):
+def test_positive_update_key(module_org, target_sat):
     """Create gpg key with valid name and valid gpg key via file
     import then update its gpg key file
 
     :id: d3a72892-3414-4178-98b7-e0780d9b6587
-
-    :parametrized: yes
 
     :expectedresults: gpg key is updated
 
@@ -354,19 +335,17 @@ def test_positive_update_key(name, module_org, target_sat):
     assert gpg_key['content'] == content
 
 
-@pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-def test_negative_update_name(target_sat, new_name, module_org):
+def test_negative_update_name(target_sat, module_org):
     """Create gpg key with valid name and valid gpg key via file
     import then fail to update its name
 
     :id: 98cda40a-49d0-42ce-91a6-31fa7b7f330b
 
-    :parametrized: yes
-
     :expectedresults: gpg key is not updated
 
     :CaseImportance: Critical
     """
+    new_name = random.choice(invalid_values_list())
     gpg_key = target_sat.cli_factory.make_content_credential({'organization-id': module_org.id})
     with pytest.raises(CLIReturnCodeError):
         target_sat.cli.ContentCredential.update(
@@ -782,18 +761,16 @@ def test_positive_list(module_target_sat, module_org):
     assert gpg_key['id'] in [gpg['id'] for gpg in gpg_key_list]
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_search(target_sat, name, module_org):
+def test_positive_search(target_sat, module_org):
     """Create gpg key and search for it
 
     :id: f72648f1-b468-4662-9653-3464e7d0c349
-
-    :parametrized: yes
 
     :expectedresults: gpg key can be found
 
     :CaseImportance: Critical
     """
+    name = random.choice(list(valid_data_list().values()))
     gpg_key = target_sat.cli_factory.make_content_credential(
         {
             'path': VALID_GPG_KEY_FILE_PATH,

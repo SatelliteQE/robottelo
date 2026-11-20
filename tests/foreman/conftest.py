@@ -16,7 +16,7 @@ def test_name(request):
         tests.foreman.ui.test_activationkey::test_positive_create
         tests.foreman.api.test_errata::TestErrata::test_positive_list
     """
-    return request.node._nodeid
+    return request.node.nodeid
 
 
 def pytest_collection_modifyitems(session, items, config):

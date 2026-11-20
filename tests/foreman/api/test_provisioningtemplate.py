@@ -651,6 +651,8 @@ class TestProvisioningTemplate:
 
         :expectedresults: The rendered template has the host params set and correct home directory permissions for the rex user.
 
+        :BlockedBy: SAT-40479
+
         :parametrized: yes
         """
         host = module_target_sat.api.Host(

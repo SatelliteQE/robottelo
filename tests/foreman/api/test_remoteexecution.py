@@ -34,6 +34,7 @@ def test_positive_find_capsule_upgrade_playbook(target_sat):
     assert len(templates) > 0
 
 
+@pytest.mark.network_sensitive
 def test_positive_run_capsule_update_playbook(module_capsule_configured, target_sat):
     """Run Capsule Upgrade playbook against an External Capsule
 
@@ -44,6 +45,8 @@ def test_positive_run_capsule_update_playbook(module_capsule_configured, target_
         2. Run the Capsule Upgrade Playbook.
 
     :expectedresults: Capsule is upgraded successfully
+
+    :BlockedBy: SAT-52557
 
     :CaseImportance: Medium
     """
@@ -107,6 +110,8 @@ def test_negative_time_to_pickup(
     :bz: 2158738
 
     :parametrized: yes
+
+    :BlockedBy: SAT-40479
     """
     client = rhel_contenthost_with_repos
     client_repo = ohsnap.dogfood_repository(
@@ -242,6 +247,8 @@ def test_positive_check_longrunning_job(
     :bz: 2118651, 2158738
 
     :parametrized: yes
+
+    :BlockedBy: SAT-40479
     """
     client = rhel_contenthost_with_repos
     client_repo = ohsnap.dogfood_repository(

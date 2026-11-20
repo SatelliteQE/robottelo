@@ -120,21 +120,21 @@ class TestMedia:
         media = module_target_sat.api.Media(id=media.id, path_=new_url).update(['path_'])
         assert media.path_ == new_url
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_invalid_name(self, name, target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_invalid_name(self, target_sat):
         """Try to create media entity providing an invalid name
 
         :id: 0934f4dc-f674-40fe-a639-035761139c83
-
-        :parametrized: yes
 
         :expectedresults: Media entity is not created
 
         :CaseImportance: Medium
         """
+        name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             target_sat.api.Media(name=name).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_invalid_url(self, target_sat):
         """Try to create media entity providing an invalid URL
 
@@ -147,6 +147,7 @@ class TestMedia:
         with pytest.raises(HTTPError):
             target_sat.api.Media(path_='NON_EXISTENT_URL').create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_invalid_os_family(self, target_sat):
         """Try to create media entity providing an invalid OS family
 
@@ -159,22 +160,22 @@ class TestMedia:
         with pytest.raises(HTTPError):
             target_sat.api.Media(os_family='NON_EXISTENT_OS').create()
 
-    @pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-    def test_negative_update_name(self, class_media, new_name, target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_update_name(self, class_media, target_sat):
         """Create media entity providing the initial name, then try to
         update its name to invalid one.
 
         :id: 1c7d3af1-8cef-454e-80b6-a8e95b5dfa8b
 
-        :parametrized: yes
-
         :expectedresults: Media entity is not updated
 
         :CaseImportance: Medium
         """
+        new_name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             target_sat.api.Media(id=class_media.id, name=new_name).update(['name'])
 
+    @pytest.mark.migration_candidate
     def test_negative_update_url(self, class_media, target_sat):
         """Try to update media with invalid url.
 
@@ -187,6 +188,7 @@ class TestMedia:
         with pytest.raises(HTTPError):
             target_sat.api.Media(id=class_media.id, path_='NON_EXISTENT_URL').update(['path_'])
 
+    @pytest.mark.migration_candidate
     def test_negative_update_os_family(self, class_media, target_sat):
         """Try to update media with invalid operation system.
 

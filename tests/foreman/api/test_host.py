@@ -302,6 +302,7 @@ def test_positive_create_with_inherited_params(module_org, module_location, modu
     assert expected_params == {(param['name'], param['value']) for param in host.all_parameters}
 
 
+@pytest.mark.foreman_installer
 def test_positive_create_and_update_with_puppet_proxy(
     session_puppet_enabled_sat, session_puppet_enabled_proxy
 ):
@@ -311,6 +312,8 @@ def test_positive_create_and_update_with_puppet_proxy(
     :id: 9269d87b-abb9-48e0-b0d1-9b8e258e1ae3
 
     :expectedresults: Both hosts are associated with expected puppet proxy assigned
+
+    :BlockedBy: SAT-40445
 
     :CaseImportance: Critical
     """
@@ -323,6 +326,7 @@ def test_positive_create_and_update_with_puppet_proxy(
     assert new_host.puppet_proxy.read().name == session_puppet_enabled_proxy.name
 
 
+@pytest.mark.foreman_installer
 def test_positive_create_with_puppet_ca_proxy(
     session_puppet_enabled_sat, session_puppet_enabled_proxy
 ):
@@ -332,6 +336,8 @@ def test_positive_create_with_puppet_ca_proxy(
     :id: 1b73dd35-c2e8-44bd-b8f8-9e51428a6239
 
     :expectedresults: Both hosts are associated with expected puppet CA proxy assigned
+
+    :BlockedBy: SAT-40445
 
     :CaseImportance: Critical
     """
@@ -345,6 +351,7 @@ def test_positive_create_with_puppet_ca_proxy(
     assert new_host.puppet_ca_proxy.read().name == session_puppet_enabled_proxy.name
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.e2e
 def test_positive_end_to_end_with_puppet_class(
     module_puppet_org,
@@ -358,6 +365,8 @@ def test_positive_end_to_end_with_puppet_class(
     with same associated puppet classes
 
     :id: 2690d6b0-441b-44c5-b7d2-4093616e037e
+
+    :BlockedBy: SAT-40445
 
     :BZ: 2046573
 
@@ -389,6 +398,8 @@ def test_positive_end_to_end_with_puppet_class(
     }
 
 
+@pytest.mark.network_sensitive
+@pytest.mark.foreman_installer
 def test_positive_create_and_update_with_subnet(
     module_location, module_org, module_default_subnet, module_target_sat
 ):
@@ -896,6 +907,7 @@ def test_positive_create_and_update_domain(
     assert host.domain.read().name == new_domain.name
 
 
+@pytest.mark.foreman_installer
 def test_positive_create_and_update_env(
     module_puppet_org, module_puppet_loc, module_puppet_environment, session_puppet_enabled_sat
 ):
@@ -904,6 +916,8 @@ def test_positive_create_and_update_env(
     :id: 87a08dbf-fd4c-4b6c-bf73-98ab70756fc6
 
     :expectedresults: A host is created and updated with expected environment
+
+    :BlockedBy: SAT-40445
     """
     host = session_puppet_enabled_sat.api.Host(
         organization=module_puppet_org,
@@ -1064,7 +1078,7 @@ def test_positive_read_content_source_id(
 
     :BZ: 1339613, 1488130
     """
-    proxy = target_sat.api.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0].read()
+    proxy = target_sat.get_default_smart_proxy().read()
     module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
     host = target_sat.api.Host(
         organization=module_org,
@@ -1098,7 +1112,7 @@ def test_positive_update_content_source_id(
 
     :BZ: 1339613, 1488130
     """
-    proxy = target_sat.api.SmartProxy().search(query={'url': f'{target_sat.url}:9090'})[0]
+    proxy = target_sat.get_default_smart_proxy()
     module_published_cv.version[0].promote(data={'environment_ids': module_lce.id, 'force': False})
     host = target_sat.api.Host(
         organization=module_org,
@@ -1121,6 +1135,7 @@ def test_positive_update_content_source_id(
     assert content_source_id == proxy.id
 
 
+@pytest.mark.foreman_installer
 @pytest.mark.upgrade
 def test_positive_read_enc_information(
     module_puppet_org,
@@ -1138,6 +1153,8 @@ def test_positive_read_enc_information(
     :customerscenario: true
 
     :expectedresults: host ENC information read successfully
+
+    :BlockedBy: SAT-40445
 
     :BZ: 1362372
     """
@@ -1349,6 +1366,7 @@ def test_positive_verify_files_with_pxegrub2_uefi_secureboot():
     """
 
 
+@pytest.mark.foreman_installer
 def test_positive_read_puppet_proxy_name(session_puppet_enabled_sat, session_puppet_enabled_proxy):
     """Read a hostgroup created with puppet proxy and inspect server's
     response
@@ -1356,6 +1374,8 @@ def test_positive_read_puppet_proxy_name(session_puppet_enabled_sat, session_pup
     :id: 8825462e-f1dc-4054-b7fb-69c2b10722a2
 
     :expectedresults: Field 'puppet_proxy_name' is returned
+
+    :BlockedBy: SAT-40445
 
     :BZ: 1371900
 
@@ -1370,6 +1390,7 @@ def test_positive_read_puppet_proxy_name(session_puppet_enabled_sat, session_pup
     assert session_puppet_enabled_proxy.name == host['puppet_proxy_name']
 
 
+@pytest.mark.foreman_installer
 def test_positive_read_puppet_ca_proxy_name(
     session_puppet_enabled_sat, session_puppet_enabled_proxy
 ):
@@ -1379,6 +1400,8 @@ def test_positive_read_puppet_ca_proxy_name(
     :id: 8941395f-8040-4705-a981-5da21c47efd1
 
     :expectedresults: Field 'puppet_ca_proxy_name' is returned
+
+    :BlockedBy: SAT-40445
 
     :BZ: 1371900
 
@@ -1393,7 +1416,7 @@ def test_positive_read_puppet_ca_proxy_name(
     assert session_puppet_enabled_proxy.name == host['puppet_ca_proxy_name']
 
 
-def test_positive_list_hosts_thin_all(module_target_sat):
+def test_positive_list_hosts_thin_all(module_target_sat, request):
     """List hosts with thin=true and per_page=all
 
     :id: 00b7e603-aed5-4b19-bfec-1a179fad6743
@@ -1404,8 +1427,11 @@ def test_positive_list_hosts_thin_all(module_target_sat):
 
     :customerscenario: true
     """
+    # Create a host to ensure at least one host exists for thin listing
+    created_host = module_target_sat.api.Host().create()
+    request.addfinalizer(created_host.delete)
     hosts = module_target_sat.api.Host().search(query={'thin': 'true', 'per_page': 'all'})
-    assert module_target_sat.hostname in [host.name for host in hosts]
+    assert created_host.name in [host.name for host in hosts]
     keys = dir(hosts[0])
     assert 'id' in keys
     assert 'name' in keys

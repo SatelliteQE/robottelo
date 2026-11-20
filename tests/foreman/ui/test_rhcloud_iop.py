@@ -85,7 +85,29 @@ def create_rbac_user(
     return user, user_password
 
 
+def create_pathways_recommendation(host):
+    """Create conditions that cause advisor recommendations to be grouped into a pathway.
+
+    Enabling 'PermitEmptyPasswords' in sshd_config and restarting sshd triggers advisor
+    recommendations that roll up into an IoP pathway once the data is uploaded to Insights.
+    """
+    # Back up sshd_config and enable PermitEmptyPasswords to trigger the advisor rule.
+    host.run('cp /etc/ssh/sshd_config /etc/ssh/sshd_config.qebak')
+    host.run("sed -i 's/^#*PermitEmptyPasswords.*/PermitEmptyPasswords yes/' /etc/ssh/sshd_config")
+    host.run(
+        "grep -q '^PermitEmptyPasswords' /etc/ssh/sshd_config "
+        "|| echo 'PermitEmptyPasswords yes' >> /etc/ssh/sshd_config"
+    )
+    result = host.run('systemctl restart sshd')
+    assert result.status == 0
+
+    # Upload insights data to Satellite
+    result = host.run('insights-client')
+    assert result.status == 0
+
+
 @pytest.mark.e2e
+@pytest.mark.network_sensitive
 @pytest.mark.pit_server
 @pytest.mark.pit_client
 @pytest.mark.no_containers
@@ -416,6 +438,66 @@ def test_iop_recommendations_host_details_e2e(
         assert not any(row.get('Description') == OPENSSH_RECOMMENDATION for row in result), (
             f"Recommendation found: {OPENSSH_RECOMMENDATION}"
         )
+
+
+@pytest.mark.e2e
+@pytest.mark.no_containers
+@pytest.mark.rhel_ver_match(r'^(?!7).*')
+@pytest.mark.parametrize('module_target_sat_insights', [False], ids=['local'], indirect=True)
+def test_iop_pathways_remediation_e2e(
+    rhel_insights_vm,
+    rhcloud_manifest_org,
+    module_target_sat_insights,
+):
+    """Set up Satellite with iop enabled, create conditions that cause advisor recommendations
+    to be grouped into a pathway, then remediate an affected system from the pathway's Systems tab.
+
+    :id: 9a2e31cb-dd64-41e9-8751-82d518dddae5
+
+    :steps:
+        1. Set up Satellite with iop enabled and register a host.
+        2. Create conditions that violate advisor rules and get grouped into a pathway.
+        3. In Satellite UI, go to Red Hat Lightspeed > Recommendations > Pathways tab.
+        4. Open a pathway's details page by clicking its name.
+        5. Switch to the Systems tab and verify the affected host is listed.
+        6. Remediate the affected host and verify the remediation job completes successfully.
+
+    :expectedresults:
+        1. At least one pathway is listed on the Pathways tab.
+        2. The affected host is listed on the pathway's Systems tab.
+        3. The remediation job finished successfully.
+
+    :parametrized: yes
+    """
+    org_name = rhcloud_manifest_org.name
+
+    # Prepare misconfigured machine so its recommendations are grouped into a pathway.
+    create_pathways_recommendation(rhel_insights_vm)
+
+    with module_target_sat_insights.ui_session() as session:
+        session.organization.select(org_name=org_name)
+
+        # Find the pathway that actually contains our host. Fixtures here are module-scoped,
+        # so earlier tests seed other pathways; relying on ordering (pathways[0]) is fragile.
+        pathways = session.pathways.read(widget_names='table')['table']
+        assert pathways, 'No pathways were listed on the Pathways tab'
+
+        pathway_name = None
+        for pathway in pathways:
+            systems = session.pathways.read_systems(pathway['Name'])
+            if any(row['Name'] == rhel_insights_vm.hostname for row in systems):
+                pathway_name = pathway['Name']
+                break
+        assert pathway_name, f'No pathway contains {rhel_insights_vm.hostname}'
+
+        # Remediate the affected system from the pathway's Systems tab.
+        result = session.pathways.remediate_system_via_pathways(
+            pathway_name, rhel_insights_vm.hostname
+        )
+
+        # Verify that the remediation job Succeeded.
+        assert result['status']['Succeeded'] != 0
+        assert result['overall_status']['is_success']
 
 
 @pytest.mark.parametrize("module_target_sat_insights", [False], ids=["local"], indirect=True)

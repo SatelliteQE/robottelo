@@ -88,7 +88,7 @@ def test_positive_end_to_end(session, target_sat, test_name, module_org, module_
         newsession.location.select(module_location.name)
         newsession.activationkey.create({'name': ak_name})
         assert newsession.activationkey.search(ak_name)[0]['Name'] == ak_name
-        current_user = newsession.activationkey.read(ak_name, 'current_user')['current_user']
+        current_user = newsession.user.read(new_name, 'current_user')['current_user']
         assert current_user == f'{firstname} {lastname}'
         # Delete user
     with target_sat.ui_session('deletehostsession') as deletehostsession:

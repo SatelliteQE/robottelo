@@ -16,61 +16,17 @@ from broker import Broker
 from fauxfactory import gen_string
 import pytest
 
-from robottelo.cli import hammer
-from robottelo.config import settings
+from robottelo.config import configure_airgun, configure_nailgun, settings
 from robottelo.constants import (
     FOREMANCTL_PARAMETERS_FILE,
     FOREMANCTL_POSTGRESQL_TUNING_PROFILES,
     InstallationServices,
 )
-from robottelo.exceptions import CapsuleHostError
-from robottelo.hosts import Capsule, Satellite
-from robottelo.utils.issue_handlers import is_open
+from robottelo.hosts import Capsule, Satellite, lru_sat_ready_rhel
 
 pytestmark = [pytest.mark.foremanctl, pytest.mark.upgrade]
 
 FOREMANCTL_CERTS_DIR = '/var/lib/foremanctl/certs/certs'
-
-
-def common_sat_install_assertions(satellite):
-    # no errors/failures in journald
-    result = satellite.execute(
-        r'journalctl --quiet --no-pager --boot --grep ERROR -u "dynflow-sidekiq*" -u "foreman-proxy" -u "foreman" -u "httpd" -u "postgresql" -u "pulp-api" -u "pulp-content" -u "pulp-worker*" -u "valkey" -u "candlepin"'
-    )
-    if is_open('SAT-21086'):
-        assert not list(filter(lambda x: 'PG::' not in x, result.stdout.splitlines()))
-    else:
-        assert not result.stdout
-    # no errors/failures in /var/log/httpd/*
-    result = satellite.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert not result.stdout
-    httpd_log = satellite.execute('journalctl --unit=httpd')
-    assert 'WARNING' not in httpd_log.stdout
-
-
-def common_cap_install_assertions(capsule):
-    result = capsule.execute('systemctl status foreman-proxy.service foreman.target')
-    if 'inactive (dead)' in result.stdout:
-        raise CapsuleHostError(
-            f'foreman-proxy service is not running on the capsule:\n{result.stdout}'
-        )
-    # no errors/failures in journald
-    result = capsule.execute(
-        r'journalctl --quiet --no-pager --boot --grep ERROR -u "foreman-proxy" -u "httpd" -u "postgresql" -u "pulp-api" -u "pulp-content" -u "pulp-worker*" -u "valkey"'
-    )
-    assert not result.stdout
-    # no errors/failures in /var/log/httpd/*
-    result = capsule.execute(r'grep -iR "error" /var/log/httpd/*')
-    assert not result.stdout
-    httpd_log = capsule.execute('journalctl --unit=httpd')
-    assert 'WARNING' not in httpd_log.stdout
-
-
-def assert_hammer_ping_ok(result):
-    assert result.status == 0, 'hammer ping failed'
-    services = hammer.parse_ping(result.stdout)
-    for status in services.values():
-        assert status == 'ok'
 
 
 def assert_postgresql_tuning(sat, tuning):
@@ -90,6 +46,15 @@ def module_sat_ready_rhel(request):
     """Deploy bare RHEL system ready for Satellite installation."""
     param = getattr(request, 'param', 'default')
     deploy_args = param.get('deploy_args', '') if isinstance(param, dict) else ''
+    # In sanity, install onto the shared lru host that target_sat also resolves to.
+    if 'sanity' in request.config.option.markexpr:
+        sat = lru_sat_ready_rhel(settings.server.version.rhel_version)
+        sat.install_satellite_foremanctl(parameters=deploy_args)
+        settings.server.hostname = sat.hostname
+        configure_nailgun()
+        configure_airgun()
+        yield sat
+        return
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
@@ -109,6 +74,7 @@ def module_sat_ready_rhel(request):
 @pytest.fixture(scope='module')
 def module_cap_ready_rhel(request):
     """Deploy bare RHEL system ready for Capsule installation."""
+    param = getattr(request, 'param', 'default')
     with Broker(
         workflow=settings.server.deploy_workflows.os,
         deploy_rhel_version=settings.server.version.rhel_version,
@@ -123,8 +89,10 @@ def module_cap_ready_rhel(request):
         # Add IPv6 proxy for podman to pull from registry & install podman if not pre-installed
         cap.register_to_cdn()
         cap.ensure_podman_installed(enable_ipv6_proxy=True)
+        # Capsule needs registry auth to pull deploy-proxy images
+        cap.setup_foremanctl_container_registry()
         # Install satellitectl package on Capsule
-        cap.setup_satellite_repos()  # Remove this when satellitectl is available in capsule repos
+        cap.setup_capsule_repos()
         # Enable Packit repos for upstream testing
         pull_requests = settings.server.get('deploy_arguments', {}).get('pull_requests', [])
         if pull_requests:
@@ -137,17 +105,27 @@ def module_cap_ready_rhel(request):
         assert cap.execute('dnf install -y satellitectl').status == 0, (
             'Failed to install satellitectl'
         )
+        # Enable fapolicyd/fips after installs
+        if param == 'fapolicyd':
+            assert cap.execute('dnf -y install fapolicyd').status == 0
+            assert cap.execute('systemctl enable --now fapolicyd').status == 0
+            assert cap.execute('systemctl is-active fapolicyd').status == 0
+        if param == 'fips':
+            Broker().execute(
+                workflow='enable-fips',
+                target_vm=cap.name,
+            )
+            cap.connect()
+            assert cap.is_fips_enabled()
         # Unregister capsule in case it's registered to CDN
         cap.unregister()
         # Setup firewall to allow Satellite-Capsule communication
-        assert (
-            cap.execute(
-                'which firewall-cmd || dnf -y install firewalld && systemctl enable --now firewalld'
-            ).status
-            == 0
-        ), "firewalld is not present and can't be installed"
-        cap.execute('firewall-cmd --add-service RH-Satellite-6-capsule')
-        cap.execute('firewall-cmd --runtime-to-permanent')
+        cap.configure_firewall(
+            ports=['8000/tcp', '8443/tcp'],
+            services=['http', 'https'],
+        )
+        # foremanctl SAT has no Capsule host record; skip teardown host-record lookup/delete
+        cap._skip_context_checkin = True
         yield cap
 
 
@@ -172,8 +150,16 @@ def module_sat_foremanctl_tuning(request):
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-@pytest.mark.first_sanity
-@pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
+@pytest.mark.network_sensitive
+@pytest.mark.parametrize(
+    'module_sat_ready_rhel',
+    [
+        pytest.param('default', marks=[pytest.mark.build_sanity, pytest.mark.first_sanity]),
+        'fips',
+        'fapolicyd',
+    ],
+    indirect=True,
+)
 def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
     """Run a basic Satellite installation
 
@@ -189,12 +175,22 @@ def test_satellite_installation_with_foremanctl(module_sat_ready_rhel):
         1. foremanctl deploy runs successfully
         2. no unexpected errors in logs
     """
-    common_sat_install_assertions(module_sat_ready_rhel)
+    module_sat_ready_rhel.assert_install_assertions()
 
 
 @pytest.mark.e2e
 @pytest.mark.pit_server
-@pytest.mark.build_sanity
+@pytest.mark.network_sensitive
+@pytest.mark.parametrize(
+    ('module_sat_ready_rhel', 'module_cap_ready_rhel'),
+    [
+        pytest.param('default', 'default', marks=pytest.mark.build_sanity),
+        ('fips', 'fips'),
+        ('fapolicyd', 'fapolicyd'),
+    ],
+    ids=['default', 'fips', 'fapolicyd'],
+    indirect=True,
+)
 def test_capsule_installation_with_foremanctl(
     pytestconfig, module_sat_ready_rhel, module_cap_ready_rhel, module_sca_manifest
 ):
@@ -206,10 +202,12 @@ def test_capsule_installation_with_foremanctl(
         1. Use Satellite deployed with foremanctl.
         2. Configure RHEL and Capsule repos on Satellite
         3. Register Capsule machine to consume Satellite content
-        4. Install and setup Capsule server using foremanctl
+        4. Serve the Capsule container images from the Satellite and configure the
+           Capsule to pull them from the Satellite instead of registry.redhat.io
+        5. Install and setup Capsule server using foremanctl
 
     :expectedresults:
-        1. Capsule is installed and setup correctly
+        1. Capsule is installed and setup correctly using images served by the Satellite
         2. no unexpected errors in logs
         3. health check runs successfully
     """
@@ -235,6 +233,11 @@ def test_capsule_installation_with_foremanctl(
 
     module_cap_ready_rhel.register(org, None, ak.name, module_sat_ready_rhel)
 
+    # Serve the Capsule container images from the Satellite and redirect the Capsule's
+    # image pulls to it, so deploy-proxy installs from the Satellite-served images.
+    product_path = module_sat_ready_rhel.api_factory.serve_capsule_container_images(org)
+    module_cap_ready_rhel.pull_container_images_from_satellite(module_sat_ready_rhel, product_path)
+
     # Setup Capsule
     result = module_cap_ready_rhel.execute(cmd_args)
     assert result.status == 0, (
@@ -245,12 +248,7 @@ def test_capsule_installation_with_foremanctl(
         query={'search': f'name={module_cap_ready_rhel.hostname}'}
     )[0]
 
-    common_cap_install_assertions(module_cap_ready_rhel)
-
-    result = module_cap_ready_rhel.execute('satellitectl health')
-    assert result.status == 0
-    assert 'FAIL' not in result.stdout
-    assert 'Some services are not running' not in result.stdout
+    module_cap_ready_rhel.assert_install_assertions()
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
@@ -283,7 +281,7 @@ def test_positive_check_installer_hammer_ping(module_sat_ready_rhel):
     """
     # check status reported by hammer ping command
     result = module_sat_ready_rhel.execute('hammer ping')
-    assert_hammer_ping_ok(result)
+    module_sat_ready_rhel.assert_hammer_ping_ok(result)
 
 
 @pytest.fixture(scope='module')
@@ -325,10 +323,10 @@ def test_positive_install_foremanctl_with_custom_certs(module_sat_foremanctl_cus
     :CaseAutomation: Automated
     """
     sat = module_sat_foremanctl_custom_certs
-    common_sat_install_assertions(sat)
+    sat.assert_install_assertions()
     # check the services are up and healthy
     result = sat.execute('hammer ping')
-    assert_hammer_ping_ok(result)
+    sat.assert_hammer_ping_ok(result)
     # Verify the custom certificate works and there are no errors
     result = sat.execute(
         'curl --output /dev/null --write-out "%{http_code}" --cacert /root/cacert.crt '
@@ -533,7 +531,7 @@ def test_positive_foremanctl_certificate_custom_validity_and_renewal(module_sat_
 
     # API: Verify services are healthy
     result = sat.execute('hammer ping')
-    assert_hammer_ping_ok(result)
+    sat.assert_hammer_ping_ok(result)
 
     # API: Verify operations work over TLS with custom-validity certs
     org_name = gen_string('alpha')
@@ -588,7 +586,7 @@ def test_positive_foremanctl_certificate_custom_validity_and_renewal(module_sat_
 
     # API: Verify services remain healthy after renewal
     result = sat.execute('hammer ping')
-    assert_hammer_ping_ok(result)
+    sat.assert_hammer_ping_ok(result)
 
     # API: Verify CRUD still works with renewed certificates
     org = sat.api.Organization(id=org.id).read()
@@ -715,7 +713,6 @@ def foremanctl_capsule_cert_paths(sat, capsule, extract_dir):
 
 
 @pytest.mark.parametrize('module_sat_ready_rhel', ['default'], indirect=True)
-@pytest.mark.rhel_ver_match('9')
 def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
     """Verify foremanctl auth-bundle generation and renewal for a capsule.
 
@@ -813,3 +810,37 @@ def test_positive_foremanctl_auth_bundle(module_sat_ready_rhel):
     assert client_fp_after != client_fp_before, (
         'Capsule client cert fingerprint unchanged — renewal did not regenerate it'
     )
+
+
+def test_negative_foremanctl_deploy_with_invalid_certs(module_sat_foremanctl_custom_certs):
+    """Reject invalid certificates during foremanctl deploy without harming Satellite.
+
+    :id: 8258a2e6-04fc-4006-81be-6d35beddae88
+
+    :steps:
+        1. Confirm Satellite is healthy with hammer ping
+        2. Run foremanctl deploy with invalid server certificate and key
+        3. Confirm Satellite is still healthy with hammer ping
+
+    :expectedresults:
+        1. foremanctl deploy fails with a invalid certificate
+        2. Satellite services remain running and hammer ping succeeds
+    """
+    sat = module_sat_foremanctl_custom_certs
+    invalid_crt = '/root/certs/invalid.crt'
+
+    result = sat.execute('hammer ping')
+    assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'
+
+    result = sat.execute(
+        'foremanctl deploy --certificate-source=custom_server '
+        f'--certificate-server-certificate {invalid_crt} '
+        '--certificate-server-key /root/certs/invalid.key '
+        '--certificate-server-ca-certificate /root/cacert.crt'
+    )
+
+    assert result.status == 2
+    assert 'verification failed' in result.stdout
+
+    result = sat.execute('hammer ping')
+    assert result.status == 0, f'Hammer Ping failed:\n{result.stderr}'

@@ -24,7 +24,7 @@ from robottelo.constants import (
     COMPUTE_PROFILE_SMALL,
 )
 
-pytestmark = [pytest.mark.skip_if_not_set('azurerm'), pytest.mark.foreman_installer]
+pytestmark = [pytest.mark.skip_if_not_set('azurerm')]
 
 
 @pytest.fixture(scope='module')
@@ -77,7 +77,6 @@ def module_azure_hg(
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize('sat_azure', ['sat'], indirect=True)
 def test_positive_end_to_end_azurerm_ft_host_provision(
     sat_azure,
     azurermclient,
@@ -166,9 +165,6 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
-@pytest.mark.parametrize(
-    'sat_azure', ['sat', 'puppet_sat'], indirect=True, ids=['satellite', 'puppet_enabled']
-)
 def test_positive_azurerm_host_provision_ud(
     sat_azure,
     azurermclient,
@@ -212,8 +208,13 @@ def test_positive_azurerm_host_provision_ud(
                     }
                 )
 
-                host_info = session.host_new.get_host_statuses(fqdn)
-                assert 'Pending installation' in host_info['Build']['Status']
+                wait_for(
+                    lambda: (
+                        session.host_new.get_host_statuses(fqdn)['Build']['Status'] == 'Installed'
+                    ),
+                    timeout=600,
+                    delay=30,
+                )
                 host_page = session.host_new.get_details(fqdn, widget_names='overview')
                 assert (
                     host_page['overview']['details']['details']['host_group']

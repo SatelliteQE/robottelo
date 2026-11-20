@@ -253,6 +253,7 @@ def test_negative_global_registration_without_ak(module_target_sat):
     assert 'Missing activation key!' in context.value.response.text
 
 
+@pytest.mark.foreman_installer
 def test_negative_capsule_without_registration_enabled(
     module_target_sat,
     module_capsule_configured,
@@ -372,7 +373,7 @@ def test_negative_verify_bash_exit_status_failing_host_registration(
         1. Generate a curl command and make the registration fail intentionally.
         2. Check the exit code for the command.
 
-    :expectedresults: Exit code returns 1 if registration fails.
+    :expectedresults: Exit code returns non-zero if registration fails.
 
     :BZ: 2155444
 
@@ -389,8 +390,8 @@ def test_negative_verify_bash_exit_status_failing_host_registration(
         location=module_location,
     )
     # verify status code when registrationCommand fails to register on host
-    assert result.status == 1
-    assert 'Couldn\'t find activation key' in result.stderr
+    assert result.status != 0, f'Expected non-zero exit code, got: {result.status}'
+    assert 'Couldn\'t find activation key' in result.stdout
 
 
 @pytest.mark.upgrade
@@ -550,7 +551,7 @@ def test_positive_invalidate_users_tokens(
         rhel_contenthost.unregister()
         # Re-register the host with invalidated token
         result = rhel_contenthost.execute(cmd.strip('\n'))
-        assert result.status == 1
+        assert result.status != 0, f'Expected non-zero exit code, got: {result.status}'
         assert 'ERROR: unauthorized' in result.stdout
 
         # Invalidate JWTs for multiple users

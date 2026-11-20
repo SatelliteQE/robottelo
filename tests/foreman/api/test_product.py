@@ -15,6 +15,8 @@ http://<sat6>/apidoc/v2/products.html
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 from requests.exceptions import HTTPError
@@ -25,28 +27,25 @@ from robottelo.constants import (
     DataFile,
 )
 from robottelo.utils import datafactory
-from robottelo.utils.datafactory import (
-    invalid_values_list,
-    parametrized,
-)
+from robottelo.utils.datafactory import invalid_values_list
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_name(name, module_org, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_create_with_name(module_org, module_target_sat):
     """Create a product providing invalid names only
 
     :id: 76531f53-09ff-4ee9-89b9-09a697526fb1
-
-    :parametrized: yes
 
     :expectedresults: A product is not created
 
     :CaseImportance: Critical
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(HTTPError):
         module_target_sat.api.Product(name=name, organization=module_org).create()
 
 
+@pytest.mark.migration_candidate
 def test_negative_create_with_same_name(module_org, module_target_sat):
     """Create a product providing a name of already existent entity
 
@@ -62,6 +61,7 @@ def test_negative_create_with_same_name(module_org, module_target_sat):
         module_target_sat.api.Product(name=name, organization=module_org).create()
 
 
+@pytest.mark.migration_candidate
 def test_negative_create_with_label(module_org, module_target_sat):
     """Create a product providing invalid label
 
@@ -101,23 +101,23 @@ def test_positive_create_product_and_update_gpg(module_org, module_target_sat):
     assert product.gpg_key.id == gpg_key_2.id
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_update_name(name, module_org, module_target_sat):
+@pytest.mark.migration_candidate
+def test_negative_update_name(module_org, module_target_sat):
     """Attempt to update product name to invalid one
 
     :id: 3eb61fa8-3524-4872-8f1b-4e88004f66f5
-
-    :parametrized: yes
 
     :expectedresults: Product is not updated
 
     :CaseImportance: Critical
     """
+    name = random.choice(invalid_values_list())
     product = module_target_sat.api.Product(organization=module_org).create()
     with pytest.raises(HTTPError):
         module_target_sat.api.Product(id=product.id, name=name).update(['name'])
 
 
+@pytest.mark.migration_candidate
 def test_negative_update_label(module_org, module_target_sat):
     """Attempt to update product label to another one.
 

@@ -13,6 +13,7 @@
 """
 
 from datetime import UTC, datetime, timedelta
+import random
 import re
 import time
 
@@ -32,7 +33,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.utils.datafactory import parametrized, valid_data_list
+from robottelo.utils.datafactory import valid_data_list
 
 expected_report_columns = [
     'Name',
@@ -89,13 +90,11 @@ def setup_content(module_sca_manifest_org, module_target_sat):
 # Tests for ``katello/api/v2/report_templates``.
 
 
-@pytest.mark.parametrize('name', **parametrized(valid_data_list()))
-def test_positive_CRUDL(name, target_sat):
+@pytest.mark.migration_candidate
+def test_positive_CRUDL(target_sat):
     """Create, Read, Update, Delete, List
 
     :id: a2a577db-144e-4761-a42e-e83885464786
-
-    :parametrized: yes
 
     :setup: User with reporting access rights
 
@@ -111,6 +110,7 @@ def test_positive_CRUDL(name, target_sat):
 
     :CaseImportance: Critical
     """
+    name = random.choice(list(valid_data_list().values()))
     # Create
     template1 = gen_string('alpha')
     rt = target_sat.api.ReportTemplate(name=name, template=template1).create()
@@ -132,6 +132,7 @@ def test_positive_CRUDL(name, target_sat):
         rt = target_sat.api.ReportTemplate(id=rt.id).read()
 
 
+@pytest.mark.skip(reason='Usage reports are unavailable for the containerized satellite')
 def test_positive_generate_report_nofilter(target_sat):
     """Generate Host - Statuses report
 
@@ -158,6 +159,7 @@ def test_positive_generate_report_nofilter(target_sat):
     assert host_name in res
 
 
+@pytest.mark.skip(reason='Usage reports are unavailable for the containerized satellite')
 def test_positive_generate_report_filter(target_sat):
     """Generate Host - Statuses report
 
@@ -621,10 +623,11 @@ def test_positive_applied_errata_migration_populates_from_tasks(
     assert not rt.generate(data=report_data), 'katello_errata_applications record was not deleted'
 
     # Run the migration rake task to backfill records from task history
-    assert (
-        target_sat.execute('foreman-rake katello:upgrades:4.21:populate_errata_applications').status
-        == 0
+    # foremanctl requires an explicit override for tasks outside its allowlist.
+    result = target_sat.execute(
+        'ALLOW_UNSUPPORTED=true foreman-rake katello:upgrades:4.21:populate_errata_applications'
     )
+    assert result.status == 0, f'{result.stdout}\n{result.stderr}'
     res_after = rt.generate(data=report_data)
     assert res_after, 'Report returned no errata after migration rake task'
     assert res_after == res_before

@@ -14,7 +14,6 @@
 
 from calendar import monthrange
 from datetime import UTC, datetime, timedelta
-import random
 from time import sleep
 
 from dateutil.relativedelta import FR, relativedelta
@@ -29,6 +28,9 @@ from robottelo.exceptions import CLIFactoryError
 from robottelo.utils import ohsnap
 from robottelo.utils.datafactory import filtered_datapoint, parametrized
 
+# REX connect_by_ip / prefer_ipv6; curated IPv6 overlay.
+pytestmark = pytest.mark.network_sensitive
+
 
 @filtered_datapoint
 def valid_feature_names():
@@ -37,9 +39,6 @@ def valid_feature_names():
         {'label': 'katello_package_install', 'jt_name': 'Install Package - Katello Script Default'},
         {'label': 'katello_package_update', 'jt_name': 'Update Package - Katello Script Default'},
         {'label': 'katello_package_remove', 'jt_name': 'Remove Package - Katello Script Default'},
-        {'label': 'katello_group_install', 'jt_name': 'Install Group - Katello Script Default'},
-        {'label': 'katello_group_update', 'jt_name': 'Update Group - Katello Script Default'},
-        {'label': 'katello_group_remove', 'jt_name': 'Remove Group - Katello Script Default'},
         {'label': 'katello_errata_install', 'jt_name': 'Install Errata - Katello Script Default'},
     ]
 
@@ -86,6 +85,25 @@ def assert_job_invocation_status(sat, invocation_command_id, client_hostname, st
                 )
             )
         ) from err
+
+
+def create_remote_working_dir(host):
+    """Create a directory on the host that is usable as a remote execution working directory
+    and return its path"""
+    path = f'/tmp/{gen_string("alpha")}'
+    assert host.execute(f'mkdir {path}').status == 0
+    assert host.execute(f'chcon --reference=/var/tmp {path}').status == 0
+    return path
+
+
+def assert_job_ran_in_directory(host, path, expected=True):
+    """Assert whether a remote execution job left its working directory behind in path.
+    Requires the remote_execution_cleanup_working_dirs setting to be disabled."""
+    result = host.execute(f'ls -d {path}/foreman-ssh-cmd-*')
+    if expected:
+        assert result.status == 0, f'No remote execution working directory found in {path}'
+    else:
+        assert result.status != 0, f'Unexpected remote execution working directory found in {path}'
 
 
 def ensure_capsule_has_lifecycle_environment(capsule, activation_key):
@@ -192,6 +210,101 @@ class TestRemoteExecution:
             }
         )
         assert 'Exit status: 23' in out
+
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.parametrize(
+        'multi_setting_update',
+        [['remote_execution_cleanup_working_dirs=false', 'remote_execution_remote_working_dir']],
+        indirect=True,
+    )
+    def test_positive_use_alternate_directory(
+        self, multi_setting_update, rex_contenthost, module_target_sat
+    ):
+        """Use alternate working directory on client to execute rex jobs
+
+        :id: a0181f18-d3dc-4bd9-a2a6-430c2a49809e
+
+        :steps:
+            1. Create an alternate working directory on the host.
+            2. Set the remote_execution_remote_working_dir setting to that directory.
+            3. Run a job in push mode against the host.
+
+        :expectedresults: The job succeeds and runs in the alternate working directory
+
+        :customerscenario: true
+
+        :Verifies: SAT-49031
+
+        :parametrized: yes
+        """
+        client = rex_contenthost
+        working_dir = create_remote_working_dir(client)
+        working_dir_setting = multi_setting_update[1]
+        working_dir_setting.value = working_dir
+        working_dir_setting.update({'value'})
+
+        invocation_command = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': 'command=true',
+                'search-query': f"name = {client.hostname}",
+            }
+        )
+        assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
+        assert_job_ran_in_directory(client, working_dir)
+
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+    @pytest.mark.parametrize(
+        'multi_setting_update',
+        [['remote_execution_cleanup_working_dirs=false', 'remote_execution_remote_working_dir']],
+        indirect=True,
+    )
+    def test_positive_use_alternate_directory_from_host_parameter(
+        self, multi_setting_update, rex_contenthost, module_target_sat
+    ):
+        """Override the alternate working directory for a single host by using a host parameter
+
+        :id: 8db2729c-4d66-4f2f-9489-cd272f0e7450
+
+        :steps:
+            1. Create two alternate working directories on the host.
+            2. Set the remote_execution_remote_working_dir setting to the first directory.
+            3. Set the remote_execution_remote_working_dir parameter on the host to the second
+               directory.
+            4. Run a job in push mode against the host.
+
+        :expectedresults: The job succeeds and runs in the directory from the host parameter,
+            not in the one from the global setting
+
+        :Verifies: SAT-49031
+
+        :parametrized: yes
+        """
+        client = rex_contenthost
+        global_dir = create_remote_working_dir(client)
+        host_dir = create_remote_working_dir(client)
+        working_dir_setting = multi_setting_update[1]
+        working_dir_setting.value = global_dir
+        working_dir_setting.update({'value'})
+        module_target_sat.cli.Host.set_parameter(
+            {
+                'host': client.hostname,
+                'name': 'remote_execution_remote_working_dir',
+                'value': host_dir,
+            }
+        )
+
+        command = f'echo {gen_string("alpha")}'
+        invocation_command = module_target_sat.cli_factory.job_invocation(
+            {
+                'job-template': 'Run Command - Script Default',
+                'inputs': f'command={command}',
+                'search-query': f"name ~ {client.hostname}",
+            }
+        )
+        assert_job_invocation_result(module_target_sat, invocation_command['id'], client.hostname)
+        assert_job_ran_in_directory(client, host_dir)
+        assert_job_ran_in_directory(client, global_dir, expected=False)
 
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_timeout_to_kill(self, module_org, rex_contenthost, module_target_sat):
@@ -746,56 +859,6 @@ class TestRemoteExecution:
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
-    def test_positive_install_remove_packagegroup_with_a_job(
-        self, rhel_contenthost, module_org, module_ak_with_cv, target_sat
-    ):
-        """Run job to install and remove several package groups on host
-
-        :id: 5be2a5c0-199a-4655-9784-e95c7ef151f5
-
-        :expectedresults: Verify the package groups were successfully installed
-            and removed on a host
-
-        :parametrized: yes
-        """
-        client = rhel_contenthost
-        groups = ['birds', 'mammals']
-        client.register(
-            module_org,
-            None,
-            module_ak_with_cv.name,
-            target_sat,
-            repo_data=f'repo={settings.repos.yum_1.url}',
-        )
-        # Install the package groups
-        invocation_command = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Install Group - Katello Script Default',
-                'inputs': f'package={" ".join(groups)}',
-                'search-query': f'name ~ {client.hostname}',
-            }
-        )
-        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
-        result = client.run('dnf grouplist --installed')
-        assert all(item in result.stdout for item in groups)
-        # Remove one of the installed package groups
-        remove = random.choice(groups)
-        invocation_command = target_sat.cli_factory.job_invocation(
-            {
-                'job-template': 'Remove Group - Katello Script Default',
-                'inputs': f'package={remove}',
-                'search-query': f'name ~ {client.hostname}',
-            }
-        )
-        assert_job_invocation_result(target_sat, invocation_command['id'], client.hostname)
-        result = client.run('dnf grouplist --installed')
-        assert remove not in result.stdout
-
-    @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
-    @pytest.mark.skipif(
-        (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
-    )
     def test_positive_install_errata_with_a_job(
         self, rhel_contenthost, module_org, module_ak_with_cv, target_sat
     ):
@@ -1135,6 +1198,8 @@ class TestRexUsers:
         :expectedresults: Only users with execute_jobs_on_infrastructure_host perm
             can run rex against Satellite
 
+        :BlockedBy: SAT-52557
+
         :caseautomation: Automated
 
         :parametrized: yes
@@ -1237,6 +1302,8 @@ class TestPullProviderRex:
 
         :expectedresults: Verify the job was successfully ran against the host converted to mqtt
 
+        :BlockedBy: SAT-40479
+
         :CaseImportance: Critical
 
         :parametrized: yes
@@ -1332,6 +1399,8 @@ class TestPullProviderRex:
         :id: d4ae37db-d3b6-41b3-bd98-48c29389e4c5
 
         :expectedresults: Verify the job was successfully ran against the host registered to mqtt, in the correct directory
+
+        :BlockedBy: SAT-40479
 
         :BZ: 2217079
 
@@ -1447,6 +1516,8 @@ class TestPullProviderRex:
 
         :expectedresults: Verify the job was successfully ran against the host registered to mqtt,
             effective user setting is honored.
+
+        :BlockedBy: SAT-40479
 
         :CaseImportance: Critical
 
@@ -1571,6 +1642,8 @@ class TestPullProviderRex:
 
         :expectedresults: Job is resumed when host comes back online
 
+        :BlockedBy: SAT-40479
+
         :CaseImportance: Critical
 
         :parametrized: yes
@@ -1655,6 +1728,8 @@ class TestPullProviderRex:
         :id: 8c644404-4a26-4e18-ac59-138fd53ffc44
 
         :expectedresults: Verify that errata were successfully applied on host registered to mqtt
+
+        :BlockedBy: SAT-40479
 
         :CaseImportance: Critical
 

@@ -9,23 +9,16 @@ from wrapanapi.systems.google import GoogleCloudSystem
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
-    DEFAULT_OS_SEARCH_QUERY,
     DEFAULT_PTABLE,
     FOREMAN_PROVIDERS,
     GCE_RHEL_CLOUD_PROJECTS,
     GCE_TARGET_RHEL_IMAGE_NAME,
 )
-from robottelo.exceptions import GCECertNotFoundError
 
 
 @pytest.fixture(scope='session')
-def sat_gce(request):
-    host_type = getattr(request, 'param', 'sat')
-    if host_type == 'puppet_sat':
-        infra_sat_host = request.getfixturevalue('session_puppet_enabled_sat')
-    else:
-        infra_sat_host = request.getfixturevalue('session_target_sat')
-    return infra_sat_host
+def sat_gce(session_target_sat):
+    return session_target_sat
 
 
 @pytest.fixture(scope='module')
@@ -46,7 +39,7 @@ def sat_gce_domain(sat_gce, sat_gce_loc, sat_gce_org):
 @pytest.fixture(scope='module')
 def sat_gce_default_os(sat_gce):
     """Default OS on the Satellite"""
-    return sat_gce.api.OperatingSystem().search(query={'search': DEFAULT_OS_SEARCH_QUERY})[0].read()
+    return sat_gce.api_factory.get_or_create_default_os()
 
 
 @pytest.fixture(scope='session')
@@ -66,16 +59,23 @@ def sat_gce_default_architecture(sat_gce):
 
 @pytest.fixture(scope='session')
 def gce_cert(sat_gce):
+    """Return GCE service account credentials.
+
+    Returns the credential dict directly instead of uploading as a file,
+    allowing tests to work on containerized Satellites where the Foreman
+    container cannot access host filesystem paths.
+
+    For API/CLI tests: Use json.dumps(gce_cert) for the key_content parameter.
+    For googleclient: Uses the dict directly to access project_id and file_path.
+    """
     _, gce_cert_file = mkstemp(suffix='.json')
     cert = json.loads(settings.gce.cert)
+    # Keep local_path for googleclient compatibility
     cert['local_path'] = gce_cert_file
+    # Write to local file for googleclient (uses local file path)
     with open(gce_cert_file, 'w') as f:
         json.dump(cert, f)
-    sat_gce.put(gce_cert_file, settings.gce.cert_path)
-    if sat_gce.execute(f'[ -f {settings.gce.cert_path} ]').status != 0:
-        raise GCECertNotFoundError(
-            f"The GCE certificate in path {settings.gce.cert_path} is not found in satellite."
-        )
+    # No longer upload to Satellite - credentials passed via API parameter
     return cert
 
 
@@ -112,7 +112,7 @@ def module_gce_compute(sat_gce, sat_gce_org, sat_gce_loc, gce_cert):
     return sat_gce.api.GCEComputeResource(
         name=gen_string('alphanumeric'),
         provider='GCE',
-        key_path=settings.gce.cert_path,
+        key_content=json.dumps(gce_cert),
         zone=settings.gce.zone,
         organization=[sat_gce_org],
         location=[sat_gce_loc],

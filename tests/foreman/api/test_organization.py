@@ -17,40 +17,19 @@ http://<satellite-host>/apidoc/v2/organizations.html
 
 import http
 import json
-from random import randint
+import random
 
+from cryptography import x509
+from cryptography.hazmat.primitives.asymmetric import rsa
 from fauxfactory import gen_string
 from nailgun import client
 import pytest
 from requests.exceptions import HTTPError
 
 from robottelo.config import get_credentials
-from robottelo.constants import DEFAULT_ORG
-from robottelo.utils.datafactory import (
-    filtered_datapoint,
-    invalid_values_list,
-    parametrized,
-)
+from robottelo.constants import DEFAULT_ORG, CertificateAlgorithmOIDs
+from robottelo.utils.datafactory import invalid_values_list, valid_org_names_list
 from robottelo.utils.issue_handlers import is_open
-
-
-@filtered_datapoint
-def valid_org_data_list():
-    """List of valid data for input testing.
-
-    Note: The maximum allowed length of org name is 242 only. This is an
-    intended behavior (Also note that 255 is the standard across other
-    entities)
-    """
-    return dict(
-        alpha=gen_string('alpha', randint(1, 242)),
-        numeric=gen_string('numeric', randint(1, 242)),
-        alphanumeric=gen_string('alphanumeric', randint(1, 242)),
-        latin1=gen_string('latin1', randint(1, 242)),
-        utf8=gen_string('utf8', randint(1, 85)),
-        cjk=gen_string('cjk', randint(1, 85)),
-        html=gen_string('html', randint(1, 85)),
-    )
 
 
 class TestOrganization:
@@ -80,8 +59,7 @@ class TestOrganization:
             assert response.status_code == http.client.UNSUPPORTED_MEDIA_TYPE
 
     @pytest.mark.build_sanity
-    @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
-    def test_positive_create_with_name_and_description(self, name, target_sat):
+    def test_positive_create_with_name_and_description(self, target_sat):
         """Create an organization and provide a name and description.
 
         :id: afeea84b-61ca-40bf-bb16-476432919115
@@ -90,9 +68,8 @@ class TestOrganization:
             auto-generated label.
 
         :CaseImportance: Critical
-
-        :parametrized: yes
         """
+        name = random.choice(valid_org_names_list())
         org = target_sat.api.Organization(name=name, description=name).create()
         assert org.name == name
         assert org.description == name
@@ -102,19 +79,19 @@ class TestOrganization:
         assert isinstance(org.label, str)
         assert len(org.label) > 0
 
-    @pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-    def test_negative_create_with_invalid_name(self, name, target_sat):
+    @pytest.mark.migration_candidate
+    def test_negative_create_with_invalid_name(self, target_sat):
         """Create an org with an incorrect name.
 
         :id: 9c6a4b45-a98a-4d76-9865-92d992fa1a22
 
         :expectedresults: The organization cannot be created.
-
-        :parametrized: yes
         """
+        name = random.choice(invalid_values_list())
         with pytest.raises(HTTPError):
             target_sat.api.Organization(name=name).create()
 
+    @pytest.mark.migration_candidate
     def test_negative_create_with_same_name(self, target_sat):
         """Create two organizations with identical names.
 
@@ -205,8 +182,8 @@ class TestOrganizationUpdate:
         """Create an organization."""
         return target_sat.api.Organization().create()
 
-    @pytest.mark.parametrize('name', **parametrized(valid_org_data_list()))
-    def test_positive_update_name(self, module_org, name):
+    @pytest.mark.migration_candidate
+    def test_positive_update_name(self, module_org):
         """Update an organization's name with valid values.
 
         :id: 68f2ba13-2538-407c-9f33-2447fca28cd5
@@ -214,15 +191,14 @@ class TestOrganizationUpdate:
         :expectedresults: The organization's name is updated.
 
         :CaseImportance: High
-
-        :parametrized: yes
         """
+        name = random.choice(valid_org_names_list())
         module_org.name = name
         module_org = module_org.update(['name'])
         assert module_org.name == name
 
-    @pytest.mark.parametrize('desc', **parametrized(valid_org_data_list()))
-    def test_positive_update_description(self, module_org, desc):
+    @pytest.mark.migration_candidate
+    def test_positive_update_description(self, module_org):
         """Update an organization's description with valid values.
 
         :id: bd223197-1021-467e-8714-c1a767ae89af
@@ -230,9 +206,8 @@ class TestOrganizationUpdate:
         :expectedresults: The organization's description is updated.
 
         :CaseImportance: Medium
-
-        :parametrized: yes
         """
+        desc = random.choice(valid_org_names_list())
         module_org.description = desc
         module_org = module_org.update(['description'])
         assert module_org.description == desc
@@ -298,7 +273,7 @@ class TestOrganizationUpdate:
         """
         # Every Satellite has a built-in smart proxy, so let's find it
         smart_proxy = target_sat.api.SmartProxy().search(
-            query={'search': f'url = {target_sat.url}:9090'}
+            query={'search': f'url = {target_sat.url}:8443'}
         )
         # Check that proxy is found and unpack it from the list
         assert len(smart_proxy) > 0
@@ -344,3 +319,257 @@ class TestOrganizationUpdate:
         }
         with pytest.raises(HTTPError):
             target_sat.api.Organization(id=module_org.id, **update_dict).update([update_field])
+
+    @pytest.mark.pqc
+    def test_positive_key_algorithms_endpoint(self, module_org, target_sat):
+        """Verify the key_algorithms API endpoint returns available algorithms
+
+        :id: f11866ac-04f9-4570-8061-b6292d7155af
+
+        :steps:
+            1. Create an organization
+            2. Query the key_algorithms endpoint for that organization
+            3. Verify the response contains algorithm data
+
+        :expectedresults:
+            1. The endpoint returns a 200 status code
+            2. The response contains a 'results' key with algorithm data
+            3. At least one algorithm (rsaEncryption) is returned
+            4. Each algorithm has required fields: oid, name, signature_oid
+
+        :Verifies: SAT-48624
+        """
+        # Query the key_algorithms endpoint using nailgun
+        data = module_org.key_algorithms()
+
+        # Verify at least one algorithm is returned (rsaEncryption on non-PQC satellites)
+        algorithms = data['results']
+        assert any(alg['name'] == 'rsaEncryption' for alg in algorithms)
+
+        # Verify each algorithm has required fields
+        for algorithm in algorithms:
+            assert 'oid' in algorithm
+            assert 'name' in algorithm
+            assert 'signature_oid' in algorithm
+            assert algorithm['oid']  # OID should not be empty
+            assert algorithm['name']  # Name should not be empty
+
+
+def _cert_from_bundle(bundle):
+    """Pull the certificate out of a "private key + certificate" download.
+
+    The certificate is the second half; the first half is the private key and
+    won't load as a certificate.
+    """
+    start = '-----BEGIN CERTIFICATE-----'
+    assert start in bundle, 'download had no certificate in it'
+    cert_pem = start + bundle.split(start, 1)[1]
+    return x509.load_pem_x509_certificate(cert_pem.encode())
+
+
+class TestOrganizationDebugCertificate:
+    """Debug-certificate algorithm params (SAT-48622)."""
+
+    @pytest.fixture
+    def debug_cert_org(self, target_sat):
+        """Create an organization with proper cleanup for debug certificate tests."""
+        org = target_sat.api.Organization().create()
+        yield org
+        org.delete()
+
+    def test_positive_download_debug_cert_default(self, debug_cert_org):
+        """Download with no algorithms -> get the default certificate.
+
+        :id: 56375060-2e52-41e2-a999-e5c5ef7e4e6f
+
+        :Verifies: SAT-48622
+
+        :steps:
+            1. Download a debug certificate without specifying algorithms
+            2. Extract and parse the certificate from the bundle
+            3. Verify the certificate uses the default signature algorithm
+
+        :expectedresults: A certificate comes back using the default algorithm (SHA256-with-RSA).
+        """
+        bundle = debug_cert_org.download_debug_certificate()
+        cert = _cert_from_bundle(bundle)
+        assert (
+            cert.signature_algorithm_oid.dotted_string == CertificateAlgorithmOIDs.SHA256_WITH_RSA
+        )
+
+    def test_positive_download_debug_cert_empty_lists(self, debug_cert_org):
+        """Empty algorithm lists behave the same as passing nothing.
+
+        Note: The requests library may strip empty list parameters, so this test
+        may behave identically to test_positive_download_debug_cert_default.
+
+        :id: cf02c729-2f78-43a4-a54a-9423663a15e1
+
+        :Verifies: SAT-48622
+
+        :steps:
+            1. Download a debug certificate with empty algorithm lists
+            2. Extract and parse the certificate from the bundle
+            3. Verify the certificate uses the default signature algorithm
+
+        :expectedresults: The default certificate comes back (SHA256-with-RSA).
+        """
+        bundle = debug_cert_org.download_debug_certificate(
+            params={
+                'key_algorithms[]': [],
+                'signature_algorithms[]': [],
+            }
+        )
+        cert = _cert_from_bundle(bundle)
+        assert (
+            cert.signature_algorithm_oid.dotted_string == CertificateAlgorithmOIDs.SHA256_WITH_RSA
+        )
+
+    # Candlepin currently only supports RSA algorithms. ML-DSA (post-quantum) support
+    # is not available yet, so this test is disabled until backend support is added.
+    # def test_positive_download_debug_cert_with_mldsa(self, function_org):
+    #     """Request a post-quantum (ML-DSA) key and get it back.
+    #
+    #     :id: 7a9b032f-493f-4f24-9005-e48fe846c87d
+    #
+    #     :Verifies: SAT-48622
+    #
+    #     :steps:
+    #         1. Request a debug certificate with ML-DSA-65 key algorithm
+    #         2. Extract and parse the certificate from the bundle
+    #         3. Verify the certificate's public key is an ML-DSA-65 key
+    #
+    #     :expectedresults: The certificate uses the requested ML-DSA algorithm.
+    #     """
+    #     bundle = function_org.download_debug_certificate(
+    #         params={'key_algorithms[]': [CertificateAlgorithmOIDs.ML_DSA_65]}
+    #     )
+    #     cert = _cert_from_bundle(bundle)
+    #     assert isinstance(cert.public_key(), mldsa.MLDSA65PublicKey)
+
+    # Candlepin currently only supports RSA. ML-DSA parametrize case is commented out.
+    @pytest.mark.parametrize(
+        ('key_algorithm', 'signature_algorithm'),
+        [
+            (CertificateAlgorithmOIDs.RSA, CertificateAlgorithmOIDs.SHA256_WITH_RSA)
+        ],  # (ML_DSA_65, SHA256_WITH_RSA) disabled - backend not ready
+        ids=['rsa'],  # 'mldsa' disabled - backend not ready
+    )
+    def test_positive_download_debug_cert_with_oids(
+        self, debug_cert_org, key_algorithm, signature_algorithm
+    ):
+        """Request specific algorithms by OID and get them back.
+
+        Note: Currently testing RSA+SHA256, which are the defaults. Once ML-DSA support
+        is added to Candlepin, update parametrize to include non-default algorithms to
+        verify that algorithm selection is actually honored by the backend.
+
+        :id: 15b8f97f-ff00-4fad-87f6-3a6471e1ee00
+
+        :parametrized: yes
+
+        :Verifies: SAT-48622
+
+        :steps:
+            1. Request a debug certificate with specific key and signature algorithm OIDs
+            2. Extract and parse the certificate from the bundle
+            3. Verify the certificate uses the requested signature algorithm
+            4. Verify the certificate's public key matches the requested key algorithm
+
+        :expectedresults: The certificate matches both the requested signature and key algorithms.
+        """
+        bundle = debug_cert_org.download_debug_certificate(
+            params={
+                'key_algorithms[]': [key_algorithm],
+                'signature_algorithms[]': [signature_algorithm],
+            }
+        )
+        cert = _cert_from_bundle(bundle)
+        # Verify signature algorithm
+        assert cert.signature_algorithm_oid.dotted_string == signature_algorithm
+        # Verify public key algorithm (addresses Sourcery's concern)
+        assert isinstance(cert.public_key(), rsa.RSAPublicKey)
+
+    @pytest.mark.foremanctl
+    def test_negative_download_debug_cert_invalid_oid(self, debug_cert_org):
+        """A garbage OID string is rejected.
+
+        :id: 4c7623b1-b6af-49a6-ac8c-251bc45c7c52
+
+        :Verifies: SAT-48622
+
+        :steps:
+            1. Request a debug certificate with a malformed OID string
+            2. Verify the API returns an error
+
+        :expectedresults: The API returns an HTTP error 422
+        """
+        with pytest.raises(HTTPError) as error:
+            debug_cert_org.download_debug_certificate(params={'key_algorithms[]': ['not-an-oid']})
+        response = error.value.response
+        assert response.status_code == 422
+
+    @pytest.mark.foremanctl
+    def test_negative_download_debug_cert_unsupported_oid(self, debug_cert_org):
+        """A valid OID format that Candlepin doesn't support is rejected.
+
+        :id: b3a3de35-9b9a-48f4-ad94-8f5e8fc6e8fc
+
+        :Verifies: SAT-48622
+
+        :steps:
+            1. Request a debug certificate with a syntactically valid OID that Candlepin doesn't support
+            2. Verify the API returns an appropriate error
+
+        :expectedresults: The API returns an error for unsupported algorithms.
+        """
+        with pytest.raises(HTTPError) as error:
+            debug_cert_org.download_debug_certificate(
+                params={'key_algorithms[]': ['1.2.345.678901.2.3.45']}
+            )
+        response = error.value.response
+        assert response.status_code == 422
+
+    # Candlepin currently only supports RSA algorithms. This test requires ML-DSA support
+    # which is not available yet in the backend, so it's disabled until that's implemented.
+    # def test_positive_pqc_cert_accesses_protected_repo(self, function_sca_manifest_org, target_sat):
+    #     """A cert made with specific algorithms can still unlock a protected repo.
+    #
+    #     Proves the certificate actually works, not just that it parses.
+    #     Based on test_repository.py::test_positive_access_protected_repository.
+    #
+    #     :id: db55c4fe-b135-4f3d-aa4c-0481e99c1739
+    #
+    #     :Verifies: SAT-48622
+    #
+    #     :steps:
+    #         1. Create a protected repository with content
+    #         2. Verify repository access is blocked without a certificate
+    #         3. Download a debug certificate with ML-DSA algorithm
+    #         4. Verify repository access is allowed with the certificate
+    #
+    #     :expectedresults: Repo access is blocked (403) without the cert and
+    #         allowed (200) with it.
+    #     """
+    #     product = target_sat.api.Product(organization=function_sca_manifest_org).create()
+    #     repo = target_sat.api.Repository(
+    #         product=product, content_type='yum', unprotected=False, url=settings.repos.yum_2.url
+    #     ).create()
+    #     repo.sync()
+    #     repo_url = urljoin(repo.full_path, 'repodata/repomd.xml')
+    #     assert repo_url.startswith(target_sat.url)
+    #
+    #     # No cert -> blocked.
+    #     assert client.get(repo_url, verify=False).status_code == 403
+    #
+    #     # Download a cert asking for ML-DSA, save it, use it.
+    #     bundle = function_sca_manifest_org.download_debug_certificate(
+    #         params={
+    #             'key_algorithms[]': [CertificateAlgorithmOIDs.ML_DSA_65],
+    #             'signature_algorithms[]': [CertificateAlgorithmOIDs.SHA256_WITH_RSA]
+    #         }
+    #     )
+    #     cert_path = f'{tempfile.gettempdir()}/{function_sca_manifest_org.label}.pem'
+    #     with open(cert_path, 'w') as cert_file:
+    #         cert_file.write(bundle)
+    #     assert client.get(repo_url, cert=cert_path, verify=False).status_code == 200

@@ -349,6 +349,7 @@ def test_host_details_page(
 
     :CaseAutomation: Automated
     """
+    # Registration setup triage: ContentHost.wait_for_insights_registration in robottelo/hosts.py.
     org_name = rhcloud_manifest_org.name
 
     # Prepare misconfigured machine and upload data to Insights.
@@ -406,8 +407,7 @@ def test_host_details_page(
 @pytest.mark.e2e
 @pytest.mark.pit_client
 @pytest.mark.no_containers
-# last 2 rhel versions with fips
-@pytest.mark.rhel_ver_list(settings.supportability.content_hosts.rhel.versions[-4:])
+@pytest.mark.rhel_ver_match('N-1')
 def test_insights_registration_with_capsule(
     rhcloud_capsule,
     rhcloud_activation_key,
@@ -440,6 +440,8 @@ def test_insights_registration_with_capsule(
         3. rake command deletes insights reporting status of host.
 
     :BZ: 2110222, 2112386, 1962930
+
+    :BlockedBy: SAT-53201
 
     :parametrized: yes
     """
@@ -547,6 +549,7 @@ def test_host_breadcrumb_switcher_updates_insights_tabs(
 
     :Verifies: SAT-38703
     """
+    # Registration setup triage: ContentHost.wait_for_insights_registration in robottelo/hosts.py.
     org_name = rhcloud_manifest_org.name
 
     # Ensure we have at least 2 hosts

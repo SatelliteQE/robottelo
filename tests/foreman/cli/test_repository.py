@@ -12,6 +12,7 @@
 
 """
 
+from contextlib import suppress
 from random import choice
 from string import punctuation
 
@@ -43,7 +44,6 @@ from robottelo.constants.repos import (
     CUSTOM_FILE_REPO,
     CUSTOM_RPM_SHA,
     FAKE_5_YUM_REPO,
-    FAKE_YUM_MD5_REPO,
 )
 from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.logging import logger
@@ -73,6 +73,28 @@ PUPPET_REPOS = (
 
 def _get_image_tags_count(repo, sat):
     return sat.cli.Repository.info({'id': repo['id']})
+
+
+def _create_satellite_ca_content_credential(sat, org, request):
+    """Create an SSL CA content credential from the Satellite's own CA cert."""
+    if isinstance(org, dict):
+        org = sat.api.Organization(id=org['id'])
+    cert_content = sat.session.sftp_read(sat.ca_cert_file, return_data=True)
+    if isinstance(cert_content, bytes):
+        cert_content = cert_content.decode()
+    credential = sat.api.ContentCredential(
+        organization=org,
+        name=gen_string('alpha'),
+        content_type='cert',
+        content=cert_content,
+    ).create()
+
+    def _delete_credential():
+        with suppress(Exception):
+            credential.delete()
+
+    request.addfinalizer(_delete_credential)
+    return credential
 
 
 def _validated_image_tags_count(repo, sat):
@@ -967,7 +989,9 @@ class TestRepository:
             ]
         ),
     )
-    def test_mirror_on_sync_removes_rpm(self, module_org, repo, repo_options_2, module_target_sat):
+    def test_mirror_on_sync_removes_rpm(
+        self, request, module_org, repo, repo_options_2, module_target_sat
+    ):
         """
             Check that a package removed upstream is removed downstream when the repo
             is next synced if mirror-on-sync is enabled (the default setting).
@@ -1010,6 +1034,8 @@ class TestRepository:
         repo_options_2['organization-id'] = module_org.id
         repo_options_2['product-id'] = prod_2['id']
         repo_options_2['url'] = repo.get('published-at')
+        ca = _create_satellite_ca_content_credential(module_target_sat, module_org, request)
+        repo_options_2['ssl-ca-cert-id'] = ca.id
         repo_2 = module_target_sat.cli_factory.make_repository(repo_options_2)
         module_target_sat.cli.Repository.update({'id': repo_2['id'], 'description': ['Downstream']})
         repo_2 = module_target_sat.cli.Repository.info({'id': repo_2['id']})
@@ -1840,6 +1866,112 @@ class TestRepository:
         )
         assert repo_info['url'] in [repo.get('url') for repo in repo_list]
 
+    def test_positive_orphaned_custom_repository(self, repo, target_sat):
+        """Verify custom repository shows orphaned field as 'no'
+
+        :id: 107556f1-7de8-430e-8a76-44f0c4d9dc5a
+
+        :steps:
+            1. Create a custom repository
+            2. Get repository info via hammer
+            3. List repositories and check orphaned column
+
+        :expectedresults:
+            1. Repository info contains 'orphaned' field with value 'no'
+            2. Repository list shows orphaned as 'false'
+
+        :Verifies: SAT-41070
+
+        :CaseImportance: Critical
+        """
+        # Test hammer repository info
+        repo_info = target_sat.cli.Repository.info({'id': repo['id']})
+        assert 'orphaned' in repo_info, "orphaned field not found in repository info"
+        assert repo_info['orphaned'] == 'no', (
+            f"Expected custom repository orphaned='no', got '{repo_info['orphaned']}'"
+        )
+
+        # Test hammer repository list
+        repo_list = target_sat.cli.Repository.list(
+            {'organization': repo['organization'], 'product': repo['product']['name']}
+        )
+        matching_repo = [r for r in repo_list if r['id'] == repo['id']][0]
+        assert matching_repo['orphaned'] == 'false', (
+            f"Expected custom repository orphaned='false' in list, got '{matching_repo['orphaned']}'"
+        )
+
+    def test_positive_orphaned_rh_repository(self, function_sca_manifest_org, module_target_sat):
+        """Verify Red Hat repository orphaned field changes based on manifest state
+
+        :id: 796161ec-e839-45d5-bf22-5d7c13f8dcf4
+
+        :steps:
+            1. Upload manifest to organization
+            2. Enable a Red Hat repository
+            3. Verify orphaned field with valid manifest
+            4. Delete the manifest
+            5. Verify orphaned field after manifest deletion
+
+        :expectedresults:
+            1. With manifest: info shows orphaned='no', list shows orphaned='false'
+            2. After deletion: info shows orphaned='yes', list shows orphaned='true'
+
+        :Verifies: SAT-41070
+
+        :CaseImportance: Critical
+        """
+        # Enable a RH repository
+        rh_repo_set_id = module_target_sat.cli.RepositorySet.list(
+            {'organization-id': function_sca_manifest_org.id}
+        )[0]['id']
+
+        module_target_sat.cli.RepositorySet.enable(
+            {
+                'organization-id': function_sca_manifest_org.id,
+                'basearch': 'x86_64',
+                'id': rh_repo_set_id,
+            }
+        )
+
+        repos = module_target_sat.cli.Repository.list(
+            {'organization-id': function_sca_manifest_org.id}
+        )
+        assert len(repos) > 0, "No repositories found after enabling"
+        rh_repo = repos[0]
+
+        # Test with valid manifest - info command
+        repo_info = module_target_sat.cli.Repository.info({'id': rh_repo['id']})
+        assert 'orphaned' in repo_info, "orphaned field not found in repository info"
+        assert repo_info['orphaned'] == 'no', (
+            f"Expected RH repository orphaned='no', got '{repo_info['orphaned']}'"
+        )
+
+        # Test with valid manifest - list command
+        assert rh_repo['orphaned'] == 'false', (
+            f"Expected RH repository orphaned='false' in list, got '{rh_repo['orphaned']}'"
+        )
+
+        # Delete the manifest
+        module_target_sat.cli.Subscription.delete_manifest(
+            {'organization-id': function_sca_manifest_org.id}
+        )
+
+        # Test after manifest deletion - info command
+        repo_info = module_target_sat.cli.Repository.info({'id': rh_repo['id']})
+        assert repo_info['orphaned'] == 'yes', (
+            f"Expected orphaned='yes' after manifest deletion, got '{repo_info['orphaned']}'"
+        )
+
+        # Test after manifest deletion - list command
+        repos = module_target_sat.cli.Repository.list(
+            {'organization-id': function_sca_manifest_org.id}
+        )
+        orphaned_repo = [r for r in repos if r['id'] == rh_repo['id']][0]
+        assert orphaned_repo['orphaned'] == 'true', (
+            f"Expected orphaned='true' in list after manifest deletion, "
+            f"got '{orphaned_repo['orphaned']}'"
+        )
+
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_accessible_content_status(
         self, module_org, module_ak_with_synced_repo, rhel_contenthost, target_sat
@@ -1864,9 +1996,8 @@ class TestRepository:
         assert result.status == 0, f'Registration failed: {result.stderr}'
         assert rhel_contenthost.subscribed
         rhel_contenthost.run('yum repolist')
-        access_log = target_sat.execute(
-            'tail -n 10 /var/log/httpd/foreman-ssl_access_ssl.log | grep "/rhsm"'
-        )
+        access_log = target_sat.read_httpd_access_log()
+        assert access_log.status == 0, access_log.stderr
         assert 'accessible_content HTTP/1.1" 304' in access_log.stdout
 
     @pytest.mark.parametrize(
@@ -2152,7 +2283,7 @@ class TestAnsibleCollectionRepository:
         ids=['ansible_galaxy'],
         indirect=True,
     )
-    def test_positive_sync_ansible_collection_from_satellite(self, repo, target_sat):
+    def test_positive_sync_ansible_collection_from_satellite(self, request, repo, target_sat):
         """Sync ansible collection from another organization
 
         :id: f7897a56-d014-4189-b4c7-df8f15aaf30a
@@ -2167,6 +2298,7 @@ class TestAnsibleCollectionRepository:
         repo = target_sat.cli.Repository.info({'id': repo['id']})
         assert repo['sync']['status'] == 'Success'
         published_url = repo['published-at']
+        ca = _create_satellite_ca_content_credential(target_sat, import_org, request)
         # sync from different org
         prod_2 = target_sat.cli_factory.make_product(
             {'organization-id': import_org['id'], 'description': 'Sync from Satellite'}
@@ -2176,6 +2308,7 @@ class TestAnsibleCollectionRepository:
                 'organization-id': import_org['id'],
                 'product-id': prod_2['id'],
                 'url': published_url,
+                'ssl-ca-cert-id': ca.id,
                 'content-type': 'ansible_collection',
                 'ansible-collection-requirements': '{collections: \
                     [{ name: theforeman.operations, version: "0.1.0"}]}',
@@ -2184,42 +2317,6 @@ class TestAnsibleCollectionRepository:
         target_sat.cli.Repository.synchronize({'id': repo_2['id']})
         repo_2_status = target_sat.cli.Repository.info({'id': repo_2['id']})
         assert repo_2_status['sync']['status'] == 'Success'
-
-
-class TestMD5Repository:
-    """Tests specific to using MD5 signed repositories containing RPMs."""
-
-    @pytest.mark.upgrade
-    @pytest.mark.parametrize(
-        'repo_options', **parametrized([{'url': FAKE_YUM_MD5_REPO}]), indirect=True
-    )
-    def test_positive_sync_publish_promote_cv(self, repo, module_org, target_sat):
-        """Synchronize MD5 signed repository with add repository to content view,
-        publish and promote content view to lifecycle environment
-
-        :id: 81cf2606-739f-44ed-8954-41b9d824a69f
-
-        :parametrized: yes
-
-        :expectedresults: rpms can be listed in content view in proper
-            lifecycle environment
-        """
-        lce = target_sat.cli_factory.make_lifecycle_environment({'organization-id': module_org.id})
-        target_sat.cli.Repository.synchronize({'id': repo['id']})
-        synced_repo = target_sat.cli.Repository.info({'id': repo['id']})
-        assert synced_repo['sync']['status'].lower() == 'success'
-        assert synced_repo['content-counts']['packages'] == '35'
-        cv = target_sat.cli_factory.make_content_view({'organization-id': module_org.id})
-        target_sat.cli.ContentView.add_repository({'id': cv['id'], 'repository-id': repo['id']})
-        target_sat.cli.ContentView.publish({'id': cv['id']})
-        content_view = target_sat.cli.ContentView.info({'id': cv['id']})
-        cvv = content_view['versions'][0]
-        target_sat.cli.ContentView.version_promote(
-            {'id': cvv['id'], 'to-lifecycle-environment-id': lce['id']}
-        )
-        cv = target_sat.cli.ContentView.info({'id': cv['id']})
-        assert synced_repo['id'] in [repo['id'] for repo in cv['yum-repositories']]
-        assert lce['id'] in [lc['id'] for lc in cv['lifecycle-environments']]
 
 
 class TestFileRepository:

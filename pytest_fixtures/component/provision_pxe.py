@@ -51,17 +51,10 @@ def module_provisioning_rhel_content(
     custom_product = sat.api.Product(
         organization=module_sca_manifest_org, name=f'rhel{rhel_ver}_{gen_string("alpha")}'
     ).create()
-    client_repos_urls = [settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}']]
-    if (
-        rhel_ver in (8, 9)  # only RHEL 8 and 9 openvox-agent repositories are available
-        or (
-            rhel_ver == 10 and not is_open('SAT-30237')
-        )  # openvox-agent for EL10 is still not delivered
-        or (
-            rhel_ver == 7 and not is_open('SAT-44580')
-        )  # openvox-agent for EL7 is still not delivered
-    ):
-        client_repos_urls.append(settings.repos.OPENVOX_AGENT_REPO[f'rhel{rhel_ver}'])
+    client_repos_urls = [
+        settings.repos.SATCLIENT_REPO[f'rhel{rhel_ver}'],
+        settings.repos.OPENVOX_AGENT_REPO[f'rhel{rhel_ver}'],
+    ]
     client_repos = [
         sat.api.Repository(
             organization=module_sca_manifest_org,

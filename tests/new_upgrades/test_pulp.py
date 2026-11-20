@@ -12,8 +12,6 @@
 
 """
 
-import json
-
 from manifester import Manifester
 import pytest
 
@@ -88,11 +86,11 @@ def test_pulp_repoversion_href_prn_migration_scenario(pulp_upgrade_setup):
 
     :steps:
         1. Query katello_repositories table for records with version_href and version_prn.
-        2. Get version details for each version_href via pulp cli.
-        3. Verify the version_prn from the table matches the prn from pulp cli.
+        2. Get version details for each version_href via the Pulp API.
+        3. Verify the version_prn from the table matches the prn from Pulp.
 
     :expectedresults:
-        All version_prn values match the expected PRN from pulp cli.
+        All version_prn values match the expected PRN from Pulp.
     """
     target_sat = pulp_upgrade_setup.target_sat
 
@@ -101,5 +99,5 @@ def test_pulp_repoversion_href_prn_migration_scenario(pulp_upgrade_setup):
     )
     assert len(records), 'No records found in table, probably insufficient content setup'
     for row in records:
-        version = json.loads(target_sat.execute(f'pulp show --href {row["version_href"]}').stdout)
+        version = target_sat.pulp_api(row['version_href'])
         assert row['version_prn'] == version['prn']

@@ -12,6 +12,8 @@
 
 """
 
+import random
+
 from fauxfactory import gen_string
 import pytest
 
@@ -20,7 +22,6 @@ from robottelo.exceptions import CLIFactoryError, CLIReturnCodeError
 from robottelo.utils.datafactory import (
     filtered_datapoint,
     invalid_values_list,
-    parametrized,
     valid_data_list,
     valid_org_names_list,
 )
@@ -553,17 +554,15 @@ def test_positive_add_and_remove_parameter(module_org, module_target_sat):
     assert param_name.lower() not in org_info['parameters']
 
 
-@pytest.mark.parametrize('name', **parametrized(invalid_values_list()))
-def test_negative_create_with_invalid_name(name, module_target_sat):
+def test_negative_create_with_invalid_name(module_target_sat):
     """Try to create an organization with invalid name, but valid label and
     description
 
     :id: f0aecf1e-d093-4365-af85-b3650ed21318
 
-    :parametrized: yes
-
     :expectedresults: organization is not created
     """
+    name = random.choice(invalid_values_list())
     with pytest.raises(CLIFactoryError):
         module_target_sat.cli_factory.make_org(
             {
@@ -617,16 +616,14 @@ def test_positive_update(module_org, module_target_sat):
     assert org['description'] == new_desc
 
 
-@pytest.mark.parametrize('new_name', **parametrized(invalid_values_list()))
-def test_negative_update_name(new_name, module_org, module_target_sat):
+def test_negative_update_name(module_org, module_target_sat):
     """Fail to update organization name for invalid values.
 
     :id: 582d41b8-370d-45ed-9b7b-8096608e1324
 
-    :parametrized: yes
-
     :expectedresults: organization name is not updated
     """
+    new_name = random.choice(invalid_values_list())
     with pytest.raises(CLIReturnCodeError):
         module_target_sat.cli.Org.update({'id': module_org.id, 'new-name': new_name})
 

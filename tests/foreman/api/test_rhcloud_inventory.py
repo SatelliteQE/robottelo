@@ -83,8 +83,9 @@ def test_rhcloud_inventory_api_e2e(
     json_meta_data = get_report_metadata(local_report_path)
     # Verify that metadata contains source and foreman_rh_cloud_version keys.
     prefix = 'tfm-' if module_target_sat.os_version.major < 8 else ''
-    package_version = module_target_sat.run(
-        f'rpm -qa --qf "%{{VERSION}}" {prefix}rubygem-foreman_rh_cloud'
+    # Check package version inside the foreman container (foremanctl deployment)
+    package_version = module_target_sat.execute(
+        f'podman exec foreman rpm -qa --qf "%{{VERSION}}" {prefix}rubygem-foreman_rh_cloud'
     ).stdout.strip()
     assert json_meta_data['source_metadata']['foreman_rh_cloud_version'] == str(package_version)
     assert json_meta_data['source'] == 'Satellite'

@@ -258,6 +258,52 @@ def module_repos_collection_with_setup(request, module_target_sat, module_org, m
 
 
 @pytest.fixture(scope='module')
+def module_repos_collection_with_smart_proxy(
+    request, module_target_sat, smart_proxy_module_org, module_lce
+):
+    """Repository collection with smart proxy enabled organization for remote execution.
+
+    This fixture is similar to module_repos_collection_with_setup but uses
+    smart_proxy_module_org which has the default smart proxy assigned. This is
+    required for tests that use remote execution (REX) jobs.
+
+    Use this fixture when your test needs to:
+    - Execute remote commands via REX
+    - Perform package management operations remotely
+    - Upload package profiles via remote execution
+
+    Remember:
+        If you do not pass a repos request with valid 'distro' contained, we will attempt to fallback
+        on any fixture host, with attribute 'rhel_version' already parametrized.
+        Such as by using pytest.markers 'rhel_ver_match' or 'rhel_ver_list'.
+    """
+    # peek the first of prior parametrized fixtures (global scope),
+    # if a RHEL host is parametrized with distro, it will be at the top.
+    top_level_param = request._pyfuncitem.callspec.params
+    _, peek_val = next(iter(top_level_param.items()))
+    fixtures_distro = peek_val.get('rhel_version', None)
+
+    repos = getattr(request, 'param', [])
+    # no distro in repos request, fallback if top fixture marked with rhel_version
+    if 'distro' not in repos or repos['distro'] is None:
+        repos['distro'] = fixtures_distro
+    if repos['distro'] and 'rhel' not in str(repos['distro']):
+        repos['distro'] = f'rhel{repos["distro"]}'
+
+    repo_distro, repos = _simplify_repos(request, repos)
+    _repos_collection = module_target_sat.cli_factory.RepositoryCollection(
+        distro=repo_distro,
+        repositories=[
+            getattr(module_target_sat.cli_factory, repo_name)(**repo_params)
+            for repo in repos
+            for repo_name, repo_params in repo.items()
+        ],
+    )
+    _repos_collection.setup_content(smart_proxy_module_org.id, module_lce.id)
+    return _repos_collection
+
+
+@pytest.fixture(scope='module')
 def module_repos_collection_with_manifest(
     request, module_target_sat, module_sca_manifest_org, module_lce
 ):

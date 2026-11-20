@@ -12,16 +12,19 @@ from urllib.parse import urlparse
 from fauxfactory import gen_ipaddr, gen_mac, gen_string
 from nailgun.client import request
 from nailgun.entity_mixins import call_entity_method_with_timeout
+from packaging.version import Version
 from requests import HTTPError
 
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
+    DEFAULT_PTABLE,
     PRDS,
     REPO_TYPE,
     REPOS,
     REPOSET,
 )
+from robottelo.enums import InstallMethod
 from robottelo.exceptions import APIResponseError
 from robottelo.host_helpers.repository_mixins import initiate_repo_helpers
 from robottelo.utils.ohsnap import dogfood_repository
@@ -239,8 +242,21 @@ class APIFactory:
             ).search()[0]
         sync_tasks.append(self._satellite.api.Product(id=product_rhel.id).sync(synchronous=False))
 
-        if settings.capsule.version.source == 'ga':
-            for repo in capsule_host.CAPSULE_CDN_REPOS.values():
+        # foremanctl Capsules pull satellitectl from the Satellite repos, so sync
+        # those instead of the Capsule repos.
+        if settings.server.install_method == InstallMethod.FOREMANCTL:
+            cdn_repos = [capsule_host.SATELLITE_CDN_REPOS['satellite']]
+            repo_variants = [('satellite', 'satellite_repo')]
+            dogfood_product = 'satellite'
+            version = settings.server.version
+        else:
+            cdn_repos = list(capsule_host.CAPSULE_CDN_REPOS.values())
+            repo_variants = [('capsule', 'capsule_repo'), ('maintenance', 'satmaintenance_repo')]
+            dogfood_product = 'capsule'
+            version = settings.capsule.version
+
+        if version.source == 'ga':
+            for repo in cdn_repos:
                 reposet = self._satellite.api.RepositorySet(organization=org.id).search(
                     query={'search': repo}
                 )[0]
@@ -259,25 +275,22 @@ class APIFactory:
                     self._satellite.api.Product(id=reposet.product.id).sync(synchronous=False)
                 )
         else:
-            product_capsule = self._satellite.api.Product(organization=org.id).create()
-            for repo_variant, repo_default_url in [
-                ('capsule', 'capsule_repo'),
-                ('maintenance', 'satmaintenance_repo'),
-            ]:
-                if settings.capsule.version.source == 'nightly':
+            installer_product = self._satellite.api.Product(organization=org.id).create()
+            for repo_variant, repo_default_url in repo_variants:
+                if version.source == 'nightly':
                     repo_url = getattr(settings.repos, repo_default_url)
                 else:
                     repo_url = dogfood_repository(
                         ohsnap=settings.ohsnap,
                         repo=repo_variant,
-                        product='capsule',
-                        release=settings.capsule.version.release,
+                        product=dogfood_product,
+                        release=version.release,
                         os_release=capsule_host.os_version.major,
-                        snap=settings.capsule.version.snap,
+                        snap=version.snap,
                     ).baseurl
                 repo = self._satellite.api.Repository(
                     organization=org.id,
-                    product=product_capsule,
+                    product=installer_product,
                     content_type='yum',
                     url=repo_url,
                 ).create()
@@ -286,7 +299,7 @@ class APIFactory:
                         'content_overrides': [
                             {
                                 'content_label': '_'.join(
-                                    [org.label, product_capsule.label, repo.label]
+                                    [org.label, installer_product.label, repo.label]
                                 ),
                                 'value': '1',
                             }
@@ -294,13 +307,89 @@ class APIFactory:
                     }
                 )
             sync_tasks.append(
-                self._satellite.api.Product(id=product_capsule.id).sync(synchronous=False)
+                self._satellite.api.Product(id=installer_product.id).sync(synchronous=False)
             )
 
         self._satellite.wait_for_tasks(
             search_query=f'id ^ "{",".join(task["id"] for task in sync_tasks)}"',
             poll_timeout=1800,
         )
+
+    def serve_capsule_container_images(
+        self, org, rhel_major=None, satellite_tag=None, base_image_tags=None
+    ):
+        """Publish the Capsule container images on the Satellite registry.
+
+        Creates a product, one Docker repository per Capsule container image pulling from the
+        foremanctl container registry (``settings.server.container_registry``, the same source
+        the Capsule deploy-proxy uses), and syncs them, so a Capsule can pull its images from
+        the Satellite instead of registry.redhat.io.
+
+        Tags must match what the Capsule requests during deploy-proxy. The satellite/* images
+        are tagged with the Satellite x.y release, the rhelN/* base images with their own tags.
+
+        :param org: organization the product is created in
+        :param rhel_major: RHEL major of the images (default: the Satellite version's RHEL major)
+        :param satellite_tag: tag of the satellite/* images (default: the Satellite x.y release)
+        :param base_image_tags: name-to-tag mapping for the rhelN/* base images (default: latest)
+        :return: registry path (<org_label>/<product_label>) the images publish under
+        """
+        registry = settings.server.container_registry
+        registry_url = registry.url if '://' in registry.url else f'https://{registry.url}'
+        rhel_major = rhel_major or Version(str(settings.server.version.rhel_version)).major
+        if satellite_tag is None:
+            satellite_tag = (
+                'stream'
+                if self._satellite.is_stream
+                else '.'.join(str(settings.server.version.release).split('.')[:2])
+            )
+        base_image_tags = base_image_tags or {}
+        # (name, upstream name, tag); name matches the upstream's final component so the
+        # published path lines up with the mirror on the Capsule.
+        images = [
+            (
+                f'foreman-proxy-rhel{rhel_major}',
+                f'satellite/foreman-proxy-rhel{rhel_major}',
+                satellite_tag,
+            ),
+            (f'pulp-rhel{rhel_major}', f'satellite/pulp-rhel{rhel_major}', satellite_tag),
+            (
+                'postgresql-16',
+                f'rhel{rhel_major}/postgresql-16',
+                base_image_tags.get('postgresql-16', 'latest'),
+            ),
+            ('valkey-8', f'rhel{rhel_major}/valkey-8', base_image_tags.get('valkey-8', 'latest')),
+        ]
+        product = self._satellite.api.Product(
+            name='Capsule Container Images', organization=org
+        ).create()
+        for name, upstream_name, tag in images:
+            self._satellite.api.Repository(
+                name=name,
+                product=product,
+                content_type=REPO_TYPE['docker'],
+                url=registry_url,
+                docker_upstream_name=upstream_name,
+                include_tags=[tag],
+                upstream_username=registry.username,
+                upstream_password=registry.password,
+            ).create()
+        product.sync(timeout=3600)
+        registry_path = f'{org.label}/{product.label}'.lower()
+        # Confirm the images are actually served by the Satellite registry.
+        result = self._satellite.execute(
+            'curl --cacert /var/lib/foremanctl/certs/certs/ca-bundle.crt --silent --fail '
+            f'--user {settings.server.admin_username}:{settings.server.admin_password} '
+            f'https://{self._satellite.hostname}/v2/_catalog'
+        )
+        assert result.status == 0, f'Failed to query Satellite registry catalog:\n{result.stderr}'
+        for name, _, _ in images:
+            expected = f'{registry_path}/{name}'
+            assert expected in result.stdout, (
+                f'Image {expected} not found in Satellite registry catalog:\n{result.stdout}'
+            )
+        # Path follows default registry name pattern <org>/<product>/<repository>
+        return registry_path
 
     def one_to_one_names(self, name):
         """Generate the names Satellite might use for a one to one field.
@@ -455,6 +544,31 @@ class APIFactory:
                 name=os_name, major=os_version_major, minor=os_version_minor
             ).create()
         return os
+
+    def get_or_create_default_os(self):
+        """Return the configured default OS, creating it when it is missing."""
+        search_string = f'name="{settings.supportability.content_hosts.default_os_name}"'
+        operating_systems = self._satellite.api.OperatingSystem().search(
+            query={'search': search_string}
+        )
+        if operating_systems:
+            operating_system = operating_systems[0]
+        else:
+            architecture = self._satellite.api.Architecture().search(
+                query={'search': f'name="{DEFAULT_ARCHITECTURE}"'}
+            )[0]
+            partition_table = self._satellite.api.PartitionTable().search(
+                query={'search': f'name="{DEFAULT_PTABLE}"'}
+            )[0]
+            operating_system = self._satellite.api.OperatingSystem(
+                name=settings.supportability.content_hosts.default_os_name,
+                family='Redhat',
+                major=str(self._satellite.os_version.major),
+                minor=str(self._satellite.os_version.minor),
+                architecture=[architecture],
+                ptable=[partition_table],
+            ).create()
+        return operating_system.read()
 
     def supported_rhel_ver(self, num=3, fips=False, prefix=''):
         """

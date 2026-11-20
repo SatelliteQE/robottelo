@@ -23,6 +23,7 @@ from nailgun.entity_mixins import call_entity_method_with_timeout
 import pytest
 import requests
 from requests.exceptions import HTTPError
+from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import (
@@ -42,7 +43,13 @@ from robottelo.constants import (
     RPM_TO_UPLOAD,
     DataFile,
 )
-from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO, RHEL10_BASEOS_MLDSA
+from robottelo.constants.repos import (
+    ANSIBLE_GALAXY,
+    CUSTOM_FILE_REPO,
+    PULP_FIXTURE_ROOT,
+    PULP_SUBPATHS_COMBINED,
+    RHEL10_BASEOS_MLDSA,
+)
 from robottelo.content_info import (
     get_repo_files_by_url,
     get_repomd,
@@ -51,13 +58,47 @@ from robottelo.content_info import (
 from robottelo.utils.datafactory import gen_string
 
 
-@pytest.fixture(scope="module")
-def add_proxy_cli_config(module_target_sat, module_capsule_configured):
-    """Adds an entry in the pulp cli config for executing pulp commands on the capsule, then removes it."""
-    PROXY_CONFIG = f'\n[cli-proxy]\ncert = "/etc/foreman/client_cert.pem"\nkey = "/etc/foreman/client_key.pem"\nbase_url = "https://{module_capsule_configured.hostname}"'
-    module_target_sat.execute(f"echo -e '{PROXY_CONFIG}' >> .config/pulp/cli.toml")
-    yield
-    module_target_sat.execute("sed -i '/cli-proxy/, +3 d' .config/pulp/cli.toml")
+def _wait_for_pulp_task(host, task_href):
+    """Wait for a Pulp task and return its completed response."""
+    task, _ = wait_for(
+        lambda: host.pulp_api(task_href),
+        fail_condition=lambda task: (
+            task['state'] not in ('completed', 'failed', 'canceled', 'skipped')
+        ),
+        timeout=300,
+        delay=2,
+    )
+    assert task['state'] == 'completed', (
+        f'Pulp task {task_href} ended in {task["state"]}: {task.get("error")}'
+    )
+    return task
+
+
+def _create_orphaned_rpm_distribution(host, repository_href):
+    """Create a publication and distribution outside Katello's records."""
+    publication_task_href = host.pulp_api(
+        'publications/rpm/rpm/',
+        method='POST',
+        payload={'repository_version': f'{repository_href}versions/1/'},
+    )['task']
+    task = _wait_for_pulp_task(host, publication_task_href)
+    publication_href = next(
+        (href for href in task['created_resources'] if '/publications/rpm/rpm/' in href),
+        None,
+    )
+    assert publication_href, f'Pulp task {publication_task_href} created no RPM publication'
+
+    distribution_name = gen_string('alpha', 12)
+    distribution_task_href = host.pulp_api(
+        'distributions/rpm/rpm/',
+        method='POST',
+        payload={
+            'name': distribution_name,
+            'base_path': distribution_name,
+            'publication': publication_href,
+        },
+    )['task']
+    _wait_for_pulp_task(host, distribution_task_href)
 
 
 @pytest.fixture
@@ -87,6 +128,64 @@ def module_autosync_setting(request, module_target_sat, module_capsule_configure
     yield
     setting_entity.value = original_autosync
     setting_entity.update({'value'})
+
+
+@pytest.fixture(scope='module')
+def module_capsule_podman_contenthost(
+    module_podman_contenthost,
+    module_capsule_configured,
+    smart_proxy_module_org,
+    module_target_sat,
+):
+    """Podman content host registered to a Capsule with registry certs configured.
+
+    The fixture assigns the test organization to both Capsule smart proxies, syncs the
+    org Library environment to the Capsule content source, creates an activation key
+    for that environment, and registers the content host to the Capsule using global
+    registration with container registry certificate setup enabled.
+    """
+
+    # Assign the newly deployed Capsule proxies to the org used for registration.
+    capsule_proxy_ids = {
+        module_capsule_configured.nailgun_smart_proxy.id,
+        module_capsule_configured.nailgun_content_smart_proxy.id,
+    }
+    for smart_proxy_id in capsule_proxy_ids:
+        smart_proxy = module_target_sat.api.SmartProxy(id=smart_proxy_id).read()
+        if smart_proxy_module_org.id not in [org.id for org in smart_proxy.organization]:
+            smart_proxy.organization.append(smart_proxy_module_org)
+            smart_proxy.update(['organization'])
+    # Add and sync the org Library lifecycle environment to the Capsule content source.
+    # Otherwise global registration fails because the selected content source has not
+    # synced the lifecycle environment assigned by the activation key.
+    if smart_proxy_module_org.library.id not in [
+        lce['id'] for lce in module_capsule_configured.nailgun_capsule.lifecycle_environments
+    ]:
+        module_capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
+            data={'environment_id': smart_proxy_module_org.library.id}
+        )
+    sync_status = module_capsule_configured.nailgun_capsule.content_sync(timeout='60m')
+    assert sync_status['result'] == 'success', 'Capsule content sync failed'
+
+    # Create an activation key in the same org used for Capsule registration.
+    cvenv_id = module_target_sat.api_factory.get_cvenv_id(
+        smart_proxy_module_org.default_content_view,
+        smart_proxy_module_org.library,
+    )
+    ak = module_target_sat.api.ActivationKey(
+        content_view_environment_ids=[cvenv_id],
+        organization=smart_proxy_module_org,
+    ).create()
+
+    result = module_podman_contenthost.register(
+        smart_proxy_module_org,
+        None,
+        ak.name,
+        module_capsule_configured,
+        setup_container_certs=True,
+    )
+    assert result.status == 0, f'Failed to register host to Capsule: {result.stderr}'
+    return module_podman_contenthost
 
 
 @pytest.mark.run_in_one_thread
@@ -509,6 +608,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert sat_files == caps_files
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_iso_library_sync(
         self, module_capsule_configured, module_sca_manifest_org, module_target_sat
@@ -576,7 +676,9 @@ class TestCapsuleContentManagement:
         assert set(sat_isos) == set(caps_isos)
 
     @pytest.mark.build_sanity
-    @pytest.mark.order(after="tests/foreman/installer/test_installer.py::test_capsule_installation")
+    @pytest.mark.order(
+        after='tests/foreman/foremanctl/test_install_foremanctl.py::test_capsule_installation_with_foremanctl'
+    )
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_on_demand_sync(
         self,
@@ -761,6 +863,7 @@ class TestCapsuleContentManagement:
         caps_files = get_repo_files_by_url(caps_repo_url)
         assert len(caps_files) == packages_count
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_capsule_pub_url_accessible(self, module_capsule_configured):
         """Ensure capsule pub url is accessible
@@ -781,6 +884,7 @@ class TestCapsuleContentManagement:
             assert b'katello-server-ca.crt' in response.content
 
     @pytest.mark.upgrade
+    @pytest.mark.network_sensitive
     @pytest.mark.parametrize('endpoint', ['pulpcore', 'katello'])
     def test_flatpak_endpoint(self, target_sat, module_capsule_configured, endpoint):
         """Ensure the Capsules's local flatpak index endpoint is up after install or upgrade.
@@ -802,6 +906,7 @@ class TestCapsuleContentManagement:
         assert rq.ok, f'Expected 200 but got {rq.status_code} from {endpoint} registry index'
 
     @pytest.mark.e2e
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     @pytest.mark.parametrize('distro', ['rhel7', 'rhel8_bos', 'rhel9_bos', 'rhel10_bos'])
     def test_positive_sync_kickstart_repo(
@@ -896,6 +1001,7 @@ class TestCapsuleContentManagement:
         assert sat_pkgs == caps_pkgs
 
     @pytest.mark.e2e
+    @pytest.mark.network_sensitive
     @pytest.mark.pit_client
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_container_repo_end_to_end(
@@ -1029,6 +1135,7 @@ class TestCapsuleContentManagement:
             )
             assert result.status == 0
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_collection_repo(
         self,
@@ -1095,6 +1202,7 @@ class TestCapsuleContentManagement:
             '[defaults]\n'
             f'collections_paths = {coll_path}\n\n'
             '[galaxy]\n'
+            'ignore_certs = True\n'
             'server_list = capsule_galaxy\n\n'
             '[galaxy_server.capsule_galaxy]\n'
             f'url={repo_path}\n'
@@ -1115,6 +1223,7 @@ class TestCapsuleContentManagement:
         assert 'foreman' in result.stdout
         assert 'operations' in result.stdout
 
+    @pytest.mark.network_sensitive
     @pytest.mark.skip_if_not_set('capsule')
     def test_positive_sync_file_repo(
         self, target_sat, module_capsule_configured, function_org, function_product, function_lce
@@ -1321,14 +1430,14 @@ class TestCapsuleContentManagement:
         # Delete all capsule sync tasks so that we fall back for audits.
         task_result = target_sat.execute(
             """echo "ForemanTasks::Task.where(action:'Synchronize capsule """
-            f"""\\'{module_capsule_configured.hostname}\\'').delete_all" | foreman-rake console"""
+            f"""\\'{module_capsule_configured.content_hostname}\\'').delete_all" | foreman-rake console"""
         )
         assert task_result.status == 0
 
         # Ensure task records were deleted.
         task_result = target_sat.execute(
             """echo "ForemanTasks::Task.where(action:'Synchronize capsule """
-            f"""\\'{module_capsule_configured.hostname}\\'')" | foreman-rake console"""
+            f"""\\'{module_capsule_configured.content_hostname}\\'')" | foreman-rake console"""
         )
         assert task_result.status == 0
         assert '[]' in task_result.stdout
@@ -1390,9 +1499,7 @@ class TestCapsuleContentManagement:
         repo.sync()
 
         # Set immediate download policy to the capsule, assign it the Library LCE and sync it.
-        proxy = capsule_configured.nailgun_smart_proxy.read()
-        proxy.download_policy = 'immediate'
-        proxy.update(['download_policy'])
+        capsule_configured.update_download_policy('immediate')
 
         capsule_configured.nailgun_capsule.content_add_lifecycle_environment(
             data={'environment_id': function_lce_library.id}
@@ -1415,10 +1522,8 @@ class TestCapsuleContentManagement:
         sync_status = capsule_configured.nailgun_capsule.content_sync()
         assert sync_status['result'] == 'success', 'Capsule sync task failed.'
 
-        # datetime string (local time) to search for proper task.
-        timestamp = (datetime.now().replace(microsecond=0) - timedelta(seconds=1)).strftime(
-            '%B %d, %Y at %I:%M:%S %p'
-        )
+        # UTC timestamp (with a 1s margin for clock skew) to search for the proper task.
+        timestamp = datetime.now(UTC) - timedelta(seconds=1)
         # Run orphan cleanup for the capsule.
         target_sat.execute(
             'foreman-rake katello:delete_orphaned_content RAILS_ENV=production '
@@ -1533,15 +1638,18 @@ class TestCapsuleContentManagement:
         assert all(module_capsule_configured.get_artifact_info(checksum=sum) for sum in meta_sums)
 
         # Register a content host and run dnf actions.
-        nc = module_capsule_configured.nailgun_smart_proxy
-        module_target_sat.api.SmartProxy(id=nc.id, organization=[function_org]).update(
+        nsp = module_capsule_configured.nailgun_smart_proxy
+        nc = module_capsule_configured.nailgun_capsule
+        module_target_sat.api.SmartProxy(id=nsp.id, organization=[function_org]).update(
             ['organization']
         )
-        module_target_sat.api.SmartProxy(id=nc.id, location=[default_location]).update(['location'])
+        module_target_sat.api.SmartProxy(id=nsp.id, location=[default_location]).update(
+            ['location']
+        )
 
         result = rhel_contenthost.api_register(
             module_target_sat,
-            smart_proxy=nc,
+            smart_proxy=nsp,
             organization=function_org,
             location=default_location,
             activation_keys=[repos_collection.setup_content_data['activation_key']['name']],
@@ -1635,6 +1743,7 @@ class TestCapsuleContentManagement:
         cvv = cvv.read()
         assert len(cvv.environment) == 2
 
+    @pytest.mark.network_sensitive
     @pytest.mark.parametrize(
         'repos_collection',
         [
@@ -1981,14 +2090,15 @@ class TestCapsuleContentManagement:
 
         res = target_sat.api.Capsule(server_config=sc).search()
         assert len(res) >= 2, 'Expected at least one internal and one or more external Capsule(s).'
-        assert {target_sat.hostname, module_capsule_configured.hostname}.issubset(
-            [caps.name for caps in res]
-        ), 'Internal and/or external Capsule was not listed.'
+        assert {
+            target_sat.content_hostname,
+            module_capsule_configured.content_hostname,
+        }.issubset([caps.name for caps in res]), 'Internal and/or external Capsule was not listed.'
 
         res = target_sat.api.Capsule(
             server_config=sc, id=module_capsule_configured.nailgun_capsule.id
         ).read()
-        assert res.name == module_capsule_configured.hostname, 'External Capsule not found.'
+        assert res.name == module_capsule_configured.content_hostname, 'External Capsule not found.'
 
     def test_positive_reclaim_space(
         self,
@@ -2046,7 +2156,6 @@ class TestCapsuleContentManagement:
     @pytest.mark.skip_if_not_set('capsule')
     def test_cleanup_orphaned_content(
         self,
-        add_proxy_cli_config,
         module_target_sat,
         module_capsule_configured,
         function_org,
@@ -2061,16 +2170,15 @@ class TestCapsuleContentManagement:
             1. Create and sync a repository.
             2. Associate the LCE with a capsule, and sync.
             3. Add content to the repository, publish and promote to the LCE, and sync.
-            4. Add a [cli-proxy] entry to .config/pulp/cli.toml pointing to the capsule
-            5. Using pulp CLI and foreman-rake, create a publication and distribution using the first version of the repository.
-            6. Trigger orphan cleanup on both capsule and satellite.
+            4. Use the Pulp API to create a publication and distribution from the first repository
+               version on both Satellite and Capsule.
+            5. Trigger orphan cleanup on both Capsule and Satellite.
 
         :customerscenario: true
 
         :Verifies: SAT-31400
 
         :expectedresults:
-
             1. Orphaned cleanup runs successfully when there are orphaned distributions and publications present.
         """
         repo_url = settings.repos.yum_1.url
@@ -2126,34 +2234,20 @@ class TestCapsuleContentManagement:
         # Assert that packages count in the repository is updated
         assert repo.content_counts['rpm'] == (FAKE_1_YUM_REPOS_COUNT + 1)
 
-        # Create orphaned publication and distribution on Satellite
-        version_href = (
-            module_target_sat.execute(
-                f'echo "::Katello::Repository.find({repo.id}).version_href" | foreman-rake console'
-            )
-            .stdout.split('"')[1]
-            .removesuffix("versions/2/")
-        )
-        publication_href = module_target_sat.execute(
-            f"pulp --force rpm publication create --repository {version_href} --version 1"
-        ).stdout.split('"')[3]
-        module_target_sat.execute(
-            f"pulp --force rpm distribution create --name test2 --base-path test2 --publication {publication_href}"
-        )
+        # Create orphaned publications and distributions on Satellite and Capsule.
+        satellite_version_href = repo.read_json()['version_href']
+        satellite_repository_href = module_target_sat.pulp_api(satellite_version_href)['repository']
+        _create_orphaned_rpm_distribution(module_target_sat, satellite_repository_href)
 
-        # Create orphaned publication and distribution on Capsule
-        version_href = (
-            module_target_sat.execute(
-                "pulp --force --profile proxy repository list --field latest_version_href"
-            )
-            .stdout.split('"')[3]
-            .removesuffix("versions/2/")
+        # Katello includes the library repository's backend identifier in the Capsule repo name.
+        capsule_repositories = module_capsule_configured.pulp_api(
+            f'repositories/rpm/rpm/?name__contains={repo.backend_identifier}&limit=1'
+        )['results']
+        assert capsule_repositories, (
+            f'No Capsule Pulp RPM repository found for {repo.backend_identifier}'
         )
-        publication_href = module_target_sat.execute(
-            f"pulp --force --profile proxy rpm publication create --repository {version_href} --version 1"
-        ).stdout.split('"')[3]
-        module_target_sat.execute(
-            f"pulp --force --profile proxy rpm distribution create --name test2 --base-path test2 --publication {publication_href}"
+        _create_orphaned_rpm_distribution(
+            module_capsule_configured, capsule_repositories[0]['pulp_href']
         )
 
         # Run orphan cleanup on satellite and capsule
@@ -2218,15 +2312,18 @@ class TestCapsuleContentManagement:
         repos_collection.setup_content(function_org.id, function_lce.id, override=True)
         module_capsule_configured.wait_for_sync(start_time=timestamp)
 
-        nc = module_capsule_configured.nailgun_smart_proxy
-        module_target_sat.api.SmartProxy(id=nc.id, organization=[function_org]).update(
+        nsp = module_capsule_configured.nailgun_smart_proxy
+        nc = module_capsule_configured.nailgun_capsule
+        module_target_sat.api.SmartProxy(id=nsp.id, organization=[function_org]).update(
             ['organization']
         )
-        module_target_sat.api.SmartProxy(id=nc.id, location=[default_location]).update(['location'])
+        module_target_sat.api.SmartProxy(id=nsp.id, location=[default_location]).update(
+            ['location']
+        )
 
         result = rhel_contenthost.api_register(
             module_target_sat,
-            smart_proxy=nc,
+            smart_proxy=nsp,
             organization=function_org,
             location=default_location,
             activation_keys=[repos_collection.setup_content_data['activation_key']['name']],
@@ -2362,38 +2459,66 @@ class TestPodman:
     :team: Artemis
     """
 
+    @pytest.mark.skip_if_not_set('capsule')
+    def test_positive_capsule_token_request_without_account(self, module_capsule_configured):
+        """Ensure Capsule token requests succeed when the client omits ``account``.
+
+        :id: e55907e2-aa2d-49b5-a787-b7cb350761b7
+
+        :steps:
+            1. Request a Capsule registry token with Basic authentication and service/scope
+               parameters, omitting the non-standard account parameter.
+
+        :expectedresults:
+            1. Capsule responds with HTTP 200 and a token.
+
+        :verifies: SAT-50418
+        """
+        response = requests.get(
+            f'{module_capsule_configured.url}/v2/token',
+            auth=(settings.server.admin_username, settings.server.admin_password),
+            params={
+                'service': module_capsule_configured.hostname,
+                'scope': 'repository:registry:pull,push',
+            },
+            verify=settings.server.verify_ca,
+            timeout=30,
+        )
+        assert response.status_code == 200, response.text
+        assert response.headers.get('Docker-Distribution-Api-Version') == 'registry/2.0'
+        assert response.json().get('token'), 'Capsule token endpoint returned no token'
+
     def test_negative_podman_capsule_push(
         self,
-        module_target_sat,
-        module_product,
-        module_org,
-        module_lce,
         module_capsule_configured,
+        module_capsule_podman_contenthost,
     ):
-        """Attempt to push a Podman image to a Capsule/Smart Proxy
+        """Attempt to push a Podman image from a content host to a Capsule/Smart Proxy
 
         :id: 310f629a-837a-4457-980e-d2f4345b495e
 
         :steps:
-            1. Using podman, pull an image from the fedoraproject registry.
-            2. Attempt to push this image to a Capsule/Smart Proxy
+            1. On a content host, use podman to pull an image from the fedoraproject registry.
+            2. Attempt to push this image from the content host to a Capsule/Smart Proxy.
 
         :expectedresults: Podman containers cannot be pushed to a Capsule/Smart Proxy and an appropriate
             error is returned when attempting to do so.
 
         :CaseImportance: High
+
+        :BlockedBy: SAT-53513
         """
-        module_capsule_configured.ensure_podman_installed(enable_ipv6_proxy=True)
         IMAGE_NAME_TAG = 'fedora:latest'
-        image_pull = module_capsule_configured.execute(
+        image_pull = module_capsule_podman_contenthost.execute(
             f'podman pull registry.fedoraproject.org/{IMAGE_NAME_TAG}'
         )
         assert image_pull.status == 0
         large_image_id = image_pull.stdout.strip()
         assert large_image_id
-        result = module_capsule_configured.execute(
+        result = module_capsule_podman_contenthost.execute(
             f'podman push --creds {settings.server.admin_username}:{settings.server.admin_password} {large_image_id} {module_capsule_configured.hostname}/{IMAGE_NAME_TAG}'
         )
+        assert result.status != 0
         assert 'Pushing content is unsupported' in result.stderr
 
     def test_negative_login_without_pass(
@@ -2429,8 +2554,73 @@ class TestPodman:
         assert 'invalid username/password' in res.stdout.lower()
 
 
+@pytest.mark.network_sensitive
+@pytest.mark.skip_if_not_set('capsule')
+@pytest.mark.parametrize('content_type', ['file', 'yum'])
+def test_positive_capsule_acs_crud(module_target_sat, module_capsule_configured, content_type):
+    """Create, read, update, refresh and delete a custom ACS on an external Capsule.
+
+    :id: cbd7c23d-6694-4e4a-9120-1879eff15aea
+
+    :parametrized: yes
+
+    :setup:
+        1. An external Capsule registered to Satellite, including an existing n-minus Capsule.
+
+    :steps:
+        1. Create a custom file or yum ACS assigned to the external Capsule's content proxy.
+        2. Read the ACS and verify its name, content type and Capsule assignment.
+        3. Update its name and description and verify the changes.
+        4. Refresh the ACS and verify the task and recorded refresh succeed.
+        5. Delete the ACS and verify it can no longer be read.
+
+    :expectedresults:
+        1. The ACS is created and associated only with the external Capsule.
+        2. Updated values are persisted.
+        3. Refresh succeeds on the Capsule.
+        4. The deleted ACS returns HTTP 404.
+    """
+    content_proxy = module_capsule_configured.nailgun_content_smart_proxy
+    params = {
+        'name': gen_string('alpha'),
+        'alternate_content_source_type': 'custom',
+        'content_type': content_type,
+        'smart_proxy_ids': [content_proxy.id],
+        'base_url': PULP_FIXTURE_ROOT,
+        'subpaths': PULP_SUBPATHS_COMBINED[content_type],
+        'verify_ssl': False,
+    }
+    if not module_capsule_configured.network_type.has_ipv4:
+        content_proxy.http_proxy = module_target_sat.enable_satellite_http_proxy()
+        content_proxy.update(['http_proxy'])
+        params['use_http_proxies'] = True
+
+    acs = module_target_sat.api.AlternateContentSource(**params).create()
+    try:
+        created = acs.read()
+        assert created.name == acs.name
+        assert created.content_type == content_type
+        assert [proxy.id for proxy in created.smart_proxies] == [content_proxy.id]
+
+        acs.name = gen_string('alpha')
+        acs.description = gen_string('alpha')
+        acs.update(['name', 'description'])
+        updated = acs.read()
+        assert (updated.name, updated.description) == (acs.name, acs.description)
+
+        assert acs.refresh()['result'] == 'success', 'Capsule ACS refresh failed.'
+        assert acs.read().last_refresh['result'] == 'success'
+    finally:
+        acs.delete()
+
+    with pytest.raises(HTTPError) as exc:
+        acs.read()
+    assert exc.value.response.status_code == 404
+
+
 @pytest.mark.pqc
 @pytest.mark.e2e
+@pytest.mark.network_sensitive
 @pytest.mark.rhel_ver_match('N-0')
 @pytest.mark.no_containers
 @pytest.mark.skip_if_not_set('capsule')
@@ -2496,9 +2686,9 @@ def test_positive_e2e_mldsa_content_via_capsule(
     cv.version[0].promote(data={'environment_ids': function_lce.id})
     caps.wait_for_sync(start_time=timestamp)
 
-    nc = caps.nailgun_smart_proxy
-    sat.api.SmartProxy(id=nc.id, organization=[org]).update(['organization'])
-    sat.api.SmartProxy(id=nc.id, location=[default_location]).update(['location'])
+    nsp = caps.nailgun_smart_proxy
+    sat.api.SmartProxy(id=nsp.id, organization=[org]).update(['organization'])
+    sat.api.SmartProxy(id=nsp.id, location=[default_location]).update(['location'])
 
     cvenv_id = sat.api_factory.get_cvenv_id(cv, function_lce)
     ak = sat.api.ActivationKey(
@@ -2514,9 +2704,9 @@ def test_positive_e2e_mldsa_content_via_capsule(
     assert result.status == 0, f'Host registration via Capsule failed: {result.stderr}'
 
     registered_host = sat.api.Host().search(query={'search': f'name="{host.hostname}"'})[0]
-    assert registered_host.content_facet_attributes['content_source_id'] == nc.id, (
-        'Expected Capsule as content source'
-    )
+    assert (
+        registered_host.content_facet_attributes['content_source_id'] == caps.nailgun_capsule.id
+    ), 'Expected Capsule as content source'
 
     for pkg in RHEL10_BASEOS_MLDSA['install_packages']:
         result = host.execute(f'dnf install -y {pkg}')

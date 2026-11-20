@@ -25,6 +25,9 @@ from robottelo.utils.virtwho import (
     get_configure_option,
 )
 
+# TODO: Remove this marker when SAT-44794 is complete.
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture
 def form_data(virt_who_upgrade_shared_satellite):

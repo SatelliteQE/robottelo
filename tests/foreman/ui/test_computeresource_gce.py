@@ -28,8 +28,6 @@ from robottelo.constants import (
     GCE_NETWORK_DEFAULT,
 )
 
-pytestmark = pytest.mark.foreman_installer
-
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
@@ -145,7 +143,6 @@ def test_positive_default_end_to_end_with_custom_profile(
 @pytest.mark.e2e
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
-@pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
 def test_positive_gce_provision_end_to_end(
     request,
     sat_gce,
@@ -238,7 +235,6 @@ def test_positive_gce_provision_end_to_end(
 @pytest.mark.upgrade
 @pytest.mark.run_in_one_thread
 @pytest.mark.skip_if_not_set('gce')
-@pytest.mark.parametrize('sat_gce', ['sat', 'puppet_sat'], indirect=True)
 def test_positive_gce_cloudinit_provision_end_to_end(
     request,
     sat_gce,
@@ -289,10 +285,13 @@ def test_positive_gce_cloudinit_provision_end_to_end(
                 }
             )
             # 1. Host Creation Assertions
-            # 1.1 UI based Assertions
-            host_info = session.host_new.get_host_statuses(hostname)
-            assert session.host.search(hostname)[0]['Name'] == hostname
-            assert host_info['Build']['Status'] == 'Pending installation'
+            # 1.1 API based Assertions
+            hosts = sat_gce.api.Host().search(query={'search': f'name={hostname}'})
+            assert len(hosts) > 0, f"Host {hostname} not found"
+            assert hosts[0].name == hostname, "Host name mismatch"
+            assert hosts[0].build_status_label == 'Pending installation', (
+                f"Expected 'Pending installation', got '{hosts[0].build_status_label}'"
+            )
             # 1.2 GCE Backend Assertions
             gceapi_vm = googleclient.get_vm(gceapi_vmname)
             host_page = session.host_new.get_details(hostname, widget_names='overview')

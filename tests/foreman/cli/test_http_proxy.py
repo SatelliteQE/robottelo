@@ -97,6 +97,7 @@ def test_positive_create_update_delete(module_org, module_location, target_sat):
     indirect=True,
     ids=['auth_http_proxy', 'unauth_http_proxy'],
 )
+@pytest.mark.network_sensitive
 def test_insights_client_registration_with_http_proxy(
     module_target_sat_insights,
     setup_http_proxy,
@@ -131,16 +132,23 @@ def test_insights_client_registration_with_http_proxy(
         rhcloud_manifest_org,
         f"rhel{rhel_contenthost.os_version.major}",
     )
+    # The explicit re-registration also checks the existing client registration.
+    # Registration failure triage: ContentHost.wait_for_insights_registration in robottelo/hosts.py.
+    rhel_contenthost.wait_for_insights_registration(module_target_sat_insights)
     assert rhel_contenthost.execute('insights-client --register').status == 0
     assert rhel_contenthost.execute('insights-client --test-connection').status == 0
-    assert rhel_contenthost.execute('insights-client --status').status == 0
+    assert rhel_contenthost.check_insights_registration(module_target_sat_insights).status == 0
     assert rhel_contenthost.execute('insights-client --unregister').status == 0
 
 
 @pytest.mark.run_in_one_thread
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.skipif((not settings.http_proxy.UN_AUTH_PROXY_URL), reason='Missing un_auth_proxy_url')
-def test_positive_set_content_default_http_proxy(block_fake_repo_access, target_sat):
+@pytest.mark.network_sensitive
+@pytest.mark.parametrize('setting_update', ['content_default_http_proxy'], indirect=True)
+def test_positive_set_content_default_http_proxy(
+    block_fake_repo_access, target_sat, setting_update
+):
     """An http proxy can be set to be the global default for repositories.
 
     :id: c12868eb-98f1-4763-a168-281ac44d9ff5

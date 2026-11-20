@@ -34,6 +34,9 @@ from robottelo.utils.virtwho import (
     update_configure_option,
 )
 
+# TODO: Remove this marker when SAT-44794 is complete.
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.mark.usefixtures('delete_host')
 class TestVirtwhoConfigforEsx:

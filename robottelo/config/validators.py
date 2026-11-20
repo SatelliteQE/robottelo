@@ -360,7 +360,6 @@ VALIDATORS = dict(
             'repos.sattools_repo.rhel6',
             'repos.sattools_repo.rhel7',
             'repos.sattools_repo.rhel8',
-            'repos.satmaintenance_repo',
             'repos.rpm_missing_filelists.url',
             must_exist=True,
             is_type_of=str,
@@ -369,7 +368,7 @@ VALIDATORS = dict(
             'repos.python.pypi.url',
             must_exist=True,
             is_type_of=str,
-            default='https://pypi.org/project/pytest',
+            default='https://fixtures.pulpproject.org/python-pypi/',
         ),
     ],
     rhev=[
@@ -432,6 +431,7 @@ VALIDATORS = dict(
         Validator('robottelo.stage_docs_url', default='https://docs.redhat.com'),
         Validator('robottelo.custom_docs_url', default=''),
         Validator('robottelo.settings.ignore_validation_errors', is_type_of=bool, default=False),
+        Validator('robottelo.sosreport_enabled', is_type_of=bool, default=False),
         Validator('robottelo.rhel_source', default='ga', is_in=['ga', 'internal']),
         Validator(
             'robottelo.sat_non_ga_versions',

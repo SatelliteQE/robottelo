@@ -14,10 +14,11 @@
 
 from fauxfactory import gen_alpha, gen_string
 import pytest
+from wait_for import wait_for
 
 
 @pytest.mark.e2e
-def test_positive_end_to_end(session, module_org, module_location, target_sat):
+def test_positive_end_to_end(request, session, module_org, module_location, target_sat):
     """Perform end to end testing for Job Template component.
 
     :id: 2e0e31c5-e557-4151-83f9-21820c9cb1be
@@ -71,6 +72,13 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
         },
     ]
     value = gen_string('alpha')
+    preview_host = target_sat.api.Host(
+        name=gen_string('alpha').lower(),
+        managed=False,
+        organization=module_org,
+        location=module_location,
+    ).create(create_missing=False)
+    request.addfinalizer(preview_host.delete)
     with session:
         session.jobtemplate.create(
             {
@@ -170,16 +178,21 @@ def test_positive_end_to_end(session, module_org, module_location, target_sat):
             template['job']['foreign_input_sets'][1]['include']
             == job_foreign_input_sets[1]['include']
         )
-        session.organization.select(org_name="Default Organization")
-        session.location.select(loc_name="Any location")
-        template_values = session.jobtemplate.read(
-            template_name,
+        session.organization.select(org_name=module_org.name)
+        session.location.select(loc_name=module_location.name)
+        preview = session.jobtemplate.navigate_to(
+            session.jobtemplate,
+            'Read',
+            entity_name=template_name,
             editor_view_option='Preview',
-            widget_names='template.template_editor.editor',
         )
-        assert (
-            template_values['template']['template_editor']['editor']
-            == f'$USER_INPUT[{template_user_input_name}]'
+        wait_for(
+            lambda: (
+                preview.template.template_editor.editor.read()
+                == f'$USER_INPUT[{template_user_input_name}]'
+            ),
+            timeout=60,
+            delay=1,
         )
         session.jobtemplate.update(
             template_name,

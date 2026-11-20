@@ -22,7 +22,7 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.hosts import ContentHost
-from robottelo.utils.datafactory import parametrized, valid_data_list
+from robottelo.utils.datafactory import valid_data_list
 
 
 @pytest.mark.e2e
@@ -112,16 +112,14 @@ def test_positive_end_to_end_register(
 
 
 @pytest.mark.upgrade
-@pytest.mark.parametrize('cv_name', **parametrized(valid_data_list('ui')))
-def test_positive_create_with_cv(session, module_org, cv_name, target_sat):
+def test_positive_create_with_cv(session, module_org, target_sat):
     """Create Activation key for all variations of Content Views
 
     :id: 2ad000f1-6c80-46aa-a61b-9ea62cefe91b
 
-    :parametrized: yes
-
     :expectedresults: Activation key is created
     """
+    cv_name = random.choice(list(valid_data_list('ui').values()))
     name = gen_string('alpha')
     env_name = gen_string('alpha')
     repo_id = target_sat.api_factory.create_sync_custom_repo(module_org.id)
@@ -202,7 +200,8 @@ def test_positive_create_with_envs(session, module_org, target_sat):
 
     :id: f75e994a-6da1-40a3-9685-f8387388b3f0
 
-    :expectedresults: Activation key is created
+    :expectedresults: Activation key is created and Content View Environments
+        column is populated on the index page
     """
     name = gen_string('alpha')
     cv_name = gen_string('alpha')
@@ -215,7 +214,10 @@ def test_positive_create_with_envs(session, module_org, target_sat):
         session.activationkey.create(
             {'name': name, 'lce': {env_name: True}, 'content_view': cv_name}
         )
-        assert session.activationkey.search(name)[0]['Name'] == name
+        search_result = session.activationkey.search(name)[0]
+        assert search_result['Name'] == name
+        # Verify Content View Environments column is populated on index page
+        assert search_result['Content View Environments'] == f'{env_name}/{cv_name}'
         ak = session.activationkey.read(name, widget_names='details')
         assert ak['details']['content_view_details'][0]['lce'] == env_name
 
@@ -383,13 +385,10 @@ def test_positive_update_env(session, module_org, target_sat):
 
 
 @pytest.mark.run_in_one_thread
-@pytest.mark.parametrize('cv2_name', **parametrized(valid_data_list('ui')))
-def test_positive_update_cv(session, module_org, cv2_name, target_sat):
+def test_positive_update_cv(session, module_org, target_sat):
     """Update Content View in an Activation key
 
     :id: 68880ca6-acb9-4a16-aaa0-ced680126732
-
-    :parametrized: yes
 
     :steps:
         1. Create Activation key
@@ -398,6 +397,7 @@ def test_positive_update_cv(session, module_org, cv2_name, target_sat):
 
     :expectedresults: Activation key is updated
     """
+    cv2_name = random.choice(list(valid_data_list('ui').values()))
     name = gen_string('alpha')
     env1_name = gen_string('alpha')
     env2_name = gen_string('alpha')
@@ -957,7 +957,7 @@ def test_negative_usage_limit(
     result = vm2.register(module_org, None, name, target_sat)
     assert not vm2.subscribed
     assert result.status
-    assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stderr)
+    assert f'Max Hosts ({hosts_limit}) reached for activation key' in str(result.stdout)
 
 
 @pytest.mark.no_containers

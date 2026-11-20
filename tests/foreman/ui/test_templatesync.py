@@ -19,6 +19,8 @@ import requests
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_TEMPLATE_IMPORT_URL, FOREMAN_TEMPLATE_ROOT_DIR
 
+pytestmark = pytest.mark.foreman_installer
+
 
 @pytest.fixture(scope='module')
 def templates_org(module_target_sat):

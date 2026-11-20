@@ -37,6 +37,31 @@ def module_custom_product(module_org, module_target_sat):
     return module_target_sat.api.Product(organization=module_org).create()
 
 
+def test_positive_sync_status_product_name_without_organization(
+    module_org, module_custom_product, module_target_sat
+):
+    """Display the product name without an organization suffix on Sync Status.
+
+    :id: f0ecdca9-2ea6-4429-b247-7afd4d6d2246
+
+    :steps:
+        1. Create a custom product with a repository.
+        2. Select the product's organization and navigate to Content > Sync Status.
+        3. Read the full Name cell for the product row.
+
+    :expectedresults: The Name cell contains only the product name, without an
+        appended organization name.
+    """
+    module_target_sat.api.Repository(product=module_custom_product).create()
+
+    with module_target_sat.ui_session() as session:
+        session.organization.select(org_name=module_org.name)
+        assert (
+            session.sync_status.read_product_name(module_custom_product.name)
+            == module_custom_product.name
+        )
+
+
 @pytest.mark.run_in_one_thread
 @pytest.mark.upgrade
 def test_positive_sync_rh_repos(session, target_sat, module_sca_manifest_org):
@@ -140,10 +165,12 @@ def test_positive_sync_docker_via_sync_status(session, module_org, module_target
             {
                 'name': repo_name,
                 'repo_type': REPO_TYPE['docker'],
-                'repo_content.upstream_url': settings.container.rh.registry_hub,
-                'repo_content.upstream_repo_name': settings.container.docker.repo_upstream_name,
-                'repo_content.upstream_username': settings.subscription.rhn_username,
-                'repo_content.upstream_password': settings.subscription.rhn_password,
+                'repo_content.upstream_url': settings.container_repo.registries.redhat.url,
+                'repo_content.upstream_repo_name': settings.container_repo.registries.redhat.repos_to_sync[
+                    0
+                ],
+                'repo_content.upstream_username': settings.container_repo.registries.redhat.username,
+                'repo_content.upstream_password': settings.container_repo.registries.redhat.password,
             },
         )
         assert session.repository.search(product.name, repo_name)[0]['Name'] == repo_name

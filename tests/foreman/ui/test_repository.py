@@ -678,11 +678,13 @@ def test_positive_no_errors_on_repo_scan(target_sat, function_sca_manifest_org):
     with target_sat.ui_session() as session:
         session.organization.select(function_sca_manifest_org.name)
         session.redhatrepository.read(sat_rpm_extras.data['repository-set'])
-        result = target_sat.execute(
-            'grep "Failed at scanning for repository: undefined method '
-            '\\`resolve_substitutions\' for nil:NilClass" /var/log/foreman/production.log'
+        error = (
+            'Failed at scanning for repository: undefined method '
+            r"\`resolve_substitutions' for nil:NilClass"
         )
-        assert result.status == 1
+        result = target_sat.read_foreman_log()
+        assert result.status == 0, result.stderr
+        assert error not in result.stdout, f'Unexpected scan error found in log: {result.stdout}'
 
 
 def test_positive_reposet_disable(session, target_sat, function_sca_manifest_org):
@@ -864,31 +866,76 @@ def test_recommended_repos(session, filter_type, expected_repos, module_sca_mult
 
     :id: 1ae197d5-88ba-4bb1-8ecf-4da5013403d7
 
-    :expectedresults:
-           1. Shows repositories as per On/Off 'Recommended Repositories'.
-           2. Check last Satellite version of versioned repos do not exist.
-           3. Check Client 2 repo is not displayed yet.
+    :steps:
+        1. Select an organization with manifest.
+        2. Enable recommended repositories and select the RPM or Kickstart filter.
+        3. Disable recommended repositories.
 
-    :Verifies: SAT-29446, SAT-29448, SAT-37160
+    :expectedresults:
+           1. Shows RHEL repositories as per On/Off 'Recommended Repositories'.
+           2. Check Client 2 repo is not displayed yet.
+
+    :Verifies: SAT-29446, SAT-29448
     """
     with session:
         session.organization.select(module_sca_multiarch_manifest_org.name)
         rrepos_on = session.redhatrepository.read(recommended_repo='on', filter_type=filter_type)
-        v = get_sat_version()
 
         displayed_repos = [repo['label'] for repo in rrepos_on]
         assert len(displayed_repos) >= len(expected_repos)
         for repo in expected_repos:
             assert repo in displayed_repos
-        if filter_type == 'RPM':
-            for repo in VERSIONED_REPOS:
-                assert repo.format(f'{v.major}.{v.minor}') in displayed_repos
-                assert repo.format(f'{v.major}.{v.minor - 1}') not in displayed_repos
 
         assert not any('client-2' in label for label in displayed_repos)
 
         rrepos_off = session.redhatrepository.read(recommended_repo='off', filter_type=filter_type)
         assert len(rrepos_off) > len(rrepos_on)
+
+
+@pytest.mark.skipif(
+    settings.server.version.release == 'stream',
+    reason='Versioned Satellite repositories are not available for the stream release',
+)
+def test_recommended_versioned_repos(session, module_sca_multiarch_manifest_org):
+    """Check the recommended Satellite versioned repositories.
+
+    :id: 9cde429f-5671-4f2f-818e-31e1259eeaa4
+
+    :steps:
+        1. Select an organization with manifest.
+        2. Enable recommended repositories with the RPM filter.
+
+    :expectedresults:
+        1. Repositories for the current Satellite version are listed.
+        2. Repositories for the previous Satellite minor version are not listed.
+
+    :Verifies: SAT-51284, SAT-37160, SAT-29446
+    """
+    with session:
+        session.organization.select(module_sca_multiarch_manifest_org.name)
+        rrepos_on = session.redhatrepository.read(recommended_repo='on', filter_type='RPM')
+        sat_version = get_sat_version()
+        displayed_repos = [repo['label'] for repo in rrepos_on]
+        current_version_repos = [
+            repo.format(f'{sat_version.major}.{sat_version.minor}') for repo in VERSIONED_REPOS
+        ]
+        previous_version_repos = [
+            repo.format(f'{sat_version.major}.{sat_version.minor - 1}') for repo in VERSIONED_REPOS
+        ]
+
+        missing_current_repos = [
+            repo for repo in current_version_repos if repo not in displayed_repos
+        ]
+        assert not missing_current_repos, (
+            f'Expected current-version repositories missing: {missing_current_repos}'
+        )
+
+        displayed_previous_repos = [
+            repo for repo in previous_version_repos if repo in displayed_repos
+        ]
+        assert not displayed_previous_repos, (
+            f'Previous-version repositories unexpectedly displayed: {displayed_previous_repos}'
+        )
 
 
 @pytest.mark.stubbed
@@ -1267,3 +1314,67 @@ def test_positive_able_to_disable_and_enable_rhel_repos(
         assert session.redhatrepository.search(
             f'name = "{rhel8_repo_set_name}"', category='Enabled'
         )
+
+
+def test_positive_python_repo_crud(session, module_prod):
+    """Create, read, update, and delete a Python repository via UI.
+
+    :id: b6b4bb88-ce31-40b3-98e5-d9f82d514a56
+
+    :Verifies: SAT-36510
+
+    :BlockedBy: SAT-36514
+
+    :steps:
+        1. Create a Python repository with its content-specific fields via UI.
+        2. Read the repository and verify the content-specific fields.
+        3. Update the content-specific fields.
+        4. Read the repository and verify the updated fields.
+        5. Delete the repository.
+
+    :expectedresults: Python repository CRUD operations succeed and its content-specific
+        fields are persisted.
+    """
+    repo_name = gen_string('alpha')
+    create_values = {
+        'download_policy': DOWNLOAD_POLICIES['on_demand'],
+        'includes': 'shelf-reader\npulp-python',
+        'excludes': 'django~=2.0',
+        'package_types': 'bdist_wheel,sdist',
+    }
+    # The API returns includes as a single string with spaces instead of newlines
+    create_read_values = create_values | {'includes': create_values['includes'].replace('\n', ' ')}
+    update_values = {
+        'download_policy': DOWNLOAD_POLICIES['immediate'],
+        'includes': 'shelf-reader~=0.1',
+        'excludes': 'pulp-python',
+        'package_types': 'bdist_wheel',
+    }
+    with session:
+        session.repository.create(
+            module_prod.name,
+            {
+                'name': repo_name,
+                'repo_type': REPO_TYPE['python'],
+                'repo_content.upstream_url': settings.repos.python.pypi.url,
+                **{f'repo_content.{field}': value for field, value in create_values.items()},
+            },
+        )
+        assert session.repository.search(module_prod.name, repo_name)[0]['Name'] == repo_name
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert {
+            field: repo_values['repo_content'][field] for field in create_read_values
+        } == create_read_values
+
+        session.repository.update(
+            module_prod.name,
+            repo_name,
+            {f'repo_content.{field}': value for field, value in update_values.items()},
+        )
+        repo_values = session.repository.read(module_prod.name, repo_name)
+        assert {
+            field: repo_values['repo_content'][field] for field in update_values
+        } == update_values
+
+        session.repository.delete(module_prod.name, repo_name)
+        assert not session.repository.search(module_prod.name, repo_name)

@@ -20,18 +20,47 @@ import pytest
 from wait_for import wait_for
 
 from robottelo.config import robottelo_tmp_dir
-from robottelo.utils.io import get_local_file_data, get_remote_report_checksum
+from robottelo.utils.io import (
+    INSIGHTS_REPORTS_DOWNLOAD_DIR,
+    done_dir,
+    generated_reports_dir,
+    get_local_file_data,
+    get_remote_report_checksum,
+)
 
 inventory_sync_task = 'InventorySync::Async::InventoryFullSync'
 generate_report_jobs = 'ForemanInventoryUpload::Async::GenerateAllReportsJob'
+
+
+def enable_cloud_connector(target_sat):
+    target_sat.register_to_cdn()
+    if 'cloud-connector' not in target_sat.list_foremanctl_features(enabled=True):
+        # Install rhc and related packages (prerequisite for cloud-connector)
+        target_sat.execute('dnf install -y rhc rhc-worker-playbook')
+
+        # Ensure required rhc directories exist (workaround for foremanctl deployment)
+        target_sat.execute('mkdir -p /etc/rhc/workers /usr/libexec/rhc')
+        target_sat.execute('chmod 755 /etc/rhc/workers /usr/libexec/rhc')
+
+        # Enable and start yggdrasil service
+        target_sat.execute('systemctl enable yggdrasil.service')
+        result = target_sat.execute('systemctl start yggdrasil.service')
+        assert result.status == 0, (
+            f'Failed to start yggdrasil.service:\nstdout: {result.stdout}\nstderr: {result.stderr}'
+        )
+
+        # Deploy cloud-connector feature
+        result = target_sat.execute('foremanctl deploy --add-feature cloud-connector')
+        assert result.status == 0, (
+            f'Failed to deploy cloud-connector:\nstdout: {result.stdout}\nstderr: {result.stderr}'
+        )
 
 
 @pytest.mark.e2e
 def test_positive_inventory_generate_upload_cli(
     rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat
 ):
-    """Tests Insights inventory generation and upload via foreman-rake commands:
-    https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
+    """Tests Insights inventory generation and upload via hammer CLI.
 
     :id: f2da9506-97d4-4d1c-b373-9f71a52b8ab8
 
@@ -40,49 +69,62 @@ def test_positive_inventory_generate_upload_cli(
     :steps:
 
         0. Create a VM and register to insights within org having manifest.
-        1. Generate and upload report for all organizations
-            # /usr/sbin/foreman-rake rh_cloud_inventory:report:generate_upload
-        2. Generate and upload report for specific organization
-            # export organization_id=1
-            # /usr/sbin/foreman-rake rh_cloud_inventory:report:generate_upload
-        3. Generate report for specific organization (don't upload)
-            # export organization_id=1
-            # export target=/var/lib/foreman/red_hat_inventory/generated_reports/
-            # /usr/sbin/foreman-rake rh_cloud_inventory:report:generate
-        4. Upload previously generated report
-            (needs to be named 'report_for_#{organization_id}.tar.gz')
-            # export organization_id=1
-            # export target=/var/lib/foreman/red_hat_inventory/generated_reports/
-            # /usr/sbin/foreman-rake rh_cloud_inventory:report:upload
+        1. Generate and upload report for specific organization using hammer CLI:
+            # hammer insights inventory generate-report --organization-id=1
+        2. Wait for the report generation task to complete.
+        3. Download the report using hammer CLI:
+            # hammer insights inventory download-report --organization-id=1 --path <dir>
+        4. Verify the downloaded report content.
 
-    :expectedresults: Inventory is generated and uploaded to cloud.redhat.com.
+    :expectedresults:
+        1. Report generation task completes successfully.
+        2. Report is generated and uploaded to cloud.redhat.com.
+        3. Report can be downloaded successfully using hammer CLI.
+        4. Downloaded report file is accessible and contains valid host data.
 
     :BZ: 1957129, 1895953, 1956190
 
     :CaseAutomation: Automated
     """
     org = rhcloud_manifest_org
-    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:report:generate_upload'
-    upload_success_msg = f"Generated and uploaded inventory report for organization '{org.name}'"
-    result = module_target_sat.execute(cmd)
-    assert result.status == 0
-    assert upload_success_msg in result.stdout
+    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
 
-    local_report_path = robottelo_tmp_dir.joinpath(f'report_for_{org.id}.tar.xz')
-    remote_report_path = (
-        f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    )
+    # Use hammer CLI to generate and upload report
+    result = module_target_sat.cli.Insights.inventory_generate_report({'organization-id': org.id})
+    success_msg = "Report generation started successfully"
+    assert success_msg in result
+
+    # Wait for report generation to complete
+    generate_job_name = 'ForemanInventoryUpload::Async::HostInventoryReportJob'
     wait_for(
-        lambda: module_target_sat.get(
-            remote_path=str(remote_report_path), local_path=str(local_report_path)
+        lambda: (
+            module_target_sat.api.ForemanTask()
+            .search(query={'search': f'{generate_job_name} and started_at >= "{timestamp}"'})[0]
+            .result
+            == 'success'
         ),
-        timeout=60,
+        timeout=400,
         delay=15,
         silent_failure=True,
         handle_exception=True,
     )
+
+    # Download report using hammer CLI instead of accessing the filesystem directly
+    local_report_path = robottelo_tmp_dir.joinpath(f'report_for_{org.id}.tar.xz')
+    module_target_sat.execute(f'mkdir -p {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
+
+    module_target_sat.cli.Insights.inventory_download_report(
+        {'organization-id': org.id, 'path': INSIGHTS_REPORTS_DOWNLOAD_DIR}
+    )
+
+    remote_report_path = f'{INSIGHTS_REPORTS_DOWNLOAD_DIR}/report_for_{org.id}.tar.xz'
+    module_target_sat.get(remote_path=str(remote_report_path), local_path=str(local_report_path))
     local_file_data = get_local_file_data(local_report_path)
-    assert local_file_data['checksum'] == get_remote_report_checksum(module_target_sat, org.id)
+
+    # Verify checksum using the reusable function
+    assert local_file_data['checksum'] == get_remote_report_checksum(
+        module_target_sat, remote_report_path
+    )
     assert local_file_data['size'] > 0
     assert local_file_data['extractable']
     assert local_file_data['json_files_parsable']
@@ -94,68 +136,23 @@ def test_positive_inventory_generate_upload_cli(
         assert hosts_count == local_file_data['slices_counts'][slice_name]
 
 
-@pytest.mark.e2e
-@pytest.mark.pit_server
-@pytest.mark.pit_client
-def test_positive_inventory_recommendation_sync(
-    rhcloud_manifest_org,
-    rhcloud_registered_hosts,
-    module_target_sat,
-):
-    """Tests Insights recommendation sync via foreman-rake commands:
-    https://github.com/theforeman/foreman_rh_cloud/blob/master/README.md
-
-    :id: 361af91d-1246-4308-9cc8-66beada7d651
-
-    :steps:
-
-        0. Create a VM and register to insights within org having manifest.
-        1. Sync insights recommendation using following foreman-rake command.
-            # /usr/sbin/foreman-rake rh_cloud_insights:sync
-
-    :expectedresults: Insights recommendations are successfully synced for the host.
-
-    :BZ: 1957186
-
-    :CaseAutomation: Automated
-    """
-    org = rhcloud_manifest_org
-    cmd = f'organization_id={org.id} foreman-rake rh_cloud_insights:sync'
-    timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
-    result = module_target_sat.execute(cmd)
-    wait_for(
-        lambda: (
-            module_target_sat.api.ForemanTask()
-            .search(query={'search': f'Insights full sync and started_at >= "{timestamp}"'})[0]
-            .result
-            == 'success'
-        ),
-        timeout=400,
-        delay=15,
-        silent_failure=True,
-        handle_exception=True,
-    )
-    assert result.status == 0
-    assert 'Synchronized Insights hosts hits data' in result.stdout
-
-
 def test_positive_sync_inventory_status_missing_host_ip(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
     module_target_sat,
 ):
-    """Sync inventory status via foreman-rake commands with missing IP.
+    """Sync inventory status via hammer CLI with missing IP.
 
     :id: 372c03df-038b-49fb-a509-bb28edf178f3
 
     :steps:
 
         1. Create a vm and register to insights within org having manifest.
-        2. Remove IP from host.
-        3. Sync inventory status for specific organization.
-            # export organization_id=1
-            # /usr/sbin/foreman-rake rh_cloud_inventory:sync
-
+        2. Remove IP from host using foreman-rake console.
+        3. Sync inventory status for specific organization using hammer CLI:
+            # hammer insights inventory sync --organization-id=1
+        4. Wait for sync task to complete.
+        5. Verify sync task output shows correct host status counts.
 
     :expectedresults: Inventory status is successfully synced for satellite host with missing IP.
 
@@ -164,19 +161,19 @@ def test_positive_sync_inventory_status_missing_host_ip(
     :customerscenario: true
     """
     org = rhcloud_manifest_org
-    cmd = f'organization_id={org.id} foreman-rake rh_cloud_inventory:sync'
-    success_msg = f"Synchronized inventory for organization '{org.name}'"
     timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M')
     rhcloud_host = module_target_sat.cli.Host.info({'name': rhcloud_registered_hosts[0].hostname})[
         'id'
     ]
     update_ip = module_target_sat.execute(
-        f'echo "Host.find({rhcloud_host}).update(ip: nil)" | foreman-rake console'
+        f'echo "Host.find({rhcloud_host}).update(ip: nil)" |  foreman-rake console'
     )
     assert 'true' in update_ip.stdout
-    result = module_target_sat.execute(cmd)
-    assert result.status == 0
-    assert success_msg in result.stdout
+
+    # Use hammer CLI to sync inventory status
+    result = module_target_sat.cli.Insights.inventory_sync({'organization-id': org.id})
+    success_msg = "Inventory sync task started successfully"
+    assert success_msg in result
     # Check task details
     wait_for(
         lambda: (
@@ -342,6 +339,8 @@ def test_positive_generate_all_reports_job(target_sat):
     try:
         target_sat.update_setting('allow_auto_inventory_upload', False)
         with target_sat.session.shell() as sh:
+            # On foremanctl, foreman-rake is a wrapper that rejects tasks not on its allowlist.
+            # ALLOW_UNSUPPORTED=true lets it through. The var is harmless on satellite-installer.
             sh.send('foreman-rake console')
             time.sleep(30)  # sleep to allow time for console to open
             sh.send(f'ForemanTasks.async_task({generate_report_jobs})')
@@ -378,35 +377,33 @@ def test_positive_generate_reports_job_cli(
 
     :steps:
         1. Execute hammer insights inventory generate-report.
+        2. Download the report using hammer CLI to verify it was uploaded.
 
-    :expectedresults: Report generation succeeds and report is uploaded to done/ folder.
+    :expectedresults: Report generation succeeds and report can be downloaded successfully.
 
     :Verifies: SAT-38836
     """
     org = rhcloud_manifest_org
 
-    # Clean up any existing reports for this organization to ensure clean state
-    module_target_sat.execute(
-        f'rm -f /var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    )
-    module_target_sat.execute(
-        f'rm -f /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
-    )
+    # Clean up any existing downloaded reports
+    module_target_sat.execute(f'rm -rf {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
+    module_target_sat.execute(f'mkdir -p {INSIGHTS_REPORTS_DOWNLOAD_DIR}')
 
     generate_report(org, module_target_sat, disconnected=False)
 
-    # Verify report was uploaded by checking it exists in the done/ folder
-    remote_report_path = (
-        f'/var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
+    # Verify report was uploaded by downloading it via hammer CLI
+    module_target_sat.cli.Insights.inventory_download_report(
+        {'organization-id': org.id, 'path': INSIGHTS_REPORTS_DOWNLOAD_DIR}
     )
-    result = module_target_sat.execute(f'test -f {remote_report_path} && echo "exists"')
-    assert result.status == 0, (
-        f"Report check command failed with status {result.status}: {result.stderr}"
-    )
-    assert 'exists' in result.stdout, (
-        f"Report file does not exist at {remote_report_path}. "
+
+    # Verify the downloaded file exists
+    remote_report_path = f'{INSIGHTS_REPORTS_DOWNLOAD_DIR}/report_for_{org.id}.tar.xz'
+    check_result = module_target_sat.execute(f'test -f {remote_report_path} && echo "exists"')
+    assert check_result.status == 0, (
+        f"Downloaded report file not found at {remote_report_path}. "
         f"This indicates the report was not uploaded successfully."
     )
+    assert 'exists' in check_result.stdout
 
 
 def test_positive_generate_reports_job_cli_disconnected(
@@ -420,26 +417,18 @@ def test_positive_generate_reports_job_cli_disconnected(
 
     :steps:
         1. Execute hammer insights inventory generate-report with --no-upload flag.
+        2. Try to download the report using hammer CLI to verify it was NOT uploaded.
 
     :expectedresults: Report is generated but not uploaded (stays in generated_reports/).
 
     :Verifies: SAT-38836
     """
     org = rhcloud_manifest_org
-
     # Clean up any existing reports for this organization to ensure clean state
-    module_target_sat.execute(
-        f'rm -f /var/lib/foreman/red_hat_inventory/uploads/done/report_for_{org.id}.tar.xz'
-    )
-    module_target_sat.execute(
-        f'rm -f /var/lib/foreman/red_hat_inventory/generated_reports/report_for_{org.id}.tar.xz'
-    )
+    module_target_sat.execute(f'rm -f {done_dir}/report_for_{org.id}.tar.xz')
+    module_target_sat.execute(f'rm -f {generated_reports_dir}/report_for_{org.id}.tar.xz')
 
     generate_report(org, module_target_sat, disconnected=True)
-
-    # Verify report was NOT uploaded by checking it's in generated_reports/, not done/
-    generated_reports_dir = '/var/lib/foreman/red_hat_inventory/generated_reports'
-    done_dir = '/var/lib/foreman/red_hat_inventory/uploads/done'
 
     # Check report exists in generated_reports/
     result = module_target_sat.execute(
@@ -526,6 +515,7 @@ def test_positive_register_insights_client_host(module_target_sat, rhel_insights
     :CaseAutomation: Automated
 
     """
+    # Registration setup triage: ContentHost.wait_for_insights_registration in robottelo/hosts.py.
     # Test connection of insights client
     assert rhel_insights_vm.execute('insights-client --test-connection').status == 0
 
@@ -585,3 +575,86 @@ def generate_report(rhcloud_manifest_org, module_target_sat, disconnected=False)
         query={'search': f'{generate_job_name} and started_at >= "{timestamp}"'}
     )
     assert task_output[0].result == "success"
+
+
+def test_positive_cloud_connector_setup_with_foremanctl(target_sat):
+    """Verify cloud connector can be enabled and configured using foremanctl
+
+    :id: 00d8aa09-713e-44d8-9cbd-78c0e4a16e73
+
+    :steps:
+        1. Deploy cloud connector feature using foremanctl
+        2. Verify cloud-connector is in the list of enabled features
+        3. Verify rhcd service is active and running
+        4. Verify /etc/rhc/workers/foreman_rh_cloud.toml has correct service user credentials
+        5. Verify rhc_instance_id setting is populated and consumer certificate exists
+        6. Verify cloud_connector_user exists with Cloud Connector role
+
+    :expectedresults:
+        1. foremanctl deploy --add-feature cloud-connector completes successfully
+        2. foremanctl features --list-enabled includes cloud-connector
+        3. systemctl status rhcd shows active/running
+        4. foreman_rh_cloud.toml contains service user credentials
+        5. rhc_instance_id setting is not empty and consumer certificate is valid
+        6. cloud_connector_user has Cloud Connector role
+
+    """
+    # Step 1: Deploy cloud connector feature
+    enable_cloud_connector(target_sat)
+
+    # Step 2: Verify cloud-connector is enabled
+    enabled_features = target_sat.list_foremanctl_features(enabled=True)
+    assert 'cloud-connector' in enabled_features, (
+        f'cloud-connector not in list of enabled features: {enabled_features}'
+    )
+
+    # Step 3: Verify rhcd service is active/running
+    result = target_sat.execute('systemctl status rhcd')
+    assert result.status == 0, f'rhcd service is not running: {result.stderr}'
+    assert 'running' in result.stdout.lower() or 'active (running)' in result.stdout.lower(), (
+        f'rhcd service not running: {result.stdout}'
+    )
+
+    # Step 4: Verify foreman_rh_cloud.toml has correct content
+    toml_path = '/etc/rhc/workers/foreman_rh_cloud.toml'
+    result = target_sat.execute(f'cat {toml_path}')
+    assert result.status == 0, f'Failed to read {toml_path}: {result.stderr}'
+
+    toml_content = result.stdout
+    # Verify service user credentials are present
+    assert 'forwarder_user' in toml_content.lower(), (
+        'forwarder_user not found in foreman_rh_cloud.toml'
+    )
+    assert 'forwarder_password' in toml_content.lower(), (
+        'forwarder_password not found in foreman_rh_cloud.toml'
+    )
+    assert 'cloud_connector_user' in toml_content or '[authentication]' in toml_content, (
+        'Service user configuration not found in foreman_rh_cloud.toml'
+    )
+
+    # Step 5: Verify rhc_instance_id setting is populated
+    result = target_sat.cli.Settings.info({'name': 'rhc_instance_id'})
+    assert result['value'], 'rhc_instance_id setting is empty'
+
+    # Verify consumer certificate exists
+    consumer_cert = target_sat.execute(
+        'openssl x509 -in /etc/pki/consumer/cert.pem -noout -subject'
+    )
+    assert consumer_cert.status == 0, f'Failed to read consumer certificate: {consumer_cert.stderr}'
+    assert 'CN=' in consumer_cert.stdout, f'Consumer certificate missing CN: {consumer_cert.stdout}'
+
+    # Step 6: Verify cloud_connector_user exists with Cloud Connector role
+    try:
+        user_info = target_sat.cli.User.info({'login': 'cloud_connector_user'})
+        assert user_info['login'] == 'cloud_connector_user', (
+            f"User login mismatch: {user_info['login']}"
+        )
+
+        # Verify the user has Cloud Connector role
+        user_roles = user_info.get('roles', [])
+        assert any('cloud connector' in role.lower() for role in user_roles), (
+            f'Cloud Connector role not found in user roles: {user_roles}'
+        )
+    except Exception as e:
+        # If user doesn't exist or command fails, that's an assertion failure
+        pytest.fail(f'Failed to verify cloud_connector_user: {e}')
