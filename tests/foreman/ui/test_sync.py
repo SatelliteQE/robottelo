@@ -148,6 +148,66 @@ def test_positive_sync_rh_ostree_repo(session, target_sat, module_sca_manifest_o
         assert results[0] == SYNC_COMPLETE
 
 
+def test_positive_display_orphaned_product_sync_status(function_sca_manifest_org, target_sat):
+    """Verify orphaned product status is displayed on Sync Status page after
+    subscription is removed from manifest.
+
+    :id: 9a233538-e9ec-4543-a07e-314b915f2378
+
+    :steps:
+        1. Create organization with SCA manifest containing Red Hat subscriptions
+        2. Enable a Red Hat repository
+        3. Sync the repository to completion
+        4. Navigate to Content > Sync Status and read product name
+        5. Delete the subscription/manifest
+        6. Refresh and read Sync Status page
+        7. Verify product shows "Orphaned" status
+
+    :expectedresults:
+        1. Before manifest deletion: product name displayed without "Orphaned"
+        2. After manifest deletion: product name displayed with "Orphaned" label/text
+
+    :Verifies: SAT-52489
+    """
+    org = function_sca_manifest_org
+
+    # Enable and sync a Red Hat repository
+    target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=org.id,
+        reposet=REPOS['rhel9_bos']['reposet'],
+        product=REPOS['rhel9_bos']['product'],
+        repo=REPOS['rhel9_bos']['name'],
+        releasever=REPOS['rhel9_bos']['releasever'],
+    )
+    product_name = REPOS['rhel9_bos']['product']
+    repository_name = REPOS['rhel9_bos']['name']
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org.name)
+
+        # Sync the repository
+        sync_result = session.sync_status.synchronize([(product_name, repository_name)])
+        assert sync_result
+        assert all([result == SYNC_COMPLETE for result in sync_result])
+
+        # Read product name from Sync Status page - should NOT show Orphaned
+        product_display = session.sync_status.read_product_name(product_name)
+        assert product_display == product_name
+        assert 'Orphaned' not in product_display
+
+        # Delete the manifest
+        target_sat.api.Subscription(organization=org).delete_manifest(
+            data={'organization_id': org.id}
+        )
+
+        session.browser.refresh()
+
+        # Read product name again - should now show Orphaned
+        product_display_after = session.sync_status.read_product_name(product_name)
+        assert 'Orphaned' in product_display_after
+
+
 @pytest.mark.upgrade
 def test_positive_sync_docker_via_sync_status(session, module_org, module_target_sat):
     """Create custom docker repo and sync it via the sync status page.

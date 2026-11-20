@@ -19,7 +19,14 @@ from fauxfactory import gen_choice, gen_string
 import pytest
 
 from robottelo.config import settings
-from robottelo.constants import REPO_TYPE, SYNC_INTERVAL, DataFile, repos as repo_constants
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    REPO_TYPE,
+    REPOS,
+    SYNC_INTERVAL,
+    DataFile,
+    repos as repo_constants,
+)
 from robottelo.utils.datafactory import valid_cron_expressions, valid_data_list
 
 
@@ -88,6 +95,70 @@ def test_positive_end_to_end(session, module_org, module_target_sat):
         # Delete product
         session.product.delete(new_product_name)
         assert session.product.search(new_product_name)[0]['Name'] != new_product_name
+
+
+def test_positive_display_orphaned_product_list(function_sca_manifest_org, target_sat):
+    """Verify orphaned product status is displayed on Products list page after
+    subscription is removed from manifest.
+
+    :id: 5ee10400-f6d5-4119-91e2-3239c720383c
+
+    :steps:
+        1. Create organization with SCA manifest containing Red Hat subscriptions
+        2. Enable a Red Hat repository (product will be listed)
+        3. Navigate to Content > Products and search for the product
+        4. Verify product name does not show "Orphaned" status
+        5. Delete the subscription/manifest
+        6. Refresh Products page
+        7. Verify product shows "Orphaned" status next to product name
+
+    :expectedresults:
+        1. Before manifest deletion: product displayed without "Orphaned" indicator
+        2. After manifest deletion: product displayed with "Orphaned" label/text
+        3. Product is still visible in the list
+
+    :Verifies: SAT-52489
+    """
+    org = function_sca_manifest_org
+
+    # Enable a Red Hat repository to get the product
+    target_sat.api_factory.enable_rhrepo_and_fetchid(
+        basearch=DEFAULT_ARCHITECTURE,
+        org_id=org.id,
+        reposet=REPOS['rhel9_bos']['reposet'],
+        product=REPOS['rhel9_bos']['product'],
+        repo=REPOS['rhel9_bos']['name'],
+        releasever=REPOS['rhel9_bos']['releasever'],
+    )
+    product_name = REPOS['rhel9_bos']['product']
+
+    with target_sat.ui_session() as session:
+        session.organization.select(org.name)
+
+        # Search for product - should NOT show Orphaned
+        products_before = session.product.search(product_name)
+        assert len(products_before) > 0
+        assert products_before[0]['Name'] == product_name
+        # Verify no orphaned indicator in the name
+        assert 'Orphaned' not in products_before[0]['Name']
+
+        # Delete the manifest
+        target_sat.api.Subscription(organization=org).delete_manifest(
+            data={'organization_id': org.id}
+        )
+
+        session.browser.refresh()
+
+        # Search for product again - should now show Orphaned
+        products_after = session.product.search(product_name)
+        assert len(products_after) > 0, 'Product not found after manifest deletion'
+
+        # Check specifically in the Name field for orphaned indicator
+        product_row = products_after[0]
+        product_name_display = product_row.get('Name', '')
+        assert 'Orphaned' in product_name_display, (
+            f"Expected 'Orphaned' in product name, got: {product_name_display}"
+        )
 
 
 def test_positive_create_in_different_orgs(session, module_target_sat):
