@@ -1,6 +1,8 @@
 from fauxfactory import gen_alphanumeric
 import pytest
 
+from robottelo.constants import ROLES
+
 
 class UserFactory:
     """Helper class for more complex operations with users that can be reused in fixtures."""
@@ -24,6 +26,30 @@ class UserFactory:
 def viewer_role(session_target_sat):
     """Viewer role."""
     return session_target_sat.api.Role().search(query={'search': 'name="Viewer"'})[0]
+
+
+@pytest.fixture(scope='session')
+def expected_roles(expected_permissions):
+    """Return built-in roles provided by the current Satellite features.
+
+    Drop only roles whose plugin permissions are absent or whose foremanctl support
+    is tracked as incomplete, matching the API permission expectations.
+    """
+    roles = ROLES.copy()
+    unavailable_roles = set()
+    if 'download_bootdisk' not in expected_permissions[None]:
+        unavailable_roles.add('Boot disk access')
+    if 'Template' not in expected_permissions:
+        unavailable_roles.update({'Content Exporter', 'Content Importer'})
+    if 'DiscoveryRule' not in expected_permissions:
+        unavailable_roles.update({'Discovery Manager', 'Discovery Reader'})
+    if 'ForemanOpenscap::ArfReport' not in expected_permissions:
+        unavailable_roles.update({'Compliance manager', 'Compliance viewer', 'Create ARF report'})
+    if 'ForemanVirtWhoConfigure::Config' not in expected_permissions:
+        unavailable_roles.update({'Virt-who Manager', 'Virt-who Reporter', 'Virt-who Viewer'})
+    if 'JobInvocation' not in expected_permissions:
+        unavailable_roles.update({'Remote Execution Manager', 'Remote Execution User'})
+    return [role for role in roles if role not in unavailable_roles]
 
 
 @pytest.fixture(scope='class')

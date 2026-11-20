@@ -18,7 +18,7 @@ from fauxfactory import gen_email, gen_string
 import pytest
 
 from robottelo.config import user_nailgun_config
-from robottelo.constants import DEFAULT_ORG, PERMISSIONS, ROLES
+from robottelo.constants import DEFAULT_ORG, PERMISSIONS
 
 
 @pytest.mark.e2e
@@ -125,7 +125,7 @@ def test_positive_create_with_multiple_roles(session, target_sat):
         assert set(user['roles']['resources']['assigned']) == {role1, role2}
 
 
-def test_positive_create_with_all_roles(session):
+def test_positive_create_with_all_roles(session, expected_roles):
     """Create User and assign all available roles to it
 
     :id: 814593ca-1566-45ea-9eff-e880183b1ee3
@@ -141,12 +141,12 @@ def test_positive_create_with_all_roles(session):
                 'user.auth': 'INTERNAL',
                 'user.password': password,
                 'user.confirm': password,
-                'roles.resources.assigned': ROLES,
+                'roles.resources.assigned': expected_roles,
             }
         )
         assert session.user.search(name)[0]['Username'] == name
         user = session.user.read(name)
-        assert set(user['roles']['resources']['assigned']) == set(ROLES)
+        assert set(user['roles']['resources']['assigned']) == set(expected_roles)
 
 
 def test_positive_create_with_multiple_orgs(session, target_sat):
@@ -207,7 +207,7 @@ def test_positive_update_with_multiple_roles(session, target_sat):
         assert set(user['roles']['resources']['assigned']) == set(role_names)
 
 
-def test_positive_update_with_all_roles(session):
+def test_positive_update_with_all_roles(session, expected_roles):
     """Update User with all roles
 
     :id: cd7a9cfb-a700-45f2-a11d-bba6be3c810d
@@ -225,10 +225,10 @@ def test_positive_update_with_all_roles(session):
                 'user.confirm': password,
             }
         )
-        session.user.update(name, {'roles.resources.assigned': ROLES})
+        session.user.update(name, {'roles.resources.assigned': expected_roles})
         assert session.user.search(name)[0]['Username'] == name
         user = session.user.read(name)
-        assert set(user['roles']['resources']['assigned']) == set(ROLES)
+        assert set(user['roles']['resources']['assigned']) == set(expected_roles)
 
 
 def test_positive_update_orgs(session, target_sat):

@@ -1,14 +1,34 @@
 import pytest
 
 from robottelo.constants import PERMISSIONS
+from robottelo.enums import InstallMethod
+from robottelo.utils.issue_handlers import is_open
+
+
+def _remove_permissions(permissions, resource_type, permission_names):
+    """Remove optional permissions if they are present in the expected list."""
+    if resource_type in permissions:
+        permissions[resource_type] = [
+            permission
+            for permission in permissions[resource_type]
+            if permission not in permission_names
+        ]
 
 
 @pytest.fixture(scope="session")
 def expected_permissions(session_target_sat):
     """Return the list of permissions valid for current instance."""
 
-    permissions = PERMISSIONS.copy()
-    rpm_packages = session_target_sat.execute('rpm -qa').stdout
+    permissions = {
+        resource_type: resource_permissions.copy()
+        for resource_type, resource_permissions in PERMISSIONS.items()
+    }
+    rpm_command = (
+        'podman exec foreman rpm -qa'
+        if session_target_sat.install_method == InstallMethod.FOREMANCTL
+        else 'rpm -qa'
+    )
+    rpm_packages = session_target_sat.execute(rpm_command).stdout
     if 'rubygem-foreman_rh_cloud' not in rpm_packages:
         permissions.pop('InsightsHit')
         permissions[None].remove('generate_foreman_rh_cloud')
@@ -20,8 +40,11 @@ def expected_permissions(session_target_sat):
     if 'gem-foreman_virt_who_configure' not in rpm_packages:
         permissions.pop('ForemanVirtWhoConfigure::Config')
     if 'gem-foreman_openscap' not in rpm_packages:
+        permissions.pop('ForemanOpenscap::ArfReport')
         permissions.pop('ForemanOpenscap::Policy')
         permissions.pop('ForemanOpenscap::ScapContent')
+        permissions.pop('ForemanOpenscap::TailoringFile')
+        permissions['SmartProxy'].remove('view_openscap_proxies')
         permissions[None].remove('destroy_arf_reports')
         permissions[None].remove('view_arf_reports')
         permissions[None].remove('create_arf_reports')
@@ -77,5 +100,38 @@ def expected_permissions(session_target_sat):
         permissions[None].remove('upload_monitoring_results')
         permissions['Host'].remove('view_monitoring_results')
         permissions['Host'].remove('manage_downtime_hosts')
+    if 'foreman_templates' not in rpm_packages:
+        permissions.pop('Template', None)
 
+    # These plugin APIs are not supported on containerized (foremanctl) installs yet.
+    # Match the gates used by the API endpoint coverage so exclusions disappear when
+    # the corresponding product issues are closed.
+    if is_open('SAT-40240'):
+        permissions.pop('DiscoveryRule', None)
+        _remove_permissions(
+            permissions,
+            'Host',
+            {
+                'auto_provision_discovered_hosts',
+                'destroy_discovered_hosts',
+                'edit_discovered_hosts',
+                'provision_discovered_hosts',
+                'submit_discovered_hosts',
+                'view_discovered_hosts',
+            },
+        )
+    if is_open('SAT-40441'):
+        for resource_type in (
+            'ForemanOpenscap::ArfReport',
+            'ForemanOpenscap::Policy',
+            'ForemanOpenscap::ScapContent',
+            'ForemanOpenscap::TailoringFile',
+        ):
+            permissions.pop(resource_type, None)
+        _remove_permissions(
+            permissions,
+            None,
+            {'create_arf_reports', 'destroy_arf_reports', 'view_arf_reports'},
+        )
+        _remove_permissions(permissions, 'SmartProxy', {'view_openscap_proxies'})
     return permissions

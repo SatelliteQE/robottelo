@@ -18,7 +18,7 @@ from navmazing import NavigationTriesExceeded
 import pytest
 from wait_for import wait_for
 
-from robottelo.constants import PERMISSIONS_UI, ROLES
+from robottelo.constants import PERMISSIONS_UI
 from robottelo.utils.datafactory import gen_string
 
 
@@ -95,7 +95,7 @@ def test_positive_end_to_end(session, module_org, module_location, module_target
         assert not session.role.search(cloned_role_name)
 
 
-def test_positive_assign_cloned_role(session):
+def test_positive_assign_cloned_role(session, expected_roles):
     """Clone role and assign it to user
 
     :id: cbb17f37-9039-4875-981b-1f427b095ed1
@@ -108,7 +108,7 @@ def test_positive_assign_cloned_role(session):
 
     :CaseImportance: Critical
     """
-    role_name = random.choice(ROLES)
+    role_name = random.choice(expected_roles)
     cloned_role_name = gen_string('alpha')
     user_name = gen_string('alpha')
     user_password = gen_string('alpha')
@@ -130,7 +130,7 @@ def test_positive_assign_cloned_role(session):
 
 
 @pytest.mark.upgrade
-def test_positive_delete_cloned_builtin(session):
+def test_positive_delete_cloned_builtin(session, expected_roles):
     """Delete cloned builtin role
 
     :id: 7f0a595b-2b27-4dca-b15a-02cd2519b2f7
@@ -143,7 +143,7 @@ def test_positive_delete_cloned_builtin(session):
 
     :CaseImportance: Critical
     """
-    role_name = random.choice(ROLES)
+    role_name = random.choice(expected_roles)
     cloned_role_name = gen_string('alpha')
     with session:
         session.role.clone(role_name, {'name': cloned_role_name})
