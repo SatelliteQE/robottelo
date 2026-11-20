@@ -23,6 +23,7 @@ CaseComponent:
     - API
     - AuditLog
     - Authentication
+    - BackupandRestore
     - BootdiskPlugin
     - Branding
     - BVT
