@@ -347,6 +347,10 @@ VALIDATORS = dict(
     ],
     rh_cloud=[
         Validator('rh_cloud.token', required=True),
+        Validator('rh_cloud.skip_peak_uploads', default=True, is_type_of=bool),
+        Validator('rh_cloud.allow_peak_uploads', default=False, is_type_of=bool),
+        Validator('rh_cloud.peak_upload_start_utc', default='23:00', is_type_of=str),
+        Validator('rh_cloud.peak_upload_end_utc', default='10:30', is_type_of=str),
         Validator('rh_cloud.iop.image_paths', default={}, apply_default_on_none=True),
     ],
     repos=[

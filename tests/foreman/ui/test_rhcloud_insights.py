@@ -59,6 +59,7 @@ def sync_recommendations(session, satellite):
 @pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')
+@pytest.mark.hosted_insights
 def test_rhcloud_insights_e2e(
     rhel_insights_vm,
     rhcloud_manifest_org,
@@ -148,6 +149,7 @@ def test_rhcloud_insights_e2e(
 @pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([10])
+@pytest.mark.hosted_insights
 def test_rhcloud_insights_remediate_multiple_hosts(
     rhel_insights_vms,
     rhcloud_manifest_org,
@@ -310,6 +312,7 @@ def test_host_sorting_based_on_recommendation_count():
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-0')
+@pytest.mark.hosted_insights
 def test_host_details_page(
     rhel_insights_vm,
     rhcloud_manifest_org,
@@ -408,6 +411,7 @@ def test_host_details_page(
 @pytest.mark.pit_client
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match('N-1')
+@pytest.mark.hosted_insights
 def test_insights_registration_with_capsule(
     rhcloud_capsule,
     rhcloud_activation_key,
@@ -521,6 +525,7 @@ def test_insights_registration_with_capsule(
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.hosted_insights
 def test_host_breadcrumb_switcher_updates_insights_tabs(
     rhel_insights_vms,
     rhcloud_manifest_org,

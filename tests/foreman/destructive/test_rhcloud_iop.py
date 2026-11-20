@@ -22,6 +22,7 @@ from tests.foreman.ui.test_rhcloud_insights import (
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.hosted_insights
 def test_re_register_after_enabling_iop(
     rhel_insights_vm,
     rhcloud_manifest_org,

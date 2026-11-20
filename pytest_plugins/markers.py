@@ -22,6 +22,7 @@ def pytest_configure(config):
         "include_satellite_iop: For satellite-maintain tests to run on both default Satellite and IoP Satellite",
         "satellite_iop_only: For satellite-maintain tests to run only on IoP Satellite",
         "capsule_only: For satellite-maintain tests to run only on Capsules",
+        "hosted_insights: Tests that upload to or require ingestion by hosted Insights; subject to the configured UTC upload window",
         "manifester: Tests that require manifester",
         "ldap: Tests related to ldap authentication",
         "no_compose : Skip the marked sanity test for nightly compose",

@@ -8,6 +8,7 @@ pytest_plugins = [
     'pytest_plugins.disable_rp_params',
     'pytest_plugins.external_logging',
     'pytest_plugins.fixture_markers',
+    'pytest_plugins.hosted_insights',
     'pytest_plugins.infra_dependent_markers',
     'pytest_plugins.issue_handlers',
     'pytest_plugins.logging_hooks',
