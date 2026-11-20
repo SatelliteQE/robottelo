@@ -33,17 +33,18 @@ def get_repo_files(repo_path, extension='rpm', hostname=None):
     return sorted(repo_file for repo_file in result.stdout.splitlines() if repo_file)
 
 
-def get_repo_files_urls_by_url(url, extension='rpm'):
+def get_repo_files_urls_by_url(url, extension='rpm', *, timeout=None):
     """Returns a list of URLs of repo files (for example rpms) in a specific repository
     published at some URL.
     :param url: URL where the repo or CV is published
     :param extension: extension of searched files. Defaults to 'rpm'
+    :param timeout: Timeout in seconds for each directory request. Defaults to no timeout.
     :return:  list representing package URLs
     """
     if not url.endswith('/'):
         url += '/'
 
-    result = requests.get(url, verify=False)
+    result = requests.get(url, verify=False, timeout=timeout)
     if result.status_code != 200:
         raise requests.HTTPError(f'{url} is not accessible')
 
@@ -53,9 +54,9 @@ def get_repo_files_urls_by_url(url, extension='rpm'):
         return [f'{url}{file}' for file in files]
 
     files = []
-    subs = get_repo_files_urls_by_url(f'{url}Packages/', extension='/')
+    subs = get_repo_files_urls_by_url(f'{url}Packages/', extension='/', timeout=timeout)
     for sub in subs:
-        files.extend(get_repo_files_urls_by_url(sub, extension))
+        files.extend(get_repo_files_urls_by_url(sub, extension, timeout=timeout))
     return sorted(files)
 
 
