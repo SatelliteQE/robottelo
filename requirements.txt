@@ -29,7 +29,7 @@ requests==2.33.1
 tenacity==9.2.1
 testimony==2.4.0
 wait-for==2.0
-wrapanapi==4.0.4
+wrapanapi==4.0.5
 
 # Get airgun, nailgun and upgrade from master
 airgun @ git+https://github.com/SatelliteQE/airgun.git@master#egg=airgun
