@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: Installation
+:CaseComponent: BackupandRestore
 
 :Team: Rocket
 
@@ -16,9 +16,13 @@ import re
 from fauxfactory import gen_string
 import pytest
 
-from pytest_fixtures.component.maintain import _sync_repositories
+from pytest_fixtures.component.maintain import _get_satellite_host, _sync_repositories
 from robottelo.config import settings
-from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT, LIBRARY_LCE
+from robottelo.constants import (
+    FAKE_0_YUM_REPO_PACKAGES_COUNT,
+    FOREMANCTL_PARAMETERS_FILE,
+    LIBRARY_LCE,
+)
 from robottelo.content_info import get_repo_files_by_url
 from robottelo.hosts import Capsule, Satellite
 
@@ -33,6 +37,49 @@ CAPS_FILES = {'container_gateway.dump', 'pulp.dump'} | BASIC_FILES
 CONTENT_FILES = {'pulp-content.tar.gz', 'pulp.snar'}
 # Capsule fixtures a test may pull in, and on which a backup can therefore be taken
 CAPSULE_FIXTURES = ('capsule_configured', 'module_capsule_configured', 'large_capsule_configured')
+DATABASES = ('foreman', 'candlepin', 'pulp')
+
+
+@pytest.fixture(scope='module')
+def module_target_sat(request):
+    """Select an external-DB or regular Satellite.
+
+    With remotedb.server unset, pytest resolves the same-name fixture lookup to
+    the original module_target_sat fixture, preserving its host lifecycle.
+    The preconfigured external-DB Satellite is not owned by this fixture and
+    must not be torn down or checked in after testing.
+    """
+    satellite = _get_satellite_host(request)
+    if settings.remotedb.server:
+        _assert_external_database_configuration(satellite)
+    return satellite
+
+
+def _assert_external_database_configuration(server):
+    """Ensure external PostgreSQL settings persist without a local database instance."""
+    if not settings.remotedb.server or type(server) is not Satellite:
+        return
+
+    parameters = server.load_remote_yaml_file(FOREMANCTL_PARAMETERS_FILE)
+    actual = {
+        'install_method': str(server.install_method),
+        'database_mode': parameters.get('database_mode', 'internal'),
+        'database_host': parameters.get('database_host'),
+        'database_port': int(parameters.get('database_port', 5432)),
+        'local_postgresql': server.execute(
+            'systemctl show postgresql.service --property=LoadState --value'
+        ).stdout.strip(),
+        'local_postgresql_container': server.execute('podman container exists postgresql').status,
+    }
+    assert settings.remotedb.db_server, 'Set remotedb.db_server to the external PostgreSQL host'
+    assert actual == {
+        'install_method': 'foremanctl',
+        'database_mode': 'external',
+        'database_host': settings.remotedb.db_server,
+        'database_port': int(settings.remotedb.port),
+        'local_postgresql': 'not-found',
+        'local_postgresql_container': 1,
+    }, f'Unexpected external-database topology: {actual}'
 
 
 @pytest.fixture(autouse=True, scope='module')
@@ -80,24 +127,33 @@ def cleanup_backup_dir(request, module_target_sat):
 def module_synced_repos(module_target_sat, module_sca_manifest):
     """Sync custom and RH repositories against the foremanctl-managed Satellite.
 
-    Overrides the satellite-maintain fixture of the same name so the repos are
-    synced against ``module_target_sat`` directly, rather than the ``sat_maintain``
-    host, which may resolve to a different instance when ``remotedb.server`` is set.
+    Overrides the shared module_synced_repos fixture so repository setup
+    and backup operations always use the locally selected ``module_target_sat``.
     """
     synced = _sync_repositories(module_target_sat, module_sca_manifest)
     return {'custom': synced['cust_repo'], 'rh': synced['rh_repo']}
 
 
-def _assert_backup_files(server, backup_dir, skip_pulp=False):
+def _assert_backup_files(server, backup_dir, skip_pulp=False, split_tar=False):
     """Verify that backup directory contains all expected files.
 
     :param server: Satellite or Capsule server instance to execute commands on
     :param backup_dir: Path to the backup directory
     :param skip_pulp: Whether pulp content was skipped in the backup
+    :param split_tar: Whether the pulp content archive was split into volumes
+    :return: Filenames found in the backup directory
     """
     expected_files = SAT_FILES if type(server) is Satellite else CAPS_FILES
+    if type(server) is Satellite and settings.remotedb.server:
+        # External database names can be customized; metadata maps them to dump filenames.
+        metadata = server.load_remote_yaml_file(f'{backup_dir}/metadata.yml')
+        expected_files = BASIC_FILES | {
+            f'{metadata.database_mapping[name]}.dump' for name in DATABASES
+        }
     if not skip_pulp:
         expected_files = expected_files | CONTENT_FILES
+        if split_tar:
+            expected_files = expected_files - {'pulp-content.tar.gz'}
 
     ls_output = server.execute(f'ls -a {backup_dir}').stdout
     files = ls_output.split('\n')
@@ -105,6 +161,7 @@ def _assert_backup_files(server, backup_dir, skip_pulp=False):
     assert set(files).issuperset(expected_files), (
         f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
     )
+    return files
 
 
 def _create_backup(
@@ -223,7 +280,7 @@ def test_positive_backup_restore_on_proxy(
     )
 
 
-def test_positive_offline_backup(module_target_sat, setup_backup_tests):
+def test_positive_offline_backup(module_target_sat):
     """Verify foremanctl backup creates a backup successfully
 
     :id: e9eafa8a-4f1b-458c-b24b-c31d4bc04c4b
@@ -281,15 +338,9 @@ def test_positive_backup_restore_split_tar(module_target_sat, module_synced_repo
     subdir = f'{BACKUP_DIR}{BACKUP_PREFIX}{gen_string("alpha")}'
     backup_dir = _create_backup(module_target_sat, subdir, tar_volume_size=f'{set_size_kb}k')
 
-    ls_output = module_target_sat.execute(f'ls -a {backup_dir}').stdout
-    files = [f for f in ls_output.split('\n') if not re.compile(r'^\.*$').search(f)]
-
     # Databases, config files and the pulp snapshot must still be present
     # (the monolithic pulp-content.tar.gz is replaced by the split volumes)
-    expected_files = SAT_FILES | (CONTENT_FILES - {'pulp-content.tar.gz'})
-    assert set(files).issuperset(expected_files), (
-        f'Some required backup files are missing. Expected: {expected_files}, Found: {files}'
-    )
+    files = _assert_backup_files(module_target_sat, backup_dir, split_tar=True)
     assert 'pulp-content.tar.gz' not in files, (
         'Monolithic pulp-content.tar.gz should be replaced by the split volumes'
     )
@@ -419,6 +470,9 @@ def test_positive_backup_restore(module_target_sat, module_synced_repos, skip_pu
         timeout='30m',
     )
     assert result.status == 0, f'foremanctl restore failed:\n{result.stdout}\n{result.stderr}'
+
+    if settings.remotedb.server:
+        _assert_external_database_configuration(module_target_sat)
 
     result = module_target_sat.execute('foremanctl health', timeout='5m')
     assert result.status == 0, f'foremanctl health check failed after restore:\n{result.stdout}'

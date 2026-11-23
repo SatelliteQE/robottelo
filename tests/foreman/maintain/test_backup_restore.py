@@ -4,7 +4,7 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: SatelliteMaintain
+:CaseComponent: BackupandRestore
 
 :Team: Rocket
 
@@ -71,6 +71,7 @@ iop_restore_assert_messages = [
     'Restoring IoP Vmaas dump',
     'Restoring IoP Vulnerability dump',
 ]
+
 
 
 def get_exp_files(sat_maintain, skip_pulp=False):
