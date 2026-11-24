@@ -143,7 +143,7 @@ def test_positive_end_to_end_azurerm_ft_host_provision(
                     session.host_new.delete(fqdn)
                 wait_for(
                     lambda: (
-                        session.host_new.search(fqdn)[0].get('Name') == 'No Results'
+                        session.host_new.search(fqdn) == []
                         and not azurermclient.find_vms(name=hostname.lower())
                     ),
                     timeout=300,

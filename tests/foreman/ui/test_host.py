@@ -416,7 +416,7 @@ def test_positive_end_to_end(module_global_params, target_sat, host_ui_options, 
         assert displayed_host['Installed'] == 'N/A'
         # update
         session.host.update(host_name, {'host.name': new_name})
-        assert session.host.search(host_name)[0][0] == 'No Results'
+        assert session.host.search(host_name) == []
         assert session.host.search(new_host_name)[0]['Name'] == new_host_name
         # delete
         assert session.all_hosts.delete(new_host_name)
