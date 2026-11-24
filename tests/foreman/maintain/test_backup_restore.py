@@ -73,7 +73,6 @@ iop_restore_assert_messages = [
 ]
 
 
-
 def get_exp_files(sat_maintain, skip_pulp=False):
     expected_files = SAT_FILES if type(sat_maintain) is Satellite else CAPS_FILES
     if not skip_pulp:
