@@ -18,25 +18,15 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
-
-
-@pytest.fixture(scope='module')
-def module_insights_ak(module_org, module_sca_manifest, module_target_sat_insights):
-    """Upload a manifest and create an activation key for insights tests."""
-    module_target_sat_insights.upload_manifest(module_org.id, module_sca_manifest.content)
-    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
-        module_org.default_content_view, module_org.library
-    )
-    return module_target_sat_insights.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
-        organization=module_org,
-    ).create()
+from tests.foreman.ui.test_rhcloud_insights import (
+    create_insights_vulnerability as create_insights_recommendation,
+)
 
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_create_hostack_not_existing_rule(
-    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
+    rhcloud_manifest_org, rhcloud_activation_key, module_target_sat_insights, rhel_contenthost
 ):
     """Check that creating a hostack with a non-existing rule returns 400.
 
@@ -51,11 +41,10 @@ def test_insights_create_hostack_not_existing_rule(
     """
     rhel_contenthost.api_register(
         module_target_sat_insights,
-        organization=module_org,
-        activation_keys=[module_insights_ak.name],
+        organization=rhcloud_manifest_org,
+        activation_keys=[rhcloud_activation_key.name],
         setup_insights=True,
     )
-
     rhel_contenthost.execute('insights-client --register')
 
     insights_uuid = rhel_contenthost.get_insights_id()
@@ -66,7 +55,7 @@ def test_insights_create_hostack_not_existing_rule(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
         data={
             'rule': 'xxx',
             'system_uuid': insights_uuid,
@@ -80,7 +69,7 @@ def test_insights_create_hostack_not_existing_rule(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_create_hostack(
-    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
+    rhcloud_manifest_org, rhcloud_activation_key, module_target_sat_insights, rhel_contenthost
 ):
     """Check full CRUD lifecycle of a hostack: create, list, read, update, and delete.
 
@@ -107,16 +96,12 @@ def test_insights_create_hostack(
     """
     rhel_contenthost.api_register(
         module_target_sat_insights,
-        organization=module_org,
-        activation_keys=[module_insights_ak.name],
+        organization=rhcloud_manifest_org,
+        activation_keys=[rhcloud_activation_key.name],
         setup_insights=True,
     )
-
     rhel_contenthost.execute('insights-client --register')
-    rhel_contenthost.execute('chmod 777 /etc/ssh/sshd_config')
-
-    rhel_contenthost.execute('insights-client')
-
+    create_insights_recommendation(rhel_contenthost)
     insights_uuid = rhel_contenthost.get_insights_id()
 
     systems_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
@@ -129,7 +114,7 @@ def test_insights_create_hostack(
             auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
-            params={'organization_id': module_org.id},
+            params={'organization_id': rhcloud_manifest_org.id},
         )
         assert response.status_code == 200
         return insights_uuid in response.json()["host_ids"]
@@ -143,7 +128,7 @@ def test_insights_create_hostack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
         data={
             'rule': OPENSSH_RECOMMENDATION_RULE_ID,
             'system_uuid': insights_uuid,
@@ -166,7 +151,7 @@ def test_insights_create_hostack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -180,7 +165,7 @@ def test_insights_create_hostack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -191,7 +176,7 @@ def test_insights_create_hostack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -202,7 +187,7 @@ def test_insights_create_hostack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -217,7 +202,7 @@ def test_insights_create_hostack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
         data={
             'justification': new_justification,
         },
@@ -231,7 +216,7 @@ def test_insights_create_hostack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -244,7 +229,7 @@ def test_insights_create_hostack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 204
@@ -254,7 +239,7 @@ def test_insights_create_hostack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -265,7 +250,7 @@ def test_insights_create_hostack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -275,7 +260,7 @@ def test_insights_create_hostack(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_hostack_multi_host(
-    module_org, module_insights_ak, module_target_sat_insights, content_hosts
+    rhcloud_manifest_org, rhcloud_activation_key, module_target_sat_insights, content_hosts
 ):
     """Check that acking one host does not affect another host reporting the same rule.
 
@@ -298,14 +283,12 @@ def test_insights_hostack_multi_host(
     for host in content_hosts:
         host.api_register(
             module_target_sat_insights,
-            organization=module_org,
-            activation_keys=[module_insights_ak.name],
+            organization=rhcloud_manifest_org,
+            activation_keys=[rhcloud_activation_key.name],
             setup_insights=True,
         )
         host.execute('insights-client --register')
-        host.execute('chmod 777 /etc/ssh/sshd_config')
-        host.execute('insights-client')
-
+        create_insights_recommendation(host)
         insights_uuids.append(host.get_insights_id())
 
     systems_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
@@ -316,7 +299,7 @@ def test_insights_hostack_multi_host(
             auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
-            params={'organization_id': module_org.id},
+            params={'organization_id': rhcloud_manifest_org.id},
         )
         assert response.status_code == 200
         host_ids = response.json()["host_ids"]
@@ -330,7 +313,7 @@ def test_insights_hostack_multi_host(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
         data={
             'rule': OPENSSH_RECOMMENDATION_RULE_ID,
             'system_uuid': insights_uuids[0],
@@ -346,7 +329,7 @@ def test_insights_hostack_multi_host(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -359,7 +342,7 @@ def test_insights_hostack_multi_host(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -373,7 +356,7 @@ def test_insights_hostack_multi_host(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 204

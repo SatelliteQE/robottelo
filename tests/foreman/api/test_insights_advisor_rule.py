@@ -18,19 +18,9 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
-
-
-@pytest.fixture(scope='module')
-def module_insights_ak(module_org, module_sca_manifest, module_target_sat_insights):
-    """Upload a manifest and create an activation key for insights tests."""
-    module_target_sat_insights.upload_manifest(module_org.id, module_sca_manifest.content)
-    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
-        module_org.default_content_view, module_org.library
-    )
-    return module_target_sat_insights.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
-        organization=module_org,
-    ).create()
+from tests.foreman.ui.test_rhcloud_insights import (
+    create_insights_vulnerability as create_insights_recommendation,
+)
 
 
 def test_insights_rule(module_org, module_target_sat_insights):
@@ -119,7 +109,7 @@ def test_insights_rule_existing(module_org, module_target_sat_insights):
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_rule_reporting_rule(
-    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
+    rhcloud_manifest_org, rhcloud_activation_key, module_target_sat_insights, rhel_contenthost
 ):
     """Check that a host reporting a known vulnerability appears in rule endpoints.
 
@@ -137,16 +127,12 @@ def test_insights_rule_reporting_rule(
     """
     rhel_contenthost.api_register(
         module_target_sat_insights,
-        organization=module_org,
-        activation_keys=[module_insights_ak.name],
+        organization=rhcloud_manifest_org,
+        activation_keys=[rhcloud_activation_key.name],
         setup_insights=True,
     )
-
     rhel_contenthost.execute('insights-client --register')
-    rhel_contenthost.execute('chmod 777 /etc/ssh/sshd_config')
-
-    rhel_contenthost.execute('insights-client')
-
+    create_insights_recommendation(rhel_contenthost)
     insights_uuid = rhel_contenthost.get_insights_id()
 
     reports_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/system/{insights_uuid}/reports'
@@ -157,7 +143,7 @@ def test_insights_rule_reporting_rule(
             auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
-            params={'organization_id': module_org.id},
+            params={'organization_id': rhcloud_manifest_org.id},
         )
         return len(response.json()) > 0
 
@@ -170,7 +156,7 @@ def test_insights_rule_reporting_rule(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -184,7 +170,7 @@ def test_insights_rule_reporting_rule(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -194,7 +180,7 @@ def test_insights_rule_reporting_rule(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_ack_hosts(
-    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
+    rhcloud_manifest_org, rhcloud_activation_key, module_target_sat_insights, rhel_contenthost
 ):
     """Check that hosts can be acked for a specific rule via the ack_hosts endpoint.
 
@@ -212,16 +198,12 @@ def test_insights_ack_hosts(
     """
     rhel_contenthost.api_register(
         module_target_sat_insights,
-        organization=module_org,
-        activation_keys=[module_insights_ak.name],
+        organization=rhcloud_manifest_org,
+        activation_keys=[rhcloud_activation_key.name],
         setup_insights=True,
     )
-
     rhel_contenthost.execute('insights-client --register')
-    rhel_contenthost.execute('chmod 777 /etc/ssh/sshd_config')
-
-    rhel_contenthost.execute('insights-client')
-
+    create_insights_recommendation(rhel_contenthost)
     insights_uuid = rhel_contenthost.get_insights_id()
 
     justification = 'first justification'
@@ -233,7 +215,7 @@ def test_insights_ack_hosts(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
         data={
             'systems': [insights_uuid],
             'justification': justification,
@@ -250,7 +232,7 @@ def test_insights_ack_hosts(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -263,7 +245,7 @@ def test_insights_ack_hosts(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_rule_ack_hides_all_hosts(
-    module_org, module_insights_ak, module_target_sat_insights, content_hosts
+    rhcloud_manifest_org, rhcloud_activation_key, module_target_sat_insights, content_hosts
 ):
     """Check that a rule-level ack hides all hosts from the rule systems endpoint.
 
@@ -285,14 +267,12 @@ def test_insights_rule_ack_hides_all_hosts(
     for host in content_hosts:
         host.api_register(
             module_target_sat_insights,
-            organization=module_org,
-            activation_keys=[module_insights_ak.name],
+            organization=rhcloud_manifest_org,
+            activation_keys=[rhcloud_activation_key.name],
             setup_insights=True,
         )
         host.execute('insights-client --register')
-        host.execute('chmod 777 /etc/ssh/sshd_config')
-        host.execute('insights-client')
-
+        create_insights_recommendation(host)
         insights_uuids.append(host.get_insights_id())
 
     systems_path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/rule/{OPENSSH_RECOMMENDATION_RULE_ID}/systems'
@@ -303,7 +283,7 @@ def test_insights_rule_ack_hides_all_hosts(
             auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
-            params={'organization_id': module_org.id},
+            params={'organization_id': rhcloud_manifest_org.id},
         )
         assert response.status_code == 200
         assert "host_ids" in response.json()
@@ -319,7 +299,7 @@ def test_insights_rule_ack_hides_all_hosts(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
         data={
             'rule_id': OPENSSH_RECOMMENDATION_RULE_ID,
             'justification': 'rule ack hides all hosts',
@@ -333,7 +313,7 @@ def test_insights_rule_ack_hides_all_hosts(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -346,7 +326,7 @@ def test_insights_rule_ack_hides_all_hosts(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 204
@@ -356,7 +336,7 @@ def test_insights_rule_ack_hides_all_hosts(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200

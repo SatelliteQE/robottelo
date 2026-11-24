@@ -18,25 +18,15 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
-
-
-@pytest.fixture(scope='module')
-def module_insights_ak(module_org, module_sca_manifest, module_target_sat_insights):
-    """Upload a manifest and create an activation key for insights tests."""
-    module_target_sat_insights.upload_manifest(module_org.id, module_sca_manifest.content)
-    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
-        module_org.default_content_view, module_org.library
-    )
-    return module_target_sat_insights.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
-        organization=module_org,
-    ).create()
+from tests.foreman.ui.test_rhcloud_insights import (
+    create_insights_vulnerability as create_insights_recommendation,
+)
 
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_systems(
-    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
+    rhcloud_manifest_org, rhcloud_activation_key, module_target_sat_insights, rhel_contenthost
 ):
     """Check that a registered host with insights appears in the systems endpoint.
 
@@ -51,11 +41,10 @@ def test_insights_systems(
     """
     rhel_contenthost.api_register(
         module_target_sat_insights,
-        organization=module_org,
-        activation_keys=[module_insights_ak.name],
+        organization=rhcloud_manifest_org,
+        activation_keys=[rhcloud_activation_key.name],
         setup_insights=True,
     )
-
     rhel_contenthost.execute('insights-client --register')
 
     insights_uuid = rhel_contenthost.get_insights_id()
@@ -68,7 +57,7 @@ def test_insights_systems(
             auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
-            params={'organization_id': module_org.id},
+            params={'organization_id': rhcloud_manifest_org.id},
         )
         assert response.status_code == 200
         return (
@@ -82,7 +71,7 @@ def test_insights_systems(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_system_existing_with_rule(
-    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
+    rhcloud_manifest_org, rhcloud_activation_key, module_target_sat_insights, rhel_contenthost
 ):
     """Check that reports appear for a host with a known vulnerability.
 
@@ -98,15 +87,12 @@ def test_insights_system_existing_with_rule(
     """
     rhel_contenthost.api_register(
         module_target_sat_insights,
-        organization=module_org,
-        activation_keys=[module_insights_ak.name],
+        organization=rhcloud_manifest_org,
+        activation_keys=[rhcloud_activation_key.name],
         setup_insights=True,
     )
-
     rhel_contenthost.execute('insights-client --register')
-    rhel_contenthost.execute('chmod 777 /etc/ssh/sshd_config')
-    rhel_contenthost.execute('insights-client')
-
+    create_insights_recommendation(rhel_contenthost)
     insights_uuid = rhel_contenthost.get_insights_id()
 
     path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/system/{insights_uuid}/reports'
@@ -117,7 +103,7 @@ def test_insights_system_existing_with_rule(
             auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
-            params={'organization_id': module_org.id},
+            params={'organization_id': rhcloud_manifest_org.id},
         )
         assert response.status_code == 200
         return response.json() != [] and OPENSSH_RECOMMENDATION_RULE_ID in str(response.content)

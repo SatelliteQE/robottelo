@@ -18,25 +18,15 @@ from wait_for import wait_for
 
 from robottelo.config import settings
 from robottelo.constants import OPENSSH_RECOMMENDATION_RULE_ID
-
-
-@pytest.fixture(scope='module')
-def module_insights_ak(module_org, module_sca_manifest, module_target_sat_insights):
-    """Upload a manifest and create an activation key for insights tests."""
-    module_target_sat_insights.upload_manifest(module_org.id, module_sca_manifest.content)
-    cvenv_id = module_target_sat_insights.api_factory.get_cvenv_id(
-        module_org.default_content_view, module_org.library
-    )
-    return module_target_sat_insights.api.ActivationKey(
-        content_view_environment_ids=[cvenv_id],
-        organization=module_org,
-    ).create()
+from tests.foreman.ui.test_rhcloud_insights import (
+    create_insights_vulnerability as create_insights_recommendation,
+)
 
 
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_stats_overview_one_system(
-    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
+    rhcloud_manifest_org, rhcloud_activation_key, module_target_sat_insights, rhel_contenthost
 ):
     """Check that stats overview reflects one important recommendation after a host reports a vulnerability.
 
@@ -52,15 +42,12 @@ def test_insights_stats_overview_one_system(
     """
     rhel_contenthost.api_register(
         module_target_sat_insights,
-        organization=module_org,
-        activation_keys=[module_insights_ak.name],
+        organization=rhcloud_manifest_org,
+        activation_keys=[rhcloud_activation_key.name],
         setup_insights=True,
     )
-
     rhel_contenthost.execute('insights-client --register')
-    rhel_contenthost.execute('chmod 777 /etc/ssh/sshd_config')
-
-    rhel_contenthost.execute('insights-client')
+    create_insights_recommendation(rhel_contenthost)
 
     path = f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/stats/overview'
 
@@ -70,7 +57,7 @@ def test_insights_stats_overview_one_system(
             auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
-            params={'organization_id': module_org.id},
+            params={'organization_id': rhcloud_manifest_org.id},
         )
         assert response.status_code == 200
         assert response.json()['pathways'] == 0
@@ -85,7 +72,7 @@ def test_insights_stats_overview_one_system(
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match(f'^{settings.content_host.default_rhel_version}$')
 def test_insights_stats_overview_after_ack(
-    module_org, module_insights_ak, module_target_sat_insights, rhel_contenthost
+    rhcloud_manifest_org, rhcloud_activation_key, module_target_sat_insights, rhel_contenthost
 ):
     """Check that stats overview reflects zero important after acking the rule.
 
@@ -105,15 +92,12 @@ def test_insights_stats_overview_after_ack(
     """
     rhel_contenthost.api_register(
         module_target_sat_insights,
-        organization=module_org,
-        activation_keys=[module_insights_ak.name],
+        organization=rhcloud_manifest_org,
+        activation_keys=[rhcloud_activation_key.name],
         setup_insights=True,
     )
-
     rhel_contenthost.execute('insights-client --register')
-    rhel_contenthost.execute('chmod 777 /etc/ssh/sshd_config')
-
-    rhel_contenthost.execute('insights-client')
+    create_insights_recommendation(rhel_contenthost)
 
     overview_path = (
         f'{module_target_sat_insights.url}/insights_cloud/api/insights/v1/stats/overview'
@@ -125,7 +109,7 @@ def test_insights_stats_overview_after_ack(
             auth=module_target_sat_insights.nailgun_cfg.auth,
             verify=False,
             headers={'Accept': 'application/json'},
-            params={'organization_id': module_org.id},
+            params={'organization_id': rhcloud_manifest_org.id},
         )
         assert response.status_code == 200
         return response.json()['important'] == 1
@@ -138,7 +122,7 @@ def test_insights_stats_overview_after_ack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
         data={
             'rule_id': OPENSSH_RECOMMENDATION_RULE_ID,
             'justification': 'ack for overview test',
@@ -152,7 +136,7 @@ def test_insights_stats_overview_after_ack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
@@ -164,7 +148,7 @@ def test_insights_stats_overview_after_ack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 204
@@ -174,7 +158,7 @@ def test_insights_stats_overview_after_ack(
         auth=module_target_sat_insights.nailgun_cfg.auth,
         verify=False,
         headers={'Accept': 'application/json'},
-        params={'organization_id': module_org.id},
+        params={'organization_id': rhcloud_manifest_org.id},
     )
 
     assert response.status_code == 200
