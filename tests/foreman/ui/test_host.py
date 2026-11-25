@@ -23,7 +23,7 @@ import time
 from airgun.exceptions import DisabledWidgetError, NoSuchElementException
 from box import Box
 import pytest
-from wait_for import wait_for
+from wait_for import TimedOutError, wait_for
 import yaml
 
 from robottelo.config import settings
@@ -66,13 +66,14 @@ def submit_config_report_with_error(target_sat, user_login, user_password, host_
     with notifications enabled.
     """
     reported_at = datetime.now(tz=UTC).strftime('%Y-%m-%dT%H:%M:%S')
-    target_sat.execute(
-        'curl -sk -u {user}:{password} -X POST '
+    result = target_sat.execute(
+        'curl --fail-with-body -sk -u {user}:{password} -X POST '
         '-H "Content-Type: application/json" '
         "-d '{report_data}' "
-        'https://localhost/api/v2/config_reports'.format(
+        'https://{hostname}/api/v2/config_reports'.format(
             user=user_login,
             password=user_password,
+            hostname=target_sat.hostname,
             report_data=json.dumps(
                 {
                     'config_report': {
@@ -101,6 +102,8 @@ def submit_config_report_with_error(target_sat, user_login, user_password, host_
             ),
         )
     )
+
+    assert result.status == 0, f'Config report submission failed: {result.stdout}\n{result.stderr}'
 
 
 @contextmanager
@@ -4686,23 +4689,24 @@ def test_positive_search_by_report_origin_shows_all_hosts(target_sat):
         )
 
 
-def test_positive_all_hosts_manage_notifications(request, target_sat):
+@pytest.mark.foremanctl
+def test_positive_all_hosts_manage_notifications(request, target_sat, notification_mail):
     """Verify that the 'Manage notifications' bulk action on All Hosts page
     controls whether email notifications are sent for host configuration errors.
 
     :id: a732b4d8-3b2e-4bf3-b2d8-937153471be7
 
     :setup:
-        1. Start Postfix on Satellite for local mail delivery.
-        2. Create an admin user with email root@localhost and mail enabled.
+        1. Use the shared notification_mail fixture for Satellite-local SMTP capture.
+        2. Create an admin user with the fixture's unique email address and mail enabled.
         3. Subscribe the user to config_error_state notification.
-        4. Create a host owned by the admin user with notifications enabled.
+        4. Create a host owned by the admin user with notifications disabled.
 
     :steps:
         1. Via UI All Hosts, enable notifications for the host using
            the 'Manage notifications' bulk action.
         2. Submit a config report with errors for the host via API.
-        3. Verify an email notification is received in the local mailbox.
+        3. Verify an email notification is captured for the test recipient.
         4. Via UI All Hosts, disable notifications for the host using
            the 'Manage notifications' bulk action.
         5. Submit another config report with errors for the host via API.
@@ -4714,11 +4718,6 @@ def test_positive_all_hosts_manage_notifications(request, target_sat):
 
     :Verifies: SAT-38429
     """
-    root_mailbox = '/var/spool/mail/root'
-    root_mailbox_backup = f'{root_mailbox}-{gen_string("alphanumeric")}.bak'
-
-    assert target_sat.execute('systemctl start postfix').status == 0
-
     user_password = gen_string('alphanumeric')
     user = target_sat.api.User(
         admin=True,
@@ -4726,7 +4725,7 @@ def test_positive_all_hosts_manage_notifications(request, target_sat):
         default_location=DEFAULT_LOC,
         login=gen_string('alphanumeric'),
         password=user_password,
-        mail='root@localhost',
+        mail=notification_mail['address'],
     ).create()
     request.addfinalizer(user.delete)
     user.mail_enabled = True
@@ -4743,15 +4742,9 @@ def test_positive_all_hosts_manage_notifications(request, target_sat):
     host = target_sat.api.Host(
         owner=user,
         owner_type='User',
-        enabled=True,
+        enabled=False,
     ).create()
     request.addfinalizer(host.delete)
-
-    # Backup and purge root mailbox so only test-generated emails are present
-    target_sat.execute(f'cp -f {root_mailbox} {root_mailbox_backup}')
-    target_sat.execute(f'truncate -s 0 {root_mailbox}')
-    # Restore original mailbox content after test completes
-    request.addfinalizer(lambda: target_sat.execute(f'mv -f {root_mailbox_backup} {root_mailbox}'))
 
     with target_sat.ui_session(user=user.login, password=user_password) as session:
         session.organization.select(org_name=ANY_CONTEXT['org'])
@@ -4768,10 +4761,7 @@ def test_positive_all_hosts_manage_notifications(request, target_sat):
         # Step 2: Submit a config report with errors and verify email arrives
         marker_1 = gen_string('alphanumeric')
         submit_config_report_with_error(target_sat, user.login, user_password, host.name, marker_1)
-        wait_for_mail(target_sat, root_mailbox, marker_1)
-
-        # Purge mailbox so marker_1 email doesn't interfere with the negative check below
-        target_sat.execute(f'truncate -s 0 {root_mailbox}')
+        wait_for_mail(target_sat, notification_mail, marker_1, timeout=300)
 
         # Step 3: Disable notifications via UI bulk action
         result = session.all_hosts.manage_notifications(host_names=host.name, enable=False)
@@ -4784,12 +4774,5 @@ def test_positive_all_hosts_manage_notifications(request, target_sat):
         # Step 4: Submit another config report and verify NO email arrives
         marker_2 = gen_string('alphanumeric')
         submit_config_report_with_error(target_sat, user.login, user_password, host.name, marker_2)
-        try:
-            wait_for_mail(target_sat, root_mailbox, marker_2, timeout=120)
-            raise AssertionError(
-                f'Email notification with marker {marker_2} was received '
-                f'even though notifications were disabled for host {host.name}!'
-            )
-        except AssertionError as err:
-            if 'No e-mail' not in str(err):
-                raise
+        with pytest.raises(TimedOutError):
+            wait_for_mail(target_sat, notification_mail, marker_2, timeout=120)
