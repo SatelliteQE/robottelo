@@ -1886,8 +1886,10 @@ class TestCapsuleContentManagement:
             )
 
     @pytest.mark.stubbed
-    def test_positive_sync_python_content_to_capsule(
-        self, target_sat, module_capsule_configured, module_org, module_lce
+    @pytest.mark.e2e
+    @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+    def test_positive_sync_consume_python_content_to_capsule(
+        self, target_sat, module_capsule_configured, module_org, module_lce, rhel_contenthost
     ):
         """Publish Python content to a Capsule and verify sync.
 
@@ -1898,6 +1900,7 @@ class TestCapsuleContentManagement:
             2. Add it to a content view, publish and promote to a Capsule lifecycle
                environment.
             3. Sync the Capsule and verify the python_package content type and counts.
+            4. Register a host to the Capsule and install a Python package from the Capsule.
 
         :expectedresults: Python packages are published to the Capsule and counts match
             the Satellite after sync.
