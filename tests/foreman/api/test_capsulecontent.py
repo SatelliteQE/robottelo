@@ -1906,8 +1906,6 @@ class TestCapsuleContentManagement:
             the Satellite after sync.
 
         :BlockedBy: SAT-36514
-
-        :CaseImportance: High
         """
         # TODO: cannot be implemented while Satellite does not enable the python content
         # type, so no Capsule can carry Python content to test against.

@@ -3076,8 +3076,6 @@ class TestPythonContentView:
 
         :expectedresults: The Python repository is assigned, the published version carries
             the synced packages under the python content type, and promotion succeeds.
-
-        :CaseImportance: High
         """
         content_view.repository = [class_python_repo]
         content_view = content_view.update(['repository'])
