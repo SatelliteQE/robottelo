@@ -34,20 +34,10 @@ from robottelo.utils.installer import InstallerCommand
 
 
 @pytest.fixture
-def sync_roles(target_sat):
-    """Sync all redhat.satellite roles and delete when finished
-    Returns: A dict of the sync response and role names
-    """
+def sync_roles(target_sat, synced_ansible_roles):
+    """Provide redhat.satellite roles for the FAM execution scenario."""
     roles = [f'redhat.satellite.{role}' for role in RH_SAT_ROLES]
-    proxy_list = target_sat.cli.Proxy.list({'search': f'name={target_sat.hostname}'})
-    proxy_id = proxy_list[0].get('id')
-    sync = target_sat.cli.Ansible.roles_sync({'role-names': roles, 'proxy-id': proxy_id})
-    yield {'task': sync, 'roles': roles}
-    roles_list = target_sat.cli.Ansible.roles_list()
-    for role in roles_list:
-        if role.get('name') in roles:
-            role_id = role.get('id')
-            target_sat.cli.Ansible.roles_delete({'id': role_id})
+    return {'roles': synced_ansible_roles(target_sat, roles)}
 
 
 @pytest.fixture(scope='module')
