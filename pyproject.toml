@@ -9,13 +9,13 @@ authors = [
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Natural Language :: English",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
 ]
 requires-python = "~=3.12"
-license = {text = "GNU GPL v3.0"}
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
 
 [project.urls]
 Homepage = "https://github.com/SatelliteQE/robottelo"

@@ -4,9 +4,9 @@
 
 :CaseAutomation: Automated
 
-:CaseComponent: SatelliteMaintain
+:CaseComponent: BackupandRestore
 
-:Team: Rocket
+:Team: Platform
 
 :CaseImportance: High
 

@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Artemis
+:team: Phoenix
 
 :CaseImportance: High
 

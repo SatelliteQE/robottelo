@@ -12,10 +12,103 @@
 
 """
 
+import shlex
+
 import pytest
 
 from robottelo.config import settings
 from robottelo.constants import InstallationServices
+
+
+def test_positive_disconnected_vex_import_creates_missing_destination(module_satellite_iop):
+    """Verify a manual VEX archive is installed when no destination archive exists.
+
+    :id: 69c0522c-47c3-410f-9bc8-ccdae4da7ede
+
+    :steps:
+        1. Enable IoP on Satellite.
+        2. Save any existing manual and destination VEX archives.
+        3. Put a manual VEX archive in /var/lib/foreman and remove the destination archive.
+        4. Run iop-vex-downloader.sh in disconnected mode.
+
+    :expectedresults:
+        1. The downloader exits successfully.
+        2. vex-latest.tar.zst is created in the VEX data directory and matches the manual archive.
+
+    :Verifies: SAT-51935
+    """
+    # Keep the backup, mutation, assertion, and restoration in one remote shell while holding
+    # a lock. This prevents parallel workers from observing or restoring one another's archives.
+    script = r'''
+set -euo pipefail
+
+manual_archive=/var/lib/foreman/vex-latest.tar.zst
+destination_dir=/var/www/html/pub/iop/data/csaf/v2/vex
+destination_archive="$destination_dir/vex-latest.tar.zst"
+backup_dir=
+manual_existed=0
+destination_existed=0
+archives_mutated=0
+
+cleanup() {
+    test_status=$?
+    cleanup_status=0
+    trap - EXIT
+
+    if [ "$archives_mutated" -eq 1 ]; then
+        if ! rm -f -- "$manual_archive" "$destination_archive"; then
+            echo 'Failed to remove test VEX archives during cleanup' >&2
+            cleanup_status=1
+        fi
+        if [ "$manual_existed" -eq 1 ] && ! mv -- "$backup_dir/manual" "$manual_archive"; then
+            echo 'Failed to restore the manual VEX archive' >&2
+            cleanup_status=1
+        fi
+        if [ "$destination_existed" -eq 1 ] && ! mv -- "$backup_dir/destination" "$destination_archive"; then
+            echo 'Failed to restore the destination VEX archive' >&2
+            cleanup_status=1
+        fi
+    fi
+    if [ -n "$backup_dir" ] && [ -d "$backup_dir" ] && ! rmdir -- "$backup_dir"; then
+        echo 'Failed to remove the VEX archive backup directory' >&2
+        cleanup_status=1
+    fi
+
+    if [ "$test_status" -ne 0 ]; then
+        exit "$test_status"
+    fi
+    exit "$cleanup_status"
+}
+trap cleanup EXIT
+
+exec 9>/var/lib/foreman/.sat-51935-vex.lock
+flock -x 9
+
+backup_dir=$(mktemp -d /tmp/sat-51935.XXXXXX)
+if [ -e "$manual_archive" ]; then
+    manual_existed=1
+    cp -a -- "$manual_archive" "$backup_dir/manual"
+fi
+if [ -e "$destination_archive" ]; then
+    destination_existed=1
+    cp -a -- "$destination_archive" "$backup_dir/destination"
+fi
+
+archives_mutated=1
+mkdir -p -- "$destination_dir"
+rm -f -- "$manual_archive" "$destination_archive"
+printf 'SAT-51935 disconnected VEX archive\n' > "$manual_archive"
+
+# A closed loopback port deterministically takes the downloader's offline path without
+# depending on public-network availability.
+/usr/local/bin/iop-vex-downloader.sh https://127.0.0.1:9/data/csaf/v2/vex/ "$destination_dir/"
+test -f "$destination_archive"
+cmp -s -- "$manual_archive" "$destination_archive"
+'''
+    result = module_satellite_iop.execute(f'bash -c {shlex.quote(script)}')
+    assert result.status == 0, (
+        f'VEX downloader or archive cleanup failed: {result.stdout}\n{result.stderr}'
+    )
 
 
 @pytest.mark.no_containers
