@@ -128,7 +128,6 @@ def get_sat_rhel_version():
 
 
 class ContentHost(Host, ContentHostMixins):
-    run = Host.execute
     default_timeout = settings.server.ssh_client.command_timeout
     # Extend the keep_keys tuple from the parent class
     keep_keys = (*Host.keep_keys, 'net_type', 'blank')
@@ -153,6 +152,36 @@ class ContentHost(Host, ContentHostMixins):
             self._net_type = NetworkType(nt)
         self.blank = kwargs.get('blank', False)
         super().__init__(hostname=hostname, **kwargs)
+
+    @staticmethod
+    def _is_stale_ssh_session(exc):
+        """Return True when hussh left a dead session after a long idle wait."""
+        text = f'{exc}'
+        if 'Session(-43)' in text or 'Timed out establishing channel session' in text:
+            return True
+        if 'SocketRecvError' in text:
+            return True
+        cause = getattr(exc, '__cause__', None)
+        if cause is not None and cause is not exc:
+            return ContentHost._is_stale_ssh_session(cause)
+        return False
+
+    def execute(self, command, timeout=None):
+        """Execute a command, reconnecting once if the SSH session is dead."""
+        try:
+            return super().execute(command, timeout=timeout)
+        except TimeoutError as err:
+            if not self._is_stale_ssh_session(err):
+                raise
+            logger.warning(
+                'SSH session to %s is dead (%s); reconnecting and retrying once',
+                self.hostname,
+                err,
+            )
+            self.close()
+            return super().execute(command, timeout=timeout)
+
+    run = execute
 
     @property
     def network_type(self):
