@@ -6,7 +6,7 @@
 
 :CaseComponent: SatelliteClone
 
-:Team: Rocket
+:Team: Platform
 
 :CaseImportance: High
 

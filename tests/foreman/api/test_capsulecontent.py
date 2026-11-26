@@ -2450,7 +2450,7 @@ class TestPodman:
 
     :CaseComponent: Repositories
 
-    :team: Artemis
+    :team: Phoenix
     """
 
     @pytest.mark.skip_if_not_set('capsule')
