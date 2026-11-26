@@ -111,10 +111,6 @@ def test_positive_restore_rpms_after_promoting_older_version(function_org, reque
 
     :expectedresults: The final environment contains the original RPM set again,
         and the earlier environment keeps the newer set.
-
-    :CaseImportance: High
-
-    :Verifies: SAT-54043
     """
     request.addfinalizer(function_org.delete)
     product = target_sat.api.Product(organization=function_org).create()
