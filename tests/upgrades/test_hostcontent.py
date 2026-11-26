@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Proton
+:Team: Atlas
 
 :CaseImportance: High
 
