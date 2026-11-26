@@ -6,7 +6,7 @@
 
 :CaseComponent: ActivationKeys
 
-:team: Proton
+:team: Atlas
 
 :CaseImportance: High
 
