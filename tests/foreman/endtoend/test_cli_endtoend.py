@@ -6,7 +6,7 @@
 
 :CaseComponent: Hammer
 
-:Team: Rocket
+:Team: Nexus
 
 :CaseImportance: High
 
