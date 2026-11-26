@@ -16,7 +16,7 @@ from calendar import monthrange
 from datetime import UTC, datetime, timedelta
 from time import sleep
 
-from dateutil.relativedelta import FR, relativedelta
+from dateutil.relativedelta import FR, SU, relativedelta
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
@@ -949,8 +949,36 @@ class TestRemoteExecution:
 
         """
         client = rex_contenthost
-        today = datetime.today()
-        last_day_of_month = monthrange(today.year, today.month)[1]
+        now = datetime.now(UTC).replace(tzinfo=None)
+        today = now
+
+        def next_occurrence(day_resolver, hour):
+            """Compute the next occurrence of a monthly cron pattern.
+
+            ``day_resolver`` receives a date and returns the scheduled day for
+            that month. If the resulting datetime is already in the past, the
+            occurrence for the following month is returned instead.
+            """
+            occurrence = now.replace(day=1, hour=hour, minute=0, second=0, microsecond=0)
+            occurrence = occurrence.replace(day=day_resolver(occurrence))
+            if occurrence <= now:
+                occurrence = occurrence + relativedelta(months=1, day=1)
+                occurrence = occurrence.replace(day=day_resolver(occurrence))
+            return occurrence.strftime('%Y/%m/%d %H:%M:%S')
+
+        def last_day(day):
+            return monthrange(day.year, day.month)[1]
+
+        def last_friday(day):
+            return (day + relativedelta(day=31, weekday=FR(-1))).day
+
+        # @weekly fires on Sundays; weeks start on Monday, so on a Sunday the
+        # current day itself is the candidate occurrence and must be rolled
+        # forward if its midnight has already passed
+        next_sunday = today + relativedelta(weekday=SU)
+        if next_sunday <= now:
+            next_sunday += timedelta(days=7)
+
         # cronline uses https://github.com/floraison/fugit
         fugit_expressions = [
             ['@yearly', f'{today.year + 1}/01/01 00:00:00'],
@@ -960,7 +988,7 @@ class TestRemoteExecution:
             ],
             [
                 '@weekly',
-                f'{(today + timedelta(days=-today.weekday() + 6)).strftime("%Y/%m/%d")} 00:00:00',
+                f'{next_sunday.strftime("%Y/%m/%d")} 00:00:00',
             ],
             [
                 '@midnight',
@@ -971,15 +999,9 @@ class TestRemoteExecution:
                 f'{(datetime.now(UTC) + timedelta(hours=1)).strftime("%Y/%m/%d %H")}:00:00',
             ],
             # last day of month
-            [
-                '0 0 last * *',
-                f'{today.strftime("%Y/%m")}/{last_day_of_month} 00:00:00',
-            ],
+            ['0 0 last * *', next_occurrence(last_day, 0)],
             # last friday of month at 7
-            [
-                '0 7 * * fri#-1',
-                f'{(today + relativedelta(day=31, weekday=FR(-1))).strftime("%Y/%m/%d")} 07:00:00',
-            ],
+            ['0 7 * * fri#-1', next_occurrence(last_friday, 7)],
         ]
         for exp in fugit_expressions:
             invocation_command = target_sat.cli_factory.job_invocation(
