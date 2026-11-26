@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:Team: Proton
+:Team: Atlas
 
 :CaseImportance: High
 
@@ -1929,7 +1929,7 @@ def test_negative_multi_cv_registration(
 
     :CaseComponent: Hosts
 
-    :team: Proton
+    :team: Atlas
 
     :parametrized: yes
     """
@@ -1977,7 +1977,7 @@ def test_positive_multi_cv_registration(
 
     :CaseComponent: Hosts
 
-    :team: Proton
+    :team: Atlas
 
     :parametrized: yes
     """
@@ -2051,7 +2051,7 @@ def test_positive_multi_cv_assignment(
 
     :CaseComponent: Hosts
 
-    :team: Proton
+    :team: Atlas
 
     :parametrized: yes
     """
@@ -2120,7 +2120,7 @@ def test_positive_multi_cv_host_repo_availability(
 
     :CaseComponent: Hosts
 
-    :team: Proton
+    :team: Atlas
 
     :parametrized: yes
     """

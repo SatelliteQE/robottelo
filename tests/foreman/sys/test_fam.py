@@ -8,7 +8,7 @@
 
 :CaseComponent: AnsibleCollection
 
-:Team: Rocket
+:Team: Nexus
 
 """
 

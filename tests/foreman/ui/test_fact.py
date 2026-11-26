@@ -6,7 +6,7 @@
 
 :CaseComponent: Fact
 
-:Team: Proton
+:Team: Atlas
 
 :CaseImportance: High
 
