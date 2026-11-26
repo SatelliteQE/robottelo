@@ -217,7 +217,7 @@ class TestContentView:
 
         :CaseComponent: Pulp
 
-        :team: Artemis
+        :team: Phoenix
 
         :CaseImportance: Medium
 
@@ -654,7 +654,7 @@ class TestContentViewPublishPromote:
 
         :CaseComponent: Pulp
 
-        :team: Artemis
+        :team: Phoenix
 
         :CaseImportance: Medium
 

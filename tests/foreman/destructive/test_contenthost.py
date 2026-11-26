@@ -6,7 +6,7 @@
 
 :CaseComponent: Hosts
 
-:team: Proton
+:team: Atlas
 
 :CaseImportance: High
 
@@ -33,7 +33,7 @@ def test_content_access_after_stopped_foreman(target_sat, rhel7_contenthost):
 
     :CaseComponent: Hosts
 
-    :Team: Proton
+    :Team: Atlas
 
     :parametrized: yes
     """
