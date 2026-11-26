@@ -3,6 +3,7 @@
 from contextlib import nullcontext
 from io import BytesIO
 from pathlib import Path
+import shlex
 import sys
 import tarfile
 from types import SimpleNamespace
@@ -17,7 +18,7 @@ from requests.exceptions import ReadTimeout, SSLError
 from pytest_fixtures.component.rh_cloud import enable_insights
 from robottelo.exceptions import ContentHostError
 from robottelo.hosts import ContentHost
-from robottelo.utils import insights_diagnostics
+from robottelo.utils import insights_diagnostics, insights_readiness
 from robottelo.utils.insights_readiness import TIMEOUT, poll_registration, select_client_core
 
 
@@ -46,6 +47,7 @@ class StubHost:
     def __init__(self, results):
         self.execute = Mock(side_effect=results)
         self._settings = SimpleNamespace(SSH=SimpleNamespace(BACKEND='hussh'))
+        self.os_version = SimpleNamespace(major=9)
 
 
 @pytest.mark.parametrize(
@@ -451,3 +453,163 @@ def test_positive_selects_the_core_used_for_registration(tmp_path, monkeypatch, 
     select_client_core(str(log))
 
     assert sys.path[0] == available_egg
+
+
+@pytest.mark.parametrize('major', [7, 8, 9, 10])
+def test_positive_readiness_uses_client_python(major):
+    """Use Python 2 for RHEL 7 even when an optional Python 3 is installed.
+
+    :id: 3faec50a-3e06-44eb-b32b-4c117acf0b15
+    :steps: Build the readiness command for each supported RHEL major version.
+    :expectedresults: RHEL 7 selects python2; newer hosts retain their interpreter lookup.
+    """
+    host = StubHost([SimpleNamespace(status=0, stdout='ready')])
+    host.os_version.major = major
+
+    host.wait_for_insights_registration(SimpleNamespace(iop_enabled=False))
+
+    command = host.execute.call_args.args[0]
+    assert shlex.split(command)[-3:] == [
+        '$python_bin',
+        '-c',
+        Path(insights_readiness.__file__).read_text(),
+    ]
+    lookup = command.split(') ', 1)[0]
+    if major == 7:
+        assert lookup == 'python_bin=$(command -v /usr/bin/python2'
+    else:
+        assert lookup == (
+            'python_bin=$(command -v /usr/libexec/platform-python || command -v python3 '
+            '|| command -v python'
+        )
+
+
+@pytest.mark.parametrize('scenario', ['old-log', 'latest-bootstrap', 'modern-log', 'untrusted'])
+def test_positive_selects_older_client_bootstrap_core(scenario, tmp_path, monkeypatch):
+    """Recognize older client logs without weakening Core path validation.
+
+    :id: a47107e1-7272-4653-bf98-2f1091954e00
+    :steps: Select Core from old, mixed-format, or untrusted log entries.
+    :expectedresults: The latest bootstrap is used only without an upload Core; unsafe paths fail.
+    """
+    log = tmp_path / 'client.log'
+    contents = 'DEBUG root Loaded initial egg: /etc/insights-client/rpm.egg/insights\n'
+    expected = '/etc/insights-client/rpm.egg'
+    if scenario == 'latest-bootstrap':
+        contents += 'DEBUG root Loaded initial egg: /var/lib/insights/last_stable.egg/insights\n'
+        expected = '/var/lib/insights/last_stable.egg'
+    if scenario == 'modern-log':
+        contents += (
+            'path=/var/lib/insights/last_stable.egg/insights/client/client.py, '
+            'version=3.8.4, phase=collect_and_output, arguments=--register\n'
+        )
+        expected = '/var/lib/insights/last_stable.egg'
+    if scenario == 'untrusted':
+        contents = 'DEBUG root Loaded initial egg: /tmp/untrusted.egg/insights\n'
+    log.write_text(contents)
+    monkeypatch.setattr(insights_readiness.os.path, 'exists', lambda path: True)
+    monkeypatch.setattr(sys, 'path', list(sys.path))
+    original_path = list(sys.path)
+
+    if scenario == 'untrusted':
+        with pytest.raises(RuntimeError, match='not allowed'):
+            select_client_core(str(log))
+        assert sys.path == original_path
+    else:
+        select_client_core(str(log))
+        assert sys.path[0] == expected
+
+
+@pytest.mark.parametrize('scenario', ['missing', 'unreadable', 'unknown', 'outside-tail'])
+def test_negative_core_selection_requires_a_log_record(scenario, tmp_path, monkeypatch):
+    """Never silently import a different Core from the default Python path.
+
+    :id: 0a17a747-f06a-483f-a75f-23f8e6201eae
+    :steps: Select Core from a missing, unreadable, or unrecognized client log.
+    :expectedresults: Selection fails explicitly without modifying the Python path.
+    """
+    log = tmp_path / 'client.log'
+    if scenario == 'unreadable':
+        log.mkdir()
+    elif scenario == 'unknown':
+        log.write_text('Unrecognized client output\n')
+    elif scenario == 'outside-tail':
+        log.write_text(
+            'Loaded initial egg: /etc/insights-client/rpm.egg/insights\n' + 'x' * (2 * 1024 * 1024)
+        )
+    monkeypatch.setattr(sys, 'path', list(sys.path))
+    original_path = list(sys.path)
+
+    with pytest.raises(RuntimeError, match='Core record'):
+        select_client_core(str(log))
+
+    assert sys.path == original_path
+
+
+def test_positive_core_log_decoding_uses_python2_signature(monkeypatch):
+    """Read an older log with Python 2-compatible decode arguments.
+
+    :id: 555209ec-f685-4e92-9171-dee38dada9c0
+    :steps: Read a log through a byte string whose decode accepts only positional arguments.
+    :expectedresults: Invalid UTF-8 is replaced and the recorded egg is selected.
+    """
+
+    class Python2Bytes(bytes):
+        def decode(self, encoding, errors, /):
+            return super().decode(encoding, errors)
+
+    stream = BytesIO(b'\xff DEBUG root Loaded initial egg: /etc/insights-client/rpm.egg/insights\n')
+    read = stream.read
+    stream.read = lambda: Python2Bytes(read())
+    monkeypatch.setattr('builtins.open', Mock(return_value=stream))
+    monkeypatch.setattr(insights_readiness.os.path, 'exists', lambda path: True)
+    monkeypatch.setattr(sys, 'path', list(sys.path))
+
+    select_client_core()
+
+    assert sys.path[0] == '/etc/insights-client/rpm.egg'
+
+
+def test_negative_core_import_failure_identifies_stage(monkeypatch, capsys):
+    """Identify import failures without leaking exception details.
+
+    :id: 3c9f3294-dcff-4a97-a6d4-b2422df36b73
+    :steps: Run the helper with an unavailable Insights Core import.
+    :expectedresults: Failure identifies the import stage but does not expose exception text.
+    """
+    monkeypatch.setattr(insights_readiness, 'select_client_core', Mock())
+    monkeypatch.setitem(sys.modules, 'insights.client.auto_config', None)
+
+    assert insights_readiness.main() == 1
+
+    output = capsys.readouterr().out
+    assert 'importing Insights Core (ModuleNotFoundError)' in output
+
+
+def test_positive_older_core_nonlegacy_mode_does_not_poll(monkeypatch, capsys):
+    """Allow an older bootstrapped Core to bypass the legacy-only lookup.
+
+    :id: 6ef9c055-3535-42f7-93d5-b6ae706fa702
+    :steps: Load client configuration that auto-configuration switches to non-legacy mode.
+    :expectedresults: The helper succeeds without reading identity or constructing a connection.
+    """
+    config = SimpleNamespace(legacy_upload=True)
+    auto_config = Mock(side_effect=lambda config: setattr(config, 'legacy_upload', False))
+    connection = Mock()
+    modules = {
+        'insights.client.auto_config': SimpleNamespace(try_auto_configuration=auto_config),
+        'insights.client.config': SimpleNamespace(
+            InsightsConfig=Mock(return_value=SimpleNamespace(load_all=Mock(return_value=config)))
+        ),
+        'insights.client.connection': SimpleNamespace(InsightsConnection=connection),
+        'insights.client.constants': SimpleNamespace(InsightsConstants=SimpleNamespace()),
+    }
+    monkeypatch.setattr(insights_readiness, 'select_client_core', Mock())
+    monkeypatch.setattr(sys, 'argv', ['readiness'])
+    for name, module in modules.items():
+        monkeypatch.setitem(sys.modules, name, module)
+
+    assert insights_readiness.main() == 0
+
+    connection.assert_not_called()
+    assert 'non-legacy mode; no legacy lookup is needed' in capsys.readouterr().out

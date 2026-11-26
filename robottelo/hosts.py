@@ -1226,9 +1226,16 @@ class ContentHost(Host, ContentHostMixins):
         if satellite.iop_enabled:
             return
         source = Path(insights_readiness.__file__).read_text()
+        # RHEL 7's client and its RHSM dependencies use Python 2, even if an
+        # optional Python 3 is installed. Do not bootstrap Core in that Python 3.
+        python_lookup = (
+            'command -v /usr/bin/python2'
+            if self.os_version.major == 7
+            else 'command -v /usr/libexec/platform-python || command -v python3 || command -v python'
+        )
         command = (
-            'python_bin=$(command -v /usr/libexec/platform-python || command -v python3 '
-            '|| command -v python) || { echo "Insights readiness check needs Python"; exit 1; }; '
+            f'python_bin=$({python_lookup}) '
+            '|| { echo "Insights readiness check needs the client Python interpreter"; exit 1; }; '
             f'timeout -k 1s {insights_readiness.TIMEOUT + 1}s "$python_bin" -c '
             f'{shlex.quote(source)}'
         )
