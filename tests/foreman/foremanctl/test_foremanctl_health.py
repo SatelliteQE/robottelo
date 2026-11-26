@@ -6,7 +6,7 @@
 
 :CaseComponent: Installation
 
-:Team: Rocket
+:Team: Platform
 
 :CaseImportance: Critical
 """
