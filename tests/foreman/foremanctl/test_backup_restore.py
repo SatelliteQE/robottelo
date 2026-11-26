@@ -6,7 +6,7 @@
 
 :CaseComponent: BackupandRestore
 
-:Team: Rocket
+:Team: Platform
 
 :CaseImportance: Critical
 """

@@ -6,7 +6,7 @@
 
 :CaseComponent: Hammer
 
-:Team: Rocket
+:Team: Nexus
 
 :CaseImportance: Critical
 
@@ -61,6 +61,8 @@ def test_negative_api_ping_fail_status(tomcat_service_teardown):
     :BZ: 1835122
 
     :CaseComponent: API
+
+    :Team: Endeavour
 
     :expectedresults: API ping fails and shows FAIL status.
     """

@@ -300,7 +300,7 @@ def test_positive_cloud_billing_azure_columns(
 
     :CaseComponent: Hosts
 
-    :Team: Proton
+    :Team: Atlas
 
     :Verifies: SAT-39184
 
@@ -367,7 +367,7 @@ def test_positive_cloud_billing_aws_columns(
 
     :CaseComponent: Hosts
 
-    :Team: Proton
+    :Team: Atlas
 
     :Verifies: SAT-39184
 
@@ -438,7 +438,7 @@ def test_positive_cloud_billing_gcp_columns(
 
     :CaseComponent: Hosts
 
-    :Team: Proton
+    :Team: Atlas
 
     :Verifies: SAT-39184
 
@@ -503,7 +503,7 @@ def test_positive_cloud_billing_inputs_default_false(
 
     :CaseComponent: Hosts
 
-    :Team: Proton
+    :Team: Atlas
 
     :Verifies: SAT-39184
 
@@ -550,7 +550,7 @@ def test_negative_cloud_billing_azure_false_aws_gcp_true(
 
     :CaseComponent: Hosts
 
-    :Team: Proton
+    :Team: Atlas
 
     :Verifies: SAT-39184
 
@@ -605,7 +605,7 @@ def test_negative_cloud_billing_aws_false_azure_gcp_true(
 
     :CaseComponent: Hosts
 
-    :Team: Proton
+    :Team: Atlas
 
     :Verifies: SAT-39184
 
@@ -660,7 +660,7 @@ def test_negative_cloud_billing_gcp_false_azure_aws_true(
 
     :CaseComponent: Hosts
 
-    :Team: Proton
+    :Team: Atlas
 
     :Verifies: SAT-39184
 
@@ -715,7 +715,7 @@ def test_positive_cloud_billing_multiple_providers_enabled(
 
     :CaseComponent: Hosts
 
-    :Team: Proton
+    :Team: Atlas
 
     :Verifies: SAT-39184
 
@@ -768,7 +768,7 @@ def test_positive_installed_products_hardware_model_column(
 
     :CaseComponent: Hosts
 
-    :Team: Proton
+    :Team: Atlas
 
     :expectedresults: The Host - Installed Products report is generated
                       with Hardware Model column when 'Include Hardware Model' is checked
