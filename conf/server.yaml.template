@@ -78,6 +78,15 @@ SERVER:
   # Can also be set via environment variable: ROBOTTELO_SERVER_INSTALL_METHOD
   INSTALL_METHOD: auto
 
+  # Opt-in Stream EL10 candidate sanity: local complete deployment manifest and
+  # its externally supplied SHA-256. Both are required; no tags/latest fallback.
+  # Use a fresh test process per candidate. Repository mode must be nightly.
+  CANDIDATE_MANIFEST: ""
+  CANDIDATE_SHA256: ""
+  # Local evidence written after running digests and RPM inventory are verified.
+  # This is deployment evidence, not proof that the sanity suite passed.
+  CANDIDATE_EVIDENCE: candidate-evidence.json
+
   # Container registry credentials for foremanctl installations
   # These are required when using foremanctl deploy method
   CONTAINER_REGISTRY:
