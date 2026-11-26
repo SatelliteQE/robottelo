@@ -101,12 +101,17 @@ def lru_sat_ready_rhel(rhel_ver):
     return Broker(**deploy_args, host_class=Satellite).checkout()
 
 
-def get_sat_version():
-    """Try to read sat_version from envvar SATELLITE_VERSION
-    if not available fallback to ssh connection to get it."""
+def get_sat_version(timeout=None):
+    """Read the Satellite version over SSH, falling back to configured versions.
+
+    :param int timeout: SSH command timeout in milliseconds, or None for the default.
+    """
 
     try:
-        sat_version = Satellite().version
+        satellite = Satellite()
+        if timeout is not None:
+            satellite.DEFAULT_TIMEOUT = timeout
+        sat_version = satellite.version
     except (AuthenticationError, ContentHostError, BoxKeyError) as err:
         logger.warning('Failed to get Satellite version: %s', err)
         if sat_version := str(settings.server.version.get('release')) == 'stream':
