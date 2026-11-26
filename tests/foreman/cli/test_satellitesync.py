@@ -6,7 +6,7 @@
 
 :CaseComponent: InterSatelliteSync
 
-:team: Artemis
+:team: Phoenix
 
 :CaseImportance: High
 
@@ -3380,7 +3380,7 @@ class TestPodman:
 
     :CaseComponent: Repositories
 
-    :team: Artemis
+    :team: Phoenix
     """
 
     def test_positive_export_import_podman_repo(

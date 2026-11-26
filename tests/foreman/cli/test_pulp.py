@@ -6,7 +6,7 @@
 
 :CaseComponent: Pulp
 
-:Team: Artemis
+:Team: Phoenix
 
 :CaseImportance: High
 
