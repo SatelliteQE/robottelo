@@ -12,7 +12,6 @@
 
 """
 
-from hashlib import sha256
 import random
 import re
 from string import punctuation
@@ -852,7 +851,9 @@ class TestRepository:
         with pytest.raises(TaskFailedError):
             repo.sync()
 
-    def test_positive_recover_from_failed_yum_sync(self, function_org, request, target_sat):
+    def test_positive_recover_from_failed_yum_sync(
+        self, function_org, function_product, request, target_sat
+    ):
         """Keep promoted RPM content available when an upstream sync fails.
 
         :id: 0b2e00b0-6d96-4897-be77-9e8c31e9e635
@@ -866,16 +867,13 @@ class TestRepository:
         :expectedresults: The missing upstream metadata causes the sync to fail.
             Library packages and the promoted repository's metadata and RPM remain
             available. Sync succeeds again after restoring the upstream URL.
-
-        :customerscenario: true
         """
         # Removing this test's organization also removes its content and environments.
         request.addfinalizer(function_org.delete)
         api = target_sat.api
         source_url = repo_constants.CUSTOM_RPM_REPO
-        product = api.Product(organization=function_org).create()
         repo = api.Repository(
-            product=product, url=source_url, download_policy='immediate', unprotected=True
+            product=function_product, url=source_url, download_policy='immediate', unprotected=True
         ).create()
         target_sat.wait_for_tasks(
             search_query='Actions::Katello::Repository::MetadataGenerate'
@@ -914,16 +912,9 @@ class TestRepository:
         content_timeout = 30
         rpm_urls = get_repo_files_urls_by_url(promoted_url, timeout=content_timeout)
         assert rpm_urls, 'The promoted repository must serve RPMs before the failed sync'
-        repomd_url = urljoin(promoted_url, 'repodata/repomd.xml')
-
-        def download_checksum(url):
-            response = client.get(url, verify=settings.server.verify_ca, timeout=content_timeout)
-            response.raise_for_status()
-            assert response.content, f'No content downloaded from {url}'
-            return sha256(response.content).hexdigest()
-
-        metadata_checksum = download_checksum(repomd_url)
-        rpm_checksum = download_checksum(rpm_urls[0])
+        metadata_before_sync = target_sat.get_repomd(promoted_url.rstrip('/'))
+        assert metadata_before_sync, 'The promoted repository must serve non-empty metadata'
+        rpm_checksum = target_sat.checksum_by_url(rpm_urls[0], sum_type='sha256sum')
         missing_feed = repo_constants.FAKE_YUM_MISSING_REPO
         repo.url = missing_feed
         repo = repo.update(['url'])
@@ -942,8 +933,8 @@ class TestRepository:
             assert get_repo_files_urls_by_url(promoted_url, timeout=content_timeout) == rpm_urls, (
                 'Failed sync changed the promoted RPM set'
             )
-            assert download_checksum(repomd_url) == metadata_checksum
-            assert download_checksum(rpm_urls[0]) == rpm_checksum
+            assert target_sat.get_repomd(promoted_url.rstrip('/')) == metadata_before_sync
+            assert target_sat.checksum_by_url(rpm_urls[0], sum_type='sha256sum') == rpm_checksum
         finally:
             repo.url = source_url
             repo = repo.update(['url'])

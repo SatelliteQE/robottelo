@@ -6,6 +6,7 @@ import re
 import requests
 
 from robottelo import ssh
+from robottelo.config import settings
 from robottelo.exceptions import CLIReturnCodeError
 
 
@@ -44,7 +45,7 @@ def get_repo_files_urls_by_url(url, extension='rpm', *, timeout=None):
     if not url.endswith('/'):
         url += '/'
 
-    result = requests.get(url, verify=False, timeout=timeout)
+    result = requests.get(url, verify=settings.server.verify_ca, timeout=timeout)
     if result.status_code != 200:
         raise requests.HTTPError(f'{url} is not accessible')
 
