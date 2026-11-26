@@ -6,7 +6,7 @@
 
 :CaseComponent: SatelliteMaintain
 
-:Team: Rocket
+:Team: Platform
 
 :CaseImportance: Critical
 

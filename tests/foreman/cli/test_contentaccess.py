@@ -6,7 +6,7 @@
 
 :CaseAutomation: Automated
 
-:team: Proton
+:team: Atlas
 
 """
 

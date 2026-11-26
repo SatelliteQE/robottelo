@@ -6,7 +6,7 @@
 
 :CaseComponent: InterSatelliteSync
 
-:team: Artemis
+:team: Phoenix
 
 :CaseImportance: High
 
@@ -3378,7 +3378,7 @@ class TestPodman:
 
     :CaseComponent: Repositories
 
-    :team: Artemis
+    :team: Phoenix
     """
 
     @pytest.fixture(scope='class')
