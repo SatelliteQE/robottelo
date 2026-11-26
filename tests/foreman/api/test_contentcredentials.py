@@ -6,7 +6,7 @@
 
 :CaseComponent: ContentCredentials
 
-:team: Artemis
+:team: Phoenix
 
 :CaseImportance: High
 

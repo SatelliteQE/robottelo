@@ -114,7 +114,7 @@ class TestDockerRepository:
 
     :CaseComponent: Repositories
 
-    :team: Artemis
+    :team: Phoenix
     """
 
     @pytest.mark.parametrize('name', **parametrized(valid_docker_repository_names()))
@@ -497,7 +497,7 @@ class TestDockerActivationKey:
 
     :CaseComponent: ActivationKeys
 
-    :team: Proton
+    :team: Atlas
     """
 
     def test_positive_add_docker_repo_cv(
