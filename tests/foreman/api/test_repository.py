@@ -6,7 +6,7 @@
 
 :CaseComponent: Repositories
 
-:team: Artemis
+:team: Phoenix
 
 :CaseImportance: High
 
@@ -2145,7 +2145,7 @@ class TestSRPMRepositoryIgnoreContent:
 
     :customerscenario: true
 
-    :team: Artemis
+    :team: Phoenix
 
     :BZ: 1673215
     """

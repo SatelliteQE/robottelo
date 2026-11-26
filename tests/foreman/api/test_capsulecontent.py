@@ -2042,7 +2042,7 @@ class TestPodman:
 
     :CaseComponent: Repositories
 
-    :team: Artemis
+    :team: Phoenix
     """
 
     @pytest.fixture(scope='class')
