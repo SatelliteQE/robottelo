@@ -582,6 +582,7 @@ class TestAnsibleREX:
     @pytest.mark.pit_server
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.hosted_insights
     def test_positive_config_report_ansible(
         self,
         target_sat,

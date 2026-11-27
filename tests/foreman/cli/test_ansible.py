@@ -51,6 +51,7 @@ class TestAnsibleCfgMgmt:
     @pytest.mark.no_containers
     @pytest.mark.rhel_ver_match('[^6].*')
     @pytest.mark.parametrize('setting_update', ['foreman_tasks_proxy_batch_trigger'], indirect=True)
+    @pytest.mark.hosted_insights
     def test_positive_ansible_e2e(
         self,
         target_sat,

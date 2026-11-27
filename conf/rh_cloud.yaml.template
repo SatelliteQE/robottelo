@@ -1,5 +1,11 @@
 RH_CLOUD:
   TOKEN: this-isnt-the-token
+  # Daily UTC exclusion window for tests marked hosted_insights (start inclusive, end exclusive).
+  SKIP_PEAK_UPLOADS: true
+  PEAK_UPLOAD_START_UTC: '23:00'
+  PEAK_UPLOAD_END_UTC: '10:30'
+  # Intentional PRT/local override; does not bypass readiness checks or other skips.
+  ALLOW_PEAK_UPLOADS: false
   IOP:
     IMAGE_PATH:   # For 6.17 IoP
     IMAGE_PATHS:  # For 6.18+ IoP

@@ -57,6 +57,7 @@ def enable_cloud_connector(target_sat):
 
 
 @pytest.mark.e2e
+@pytest.mark.hosted_insights
 def test_positive_inventory_generate_upload_cli(
     rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat
 ):
@@ -136,6 +137,7 @@ def test_positive_inventory_generate_upload_cli(
         assert hosts_count == local_file_data['slices_counts'][slice_name]
 
 
+@pytest.mark.hosted_insights
 def test_positive_sync_inventory_status_missing_host_ip(
     rhcloud_manifest_org,
     rhcloud_registered_hosts,
@@ -206,6 +208,7 @@ def test_positive_sync_inventory_status_missing_host_ip(
     assert host_status['host_statuses']['disconnect'] == 0
 
 
+@pytest.mark.hosted_insights
 def test_positive_sync_inventory_status_cli(
     rhcloud_manifest_org,
     module_target_sat,
@@ -368,6 +371,7 @@ def test_positive_generate_all_reports_job(target_sat):
         target_sat.update_setting('allow_auto_inventory_upload', True)
 
 
+@pytest.mark.hosted_insights
 def test_positive_generate_reports_job_cli(
     rhcloud_manifest_org, module_target_sat, rhcloud_registered_hosts
 ):
@@ -406,6 +410,7 @@ def test_positive_generate_reports_job_cli(
     assert 'exists' in check_result.stdout
 
 
+@pytest.mark.hosted_insights
 def test_positive_generate_reports_job_cli_disconnected(
     rhcloud_manifest_org,
     module_target_sat,
@@ -452,6 +457,7 @@ def test_positive_generate_reports_job_cli_disconnected(
 
 
 @pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.hosted_insights
 def test_positive_download_reports_job_cli_disconnected(
     rhcloud_manifest_org, module_target_sat, rhcloud_registered_hosts
 ):
@@ -491,6 +497,7 @@ cat $(ls /tmp/report/*.json | grep -v meta)'''
 
 
 @pytest.mark.rhel_ver_match('N-2')
+@pytest.mark.hosted_insights
 def test_positive_register_insights_client_host(module_target_sat, rhel_insights_vm):
     """Check the below command executed successfully
     command - insights-client --ansible-host=foo.example.com

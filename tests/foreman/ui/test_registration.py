@@ -135,6 +135,7 @@ def test_negative_global_registration_without_ak(
 @pytest.mark.no_containers
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_match(r'^(?!.*fips).*$')
+@pytest.mark.hosted_insights
 def test_positive_global_registration_end_to_end(
     module_activation_key,
     module_org,
@@ -379,6 +380,7 @@ def test_global_registration_form_populate(
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
+@pytest.mark.hosted_insights
 def test_global_registration_with_gpg_repo_and_default_package(
     module_activation_key, rhel_contenthost, target_sat, module_org
 ):
@@ -445,6 +447,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.hosted_insights
 def test_global_re_registration_host_with_force_ignore_error_options(
     module_activation_key, rhel_contenthost, module_target_sat, module_org
 ):
@@ -645,6 +648,7 @@ def test_positive_global_registration_form(
 
 @pytest.mark.foreman_installer
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.hosted_insights
 def test_global_registration_with_capsule_host(
     capsule_configured,
     rhel_contenthost,
@@ -800,6 +804,7 @@ def test_subscription_manager_install_from_repository(
 
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
+@pytest.mark.hosted_insights
 def test_registering_with_title_using_global_registration_parameter(
     module_target_sat,
     rhel_contenthost,

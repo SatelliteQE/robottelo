@@ -116,6 +116,7 @@ def common_assertion(
     ['subscription_connection_enabled=true', 'subscription_connection_enabled=false'],
     indirect=True,
 )
+@pytest.mark.hosted_insights
 def test_rhcloud_inventory_e2e(
     inventory_settings,
     rhcloud_manifest_org,
@@ -224,6 +225,7 @@ def test_rhcloud_inventory_e2e(
 
 
 @pytest.mark.run_in_one_thread
+@pytest.mark.hosted_insights
 def test_rh_cloud_inventory_settings(
     module_target_sat,
     inventory_settings,
@@ -399,6 +401,7 @@ def test_failed_inventory_upload():
 
 
 @pytest.mark.run_in_one_thread
+@pytest.mark.hosted_insights
 def test_rhcloud_global_parameters(
     request,
     inventory_settings,
@@ -568,6 +571,7 @@ def test_subscription_connection_settings_ui_behavior(request, module_target_sat
 
 @pytest.mark.no_containers
 @pytest.mark.run_in_one_thread
+@pytest.mark.hosted_insights
 def test_rh_cloud_minimal_report(
     module_target_sat,
     inventory_settings,
@@ -671,6 +675,7 @@ def test_rh_cloud_minimal_report(
 @pytest.mark.e2e
 @pytest.mark.pit_client
 @pytest.mark.rhel_ver_list([7, 8, 9, 10])
+@pytest.mark.hosted_insights
 def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, module_target_sat):
     """Test syncing Lightspeed inventory status
 
@@ -716,6 +721,7 @@ def test_sync_inventory_status(rhcloud_manifest_org, rhcloud_registered_hosts, m
 
 
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
+@pytest.mark.hosted_insights
 def test_positive_inventory_sync_check_host_status_categories(
     request,
     rhcloud_manifest_org,
