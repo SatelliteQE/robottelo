@@ -35,7 +35,7 @@ from robottelo.constants import (
     DataFile,
     repos as repo_constants,
 )
-from robottelo.content_info import get_repo_files_by_url
+from robottelo.content_info import get_repo_files_by_url, get_repo_files_urls_by_url
 from robottelo.logging import logger
 from robottelo.utils import datafactory
 from robottelo.utils.datafactory import parametrized
@@ -850,6 +850,97 @@ class TestRepository:
         """
         with pytest.raises(TaskFailedError):
             repo.sync()
+
+    def test_positive_recover_from_failed_yum_sync(
+        self, function_org, function_product, request, target_sat
+    ):
+        """Keep promoted RPM content available when an upstream sync fails.
+
+        :id: 0b2e00b0-6d96-4897-be77-9e8c31e9e635
+
+        :steps:
+            1. Sync a custom YUM repository, then publish and promote its content view.
+            2. Change the upstream URL to a missing repository and sync again.
+            3. Check the sync error and the previously synced and promoted content.
+            4. Restore the original URL and sync the same repository again.
+
+        :expectedresults: The missing upstream metadata causes the sync to fail.
+            Library packages and the promoted repository's metadata and RPM remain
+            available. Sync succeeds again after restoring the upstream URL.
+        """
+        # Removing this test's organization also removes its content and environments.
+        request.addfinalizer(function_org.delete)
+        api = target_sat.api
+        source_url = repo_constants.CUSTOM_RPM_REPO
+        repo = api.Repository(
+            product=function_product, url=source_url, download_policy='immediate', unprotected=True
+        ).create()
+        target_sat.wait_for_tasks(
+            search_query='Actions::Katello::Repository::MetadataGenerate'
+            f' and resource_id = {repo.id}'
+            ' and resource_type = Katello::Repository',
+            max_tries=6,
+            search_rate=10,
+        )
+        repo.sync()
+
+        def library_package_ids():
+            return {
+                package.id
+                for package in api.Package(repository=repo).search(query={'per_page': 1000})
+            }
+
+        packages_before_sync = library_package_ids()
+        assert packages_before_sync, 'The initial sync must import RPMs'
+
+        cv = api.ContentView(organization=function_org, repository=[repo]).create()
+        cv.publish()
+        (version,) = cv.read().version
+        environment = api.LifecycleEnvironment(organization=function_org).create()
+        version.promote(data={'environment_ids': [environment.id]})
+        promoted_repos = api.Repository().search_json(
+            query={
+                'organization_id': function_org.id,
+                'environment_id': environment.id,
+                'content_view_id': cv.id,
+            }
+        )['results']
+        (promoted_repo,) = [
+            candidate for candidate in promoted_repos if candidate['library_instance_id'] == repo.id
+        ]
+        promoted_url = promoted_repo['full_path']
+        content_timeout = 30
+        rpm_urls = get_repo_files_urls_by_url(promoted_url, timeout=content_timeout)
+        assert rpm_urls, 'The promoted repository must serve RPMs before the failed sync'
+        metadata_before_sync = target_sat.get_repomd(promoted_url.rstrip('/'))
+        assert metadata_before_sync, 'The promoted repository must serve non-empty metadata'
+        rpm_checksum = target_sat.checksum_by_url(rpm_urls[0], sum_type='sha256sum')
+        missing_feed = repo_constants.FAKE_YUM_MISSING_REPO
+        repo.url = missing_feed
+        repo = repo.update(['url'])
+        try:
+            with pytest.raises(TaskFailedError) as failed_sync:
+                repo.sync()
+            task_id = failed_sync.value.task_id
+            sync_result = api.ForemanTask(id=task_id).read_json()
+            errors = sync_result['humanized']['errors']
+            assert sync_result['result'] in ('error', 'warning'), sync_result['result']
+            assert any(
+                re.search(r'\b404\b', error) and missing_feed.rstrip('/') in error
+                for error in errors
+            ), f'Sync task {task_id} did not report the expected upstream 404: {errors}'
+            assert library_package_ids() == packages_before_sync, 'Failed sync changed Library RPMs'
+            assert get_repo_files_urls_by_url(promoted_url, timeout=content_timeout) == rpm_urls, (
+                'Failed sync changed the promoted RPM set'
+            )
+            assert target_sat.get_repomd(promoted_url.rstrip('/')) == metadata_before_sync
+            assert target_sat.checksum_by_url(rpm_urls[0], sum_type='sha256sum') == rpm_checksum
+        finally:
+            repo.url = source_url
+            repo = repo.update(['url'])
+
+        repo.sync(data={'skip_metadata_check': True})
+        assert library_package_ids() == packages_before_sync, 'Retry changed the original RPM set'
 
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
