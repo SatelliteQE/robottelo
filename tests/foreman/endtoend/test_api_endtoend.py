@@ -512,7 +512,7 @@ API_PATHS = {
         '/api/hosts/:host_id/packages',
         '/api/host_packages/:id',
         '/api/host_packages/compare',
-        '/api/host_packages/installed_packages',
+        '/api/hosts/host_packages/installed_packages',
     ),
     'http_proxies': (
         '/api/http_proxies',
