@@ -16,7 +16,7 @@ from calendar import monthrange
 from datetime import UTC, datetime, timedelta
 from time import sleep
 
-from dateutil.relativedelta import FR, relativedelta
+from dateutil.relativedelta import FR, SU, relativedelta
 from fauxfactory import gen_string
 import pytest
 from wait_for import wait_for
@@ -30,6 +30,42 @@ from robottelo.utils.datafactory import filtered_datapoint, parametrized
 
 # REX connect_by_ip / prefer_ipv6; curated IPv6 overlay.
 pytestmark = pytest.mark.network_sensitive
+
+
+def _last_day_of_month(date):
+    return monthrange(date.year, date.month)[1]
+
+
+def _last_friday_of_month(date):
+    return (date + relativedelta(day=31, weekday=FR(-1))).day
+
+
+def _next_monthly_occurrence(now, day_of_month, hour):
+    """Compute the next occurrence of a monthly cron pattern.
+
+    ``day_of_month`` receives a date in the target month and returns the
+    scheduled day for that month. If the resulting datetime is not in the
+    future, the occurrence for the following month is returned instead.
+    """
+    occurrence = now.replace(day=1, hour=hour, minute=0, second=0, microsecond=0)
+    occurrence = occurrence.replace(day=day_of_month(occurrence))
+    if occurrence <= now:
+        occurrence = occurrence + relativedelta(months=1, day=1)
+        occurrence = occurrence.replace(day=day_of_month(occurrence))
+    return occurrence.strftime('%Y/%m/%d %H:%M:%S')
+
+
+def _next_sunday_midnight(now):
+    """Compute the next occurrence of a Sunday-midnight cron pattern.
+
+    Cron weeks start on Monday, so on a Sunday the current day itself is the
+    candidate occurrence and must be rolled forward if its midnight has
+    already passed.
+    """
+    next_sunday = now + relativedelta(weekday=SU)
+    if next_sunday <= now:
+        next_sunday += timedelta(days=7)
+    return f'{next_sunday:%Y/%m/%d} 00:00:00'
 
 
 @filtered_datapoint
@@ -949,37 +985,19 @@ class TestRemoteExecution:
 
         """
         client = rex_contenthost
-        today = datetime.today()
-        last_day_of_month = monthrange(today.year, today.month)[1]
-        # cronline uses https://github.com/floraison/fugit
+        # cronline uses https://github.com/floraison/fugit; the expected
+        # values are computed from the time each invocation is created so
+        # they cannot go stale when a cron boundary is crossed mid-test
         fugit_expressions = [
-            ['@yearly', f'{today.year + 1}/01/01 00:00:00'],
-            [
-                '@monthly',
-                f'{(today + relativedelta(months=+1)).strftime("%Y/%m")}/01 00:00:00',
-            ],
-            [
-                '@weekly',
-                f'{(today + timedelta(days=-today.weekday() + 6)).strftime("%Y/%m/%d")} 00:00:00',
-            ],
-            [
-                '@midnight',
-                f'{(today + timedelta(days=1)).strftime("%Y/%m/%d")} 00:00:00',
-            ],
-            [
-                '@hourly',
-                f'{(datetime.now(UTC) + timedelta(hours=1)).strftime("%Y/%m/%d %H")}:00:00',
-            ],
+            ['@yearly', lambda now: f'{now.year + 1}/01/01 00:00:00'],
+            ['@monthly', lambda now: f'{(now + relativedelta(months=1)):%Y/%m}/01 00:00:00'],
+            ['@weekly', _next_sunday_midnight],
+            ['@midnight', lambda now: f'{(now + timedelta(days=1)):%Y/%m/%d} 00:00:00'],
+            ['@hourly', lambda now: f'{(now + timedelta(hours=1)):%Y/%m/%d %H}:00:00'],
             # last day of month
-            [
-                '0 0 last * *',
-                f'{today.strftime("%Y/%m")}/{last_day_of_month} 00:00:00',
-            ],
+            ['0 0 last * *', lambda now: _next_monthly_occurrence(now, _last_day_of_month, 0)],
             # last friday of month at 7
-            [
-                '0 7 * * fri#-1',
-                f'{(today + relativedelta(day=31, weekday=FR(-1))).strftime("%Y/%m/%d")} 07:00:00',
-            ],
+            ['0 7 * * fri#-1', lambda now: _next_monthly_occurrence(now, _last_friday_of_month, 7)],
         ]
         for exp in fugit_expressions:
             invocation_command = target_sat.cli_factory.job_invocation(
@@ -991,12 +1009,14 @@ class TestRemoteExecution:
                     'max-iteration': 1,
                 }
             )
+            now = datetime.now(UTC).replace(tzinfo=None)
+            expected_occurrence = exp[1](now)
             result = target_sat.cli.JobInvocation.info({'id': invocation_command['id']})
             assert_job_invocation_status(
                 target_sat, invocation_command['id'], client.hostname, 'queued'
             )
             rec_logic = target_sat.cli.RecurringLogic.info({'id': result['recurring-logic-id']})
-            assert rec_logic['next-occurrence'] == exp[1], (
+            assert rec_logic['next-occurrence'] == expected_occurrence, (
                 f'Job was not scheduled as expected using {exp[0]}'
             )
 
