@@ -2368,6 +2368,8 @@ class TestFileRepository:
         :expectedresults: entire directory is synced
 
         :CaseImportance: Critical
+
+        :BlockedBy: SAT-54695
         """
         # Making Setup For Creating Local Directory using Pulp Manifest
         target_sat.execute(f'mkdir -p {CUSTOM_LOCAL_FOLDER}')
@@ -2406,6 +2408,8 @@ class TestFileRepository:
             referred by symlinks
 
         :CaseAutomation: Automated
+
+        :BlockedBy: SAT-54695
         """
         # Downloading the pulp repository into Satellite Host
         target_sat.execute(f'mkdir -p {CUSTOM_LOCAL_FOLDER}')
