@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Set up the Python environment used for local Robottelo development.
+
+set -eou pipefail
+
+if ! command -v uv >/dev/null 2>&1; then
+  echo "uv not found, installing it..."
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  export PATH="${HOME}/.local/bin:${PATH}"
+fi
+
+if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+  uv venv
+  source .venv/bin/activate
+fi
+uv pip install -r requirements.txt -r requirements-optional.txt
+
+printf "\n\nSetup complete.\n"
+printf "Activate the virtualenv 'source .venv/bin/activate'.\n"
