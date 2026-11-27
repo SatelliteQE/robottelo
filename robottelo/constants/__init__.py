@@ -1695,7 +1695,7 @@ PERMISSIONS_UI = {
         'escalate_roles',
         'view_statuses',
         'generate_ansible_inventory',
-        'download_bootdisk',
+        # 'download_bootdisk', # Not available in containerized
         'my_organizations',
         'generate_foreman_rh_cloud',
         'view_foreman_rh_cloud',
